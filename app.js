@@ -108,15 +108,20 @@
     return TMDB.request(path, params);
   }
   function fromTmdb(m, svc) {
-    var type = m.media_type || (m.title ? 'movie' : 'tv'), date = m.release_date || m.first_air_date || '', pic = m.backdrop_path || m.poster_path; // poster when there's no backdrop
+    var type = m.media_type || (m.title ? 'movie' : 'tv');
+    var date = m.release_date || m.first_air_date || '';
+    var poster = m.poster_path || m.backdrop_path;
+    var backdrop = m.backdrop_path || poster;
     return {
       title: m.title || m.name, sub: m.overview,
       meta: [date.slice(0, 4), type === 'movie' ? 'Movie' : 'Series', m.vote_average ? '★ ' + m.vote_average.toFixed(1) : ''].filter(Boolean).join('  ·  '),
-      img: IMG + 'w500' + pic, bg: IMG + 'w1280' + pic, blur: IMG + 'w300' + pic,
+      img: poster ? IMG + 'w500' + poster : '',
+      bg: backdrop ? IMG + 'w1280' + backdrop : '',
+      blur: poster ? IMG + 'w300' + poster : '',
       src: svc ? svc.name : pickLabel(), svc: svc, tmdb: {type: type, id: m.id}
     };
   }
-  function mix(a, b) { var out = []; for (var i = 0; i < 20; i++) [a[i], b[i]].forEach(function (m) { if (m && m.backdrop_path) out.push(m); }); return out; }
+  function mix(a, b) { var out = []; for (var i = 0; i < 20; i++) [a[i], b[i]].forEach(function (m) { if (m && (m.poster_path || m.backdrop_path)) out.push(m); }); return out; }
   function trending() {
     if (S.langs.length || P.extraQ) { // trending has no language/certification filter, so use popular-and-streamable in the chosen languages
       var q = '&watch_region=' + C.REGION + '&with_watch_monetization_types=flatrate%7Cfree%7Cads&sort_by=popularity.desc&vote_count.gte=5' + langQ();
@@ -134,7 +139,11 @@
     if (!p) return Promise.resolve(null);
     var q = '&watch_region=' + C.REGION + '&with_watch_providers=' + p.provider_id + '&sort_by=popularity.desc' + langQ();
     return Promise.all([tmdb('discover/tv', q), tmdb('discover/movie', q)]).then(function (rs) {
-      return {title: 'Popular on ' + svc.name, items: mix(rs[0].results, rs[1].results).map(function (m) { return fromTmdb(m, svc); })};
+      return {
+        title: 'Popular on ' + svc.name,
+        seriesItems: rs[0].results.filter(function (m) { return m.poster_path || m.backdrop_path; }).map(function (m) { return fromTmdb(m, svc); }),
+        movieItems: rs[1].results.filter(function (m) { return m.poster_path || m.backdrop_path; }).map(function (m) { return fromTmdb(m, svc); })
+      };
     });
   }
   // JustWatch "popular now" on your services (rooted TV: fetched by the service). Each title already says
@@ -257,10 +266,9 @@
   }
   function uniqueMedia(items, type) {
     var seen = {};
-    return items.filter(function (it) {
-      var kind = mediaType(it);
-      if (kind !== type) return false;
-      var key = kind + ':' + it.tmdb.id;
+    return (items || []).filter(function (it) {
+      if (mediaType(it) !== type) return false;
+      var key = type + ':' + it.tmdb.id;
       if (seen[key]) return false;
       seen[key] = true;
       return true;
@@ -269,35 +277,61 @@
   function buildRows() {
     var extra = rowProviders.map(function (fn) { return fn(); }).filter(Boolean);
     var catalog = view === 'movies' || view === 'series' ? view : 'home';
-
-    if (catalog !== 'home') {
-      var pool = featuredItems.slice();
-      base.forEach(function (row) { if (row.items) pool = pool.concat(row.items); });
-      extra.forEach(function (row) { if (row.items) pool = pool.concat(row.items); });
-      var history = uniqueMedia(recent, catalog);
-      var rows = [];
-      if (history.length) rows.push({title: 'Continue watching', items: history, poster: true});
-      var popular = uniqueMedia(pool, catalog);
-      if (popular.length) rows.push({
-        title: catalog === 'movies' ? 'Popular movies' : 'Popular series',
-        items: popular, poster: true
+    var sourceRows = base.filter(function (row) { return !row.apps; }).concat(extra);
+    var allItems = [];
+    sourceRows.forEach(function (row) {
+      if (row.items) allItems = allItems.concat(row.items);
+      if (row.movieItems) allItems = allItems.concat(row.movieItems);
+      if (row.seriesItems) allItems = allItems.concat(row.seriesItems);
+    });
+    var allTitles = featuredItems.concat(allItems);
+    var rows = [];
+    function addRow(title, items, type) {
+      var filtered = type ? uniqueMedia(items, type) : (items || []);
+      if (filtered.length) rows.push({title: title, items: filtered, poster: true});
+    }
+    if (recent.length) addRow('Continue watching', recent, catalog === 'home' ? null : catalog);
+    if (catalog === 'home') {
+      addRow('Trending movies', allTitles, 'movies');
+      addRow('Trending series', allTitles, 'series');
+      sourceRows.forEach(function (row) {
+        if (row.movieItems || row.seriesItems) {
+          addRow(row.title + ' · Movies', row.movieItems || [], 'movies');
+          addRow(row.title + ' · Series', row.seriesItems || [], 'series');
+        } else if (row.items && row.title === 'My watchlist') {
+          addRow('My watchlist · Movies', row.items, 'movies');
+          addRow('My watchlist · Series', row.items, 'series');
+        } else if (row.items && row.title !== 'Top picks for you') {
+          addRow(row.title, row.items, null);
+        }
       });
-      extra.forEach(function (row) {
-        var items = uniqueMedia(row.items || [], catalog);
-        if (items.length) rows.push({title: row.title, items: items, poster: true});
+      rows.push({title: 'Your apps', items: visibleApps(), apps: true});
+      rowsData = rows;
+      heroItems = featuredItems;
+    } else {
+      addRow(catalog === 'movies' ? 'Popular movies' : 'Popular series', allTitles, catalog);
+      sourceRows.forEach(function (row) {
+        if (row.movieItems || row.seriesItems) {
+          addRow(row.title, catalog === 'movies' ? row.movieItems : row.seriesItems, catalog);
+        } else if (row.items && row.title === 'My watchlist') {
+          addRow('My watchlist', row.items, catalog);
+        } else if (row.items && row.title !== 'Top picks for you') {
+          addRow(row.title, row.items, catalog);
+        }
       });
       rowsData = rows;
       heroItems = uniqueMedia(featuredItems, catalog).slice(0, 6);
-      heroIdx = 0;
-      if (heroItems.length) showHero();
-    } else {
-      heroItems = featuredItems;
-      rowsData = (recent.length
-        ? [{title: 'Continue watching', items: recent, poster: true}]
-        : []).concat(base.filter(function (row) { return !row.apps; }), extra)
-        .filter(function (row) { return (row.apps || row.items || []).length; });
+      if (heroItems.length) {
+        heroIdx = Math.min(heroIdx, heroItems.length - 1);
+        showHero();
+      } else {
+        $('heroSrc').textContent = catalog === 'movies' ? 'MOVIES' : 'TV SHOWS';
+        $('heroTitle').textContent = catalog === 'movies' ? 'Explore movies' : 'Explore series';
+        $('heroMeta').textContent = '';
+        $('heroSub').textContent = '';
+        $('heroBtn').textContent = 'Browse titles';
+      }
     }
-
     if (base.length) render();
   }
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; return e; }
@@ -342,9 +376,8 @@
     var sourceLabel = it.at
       ? (it.svc && it.svc.name ? it.svc.name + ' · opened ' + ago(it.at) : 'Recently played · ' + ago(it.at))
       : it.src === 'YouTube' ? it.title : it.meta;
-    var c = el('div', 'card f', '<div class="pic"><img src="' + esc(it.img || it.bg || '') + '" alt="" loading="lazy" decoding="async">' +
-      (it.src === 'YouTube' ? '' : '<b class="ttl">' + esc(it.title) + '</b>') + '</div>' +
-      '<div class="cap">' + esc(sourceLabel || '') + '</div>');
+    var c = el('div', 'card f', '<div class="pic"><img src="' + esc(it.img || it.bg || '') + '" alt="" loading="lazy" decoding="async"></div>' +
+      '<div class="card-info"><div class="ttl">' + esc(it.title) + '</div><div class="cap">' + esc(sourceLabel || it.meta || '') + '</div></div>');
     c.item = it;
     c.onok = function () {
       if (it.continueWatching && window.TVPlayer && it.tmdb) {
@@ -369,7 +402,7 @@
     rowsData.forEach(function (row) {
       var r = el('section', 'row' + (row.apps ? ' apps-row' : '') + (row.poster ? ' poster-row' : '')), s = el('div', 'strip');
       r.appendChild(el('h3', '', esc(row.title)));
-      (row.apps || row.items).forEach(function (x) { s.appendChild(row.apps ? appTile(x) : card(x)); });
+      (row.apps || row.items || []).forEach(function (x) { s.appendChild(row.apps ? appTile(x) : card(x)); });
       if (row.apps) s.appendChild(editTile());
       r.appendChild(s); root.appendChild(r);
     });
@@ -878,7 +911,7 @@
       r.splice(1, 1); // keep the indexes below as they were
       featuredItems = picks.slice(0, 6);
       heroItems = featuredItems;
-      base = [{title: 'Top picks for you', items: picks.slice(6)}, {title: 'Your apps', apps: visibleApps()}]
+      base = [{title: 'Top picks for you', items: picks.slice(6)}]
         .concat((r[1] || []).filter(Boolean), r[2] ? [r[2]] : []);
       store('homeCache', {hero: heroItems, base: base});
       var fresh = !cached; // keep the user's place if they already started moving around the cached screen
