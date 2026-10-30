@@ -417,8 +417,13 @@
     seasonBox.innerHTML = '';
     episodeBox.innerHTML = '';
 
+    // Episode browsing is a dedicated Netflix-style state.
+    var recommendations = box.querySelector('.dmore');
+    if (recommendations) recommendations.style.display = 'none';
+    box.classList.add('episode-browser');
+
     seasonBox.appendChild(
-      TV.el('h3', '', 'Seasons')
+      TV.el('h3', 'dsection-title', 'SEASONS')
     );
 
     var available = (data.seasons || []).filter(function (season) {
@@ -434,7 +439,7 @@
       return;
     }
 
-    var row = TV.el('div', 'dbtns');
+    var row = TV.el('div', 'dseason-list');
 
     available.forEach(function (season) {
       var label = season.name ||
@@ -460,10 +465,13 @@
     episodeBox.appendChild(
       TV.el(
         'h3',
-        '',
-        esc(season.name || ('Season ' + currentSeason))
+        'dsection-title',
+        'EPISODES'
       )
     );
+    var seasonCaption = TV.el('p', 'dseason-caption',
+      esc(season.name || ('Season ' + currentSeason)));
+    episodeBox.appendChild(seasonCaption);
 
     episodeBox.appendChild(
       makeMessage('Loading episodes...')
@@ -503,22 +511,44 @@
           return;
         }
 
+        var episodeStrip = TV.el('div', 'dep-strip');
+
         episodes.forEach(function (episode) {
           var number = episode.episode_number;
           var name = episode.name || ('Episode ' + number);
-          var label = 'E' + number + ' · ' + name;
+          var card = TV.el('div', 'dep-card f');
+          var still = episode.still_path
+            ? image(episode.still_path, 'w500')
+            : (it.bg || '');
+          var runtime = episode.runtime
+            ? episode.runtime + ' min'
+            : '';
+          var summary = episode.overview || 'No episode description available.';
 
-          var button = makeButton(label, function () {
-            playEpisode(
-              it,
-              currentSeason,
-              number,
-              episode
-            );
-          });
+          card.innerHTML =
+            '<div class="dep-image">' +
+              (still
+                ? '<img src="' + esc(still) + '" alt="" loading="lazy" decoding="async">'
+                : '<div class="dep-image-placeholder"></div>') +
+              '<span class="dep-number">EPISODE ' + esc(number) + '</span>' +
+              '<span class="dep-play">▶</span>' +
+            '</div>' +
+            '<div class="dep-info">' +
+              '<div class="dep-title">' + esc(name) + '</div>' +
+              '<div class="dep-meta">' +
+                esc(runtime || ('Episode ' + number)) +
+              '</div>' +
+              '<p class="dep-overview">' + esc(summary) + '</p>' +
+            '</div>';
 
-          episodeBox.appendChild(button);
+          card.onok = function () {
+            playEpisode(it, currentSeason, number, episode);
+          };
+          card.onclick = card.onok;
+          episodeStrip.appendChild(card);
         });
+
+        episodeBox.appendChild(episodeStrip);
 
         TV.rebuild(0, 0);
       })
@@ -728,7 +758,8 @@
     onFocus: function (element, position) {
       if (
         element.parentNode &&
-        element.parentNode.classList.contains('strip')
+        (element.parentNode.classList.contains('strip') ||
+         element.parentNode.classList.contains('dep-strip'))
       ) {
         element.parentNode.style.transform =
           'translateX(' +
