@@ -379,6 +379,27 @@
     var c = el('div', 'card f', '<div class="pic"><img src="' + esc(it.img || it.bg || '') + '" alt="" loading="lazy" decoding="async"></div>' +
       '<div class="card-info"><div class="ttl">' + esc(it.title) + '</div><div class="cap">' + esc(sourceLabel || it.meta || '') + '</div></div>');
     c.item = it;
+    // Repair older Continue Watching entries that were saved before poster artwork was retained.
+    if (!it.img && it.tmdb && it.tmdb.id) {
+      var imageNode = c.querySelector('img');
+      var mediaPath = it.tmdb.type === 'tv' || it.tmdb.type === 'series' ? 'tv/' : 'movie/';
+      tmdb(mediaPath + it.tmdb.id).then(function (data) {
+        if (!data) return;
+        if (data.poster_path) it.img = IMG + 'w500' + data.poster_path;
+        if (data.backdrop_path) it.bg = IMG + 'w1280' + data.backdrop_path;
+        if (imageNode && imageNode.parentNode && it.img) imageNode.src = it.img;
+        if (it.continueWatching) {
+          var key = it.tmdb.type + ':' + it.tmdb.id + ':' +
+            (it.season == null ? '' : it.season) + ':' + (it.episode == null ? '' : it.episode);
+          recent = recent.map(function (entry) {
+            var entryKey = entry.tmdb && entry.tmdb.type + ':' + entry.tmdb.id + ':' +
+              (entry.season == null ? '' : entry.season) + ':' + (entry.episode == null ? '' : entry.episode);
+            return entryKey === key ? Object.assign({}, entry, {img: it.img, bg: it.bg}) : entry;
+          });
+          store('recent', recent);
+        }
+      }).catch(function () {});
+    }
     c.onok = function () {
       if (it.continueWatching && window.TVPlayer && it.tmdb) {
         if (it.tmdb.type === 'movie') {
@@ -402,9 +423,10 @@
     rowsData.forEach(function (row) {
       var r = el('section', 'row' + (row.apps ? ' apps-row' : '') + (row.poster ? ' poster-row' : '')), s = el('div', 'strip');
       r.appendChild(el('h3', '', esc(row.title)));
-      var rowItems = Array.isArray(row.items) ? row.items :
-        (Array.isArray(row.apps) ? row.apps : []);
-      rowItems.forEach(function (x) { s.appendChild(row.apps === true || Array.isArray(row.apps) ? appTile(x) : card(x)); });
+      var isAppsRow = row.apps === true || Array.isArray(row.apps);
+      var rowItems = isAppsRow && Array.isArray(row.apps) ? row.apps :
+        (Array.isArray(row.items) ? row.items : []);
+      rowItems.forEach(function (x) { s.appendChild(isAppsRow ? appTile(x) : card(x)); });
       if (row.apps === true || Array.isArray(row.apps)) s.appendChild(editTile());
       r.appendChild(s); root.appendChild(r);
     });
