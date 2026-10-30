@@ -61,7 +61,6 @@
       // jump straight to an external streaming app.
       var c = TV.card(it), w = TV.el('div', 'swhere');
       c.onok = function () { TV.itemOk(it); };
-      c.onclick = c.onok;
       c.appendChild(w);
       strip.appendChild(c);
       if (i < 8) watch(it.tmdb, w); // ponytail: providers for first 8 only, the rest show nothing
