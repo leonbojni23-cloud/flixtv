@@ -17,6 +17,8 @@
   var backButton = document.getElementById('player-back');
   var currentUrl = '';
   var loadTimeout = null;
+  var controlsTimer = null;
+  var CONTROLS_IDLE_MS = 4500;
 
   if (!playerView || !frame) {
     console.error('[YapGrid] Missing player view or iframe in index.html.');
@@ -71,6 +73,29 @@
     if (loading) loading.hidden = !value;
   }
 
+  function hideControls() {
+    controlsTimer = null;
+    if (!playerView.hidden) playerView.classList.add('player-controls-hidden');
+    playerView.classList.remove('player-controls-visible');
+  }
+
+  function showControls() {
+    if (playerView.hidden) return;
+    playerView.classList.remove('player-controls-hidden');
+    playerView.classList.add('player-controls-visible');
+    if (controlsTimer !== null) window.clearTimeout(controlsTimer);
+    controlsTimer = window.setTimeout(hideControls, CONTROLS_IDLE_MS);
+  }
+
+  function clearControlsTimer() {
+    if (controlsTimer !== null) {
+      window.clearTimeout(controlsTimer);
+      controlsTimer = null;
+    }
+    playerView.classList.remove('player-controls-hidden');
+    playerView.classList.add('player-controls-visible');
+  }
+
   function clearLoadTimeout() {
     if (loadTimeout !== null) {
       window.clearTimeout(loadTimeout);
@@ -97,6 +122,8 @@
     currentUrl = url;
     setLoading(true);
     playerView.hidden = false;
+    clearControlsTimer();
+    showControls();
     document.body.classList.add('player-open');
 
     // The player view already fills the entire TV viewport. Request native
@@ -136,6 +163,9 @@
 
   function stop() {
     clearLoadTimeout();
+    if (controlsTimer !== null) window.clearTimeout(controlsTimer);
+    controlsTimer = null;
+    playerView.classList.remove('player-controls-hidden', 'player-controls-visible');
     exitNativeFullscreen();
     setLoading(false);
     frame.src = 'about:blank';
@@ -222,6 +252,17 @@
 
   window.addEventListener('message', handlePlayerMessage, false);
 
+  // Pointer and remote-key activity reveal the Back control again.
+  playerView.addEventListener('mousemove', showControls, false);
+  playerView.addEventListener('pointermove', showControls, false);
+  playerView.addEventListener('mouseenter', showControls, false);
+  playerView.addEventListener('touchstart', showControls, {passive: true});
+  frame.addEventListener('mouseenter', showControls, false);
+  frame.addEventListener('mousemove', showControls, false);
+  document.addEventListener('keydown', function () {
+    if (!playerView.hidden) showControls();
+  }, true);
+
   frame.addEventListener('load', function () {
     if (!currentUrl || frame.getAttribute('src') === 'about:blank') return;
     clearLoadTimeout();
@@ -233,7 +274,6 @@
     'allow',
     'autoplay; fullscreen; encrypted-media; picture-in-picture'
   );
-  frame.setAttribute('allowfullscreen', '');
   frame.setAttribute('referrerpolicy', 'origin');
   // Block pop-up windows and top-level navigation from the embedded player.
   // The iframe remains cross-origin, so allow-same-origin does not grant access to this app.
