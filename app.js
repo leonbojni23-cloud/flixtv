@@ -402,8 +402,10 @@
     rowsData.forEach(function (row) {
       var r = el('section', 'row' + (row.apps ? ' apps-row' : '') + (row.poster ? ' poster-row' : '')), s = el('div', 'strip');
       r.appendChild(el('h3', '', esc(row.title)));
-      (row.apps || row.items || []).forEach(function (x) { s.appendChild(row.apps ? appTile(x) : card(x)); });
-      if (row.apps) s.appendChild(editTile());
+      var rowItems = Array.isArray(row.items) ? row.items :
+        (Array.isArray(row.apps) ? row.apps : []);
+      rowItems.forEach(function (x) { s.appendChild(row.apps === true || Array.isArray(row.apps) ? appTile(x) : card(x)); });
+      if (row.apps === true || Array.isArray(row.apps)) s.appendChild(editTile());
       r.appendChild(s); root.appendChild(r);
     });
     var g = $('grid'); g.innerHTML = '';
