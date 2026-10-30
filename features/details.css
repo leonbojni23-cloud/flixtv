@@ -18,3 +18,49 @@
 .dextra { margin-top: 14px; font-size: 20px; color: #9aa0a6; min-height: 24px; }
 .dmore { position: absolute; left: 72px; right: 0; top: 720px; }
 .dmore h3 { font-size: 24px; font-weight: 500; margin-bottom: 18px; }
+
+/* Cinematic back navigation */
+#details .dback {
+  position: absolute;
+  top: 34px;
+  left: 42px;
+  z-index: 10;
+  min-width: 112px;
+  height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 17px 0 14px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  background: rgba(18,18,20,.68);
+  color: #fff;
+  box-shadow: 0 8px 28px rgba(0,0,0,.24);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  font: 700 12px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: 1.7px;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#details .dback svg {
+  width: 21px;
+  height: 21px;
+  flex: none;
+}
+
+#details .dback.focus,
+#details .dback:focus {
+  outline: 3px solid rgba(255,255,255,.96);
+  outline-offset: 4px;
+  border-color: rgba(255,255,255,.65);
+  background: rgba(35,35,38,.96);
+  transform: scale(1.045);
+}
+
+@media (max-width: 900px) {
+  #details .dback { top: 20px; left: 20px; }
+}
