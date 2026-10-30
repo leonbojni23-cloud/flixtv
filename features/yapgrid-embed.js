@@ -179,6 +179,45 @@
     return true;
   }
 
+  // Temporary diagnostics: detect whether YapGrid exposes playback progress
+  // through postMessage. We never read the cross-origin iframe DOM.
+  var messageDiagnostics = { count: 0, lastMessageAt: null, lastData: null };
+
+  function handlePlayerMessage(event) {
+    if (!currentUrl || !frame.contentWindow) return;
+    if (event.source !== frame.contentWindow) return;
+    if (event.origin !== 'https://yapgrid.com') return;
+
+    messageDiagnostics.count++;
+    messageDiagnostics.lastMessageAt = Date.now();
+    messageDiagnostics.lastData = event.data;
+
+    var data = event.data;
+    var keys = data && typeof data === 'object'
+      ? Object.keys(data)
+      : [];
+
+    console.info('[YapGrid][postMessage] Received player message', {
+      count: messageDiagnostics.count,
+      origin: event.origin,
+      data: data,
+      keys: keys
+    });
+
+    if (data && typeof data === 'object') {
+      var progressKeys = ['currentTime', 'current_time', 'time', 'position', 'duration', 'progress'];
+      var found = progressKeys.filter(function (key) {
+        return Object.prototype.hasOwnProperty.call(data, key);
+      });
+
+      if (found.length) {
+        console.info('[YapGrid][postMessage] Possible playback progress fields:', found);
+      }
+    }
+  }
+
+  window.addEventListener('message', handlePlayerMessage, false);
+
   frame.addEventListener('load', function () {
     if (!currentUrl || frame.getAttribute('src') === 'about:blank') return;
     clearLoadTimeout();
