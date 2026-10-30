@@ -14,6 +14,7 @@
   var playerView = document.getElementById('player-view');
   var frame = document.getElementById('yapgrid-frame');
   var loading = document.getElementById('player-loading');
+  var backButton = document.getElementById('player-back');
   var currentUrl = '';
   var loadTimeout = null;
 
@@ -61,6 +62,8 @@
         '/' + Number(seasonValue) + '/' + Number(episodeValue);
     }
 
+    // YapGrid documents lang=en as the preferred/default subtitle language.
+    // It does not expose a documented force-captions-on parameter.
     return 'https://yapgrid.com' + path + '?autoplay=1&lang=en';
   }
 
@@ -96,6 +99,10 @@
     playerView.hidden = false;
     document.body.classList.add('player-open');
 
+    // The player view already fills the entire TV viewport. Request native
+    // fullscreen where the browser supports it; CSS remains the fallback.
+    requestNativeFullscreen();
+
     if (frame.getAttribute('src') !== url) {
       frame.src = url;
     } else {
@@ -107,13 +114,48 @@
     return true;
   }
 
+  function requestNativeFullscreen() {
+    var request = playerView.requestFullscreen ||
+      playerView.webkitRequestFullscreen ||
+      playerView.webkitRequestFullScreen;
+
+    if (!request) return;
+
+    try {
+      var result = request.call(playerView);
+      if (result && typeof result.catch === 'function') {
+        result.catch(function () {
+          // Some TV browsers disallow scripted fullscreen. The fixed player
+          // view still occupies the full viewport in that case.
+        });
+      }
+    } catch (error) {
+      console.warn('[YapGrid] Native fullscreen unavailable; using viewport fullscreen.');
+    }
+  }
+
   function stop() {
     clearLoadTimeout();
+    exitNativeFullscreen();
     setLoading(false);
     frame.src = 'about:blank';
     currentUrl = '';
     playerView.hidden = true;
     document.body.classList.remove('player-open');
+  }
+
+  function exitNativeFullscreen() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) return;
+
+    var exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (!exit) return;
+
+    try {
+      var result = exit.call(document);
+      if (result && typeof result.catch === 'function') result.catch(function () {});
+    } catch (error) {
+      console.warn('[YapGrid] Could not exit native fullscreen.');
+    }
   }
 
   function open(item, request) {
@@ -154,9 +196,18 @@
   // The iframe remains cross-origin, so allow-same-origin does not grant access to this app.
   frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-presentation');
 
+  if (backButton) {
+    backButton.onok = function () {
+      TV.closeView();
+    };
+    backButton.addEventListener('click', function () {
+      TV.closeView();
+    });
+  }
+
   TV.addView('yapgrid-player', {
     nav: function () {
-      return [];
+      return backButton ? [[backButton]] : [];
     },
     show: function (args) {
       load(args || {});
