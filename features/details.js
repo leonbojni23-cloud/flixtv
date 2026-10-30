@@ -1,6 +1,6 @@
 
 // features/details.js
-// TMDB details, movie/series navigation, VidFast player and watchlist.
+// TMDB details, movie/series navigation, YapGrid player and watchlist.
 // Compatible with the existing window.TV API and LG webOS remote navigation.
 
 (function () {
