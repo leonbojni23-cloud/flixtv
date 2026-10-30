@@ -63,7 +63,7 @@
       c.onok = function () { TV.itemOk(it); };
       c.appendChild(w);
       strip.appendChild(c);
-      if (i < 8) watch(it.tmdb, w); // ponytail: providers for first 8 only, the rest show nothing
+      if (i < 4) watch(it.tmdb, w); // ponytail: providers for first 8 only, the rest show nothing
     });
     if (TV.view() === 'search') TV.rebuild();
   }
