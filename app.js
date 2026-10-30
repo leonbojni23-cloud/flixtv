@@ -178,8 +178,20 @@
   var recent = [];
   recent = store('recent') || [];
   function remember(it) {
-    var keep = {title: it.title, sub: it.sub, meta: it.meta, img: it.img, bg: it.bg, blur: it.blur, src: it.src, svc: it.svc, params: it.params, tmdb: it.tmdb, at: Date.now()};
-    recent = [keep].concat(recent.filter(function (x) { return x.title !== it.title; })).slice(0, 12);
+    if (!it || !it.tmdb || !it.tmdb.id) return;
+    var keep = {
+      title: it.title, sub: it.sub, meta: it.meta, img: it.img, bg: it.bg,
+      blur: it.blur, src: it.src || 'FLIXTV', svc: it.svc || null,
+      params: it.params, tmdb: {id: it.tmdb.id, type: it.tmdb.type},
+      seriesTitle: it.seriesTitle || null, season: it.season, episode: it.episode,
+      at: Date.now(), continueWatching: true
+    };
+    var key = function (x) {
+      return x.tmdb && x.tmdb.type + ':' + x.tmdb.id + ':' +
+        (x.season == null ? '' : x.season) + ':' +
+        (x.episode == null ? '' : x.episode);
+    };
+    recent = [keep].concat(recent.filter(function (x) { return key(x) !== key(keep); })).slice(0, 20);
     store('recent', recent);
     buildRows();
   }
@@ -238,11 +250,54 @@
   }
 
   // ---------- render ----------
-    var rowsData = [], heroItems = [], base = [], rowProviders = [];
+  var rowsData = [], heroItems = [], featuredItems = [], base = [], rowProviders = [];
+  function mediaType(it) {
+    return it && it.tmdb && it.tmdb.type === 'tv' ? 'series' :
+      it && it.tmdb && it.tmdb.type === 'movie' ? 'movies' : '';
+  }
+  function uniqueMedia(items, type) {
+    var seen = {};
+    return items.filter(function (it) {
+      var kind = mediaType(it);
+      if (kind !== type) return false;
+      var key = kind + ':' + it.tmdb.id;
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
   function buildRows() {
     var extra = rowProviders.map(function (fn) { return fn(); }).filter(Boolean);
-    rowsData = base.slice(0, 2).concat([{title: 'Continue watching', items: recent}], extra, base.slice(2))
-      .filter(function (x) { return (x.apps || x.items).length; });
+    var catalog = view === 'movies' || view === 'series' ? view : 'home';
+
+    if (catalog !== 'home') {
+      var pool = featuredItems.slice();
+      base.forEach(function (row) { if (row.items) pool = pool.concat(row.items); });
+      extra.forEach(function (row) { if (row.items) pool = pool.concat(row.items); });
+      var history = uniqueMedia(recent, catalog);
+      var rows = [];
+      if (history.length) rows.push({title: 'Continue watching', items: history, poster: true});
+      var popular = uniqueMedia(pool, catalog);
+      if (popular.length) rows.push({
+        title: catalog === 'movies' ? 'Popular movies' : 'Popular series',
+        items: popular, poster: true
+      });
+      extra.forEach(function (row) {
+        var items = uniqueMedia(row.items || [], catalog);
+        if (items.length) rows.push({title: row.title, items: items, poster: true});
+      });
+      rowsData = rows;
+      heroItems = uniqueMedia(featuredItems, catalog).slice(0, 6);
+      heroIdx = 0;
+      if (heroItems.length) showHero();
+    } else {
+      heroItems = featuredItems;
+      rowsData = (recent.length
+        ? [{title: 'Continue watching', items: recent, poster: true}]
+        : []).concat(base.filter(function (row) { return !row.apps; }), extra)
+        .filter(function (row) { return (row.apps || row.items || []).length; });
+    }
+
     if (base.length) render();
   }
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; return e; }
@@ -284,16 +339,35 @@
   }
   function focusEl(e) { for (var r = 0; r < nav.length; r++) { var c = nav[r].indexOf(e); if (c >= 0) { pos.r = r; pos.c = c; focus(); return; } } }
   function card(it) {
-    var c = el('div', 'card f', '<div class="pic"><img src="' + it.img + '" alt="" loading="lazy" decoding="async">' +
+    var sourceLabel = it.at
+      ? (it.svc && it.svc.name ? it.svc.name + ' · opened ' + ago(it.at) : 'Recently played · ' + ago(it.at))
+      : it.src === 'YouTube' ? it.title : it.meta;
+    var c = el('div', 'card f', '<div class="pic"><img src="' + esc(it.img || it.bg || '') + '" alt="" loading="lazy" decoding="async">' +
       (it.src === 'YouTube' ? '' : '<b class="ttl">' + esc(it.title) + '</b>') + '</div>' +
-      '<div class="cap">' + esc(it.at ? it.svc.name + '  ·  opened ' + ago(it.at) : it.src === 'YouTube' ? it.title : it.meta) + '</div>');
-    c.item = it; c.onok = function () { TV.itemOk(it); };
+      '<div class="cap">' + esc(sourceLabel || '') + '</div>');
+    c.item = it;
+    c.onok = function () {
+      if (it.continueWatching && window.TVPlayer && it.tmdb) {
+        if (it.tmdb.type === 'movie') {
+          window.TVPlayer.open(it, {type: 'movie', tmdbId: it.tmdb.id});
+          return;
+        }
+        if (it.tmdb.type === 'tv' && it.season != null && it.episode != null) {
+          window.TVPlayer.open(it, {
+            type: 'tv', tmdbId: it.tmdb.id,
+            season: it.season, episode: it.episode
+          });
+          return;
+        }
+      }
+      TV.itemOk(it);
+    };
     return c;
   }
   function render() {
     var root = $('rows'); root.innerHTML = '';
     rowsData.forEach(function (row) {
-      var r = el('section', 'row' + (row.apps ? ' apps-row' : '')), s = el('div', 'strip');
+      var r = el('section', 'row' + (row.apps ? ' apps-row' : '') + (row.poster ? ' poster-row' : '')), s = el('div', 'strip');
       r.appendChild(el('h3', '', esc(row.title)));
       (row.apps || row.items).forEach(function (x) { s.appendChild(row.apps ? appTile(x) : card(x)); });
       if (row.apps) s.appendChild(editTile());
@@ -461,7 +535,7 @@
             nav = all('#quick .qrow').map(function (r) { return [].slice.call(r.querySelectorAll('.f')); });
     } else if (view === 'settings') {
       nav = [[$('sclose')]].concat(all('#settings .strip').map(function (s) { return [].slice.call(s.children); }));
-    } else if (view === 'home') {
+    } else if (view === 'home' || view === 'movies' || view === 'series') {
       nav = [top, [$('heroBtn')]].concat(all('#rows .strip').map(function (s) { return [].slice.call(s.children); }));
     } else {
       // rows are whatever the tiles actually wrap into (their top edge), not an assumed number of columns
@@ -485,9 +559,10 @@
     if (strip.classList.contains('strip')) strip.style.transform = 'translateX(' + -Math.max(0, e.offsetLeft - (pos.c ? 40 : 0)) + 'px)';
     var section = e.closest('.row, .srow');
     var rowTop = pos.r === 0 ? 0 : section ? section.offsetTop : e.offsetTop;
-    var dy = view === 'home' ? (section && section.previousElementSibling ? rowTop - 90 : 0) : Math.max(0, rowTop - 400);
-    if (view === 'home') dy = Math.max(0, Math.min(dy, $('home').scrollHeight - 1080 + 40)); // stop at the last row
-    $(view).style.transform = 'translateY(' + -dy + 'px)';
+    var catalogView = view === 'home' || view === 'movies' || view === 'series';
+    var dy = catalogView ? (section && section.previousElementSibling ? rowTop - 90 : 0) : Math.max(0, rowTop - 400);
+    if (catalogView) dy = Math.max(0, Math.min(dy, $('home').scrollHeight - 1080 + 40));
+    (catalogView ? $('home') : $(view)).style.transform = 'translateY(' + -dy + 'px)';
     if (view === 'settings') return;
     document.body.classList.toggle('scrolled', dy > 0);
     bgFor(e.item, dy > 0);
@@ -496,11 +571,15 @@
     // leaving a page ends the edit mode: it must not follow the user to the other page
     var wasEditing = editing && v !== view;
     if (wasEditing) { editing = false; document.body.classList.remove('editing'); endMove(); }
-    view = v; $('home').hidden = v !== 'home'; $('apps').hidden = v !== 'apps';
+    view = v;
+    var catalogView = v === 'home' || v === 'movies' || v === 'series';
+    $('home').hidden = !catalogView;
+    $('apps').hidden = v !== 'apps';
     all('.tab').forEach(function (t) { t.classList.toggle('cur', t.dataset.tab === v); });
-    $('bg').style.opacity = v === 'home' ? 1 : 0;
-    $('bgBlur').style.visibility = v === 'home' || v === 'settings' || v === 'quick' ? '' : 'hidden';
+    $('bg').style.opacity = catalogView ? 1 : 0;
+    $('bgBlur').style.visibility = catalogView || v === 'settings' || v === 'quick' ? '' : 'hidden';
     document.body.classList.toggle('scrolled', v !== 'home');
+    if (catalogView) buildRows();
     buildNav();
     if (wasEditing) render();
   }
@@ -529,7 +608,7 @@
   document.addEventListener('keydown', function (ev) {
     if (moving && (ev.keyCode === 37 || ev.keyCode === 39)) { ev.preventDefault(); return moveApp(ev.keyCode === 39 ? 1 : -1); }
     if (moving && (ev.keyCode === 461 || ev.keyCode === 27 || ev.keyCode === 8)) { ev.preventDefault(); return endMove(); }
-    var k = ev.keyCode, onHero = view === 'home' && pos.r === 1;
+    var k = ev.keyCode, onHero = (view === 'home' || view === 'movies' || view === 'series') && pos.r === 1;
     idleSince = Date.now();
     if (views[view] && views[view].keydown && views[view].keydown(ev)) { ev.preventDefault(); return; } // view handled it
     if (k === 37) { if (onHero) stepHero(-1); else pos.c--; }
@@ -679,6 +758,7 @@
     C: C, S: S, P: P, LANGS: LANGS, IMG: IMG, onTV: onTV,
     luna: luna, launch: launch, get: get, TMDB: TMDB, tmdb: tmdb, fromTmdb: fromTmdb, svcFor: svcFor, store: store,
     openItem: openItem,            // default OK on a title: open its service
+    remember: remember,            // add a title or episode to Continue watching
     itemOk: openItem,              // override to intercept OK on any title card / hero
     onAvatar: openQuick,           // override to change what the avatar does
     card: card, esc: esc, el: el, toast: toast, setBg: setBg, setBlur: setBlur,
@@ -774,7 +854,8 @@
   }
   var cached = store('homeCache');
   if (cached && cached.base && cached.base.length) {
-    heroItems = cached.hero; base = cached.base;
+    featuredItems = cached.hero || [];
+    heroItems = featuredItems; base = cached.base;
     buildRows(); showHero(); pos.r = 1; focus(); booted();
   }
   var tries = 0;
@@ -795,7 +876,8 @@
         return;
       }
       r.splice(1, 1); // keep the indexes below as they were
-      heroItems = picks.slice(0, 6);
+      featuredItems = picks.slice(0, 6);
+      heroItems = featuredItems;
       base = [{title: 'Top picks for you', items: picks.slice(6)}, {title: 'Your apps', apps: visibleApps()}]
         .concat((r[1] || []).filter(Boolean), r[2] ? [r[2]] : []);
       store('homeCache', {hero: heroItems, base: base});
