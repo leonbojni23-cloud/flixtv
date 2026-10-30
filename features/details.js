@@ -286,6 +286,10 @@
           : '') +
       '>' +
       '<div class="dshade"></div>' +
+      '<button type="button" class="dback f" aria-label="Back to previous screen">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '<span>BACK</span>' +
+      '</button>' +
       '<div class="dbody">' +
         '<div class="dsrc">TMDB</div>' +
         '<h1>' + esc(title) + '</h1>' +
@@ -666,6 +670,18 @@
   TV.addView('details', {
     nav: function () {
       var rows = [];
+
+      var backButton = box.querySelector('.dback');
+
+      if (backButton) {
+        backButton.onok = function () {
+          TV.closeView();
+        };
+        backButton.onclick = function () {
+          TV.closeView();
+        };
+        rows.push([backButton]);
+      }
 
       var buttons = box.querySelectorAll('.dbtns .f');
 
