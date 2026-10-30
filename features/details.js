@@ -223,6 +223,7 @@
   // ---------- RENDER DETAILS ----------
 
   function render(it, data) {
+    box.classList.remove('episode-browser');
     currentItem = it;
 
     var isTv = isSeries(it);
