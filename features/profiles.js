@@ -38,8 +38,11 @@
     function render() {
       box.innerHTML = ''; rows = [];
       if (mode === 'form') return renderForm();
-      var head = TV.el('div', 'phead'), qs = btn('pbtn', 'Quick settings', function () { TV.closeView(); quick(); });
-      head.appendChild(qs); box.appendChild(head); rows.push([qs]);
+      var head = TV.el('div', 'phead');
+      var backBtn = btn('pbtn pback', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>BACK</span>', back);
+      var qs = btn('pbtn', 'Quick settings', function () { TV.closeView(); quick(); });
+      head.appendChild(backBtn); head.appendChild(qs); box.appendChild(head);
+      rows.push([backBtn, qs]);
       box.appendChild(TV.el('h1', 'ptitle', mode === 'edit' ? 'Choose a profile to edit' : 'Who’s watching?'));
       var strip = TV.el('div', 'pstrip'), avs = [];
       list.forEach(function (p) {
@@ -104,7 +107,7 @@
       hide: function () { box.hidden = true; document.body.classList.remove('profiles-open'); },
       back: back
     });
-    function openSwitcher() { TV.openView('profiles'); TV.rebuild(1, list.indexOf(cur)); }
+    function openSwitcher() { TV.openView('profiles'); TV.rebuild(1, 0); }
     TV.onAvatar = openSwitcher;
     TV.addSetting({key: 'askProfile', title: 'Ask who’s watching at start', opts: [[true, 'On'], [false, 'Off']]}, false);
     if (TV.S.askProfile && list.length > 1) openSwitcher();
