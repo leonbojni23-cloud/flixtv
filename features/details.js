@@ -446,11 +446,11 @@
       var label = season.name ||
         ('Season ' + season.season_number);
 
-      row.appendChild(
-        makeButton(label, function () {
-          selectSeason(it, season);
-        })
-      );
+      var seasonButton = makeButton(label, function () {
+        selectSeason(it, season);
+      });
+      seasonButton.dataset.season = season.season_number;
+      row.appendChild(seasonButton);
     });
 
     seasonBox.appendChild(row);
@@ -467,6 +467,11 @@
 
   function selectSeason(it, season) {
     currentSeason = season.season_number;
+
+    var seasonButtons = box.querySelectorAll('.dseason-list .dbtn');
+    [].forEach.call(seasonButtons, function (button) {
+      button.classList.toggle('selected', Number(button.dataset.season) === currentSeason);
+    });
 
     var episodeBox = box.querySelector('.depisodes');
     episodeBox.innerHTML = '';
@@ -486,7 +491,11 @@
       makeMessage('Loading episodes...')
     );
 
-    TV.rebuild(0, 0);
+    var selectedIndex = 0;
+    [].forEach.call(seasonButtons, function (button, index) {
+      if (Number(button.dataset.season) === currentSeason) selectedIndex = index;
+    });
+    TV.rebuild(2, selectedIndex);
 
     var token = ++requestToken;
 
@@ -559,7 +568,7 @@
 
         episodeBox.appendChild(episodeStrip);
 
-        TV.rebuild(0, 0);
+        TV.rebuild(3, 0);
       })
       .catch(function (error) {
         console.error('Could not load season:', error);
@@ -772,7 +781,8 @@
       if (
         element.parentNode &&
         (element.parentNode.classList.contains('strip') ||
-         element.parentNode.classList.contains('dep-strip'))
+         element.parentNode.classList.contains('dep-strip') ||
+         element.parentNode.classList.contains('dseason-list'))
       ) {
         element.parentNode.style.transform =
           'translateX(' +
