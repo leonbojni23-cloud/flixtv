@@ -204,11 +204,11 @@ html, body {
 
 #player-back {
   position: absolute;
-  top: 30px;
-  left: 30px;
+  top: 54px;
+  left: 42px;
   z-index: 5;
-  min-width: 112px;
-  height: 54px;
+  min-width: 104px;
+  height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -225,10 +225,22 @@ html, body {
   letter-spacing: 1.7px;
   cursor: pointer;
   opacity: .96;
-  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+  transition: opacity .22s ease, transform .22s ease, background .18s ease, border-color .18s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
+#player-view.player-controls-hidden #player-back {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px);
+}
+#player-view.player-controls-visible #player-back {
+  opacity: .98;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
 #player-back svg {
   width: 21px;
   height: 21px;
@@ -340,7 +352,6 @@ body.player-open {
     id="yapgrid-frame"
     title="YapGrid Player"
     allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-    allowfullscreen
     sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
     referrerpolicy="origin"
     frameborder="0">
