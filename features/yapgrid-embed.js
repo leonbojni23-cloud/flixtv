@@ -171,6 +171,10 @@
 
     var args = { item: item || null, request: request || {}, url: url };
 
+    // Record every FLIXTV movie/episode launch so Continue watching is populated.
+    // Exact playback time is added only if the player exposes a supported progress API.
+    if (item && typeof TV.remember === 'function') TV.remember(item);
+
     if (TV.view() === 'yapgrid-player') {
       return load(args);
     }
