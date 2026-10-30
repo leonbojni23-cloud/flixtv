@@ -5,8 +5,10 @@
   var KEYS = ['abcdefghijklm', 'nopqrstuvwxyz', '1234567890'];
   var q = '', seq = 0, timer, where = {}; // where: 'tv/123' -> label html (cache)
 
-  var root = TV.el('div', '', '<div class="sq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>' +
-    '<span id="sqText"></span><i class="caret"></i></div><span id="sxclose" class="f" title="Close">&#10005;</span><div id="skb"></div><div id="syt"></div><h3 id="sresTitle"></h3><div id="sres" class="strip"></div>');
+  var root = TV.el('div', '', '<button id="sxclose" class="f" type="button" aria-label="Back">' +
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>BACK</span></button>' +
+    '<div class="sq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>' +
+    '<span id="sqText"></span><i class="caret"></i></div><div id="skb"></div><div id="syt"></div><h3 id="sresTitle"></h3><div id="sres" class="strip"></div>');
   root.id = 'search'; root.hidden = true;
   document.body.appendChild(root);
   var $ = function (id) { return document.getElementById(id); };
@@ -55,7 +57,11 @@
     var strip = $('sres'); strip.innerHTML = ''; strip.style.transform = '';
     list.forEach(function (m, i) {
       var it = TV.fromTmdb(m);
+      // Search selection always opens the in-app title details first; it must not
+      // jump straight to an external streaming app.
       var c = TV.card(it), w = TV.el('div', 'swhere');
+      c.onok = function () { TV.itemOk(it); };
+      c.onclick = c.onok;
       c.appendChild(w);
       strip.appendChild(c);
       if (i < 8) watch(it.tmdb, w); // ponytail: providers for first 8 only, the rest show nothing
@@ -69,7 +75,7 @@
     if (where[k] != null) { w.innerHTML = where[k]; return; }
     w.innerHTML = '<span class="dim">Checking where to watch…</span>';
     TV.tmdb(k + '/watch/providers').then(function (r) {
-      var reg = r.results[TV.C.REGION] || {}, mine = [], other = [];
+      var reg = (r && r.results && r.results[TV.C.REGION]) || {}, mine = [], other = [];
       (reg.flatrate || []).concat(reg.free || [], reg.ads || []).forEach(function (p) {
         var s = TV.svcFor(p.provider_name), name = s ? s.name : p.provider_name.replace(/ (Amazon|Apple TV) Channel$/, '');
         if (s && TV.S.services.indexOf(s.name) >= 0) { if (mine.indexOf(name) < 0) mine.push(name); }
@@ -100,7 +106,7 @@
       return true;
     },
     onFocus: function (e, pos) {
-      if (e.parentNode.id === 'sres') e.parentNode.style.transform = 'translateX(' + -Math.max(0, e.offsetLeft - (pos.c ? 40 : 0)) + 'px)';
+      if (e.parentNode && e.parentNode.id === 'sres') e.parentNode.style.transform = 'translateX(' + -Math.max(0, e.offsetLeft - (pos.c ? 40 : 0)) + 'px)';
     }
   });
   TV.addTab('Search', 'search');
