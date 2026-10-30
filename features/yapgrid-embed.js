@@ -150,7 +150,9 @@
   );
   frame.setAttribute('allowfullscreen', '');
   frame.setAttribute('referrerpolicy', 'origin');
-  frame.removeAttribute('sandbox');
+  // Block pop-up windows and top-level navigation from the embedded player.
+  // The iframe remains cross-origin, so allow-same-origin does not grant access to this app.
+  frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-presentation');
 
   TV.addView('yapgrid-player', {
     nav: function () {
