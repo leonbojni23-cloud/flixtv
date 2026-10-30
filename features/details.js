@@ -1,6 +1,6 @@
 
 // features/details.js
-// TMDB details, movie/series navigation, VidFast player and watchlist.
+// TMDB details, movie/series navigation, YapGrid player and watchlist.
 // Compatible with the existing window.TV API and LG webOS remote navigation.
 
 (function () {
@@ -198,20 +198,20 @@
     });
   }
 
-  // ---------- VIDFAST PLAYER ----------
+  // ---------- YAPGRID PLAYER ----------
 
-  // VidFast iframe is managed by features/vidfast-embed.js.
-  // This file only sends the selected movie or episode to that module.
+  // YapGrid iframe is managed by features/yapgrid-embed.js.
+  // This file sends the selected movie or episode to that module.
 
   function openPlayer(item, requestData) {
     if (
       !window.TVPlayer ||
       typeof window.TVPlayer.open !== 'function'
     ) {
-      TV.toast('VidFast player module is not loaded');
+      TV.toast('YapGrid player module is not loaded');
 
       console.error(
-        'Load features/vidfast-embed.js after app.js and before details.js'
+        'Load features/yapgrid-embed.js after app.js and before details.js'
       );
 
       return false;

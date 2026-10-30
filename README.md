@@ -22,6 +22,7 @@ OK and Back, the Magic Remote pointer, and the scroll wheel.
   "Trending on YouTube", using [TMDB](https://www.themoviedb.org/) and the YouTube Data API.
 - **Where to watch:** pressing OK on a title opens a details page with "Watch on …" buttons for the services that
   stream it in your country, a trailer, cast and "More like this".
+- **YapGrid playback:** movies and TV episodes open in a full-screen embedded player, requesting autoplay and English subtitles.
 - **Watchlist, Continue watching:** both saved on the TV. Netflix and Hotstar don't share watch history, so
   Continue watching lists the titles you opened from this home screen.
 - **Search across services:** an on-screen keyboard; each result shows where it's streaming.

@@ -167,7 +167,7 @@ html, body {
   overflow: hidden;
 }
 
-#vidfast-frame {
+#yapgrid-frame {
   display: block;
   position: absolute;
   top: 0;
@@ -207,55 +207,6 @@ body.player-open {
   overflow: hidden;
 }
 
-/* Diagnostic panel */
-#popup-diagnostic {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 2147483647;
-  width: 430px;
-  max-width: calc(100vw - 40px);
-  max-height: 260px;
-  overflow: hidden;
-  padding: 16px;
-  background: rgba(0,0,0,.94);
-  color: #fff;
-  font: 16px Arial, sans-serif;
-  border: 2px solid #65a9ff;
-  border-radius: 10px;
-  box-sizing: border-box;
-}
-
-#popup-diagnostic-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-#popup-close {
-  padding: 8px;
-  cursor: pointer;
-  color: #ff8c8c;
-}
-
-#popup-status {
-  margin-top: 10px;
-  color: #8fceff;
-  overflow-wrap: anywhere;
-}
-
-#popup-log {
-  margin-top: 10px;
-  font-size: 13px;
-  overflow-y: auto;
-  max-height: 170px;
-  overflow-wrap: anywhere;
-}
-
-#popup-log div {
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(255,255,255,.1);
-}
 </style>
 </head>
 
@@ -331,7 +282,7 @@ body.player-open {
 <!-- Series and episodes -->
 <main id="series-view" hidden></main>
 
-<!-- VidFast player -->
+<!-- YapGrid player -->
 <main id="player-view" hidden>
 
   <div id="player-loading">
@@ -339,10 +290,11 @@ body.player-open {
   </div>
 
   <iframe
-    id="vidfast-frame"
-    title="VidFast Player"
+    id="yapgrid-frame"
+    title="YapGrid Player"
     allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
     allowfullscreen
+    sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
     referrerpolicy="origin"
     frameborder="0">
   </iframe>
@@ -491,19 +443,6 @@ body.player-open {
 <!-- Toast -->
 <div id="toast"></div>
 
-<!-- Diagnostic panel -->
-<div id="popup-diagnostic">
-
-  <div id="popup-diagnostic-header">
-    <b>POPUP DIAGNOSTIC</b>
-    <span id="popup-close">CLOSE</span>
-  </div>
-
-  <div id="popup-status">Starting diagnostic...</div>
-  <div id="popup-log"></div>
-
-</div>
-
 <!-- Application scripts -->
 <script src="keys.js"></script>
 <script src="config.js"></script>
@@ -514,118 +453,14 @@ body.player-open {
 <script src="features/profiles.js"></script>
 <script src="app.js"></script>
 
-<!-- VidFast player: must load after app.js and before details.js -->
-<script src="features/vidfast-embed.js"></script>
+<!-- YapGrid player: load after app.js and before details.js -->
+<script src="features/yapgrid-embed.js"></script>
 
 <script src="features/details.js"></script>
 <script src="features/search.js"></script>
 <script src="features/ambient.js"></script>
 
-<!-- POPUP DIAGNOSTIC TEST -->
-<script>
-(function () {
-  'use strict';
 
-  var panel = document.getElementById('popup-diagnostic');
-  var status = document.getElementById('popup-status');
-  var log = document.getElementById('popup-log');
-  var closeButton = document.getElementById('popup-close');
-
-  if (!panel || !status || !log) return;
-
-  function addLog(message) {
-    var line = document.createElement('div');
-
-    line.textContent =
-      new Date().toLocaleTimeString() + ' - ' + message;
-
-    log.insertBefore(line, log.firstChild);
-
-    while (log.children.length > 20) {
-      log.removeChild(log.lastChild);
-    }
-
-    console.log('[POPUP TEST]', message);
-  }
-
-  function setStatus(message) {
-    status.textContent = message;
-    addLog(message);
-  }
-
-  // Hide diagnostic panel.
-  if (closeButton) {
-    closeButton.addEventListener('click', function () {
-      panel.style.display = 'none';
-    });
-  }
-
-  // Toggle diagnostic panel with F8 on a keyboard.
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'F8') {
-      panel.style.display =
-        panel.style.display === 'none' ? 'block' : 'none';
-    }
-  });
-
-  // Monitor window.open calls from the parent application.
-  var originalOpen = window.open;
-
-  window.open = function () {
-    var url = arguments[0] || '(unknown URL)';
-
-    addLog('PARENT window.open: ' + String(url));
-
-    return originalOpen.apply(window, arguments);
-  };
-
-  // Monitor focus changes.
-  window.addEventListener('blur', function () {
-    setStatus('WINDOW BLUR: focus lost');
-  });
-
-  window.addEventListener('focus', function () {
-    setStatus('WINDOW FOCUS: focus returned');
-  });
-
-  // Monitor visibility changes.
-  document.addEventListener('visibilitychange', function () {
-    setStatus(
-      'VISIBILITY: ' +
-      (document.hidden ? 'HIDDEN' : 'VISIBLE')
-    );
-  });
-
-  // Monitor iframe loading.
-  var frame = document.getElementById('vidfast-frame');
-
-  if (frame) {
-    frame.addEventListener('load', function () {
-      addLog('VIDFAST IFRAME: loaded');
-    });
-
-    frame.addEventListener('error', function () {
-      addLog('VIDFAST IFRAME: loading error');
-    });
-  } else {
-    addLog('VIDFAST IFRAME: element not found');
-  }
-
-  // Monitor messages sent to the parent window.
-  window.addEventListener('message', function (event) {
-    addLog('POSTMESSAGE from: ' + event.origin);
-  });
-
-  // Initial information.
-  addLog('User agent: ' + navigator.userAgent);
-  addLog('Platform: ' + navigator.platform);
-  addLog('Iframe sandbox: ' +
-    (frame && frame.hasAttribute('sandbox') ? 'YES' : 'NO'));
-
-  setStatus('Diagnostic active. Start VidFast and test its controls.');
-
-})();
-</script>
 
 </body>
 </html>
