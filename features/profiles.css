@@ -1,0 +1,33 @@
+/* profiles feature - see README "Feature files" */
+#prof { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 6; background: #202124; color: #e8eaed;
+  display: flex; flex-direction: column; align-items: center; padding: 56px 72px 0; overflow: hidden; }
+#prof[hidden] { display: none; }
+body.profiles-open #top { opacity: 0; }
+#prof .phead { align-self: flex-end; height: 64px; }
+#prof .ptitle { font-size: 52px; font-weight: 400; margin: 70px 0 64px; }
+#prof .pstrip { display: flex; justify-content: center; }
+#prof .pcard { display: flex; flex-direction: column; align-items: center; width: 240px; margin: 0 16px; position: relative; }
+#prof .pav { width: 180px; height: 180px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 80px; font-weight: 500; color: #0e1014; transition: transform .15s, box-shadow .15s; }
+#prof .padd { background: #3c4043; color: #e8eaed; font-size: 90px; font-weight: 300; }
+#prof .pcard b { margin-top: 24px; font-size: 30px; font-weight: 400; color: #bdc1c6; }
+#prof .pcard i { position: absolute; top: 150px; padding: 4px 16px; border-radius: 16px; background: #fdd663; color: #202124;
+  font-style: normal; font-size: 20px; font-weight: 600; }
+#prof .pcard.cur .pav { box-shadow: 0 0 0 4px #5f6368; }
+#prof .pcard.focus .pav { transform: scale(1.08); box-shadow: 0 0 0 6px #fff; }
+#prof .pcard.focus b { color: #fff; }
+#prof .pfoot { margin-top: 70px; }
+#prof .pbtn { display: inline-block; padding: 14px 34px; border-radius: 32px; font-size: 26px; background: #3c4043; color: #e8eaed; margin: 0 8px; }
+#prof .pbtn.focus { background: #e8eaed; color: #202124; transform: scale(1.05); }
+#prof .pdel { color: #f28b82; }
+#prof .pdel.focus { background: #f28b82; color: #202124; }
+#prof .pprev .pav { width: 120px; height: 120px; font-size: 54px; margin: -30px 0 16px; }
+#prof .plabel { font-size: 24px; color: #9aa0a6; margin: 22px 0 12px; text-align: center; }
+#prof .plabel small { display: block; font-size: 18px; color: #80868b; margin-top: 4px; }
+#prof .prow { display: flex; justify-content: center; }
+#prof .pchip { padding: 12px 28px; border-radius: 28px; font-size: 24px; background: #303134; color: #e8eaed; margin: 0 6px;
+  display: flex; align-items: center; transition: transform .12s; }
+#prof .pchip.on { background: #8ab4f8; color: #202124; }
+#prof .pchip.focus { background: #fff; color: #202124; transform: scale(1.08); }
+#prof .pdot { width: 30px; height: 30px; border-radius: 50%; }
+#prof .pacts { margin-top: 44px; }

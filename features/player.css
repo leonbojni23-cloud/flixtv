@@ -1,0 +1,64 @@
+/* features/player.css */
+#player-view {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+#player-view[hidden] { display: none !important; }
+#tv-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+#tv-player-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 32px 44px;
+  box-sizing: border-box;
+  pointer-events: none;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg, rgba(0,0,0,.68), transparent 25%, transparent 65%, rgba(0,0,0,.78));
+}
+.tv-player-top, .tv-player-bottom, .tv-player-controls, .tv-player-progress {
+  display: flex;
+  align-items: center;
+}
+.tv-player-top { justify-content: space-between; gap: 24px; }
+#tv-player-title { font-size: 28px; font-weight: 700; }
+#tv-player-status { font-size: 17px; color: rgba(255,255,255,.8); }
+.tv-player-bottom { flex-direction: column; align-items: stretch; gap: 18px; }
+.tv-player-controls { gap: 14px; }
+.tvp-btn {
+  pointer-events: auto;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 8px;
+  padding: 13px 22px;
+  color: #fff;
+  background: rgba(20,20,20,.82);
+  font-size: 18px;
+}
+.tvp-btn:focus { outline: 3px solid #fff; background: #315c91; }
+.tv-player-progress { gap: 14px; font-size: 16px; }
+#tv-player-seek { flex: 1; min-width: 0; pointer-events: auto; }
+#tv-player-error {
+  align-self: center;
+  max-width: 70%;
+  padding: 18px 24px;
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(120,20,20,.92);
+  font-size: 20px;
+  text-align: center;
+}
+#tv-player-error[hidden] { display: none !important; }
+body.player-open { overflow: hidden; }

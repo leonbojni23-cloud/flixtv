@@ -1,0 +1,16 @@
+{
+  "id": "com.boring.tvhome",
+  "version": "0.25.0",
+  "vendor": "boring",
+  "type": "web",
+  "main": "index.html",
+  "title": "TV Home",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "bgColor": "#0e1014",
+  "resolution": "1920x1080",
+  "disableBackHistoryAPI": true,
+  "splashBackground": "splash.png",
+  "iconColor": "#16181c",
+  "handlesRelaunch": true
+}

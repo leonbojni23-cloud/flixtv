@@ -1,0 +1,25 @@
+/* search feature - see README "Feature files" */
+#search { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 6; background: #202124; padding: 64px 72px 0; overflow: hidden; }
+#search .sq { display: flex; align-items: center; height: 84px; padding: 0 32px; border-radius: 42px; background: #303134; font-size: 34px; width: 1100px; }
+#search .sq svg { width: 40px; height: 40px; margin-right: 22px; color: #9aa0a6; flex: none; }
+#search .sq .ph { color: #9aa0a6; }
+#search .caret { width: 3px; height: 40px; background: #8ab4f8; margin-left: 4px; animation: sblink 1s steps(1) infinite; }
+@keyframes sblink { 50% { opacity: 0; } }
+#skb { margin-top: 30px; }
+.skrow { white-space: nowrap; margin-bottom: 12px; }
+.skey { display: inline-block; width: 72px; height: 64px; line-height: 64px; margin-right: 12px; text-align: center; border-radius: 14px;
+  background: #303134; color: #e8eaed; font-size: 28px; transition: transform .12s; }
+.skey.wide { width: 132px; font-size: 24px; }
+.skey.focus, .schip.focus { background: #fff; color: #202124; transform: scale(1.08); }
+#syt { margin: 14px 0 30px; }
+.schip { display: inline-block; padding: 12px 26px; border-radius: 28px; font-size: 22px; background: #303134; color: #e8eaed; }
+.schip b { color: #f44; margin-right: 6px; }
+#sresTitle { font-size: 24px; font-weight: 500; margin-bottom: 18px; color: #e8eaed; }
+#sres { height: 300px; }
+.swhere { margin-top: 6px; font-size: 18px; color: #e8eaed; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.swhere b { color: #8ab4f8; font-weight: 500; }
+.swhere .dim { color: #9aa0a6; }
+#sxclose { position: absolute; top: 56px; right: 72px; width: 60px; height: 60px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-size: 26px; background: #3c4043; color: #e8eaed; z-index: 2;
+  transition: background .15s, color .15s, transform .15s; }
+#sxclose.focus { background: #fff; color: #202124; transform: scale(1.08); }

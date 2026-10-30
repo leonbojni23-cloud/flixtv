@@ -1,0 +1,55 @@
+#!/bin/sh
+# Control a rooted LG webOS TV from your computer over SSH (Homebrew Channel root + key login).
+#   TV_IP=192.168.1.50 TV_MAC=aa:bb:cc:dd:ee:ff tools/tv volume 20
+# Settings: TV_IP (required), TV_MAC (only for "on"), TV_KEY (default ~/.ssh/lgtv_root_ed25519).
+# Uses the TV Home service for picture/sound/screen commands, so install TV Home with service/ first.
+set -e
+: "${TV_IP:?set TV_IP to the TV address}"
+KEY=${TV_KEY:-$HOME/.ssh/lgtv_root_ed25519}
+
+luna() { # luna <uri> [json]  (luna-send only prints with a terminal attached, hence -tt)
+  p=${2:-'{}'}
+  ssh -tt -q -i "$KEY" -o BatchMode=yes -o ConnectTimeout=6 "root@$TV_IP" "luna-send -n 1 -w 8000 $1 '$p'" | tr -d '\r'
+}
+svc() { luna "luna://com.boring.tvhome.service/$1" "$2"; }
+launch() { luna luna://com.webos.applicationManager/launch "{\"id\":\"$1\"}"; }
+wake() { # Wake-on-LAN magic packet (kept out of the case block: macOS's bash 3.2 misparses it there)
+  python3 -c 'import socket,sys
+m = bytes.fromhex(sys.argv[1].replace(":", ""))
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+for port in 9, 7: s.sendto(b"\xff" * 6 + m * 16, ("255.255.255.255", port))' "$1"
+}
+list_apps() {
+  python3 -c 'import json,sys
+for a in json.load(sys.stdin)["apps"]: print(a["id"].ljust(42), a["title"])'
+}
+need() { [ -n "$ARG" ] || { echo "tv $CMD: needs $1" >&2; exit 1; }; }
+CMD=$1 ARG=$2
+muted=false; [ "$2" = mute ] && muted=true
+
+case "$1" in
+  on)        : "${TV_MAC:?set TV_MAC to turn the TV on with Wake-on-LAN, needs Quick Start+ or Turn on via Wi-Fi}"
+             wake "$TV_MAC"
+             echo "wake packet sent" ;;
+  off)       luna luna://com.webos.service.tvpower/power/powerOff '{"reason":"remoteKey"}' ;;
+  screen-off) svc screenOff ;;             # any remote key turns it back on
+  screen-on) svc screenOn ;;
+  volume)    case "$2" in
+               up)   luna luna://com.webos.service.audio/master/volumeUp ;;
+               down) luna luna://com.webos.service.audio/master/volumeDown ;;
+               mute|unmute) luna luna://com.webos.service.audio/master/setMuted "{\"muted\":$muted}" ;;
+               '' )  luna luna://com.webos.audio/getVolume ;;
+               *)    luna luna://com.webos.service.audio/master/setVolume "{\"volume\":$2}" ;;
+             esac ;;
+  input)     need "input name, e.g. hdmi1"; launch "com.webos.app.$2" ;;
+  inputs)    svc getInputs ;;
+  launch)    need "app id, see: tv apps"; launch "$2" ;;
+  apps)      svc getApps | list_apps ;;
+  home)      launch com.webos.app.home ;;
+  picture)   need "mode: vivid normal eco cinema sports game filmMaker"; svc setPicture "{\"pictureMode\":\"$2\"}" ;;
+  backlight) need "0-100"; svc setPicture "{\"backlight\":$2}" ;;
+  sound)     need "mode: aiSoundPlus standard movie news music game"; svc setSound "{\"soundMode\":\"$2\"}" ;;
+  status)    svc getAv; luna luna://com.webos.applicationManager/getForegroundAppInfo ;;
+  *)         echo "usage: tv on|off|screen-off|screen-on|volume [N|up|down|mute|unmute]|input hdmi1|inputs|launch <id>|apps|home|picture <mode>|backlight <0-100>|sound <mode>|status"; exit 1 ;;
+esac

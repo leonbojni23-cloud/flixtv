@@ -1,0 +1,20 @@
+/* details feature - see README "Feature files" */
+#details { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 6; background: #0e1014; overflow: hidden; }
+#details .dbg { position: absolute; top: 0; right: 0; width: 100%; height: 100%; object-fit: cover; }
+#details .dshade { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background:
+  linear-gradient(90deg, #0e1014 0%, rgba(14,16,20,.85) 35%, rgba(14,16,20,0) 70%),
+  linear-gradient(0deg, #0e1014 28%, rgba(14,16,20,.6) 45%, rgba(14,16,20,0) 65%); }
+.dbody { position: absolute; left: 72px; top: 120px; width: 1060px; }
+.dsrc { font-size: 22px; color: #bdc1c6; margin-bottom: 12px; }
+.dbody h1 { font-size: 64px; font-weight: 500; line-height: 1.06; margin-bottom: 14px; max-height: 136px; overflow: hidden; }
+.dmeta { font-size: 22px; color: #bdc1c6; margin-bottom: 16px; }
+.dsub { font-size: 24px; color: #dadce0; line-height: 1.4; max-height: 101px; overflow: hidden; margin-bottom: 12px; }
+.dcast { font-size: 20px; color: #9aa0a6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dbtns { margin-top: 26px; white-space: nowrap; }
+.dbtn { display: inline-block; padding: 14px 32px; margin-right: 16px; border-radius: 30px; font-size: 24px; font-weight: 500;
+  background: rgba(232,234,237,.16); color: #e8eaed; transition: background .15s, color .15s, transform .15s; }
+.dbtn.focus { background: #e8eaed; color: #202124; transform: scale(1.05); }
+.dnone { display: inline-block; padding: 14px 8px; margin-right: 24px; font-size: 24px; color: #9aa0a6; }
+.dextra { margin-top: 14px; font-size: 20px; color: #9aa0a6; min-height: 24px; }
+.dmore { position: absolute; left: 72px; right: 0; top: 720px; }
+.dmore h3 { font-size: 24px; font-weight: 500; margin-bottom: 18px; }

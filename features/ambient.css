@@ -1,0 +1,22 @@
+/* ambient feature - see README "Feature files" */
+#ambient { position: fixed; inset: 0; z-index: 1000; background: #000; overflow: hidden; opacity: 0; transition: opacity .6s ease; cursor: none; }
+#ambient.show { opacity: 1; }
+#ambient img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 2s ease; will-change: transform, opacity; }
+#ambient img.on { opacity: 1; }
+#ambient img.kb0 { animation: amb-kb0 16s linear both; }
+#ambient img.kb1 { animation: amb-kb1 16s linear both; }
+#ambient img.kb2 { animation: amb-kb2 16s linear both; }
+#ambient img.kb3 { animation: amb-kb3 16s linear both; }
+@keyframes amb-kb0 { from { transform: scale(1.08) translate(0, 0); } to { transform: scale(1.14) translate(-2%, -1%); } }
+@keyframes amb-kb1 { from { transform: scale(1.14) translate(-2%, 1%); } to { transform: scale(1.08) translate(1%, 0); } }
+@keyframes amb-kb2 { from { transform: scale(1.08) translate(2%, 0); } to { transform: scale(1.15) translate(-1%, 1%); } }
+@keyframes amb-kb3 { from { transform: scale(1.15) translate(1%, -1%); } to { transform: scale(1.08) translate(-1%, 1%); } }
+/* bottom scrim: one cheap gradient instead of text shadows */
+#ambient::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 360px; background: linear-gradient(transparent, rgba(0,0,0,.65)); }
+#ambient .amb-clock, #ambient .amb-title { position: absolute; bottom: 64px; z-index: 1; color: #e8eaed; }
+#ambient .amb-clock { left: 88px; }
+#ambient .amb-clock b { display: block; font-size: 120px; font-weight: 300; line-height: 1; letter-spacing: -2px; }
+#ambient .amb-clock span { display: block; margin-top: 12px; font-size: 30px; opacity: .85; }
+#ambient .amb-title { right: 88px; max-width: 760px; text-align: right; }
+#ambient .amb-title b { display: block; font-size: 30px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#ambient .amb-title span { display: block; margin-top: 6px; font-size: 22px; opacity: .7; }

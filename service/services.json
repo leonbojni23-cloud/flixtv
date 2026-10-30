@@ -1,0 +1,5 @@
+{
+  "id": "com.boring.tvhome.service",
+  "description": "Opens TV Home on the remote's Home button, at startup and after standby",
+  "services": [{"name": "com.boring.tvhome.service"}]
+}
