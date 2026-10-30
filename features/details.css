@@ -239,3 +239,6 @@
   #details .dep-image { height:105px; }
   #details .dep-overview { height:34px; }
 }
+
+#details .dseason-list .dbtn.selected { border-color:#e50914; background:rgba(229,9,20,.18); color:#fff; }
+#details .dseason-list .dbtn.selected.focus { background:#e50914; color:#fff; }
