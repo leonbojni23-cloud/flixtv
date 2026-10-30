@@ -31,3 +31,42 @@ body.profiles-open #top { opacity: 0; }
 #prof .pchip.focus { background: #fff; color: #202124; transform: scale(1.08); }
 #prof .pdot { width: 30px; height: 30px; border-radius: 50%; }
 #prof .pacts { margin-top: 44px; }
+
+
+/* FLIXTV profile picker: compact square avatars and clear remote focus */
+#prof { background:radial-gradient(ellipse at 50% 36%,#202020 0%,#0b0b0b 68%); color:#f5f5f1; padding:42px 5.2% 34px; }
+#prof .phead { width:100%; height:54px; display:flex; align-items:center; justify-content:space-between; }
+#prof .phead .pbtn { margin:0; }
+#prof .ptitle { margin:55px 0 42px; color:#fff; font-size:38px; font-weight:700; letter-spacing:-.5px; text-align:center; }
+#prof .pstrip { display:flex; justify-content:center; align-items:flex-start; flex-wrap:wrap; gap:24px; max-width:1100px; }
+#prof .pcard { width:150px; margin:0; padding:10px 8px 14px; border:1px solid transparent; border-radius:8px; background:transparent; }
+#prof .pav { width:112px; height:112px; border-radius:12px; font-size:48px; font-weight:700; color:#111; box-shadow:0 8px 22px rgba(0,0,0,.35); }
+#prof .padd { background:#242424; border:1px solid #555; color:#fff; font-size:54px; }
+#prof .pcard b { margin-top:14px; color:#bdbdbd; font-size:17px; font-weight:600; }
+#prof .pcard i { top:103px; right:14px; padding:3px 8px; border-radius:4px; background:#e50914; color:#fff; font-size:10px; }
+#prof .pcard.cur { border-color:#555; background:rgba(255,255,255,.045); }
+#prof .pcard.cur .pav { box-shadow:0 0 0 2px #e50914,0 8px 22px rgba(0,0,0,.35); }
+#prof .pcard.focus { border-color:#fff; background:rgba(255,255,255,.08); }
+#prof .pcard.focus .pav { transform:translateY(-3px); box-shadow:0 0 0 3px #fff,0 10px 26px rgba(0,0,0,.5); }
+#prof .pcard.focus b { color:#fff; }
+#prof .pfoot { margin-top:45px; }
+#prof .pbtn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px; padding:0 18px; border:1px solid #444; border-radius:5px; background:#202020; color:#ddd; font-size:14px; font-weight:700; margin:0 6px; }
+#prof .pbtn svg { width:18px; height:18px; }
+#prof .pbtn.focus { border-color:#fff; background:#e50914; color:#fff; transform:none; outline:2px solid rgba(255,255,255,.5); }
+#prof .pdel { color:#ff8d8d; }
+#prof .pdel.focus { background:#b20b14; color:#fff; }
+#prof .plabel { color:#ddd; font-size:17px; }
+#prof .plabel small { color:#999; font-size:12px; }
+#prof .prow { gap:8px; flex-wrap:wrap; }
+#prof .pchip { min-height:42px; padding:8px 16px; border:1px solid #383838; border-radius:5px; background:#202020; color:#ddd; font-size:15px; margin:0 4px; }
+#prof .pchip.on { border-color:#e50914; background:rgba(229,9,20,.18); color:#fff; }
+#prof .pchip.focus { border-color:#fff; background:#e50914; color:#fff; transform:none; }
+#prof .pdot { width:22px; height:22px; }
+#prof .pprev .pav { width:86px; height:86px; margin:0 auto 12px; font-size:38px; }
+@media(max-height:760px) {
+  #prof { padding-top:22px; }
+  #prof .ptitle { margin:28px 0 24px; font-size:32px; }
+  #prof .pav { width:88px; height:88px; font-size:38px; }
+  #prof .pcard { width:125px; }
+  #prof .pfoot { margin-top:24px; }
+}
