@@ -198,6 +198,34 @@ html, body {
   display: none !important;
 }
 
+#player-back {
+  position: absolute;
+  top: 28px;
+  left: 28px;
+  z-index: 5;
+  width: 58px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 50%;
+  background: rgba(0,0,0,.58);
+  color: #fff;
+  font: 32px/1 Arial, sans-serif;
+  cursor: pointer;
+  opacity: .92;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#player-back.focus,
+#player-back:focus {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+  background: rgba(35,35,35,.94);
+  transform: scale(1.06);
+}
+
 #player-view[hidden],
 #series-view[hidden] {
   display: none !important;
@@ -298,6 +326,8 @@ body.player-open {
     referrerpolicy="origin"
     frameborder="0">
   </iframe>
+
+  <span id="player-back" class="f" role="button" tabindex="0" aria-label="Back to title details">&#8592;</span>
 
 </main>
 
