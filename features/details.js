@@ -454,6 +454,14 @@
     });
 
     seasonBox.appendChild(row);
+    // Open Season 1 immediately (or the first available non-special season),
+    // while keeping every season selector visible for manual switching.
+    var firstSeason = available.filter(function (season) {
+      return season.season_number === 1;
+    })[0] || available.filter(function (season) {
+      return season.season_number > 0;
+    })[0] || available[0];
+    if (firstSeason) selectSeason(it, firstSeason);
     TV.rebuild(0, 0);
   }
 
@@ -581,6 +589,10 @@
       sub: episode && episode.overview
         ? episode.overview
         : '',
+      img: it.img || it.poster || '',
+      bg: it.bg || '',
+      blur: it.blur || it.img || '',
+      src: 'FLIXTV',
       tmdb: {
         id: it.tmdb.id,
         type: 'tv'
