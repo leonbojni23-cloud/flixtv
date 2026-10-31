@@ -344,3 +344,47 @@
   outline: 2px solid #fff;
   outline-offset: 3px;
 }
+
+
+/* Movie details: give each information block room to breathe. */
+#details.movie-details .dbody {
+  width: min(940px, 84vw);
+}
+#details.movie-details .dsrc { margin-bottom: 18px; }
+#details.movie-details .dbody h1 {
+  margin-bottom: 24px;
+  line-height: 1.12;
+}
+#details.movie-details .dmeta {
+  max-width: 900px;
+  margin-bottom: 26px;
+  line-height: 1.65;
+  white-space: normal;
+}
+#details.movie-details .dsub {
+  max-width: 850px;
+  max-height: 160px;
+  margin-bottom: 22px;
+  line-height: 1.65;
+}
+#details.movie-details .dcredits,
+#details.movie-details .dcompanies {
+  margin-top: 16px;
+  line-height: 1.6;
+}
+#details.movie-details .dcast-section { margin-top: 28px; }
+#details.movie-details .dbtns { margin-top: 30px; }
+#details.movie-details .dextra { margin-top: 20px; line-height: 1.5; }
+
+/* Keep horizontal episode/season navigation, but hide the visual scrollbar. */
+#details .dep-strip,
+#details .dseason-list {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+#details .dep-strip::-webkit-scrollbar,
+#details .dseason-list::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
