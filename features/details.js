@@ -226,6 +226,7 @@
     box.classList.remove('episode-browser');
     var isTv = isSeries(it);
     box.classList.toggle('movie-details', !isTv);
+    box.classList.toggle('series-details', isTv);
     currentItem = it;
 
     var backdrop = data && data.backdrop_path
@@ -690,10 +691,11 @@
     section.appendChild(strip);
     // On movie pages, recommendations belong after the details and controls
     // inside the same vertical scroll area, never over the action buttons.
-    var movieBody = box.classList.contains('movie-details')
+    var detailsBody = (box.classList.contains('movie-details') ||
+      box.classList.contains('series-details'))
       ? box.querySelector('.dbody')
       : null;
-    (movieBody || box).appendChild(section);
+    (detailsBody || box).appendChild(section);
   }
 
   // ---------- DETAILS VIEW ----------
@@ -828,7 +830,7 @@
       // Movie details use one vertical scroll area. Move it when focus
       // enters lower sections (especially More Like This), so focused
       // cards are actually visible instead of remaining below the fold.
-      var body = box.querySelector('.movie-details .dbody');
+      var body = box.querySelector('.movie-details .dbody, .series-details .dbody');
       if (body && element && body.contains(element)) {
         var bodyRect = body.getBoundingClientRect();
         var itemRect = element.getBoundingClientRect();
