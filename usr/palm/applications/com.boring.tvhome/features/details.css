@@ -620,3 +620,7 @@
 #details .dep-image img {
   object-fit: cover;
 }
+
+
+/* Low-power webOS mode: detail pages and episode rails update instantly. */
+#details *,#details *::before,#details *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important;}
