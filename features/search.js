@@ -61,7 +61,6 @@
       // jump straight to an external streaming app.
       var c = TV.card(it), w = TV.el('div', 'swhere');
       c.onok = function () { TV.itemOk(it); };
-      c.onclick = function () { TV.itemOk(it); };
       c.appendChild(w);
       strip.appendChild(c);
       if (i < 4) watch(it.tmdb, w); // ponytail: providers for first 8 only, the rest show nothing
@@ -95,7 +94,7 @@
       return [[$('sxclose')]]
         .concat([].slice.call(root.querySelectorAll('.skrow')).map(function (r) { return [].slice.call(r.children); }))
         .concat([[yt]])
-        .concat([].slice.call($('sres').children).length ? [[].slice.call($('sres').children)] : []);
+        .concat($('sres').children.length ? [[].slice.call($('sres').children)] : []);
     },
     show: function () { root.hidden = false; if (!$('sres').children.length) setQ(q); TV.rebuild(1, 0); }, // start on the keyboard, not the close button
     hide: function () { root.hidden = true; },
