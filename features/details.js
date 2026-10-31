@@ -244,15 +244,17 @@
       ? (data.release_date || data.first_air_date || '')
       : '';
 
-    var runtime = data && data.runtime
-      ? formatRuntime(data.runtime)
-      : '';
+    var runtimeMinutes = data && data.runtime
+      ? data.runtime
+      : (isTv && data && data.episode_run_time && data.episode_run_time.length
+          ? data.episode_run_time[0]
+          : 0);
+    var runtime = runtimeMinutes ? formatRuntime(runtimeMinutes) : '';
 
     var seasons = data && data.number_of_seasons
       ? data.number_of_seasons +
-        (data.number_of_seasons === 1
-          ? ' season'
-          : ' seasons')
+        (data.number_of_seasons === 1 ? ' season' : ' seasons') +
+        (data.number_of_episodes ? ' · ' + data.number_of_episodes + ' episodes' : '')
       : '';
 
     var genres = data && data.genres
