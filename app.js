@@ -522,7 +522,7 @@
   // ---------- quick settings side panel ----------
   var OUTPUTS = {tv_speaker: 'TV speaker', bt_soundbar: 'Bluetooth soundbar', external_arc: 'HDMI ARC', external_optical: 'Optical',
     headphone: 'Headphones', tv_external_speaker: 'TV + external', lineout: 'Line out'};
-  function setText(id, t) { $(id).textContent = t; }
+  function setText(id, t) { var el = $(id); if (el) el.textContent = t; }
   function refreshQuick() {
     var d = new Date();
     setText('qdate', d.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'}));
