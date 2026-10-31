@@ -136,10 +136,14 @@
   // TV remote remains responsive during cold start.
   var GENRE_SHELVES = {
     movies: [
-      ['Action & Adventure', 28], ['Comedy', 35], ['Drama', 18], ['Science Fiction', 878]
+      ['Action', 28], ['Adventure', 12], ['Animation', 16], ['Comedy', 35],
+      ['Crime', 80], ['Drama', 18], ['Horror', 27], ['Romance', 10749],
+      ['Science Fiction', 878], ['Thriller', 53]
     ],
     series: [
-      ['Action & Adventure', 10759], ['Drama', 18], ['Crime', 80], ['Sci-Fi & Fantasy', 10765]
+      ['Action & Adventure', 10759], ['Animation', 16], ['Comedy', 35],
+      ['Crime', 80], ['Documentary', 99], ['Drama', 18], ['Mystery', 9648],
+      ['Reality', 10764], ['Sci-Fi & Fantasy', 10765], ['War & Politics', 10768]
     ]
   };
   function loadGenreShelves() {
@@ -332,6 +336,7 @@
       addRow('Trending movies', allTitles, 'movies');
       addRow('Trending series', allTitles, 'series');
       sourceRows.forEach(function (row) {
+        if (row.genreType && row.genreType !== catalog) return;
         if (row.movieItems || row.seriesItems) {
           addRow(row.title + ' · Movies', row.movieItems || [], 'movies');
           addRow(row.title + ' · Series', row.seriesItems || [], 'series');
