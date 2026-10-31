@@ -132,6 +132,43 @@
       return r.results.filter(function (m) { return m.backdrop_path && m.media_type !== 'person'; }).map(function (m) { return fromTmdb(m); });
     });
   }
+  // Small curated genre shelves, fetched after the first screen renders so the
+  // TV remote remains responsive during cold start.
+  var GENRE_SHELVES = {
+    movies: [
+      ['Action & Adventure', 28], ['Comedy', 35], ['Drama', 18], ['Science Fiction', 878]
+    ],
+    series: [
+      ['Action & Adventure', 10759], ['Drama', 18], ['Crime', 80], ['Sci-Fi & Fantasy', 10765]
+    ]
+  };
+  function loadGenreShelves() {
+    var jobs = [];
+    ['movies', 'series'].forEach(function (type) {
+      GENRE_SHELVES[type].forEach(function (genre) {
+        var endpoint = type === 'movies' ? 'discover/movie' : 'discover/tv';
+        var query = '&with_genres=' + genre[1] +
+          '&sort_by=popularity.desc&vote_count.gte=50&include_adult=false' + langQ();
+        jobs.push(tmdb(endpoint, query).then(function (r) {
+          return {
+            title: genre[0],
+            genreType: type,
+            items: (r.results || []).filter(function (m) {
+              return m.poster_path || m.backdrop_path;
+            }).map(function (m) { return fromTmdb(m); })
+          };
+        }).catch(function () { return null; }));
+      });
+    });
+    return Promise.all(jobs).then(function (rows) {
+      var valid = rows.filter(Boolean);
+      if (!valid.length) return;
+      base = base.filter(function (row) { return !row.genreType; }).concat(valid);
+      store('homeCache', {hero: heroItems, base: base});
+      buildRows();
+    });
+  }
+
   function serviceRow(svc, providers) {
     var name = function (x) { return x.provider_name.toLowerCase(); };
     var p = providers.filter(function (x) { return name(x) === svc.match; })[0] ||
@@ -941,6 +978,7 @@
       var fresh = !cached; // keep the user's place if they already started moving around the cached screen
       buildRows(); showHero(); booted();
       if (fresh) { pos.r = 1; focus(); }
+      loadGenreShelves();
     });
   }); }
   loadHome();
