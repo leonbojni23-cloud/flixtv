@@ -22,16 +22,16 @@
 /* Cinematic back navigation */
 #details .dback {
   position: absolute;
-  top: 34px;
-  left: 42px;
+  top: clamp(24px, 4vh, 48px);
+  left: clamp(28px, 3.5vw, 64px);
   z-index: 10;
-  min-width: 112px;
+  min-width: 116px;
   height: 54px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 0 17px 0 14px;
+  padding: 0 20px 0 17px;
   border: 1px solid rgba(255,255,255,.18);
   border-radius: 999px;
   background: rgba(18,18,20,.68);
@@ -327,4 +327,20 @@
   #details .dsub { max-height:78px; font-size:20px; }
   #details .dcast-person img,#details .dcast-placeholder { height:76px; }
   #details .dcast-person { flex-basis:92px; width:92px; }
+}
+
+
+/* Keep the details Back control aligned with the player Back control. */
+#details .dback {
+  border-radius: 999px;
+  background: rgba(18,18,20,.78);
+  border-color: rgba(255,255,255,.22);
+  box-shadow: 0 8px 28px rgba(0,0,0,.32);
+}
+#details .dback.focus,
+#details .dback:focus {
+  background: #e50914;
+  border-color: rgba(255,255,255,.9);
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
