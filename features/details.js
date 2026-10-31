@@ -224,9 +224,9 @@
 
   function render(it, data) {
     box.classList.remove('episode-browser');
-    currentItem = it;
-
     var isTv = isSeries(it);
+    box.classList.toggle('movie-details', !isTv);
+    currentItem = it;
 
     var backdrop = data && data.backdrop_path
       ? image(data.backdrop_path, 'w1280')
