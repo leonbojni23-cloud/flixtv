@@ -688,7 +688,12 @@
     });
 
     section.appendChild(strip);
-    box.appendChild(section);
+    // On movie pages, recommendations belong after the details and controls
+    // inside the same vertical scroll area, never over the action buttons.
+    var movieBody = box.classList.contains('movie-details')
+      ? box.querySelector('.dbody')
+      : null;
+    (movieBody || box).appendChild(section);
   }
 
   // ---------- DETAILS VIEW ----------
