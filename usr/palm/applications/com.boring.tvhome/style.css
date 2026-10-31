@@ -264,7 +264,7 @@ main {
 
 .strip {
   white-space: nowrap;
-  transition: transform .35s cubic-bezier(.2,.8,.2,1);
+  transition: transform .18s ease;
   height: 262px;
 }
 
@@ -769,9 +769,9 @@ main {
   width: calc(100% + 120px);
   height: calc(100% + 120px);
   object-fit: cover;
-  filter: blur(28px) saturate(1.4) brightness(.7);
+  filter: none;
   opacity: 0;
-  transition: opacity .35s;
+  transition: opacity .15s;
   z-index: 0;
 }
 
@@ -785,10 +785,7 @@ main {
 
 /* Performance */
 
-main,
-.strip {
-  will-change: transform;
-}
+/* Avoid promoting every row/strip to a GPU layer on low-memory TV hardware. */
 
 .card,
 .app {
@@ -1172,3 +1169,37 @@ main#home { padding:0 5.2%;z-index:2; }
   .row:not(.poster-row) .card { width:250px; }
 }
 @media(max-height:800px) { #hero { height:500px;padding-top:150px; } .card { height:290px; } .card .pic { height:230px; } }
+
+
+/* FLIXTV low-memory webOS profile: avoid expensive compositing on navigation. */
+.card .pic, .app .disc { transition-duration: .12s; }
+
+
+/* FLIXTV focused catalog: short rows, larger posters, low-cost focus movement. */
+#rows { padding-bottom: 70px; }
+.row { margin: 0 0 26px; }
+.row h3 { margin: 0 0 12px; font-size: 23px; }
+.strip, .row.poster-row .strip { height: 390px; overflow: hidden; white-space: nowrap; transition: transform .16s linear; }
+.card { width: 220px; height: 370px; margin: 0 16px 0 0; }
+.card .pic { height: 320px; border-radius: 5px; box-shadow: none; transition: transform .12s linear; }
+.card .ttl { font-size: 16px; }
+.card .cap { margin-top: 4px; font-size: 12px; }
+.focus.card .pic { transform: scale(1.025); box-shadow: 0 0 0 2px #fff; }
+.focus.card .ttl { color: #fff; }
+.row:not(.poster-row) .card { width: 220px; height: 370px; }
+.row:not(.poster-row) .card .pic { height: 320px; }
+main#home { transition: transform .16s linear; }
+@media(max-width:1200px) { .card, .row:not(.poster-row) .card { width: 200px; height: 345px; } .card .pic, .row:not(.poster-row) .card .pic { height: 290px; } .strip, .row.poster-row .strip { height: 365px; } }
+
+
+/* Netflix-like incremental row navigation for webOS */
+.strip { height: 390px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; transform: none !important; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; }
+.strip::-webkit-scrollbar { display: none; }
+.row.poster-row .strip { height: 390px; }
+.row { margin-bottom: 30px; }
+.card { width: 220px; height: 370px; margin-right: 18px; }
+.card .pic { height: 320px; }
+.focus.card .pic { transform: scale(1.035); box-shadow: 0 0 0 3px #fff; }
+main#home { transition: transform .22s cubic-bezier(.2,.75,.25,1); }
+.card .pic { transition: transform .16s ease-out; }
+@media(max-width:1200px) { .strip,.row.poster-row .strip { height: 365px; } .card { width: 200px; height: 345px; } .card .pic { height: 290px; } }
