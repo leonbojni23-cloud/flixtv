@@ -824,6 +824,23 @@
           ) +
           'px)';
       }
+
+      // Movie details use one vertical scroll area. Move it when focus
+      // enters lower sections (especially More Like This), so focused
+      // cards are actually visible instead of remaining below the fold.
+      var body = box.querySelector('.movie-details .dbody');
+      if (body && element && body.contains(element)) {
+        var bodyRect = body.getBoundingClientRect();
+        var itemRect = element.getBoundingClientRect();
+        var topGap = 34;
+        var bottomGap = 42;
+
+        if (itemRect.bottom > bodyRect.bottom - bottomGap) {
+          body.scrollTop += itemRect.bottom - bodyRect.bottom + bottomGap;
+        } else if (itemRect.top < bodyRect.top + topGap) {
+          body.scrollTop -= bodyRect.top + topGap - itemRect.top;
+        }
+      }
     },
 
     back: function () {
