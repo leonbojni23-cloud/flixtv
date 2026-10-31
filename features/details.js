@@ -265,20 +265,39 @@
       ? '★ ' + Number(data.vote_average).toFixed(1)
       : '';
 
+    var status = data && data.status ? data.status : '';
+    var language = data && data.original_language
+      ? data.original_language.toUpperCase()
+      : '';
+    var voteCount = data && data.vote_count
+      ? Number(data.vote_count).toLocaleString() + ' votes'
+      : '';
+    var companies = data && data.production_companies
+      ? data.production_companies.slice(0, 2).map(function (company) { return company.name; }).join(', ')
+      : '';
     var meta = [
       year(date),
       isTv ? seasons : runtime,
       rating,
+      voteCount,
+      status,
+      language,
       genres
     ].filter(Boolean).join('  ·  ');
 
-    var cast = data &&
-      data.credits &&
-      data.credits.cast
-      ? data.credits.cast.slice(0, 6).map(function (person) {
-          return person.name;
-        }).join(', ')
-      : '';
+    var cast = data && data.credits && data.credits.cast
+      ? data.credits.cast.slice(0, 12)
+      : [];
+    var directors = data && data.credits && data.credits.crew
+      ? data.credits.crew.filter(function (person) {
+          return person.job === 'Director' || person.job === 'Executive Producer' ||
+            (isTv && person.job === 'Creator');
+        }).slice(0, 3).map(function (person) { return person.name; })
+      : [];
+    var creators = isTv && data && data.created_by
+      ? data.created_by.map(function (person) { return person.name; }).slice(0, 3)
+      : [];
+    var creatorsText = creators.length ? creators.join(', ') : directors.join(', ');
 
     box.innerHTML =
       '<img class="dbg" alt="" decoding="async"' +
@@ -298,11 +317,17 @@
           esc(meta || it.meta || '') +
         '</div>' +
         '<p class="dsub">' + esc(overview) + '</p>' +
-        (cast
-          ? '<div class="dcast">Cast: ' +
-              esc(cast) +
-            '</div>'
-          : '') +
+        (creatorsText ? '<div class="dcredits"><b>' + (isTv ? 'Created by' : 'Directed by') +
+          ':</b> ' + esc(creatorsText) + '</div>' : '') +
+        (companies ? '<div class="dcompanies"><b>Production:</b> ' + esc(companies) + '</div>' : '') +
+        (cast.length ? '<section class="dcast-section"><h3>CAST</h3><div class="dcast-grid">' +
+          cast.map(function (person) {
+            var portrait = person.profile_path ? image(person.profile_path, 'w185') : '';
+            return '<div class="dcast-person">' +
+              (portrait ? '<img src="' + esc(portrait) + '" alt="" loading="lazy" decoding="async">' :
+                '<div class="dcast-placeholder">' + esc((person.name || '?').charAt(0)) + '</div>') +
+              '<b>' + esc(person.name || '') + '</b><span>' + esc(person.character || '') + '</span></div>';
+          }).join('') + '</div></section>' : '') +
         '<div class="dbtns"></div>' +
         '<div class="dextra"></div>' +
         '<div class="dseasons"></div>' +
