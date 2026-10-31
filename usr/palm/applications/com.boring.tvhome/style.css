@@ -1211,3 +1211,7 @@ main#home { transition: transform .11s ease-out !important; }
 .strip { scroll-behavior: auto !important; }
 .card .pic, .app .disc { transition-duration: .08s !important; }
 .focus.card .pic, .focus.app .disc { transition-duration: .08s !important; }
+
+
+/* Low-power webOS mode: remove decorative motion and animated scrolling. */
+*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important;}
