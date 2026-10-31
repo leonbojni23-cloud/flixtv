@@ -346,7 +346,68 @@
 }
 
 
-/* Movie details: give each information block room to breathe. */
+/* Movie details: wider canvas and a deliberately taller vertical layout. */
+#details.movie-details .dbody {
+  left: 5%;
+  top: clamp(132px, 16vh, 188px);
+  width: min(1180px, 90vw);
+  max-height: calc(100% - 210px);
+  padding: 0 24px 48px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+#details.movie-details .dbody::-webkit-scrollbar { display:none; }
+#details.movie-details .dsrc {
+  margin-bottom: 26px;
+  font-size: 20px;
+}
+#details.movie-details .dbody h1 {
+  margin-bottom: 32px;
+  line-height: 1.14;
+  max-height: none;
+}
+#details.movie-details .dmeta {
+  max-width: 1120px;
+  margin-bottom: 34px;
+  line-height: 1.8;
+  white-space: normal;
+  font-size: 21px;
+}
+#details.movie-details .dsub {
+  max-width: 1080px;
+  max-height: 210px;
+  margin-bottom: 30px;
+  line-height: 1.75;
+  font-size: 24px;
+}
+#details.movie-details .dcredits,
+#details.movie-details .dcompanies {
+  max-width: 1080px;
+  margin-top: 22px;
+  line-height: 1.7;
+  font-size: 17px;
+}
+#details.movie-details .dcast-section {
+  margin-top: 38px;
+}
+#details.movie-details .dcast-section h3 { margin-bottom: 18px; }
+#details.movie-details .dcast-grid { gap: 18px; padding-bottom: 16px; }
+#details.movie-details .dbtns { margin-top: 42px; }
+#details.movie-details .dextra {
+  margin-top: 26px;
+  line-height: 1.7;
+  font-size: 17px;
+}
+@media (max-height: 800px) {
+  #details.movie-details .dbody {
+    top: 112px;
+    max-height: calc(100% - 145px);
+  }
+  #details.movie-details .dsub { max-height: 170px; }
+}
+ 
+
 #details.movie-details .dbody {
   width: min(940px, 84vw);
 }
