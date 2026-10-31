@@ -1173,3 +1173,20 @@ main#home { padding:0 5.2%;z-index:2; }
 
 /* FLIXTV low-memory webOS profile: avoid expensive compositing on navigation. */
 .card .pic, .app .disc { transition-duration: .12s; }
+
+
+/* FLIXTV focused catalog: short rows, larger posters, low-cost focus movement. */
+#rows { padding-bottom: 70px; }
+.row { margin: 0 0 26px; }
+.row h3 { margin: 0 0 12px; font-size: 23px; }
+.strip, .row.poster-row .strip { height: 390px; overflow: hidden; white-space: nowrap; transition: transform .16s linear; }
+.card { width: 220px; height: 370px; margin: 0 16px 0 0; }
+.card .pic { height: 320px; border-radius: 5px; box-shadow: none; transition: transform .12s linear; }
+.card .ttl { font-size: 16px; }
+.card .cap { margin-top: 4px; font-size: 12px; }
+.focus.card .pic { transform: scale(1.025); box-shadow: 0 0 0 2px #fff; }
+.focus.card .ttl { color: #fff; }
+.row:not(.poster-row) .card { width: 220px; height: 370px; }
+.row:not(.poster-row) .card .pic { height: 320px; }
+main#home { transition: transform .16s linear; }
+@media(max-width:1200px) { .card, .row:not(.poster-row) .card { width: 200px; height: 345px; } .card .pic, .row:not(.poster-row) .card .pic { height: 290px; } .strip, .row.poster-row .strip { height: 365px; } }
