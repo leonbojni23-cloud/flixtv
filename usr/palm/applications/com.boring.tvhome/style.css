@@ -1190,3 +1190,16 @@ main#home { padding:0 5.2%;z-index:2; }
 .row:not(.poster-row) .card .pic { height: 320px; }
 main#home { transition: transform .16s linear; }
 @media(max-width:1200px) { .card, .row:not(.poster-row) .card { width: 200px; height: 345px; } .card .pic, .row:not(.poster-row) .card .pic { height: 290px; } .strip, .row.poster-row .strip { height: 365px; } }
+
+
+/* Netflix-like incremental row navigation for webOS */
+.strip { height: 390px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; transform: none !important; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; }
+.strip::-webkit-scrollbar { display: none; }
+.row.poster-row .strip { height: 390px; }
+.row { margin-bottom: 30px; }
+.card { width: 220px; height: 370px; margin-right: 18px; }
+.card .pic { height: 320px; }
+.focus.card .pic { transform: scale(1.035); box-shadow: 0 0 0 3px #fff; }
+main#home { transition: transform .22s cubic-bezier(.2,.75,.25,1); }
+.card .pic { transition: transform .16s ease-out; }
+@media(max-width:1200px) { .strip,.row.poster-row .strip { height: 365px; } .card { width: 200px; height: 345px; } .card .pic { height: 290px; } }
