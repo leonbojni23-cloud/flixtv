@@ -554,3 +554,39 @@
   }
   #details.series-details .dsub { max-height: 170px; }
 }
+
+
+/* Full-width content layout for both movie and TV detail pages.
+   Remove inherited narrow max-widths that were squeezing the text into a column. */
+#details.movie-details .dbody,
+#details.series-details .dbody {
+  left: 4%;
+  right: 4%;
+  width: auto;
+  max-width: none;
+  box-sizing: border-box;
+  padding-left: 0;
+  padding-right: 0;
+}
+#details.movie-details .dmeta,
+#details.series-details .dmeta,
+#details.movie-details .dsub,
+#details.series-details .dsub,
+#details.movie-details .dcredits,
+#details.series-details .dcredits,
+#details.movie-details .dcompanies,
+#details.series-details .dcompanies {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+#details.movie-details .dcast-section,
+#details.series-details .dcast-section {
+  width: 100%;
+  max-width: none;
+}
+#details.movie-details .dmore,
+#details.series-details .dmore {
+  width: 100%;
+  box-sizing: border-box;
+}
