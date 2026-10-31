@@ -264,7 +264,7 @@ main {
 
 .strip {
   white-space: nowrap;
-  transition: transform .35s cubic-bezier(.2,.8,.2,1);
+  transition: transform .18s ease;
   height: 262px;
 }
 
@@ -769,9 +769,9 @@ main {
   width: calc(100% + 120px);
   height: calc(100% + 120px);
   object-fit: cover;
-  filter: blur(28px) saturate(1.4) brightness(.7);
+  filter: none;
   opacity: 0;
-  transition: opacity .35s;
+  transition: opacity .15s;
   z-index: 0;
 }
 
@@ -785,10 +785,7 @@ main {
 
 /* Performance */
 
-main,
-.strip {
-  will-change: transform;
-}
+/* Avoid promoting every row/strip to a GPU layer on low-memory TV hardware. */
 
 .card,
 .app {
@@ -1172,3 +1169,7 @@ main#home { padding:0 5.2%;z-index:2; }
   .row:not(.poster-row) .card { width:250px; }
 }
 @media(max-height:800px) { #hero { height:500px;padding-top:150px; } .card { height:290px; } .card .pic { height:230px; } }
+
+
+/* FLIXTV low-memory webOS profile: avoid expensive compositing on navigation. */
+.card .pic, .app .disc { transition-duration: .12s; }
