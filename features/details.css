@@ -477,3 +477,80 @@
   scrollbar-width: none;
 }
 #details.movie-details .dmore .strip::-webkit-scrollbar { display:none; }
+
+
+/* TV series details follow the same tall, scrollable layout as movie details. */
+#details.series-details .dbody {
+  left: 5%;
+  top: clamp(132px, 16vh, 188px);
+  width: min(1180px, 90vw);
+  max-height: calc(100% - 210px);
+  padding: 0 24px 70px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+#details.series-details .dbody::-webkit-scrollbar { display:none; }
+#details.series-details .dsrc { margin-bottom: 26px; }
+#details.series-details .dbody h1 {
+  margin-bottom: 32px;
+  line-height: 1.14;
+  max-height: none;
+}
+#details.series-details .dmeta {
+  max-width: 1120px;
+  margin-bottom: 34px;
+  line-height: 1.8;
+  white-space: normal;
+  font-size: 21px;
+}
+#details.series-details .dsub {
+  max-width: 1080px;
+  max-height: 210px;
+  margin-bottom: 30px;
+  line-height: 1.75;
+  font-size: 24px;
+}
+#details.series-details .dcredits,
+#details.series-details .dcompanies {
+  max-width: 1080px;
+  margin-top: 22px;
+  line-height: 1.7;
+  font-size: 17px;
+}
+#details.series-details .dcast-section { margin-top: 38px; }
+#details.series-details .dcast-section h3 { margin-bottom: 18px; }
+#details.series-details .dcast-grid { gap: 18px; padding-bottom: 16px; }
+#details.series-details .dbtns { margin-top: 42px; }
+#details.series-details .dextra {
+  margin-top: 26px;
+  line-height: 1.7;
+  font-size: 17px;
+}
+#details.series-details .dmore {
+  position: static;
+  display: block;
+  width: auto;
+  margin: 76px 0 54px;
+  padding: 0 18px 20px 0;
+}
+#details.series-details .dmore h3 {
+  margin-bottom: 26px;
+  font-size: 26px;
+}
+#details.series-details .dmore .strip {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 12px 8px 28px;
+  scrollbar-width: none;
+}
+#details.series-details .dmore .strip::-webkit-scrollbar { display:none; }
+@media (max-height: 800px) {
+  #details.series-details .dbody {
+    top: 112px;
+    max-height: calc(100% - 145px);
+  }
+  #details.series-details .dsub { max-height: 170px; }
+}
