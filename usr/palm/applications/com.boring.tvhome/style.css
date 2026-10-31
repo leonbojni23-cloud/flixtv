@@ -1215,3 +1215,9 @@ main#home { transition: transform .11s ease-out !important; }
 
 /* Low-power webOS mode: remove decorative motion and animated scrolling. */
 *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important;}
+
+
+/* Catalog readability and rating badges */
+.card .ttl { font-size: 19px !important; line-height: 1.25; font-weight: 700; }
+.card .pic { position: relative; }
+.card .rating { position: absolute; top: 9px; left: 9px; z-index: 2; display: inline-flex; align-items: center; padding: 5px 8px; border-radius: 4px; background: rgba(0,0,0,.84); color: #ffd76a; font: 700 14px/1 Arial,Helvetica,sans-serif; letter-spacing: .2px; }
