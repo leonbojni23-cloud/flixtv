@@ -1203,3 +1203,11 @@ main#home { transition: transform .16s linear; }
 main#home { transition: transform .22s cubic-bezier(.2,.75,.25,1); }
 .card .pic { transition: transform .16s ease-out; }
 @media(max-width:1200px) { .strip,.row.poster-row .strip { height: 365px; } .card { width: 200px; height: 345px; } .card .pic { height: 290px; } }
+
+
+/* Fast remote navigation: avoid queued smooth-scroll animations on every key repeat. */
+main#home { transition: transform .11s ease-out !important; }
+#details .dbody { scroll-behavior: auto; }
+.strip { scroll-behavior: auto !important; }
+.card .pic, .app .disc { transition-duration: .08s !important; }
+.focus.card .pic, .focus.app .disc { transition-duration: .08s !important; }
