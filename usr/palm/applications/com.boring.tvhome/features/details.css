@@ -590,3 +590,33 @@
   width: 100%;
   box-sizing: border-box;
 }
+
+
+/* Episode rail: use native horizontal scrolling only. Avoid translating the whole rail on every remote key event. */
+#details .dep-strip,
+#details .dseason-list {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: auto;
+  overscroll-behavior-x: contain;
+  transform: none !important;
+  transition: none !important;
+  -webkit-overflow-scrolling: auto;
+}
+#details .dep-card {
+  flex: 0 0 270px;
+  min-width: 0;
+  transform: none;
+  transition: border-color .08s linear;
+}
+#details .dep-card.focus {
+  transform: none;
+  border-color: #e50914;
+  box-shadow: 0 0 0 2px #e50914;
+}
+#details .dep-image img {
+  object-fit: cover;
+}
