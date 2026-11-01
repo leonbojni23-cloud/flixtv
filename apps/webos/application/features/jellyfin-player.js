@@ -65,7 +65,7 @@
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     var timer = setTimeout(function () {
       if (controller) controller.abort();
-    }, 20000);
+    }, 60000);
     return fetch(serverUrl() + path, {
       method: "GET",
       headers: headers(),
@@ -91,13 +91,20 @@
 
   function findItems(tmdbId, type, token) {
     var itemType = type === "tv" || type === "series" ? "Series" : "Movie";
+    var title = String(currentItem && currentItem.title || currentItem && currentItem.name || "").trim();
+    if (!title) return Promise.reject(new Error("The catalogue did not provide a title to search in Jellyfin."));
     var query = "?Recursive=true&IncludeItemTypes=" + itemType +
-      "&AnyProviderIdEquals=" + encode("Tmdb." + tmdbId) +
-      "&Fields=ProviderIds,MediaSources,MediaStreams&Limit=10";
+      "&SearchTerm=" + encode(title) +
+      "&Fields=ProviderIds&Limit=25";
     return requestJson("/Items" + query, token).then(function (data) {
       if (token !== requestToken) throw new Error("Playback request was replaced.");
       return data.Items || [];
     });
+  }
+
+  function getItemDetails(itemId, token) {
+    return requestJson("/Items/" + encode(itemId) +
+      "?Fields=ProviderIds,MediaSources,MediaStreams", token);
   }
 
   function getEpisode(seriesId, season, episode, token) {
@@ -116,7 +123,7 @@
   function streamUrl(item, mediaSource) {
     var sourceId = mediaSource && mediaSource.Id || item.Id;
     return serverUrl() + "/Videos/" + encode(item.Id) + "/master.m3u8?MediaSourceId=" +
-      encode(sourceId) + "&api_key=" + encode(apiKey());
+      encode(sourceId) + "&ApiKey=" + encode(apiKey());
   }
 
   function labelFor(source, index) {
@@ -138,7 +145,7 @@
       button.onclick = button.onok;
       sourceList.appendChild(button);
     });
-    if (!sources.length) sourceList.innerHTML = '<p class="jellyfin-empty">No playable versions found.</p>';
+    if (!sources.length) sourceList.innerHTML = "";
   }
 
   function playSource(index) {
@@ -265,6 +272,9 @@
       }
       return itemPromise;
     }).then(function (item) {
+      if (!item || token !== requestToken || TV.view() !== "jellyfin-player") return null;
+      return getItemDetails(item.Id, token);
+    }).then(function (item) {
       if (!item || token !== requestToken || TV.view() !== "jellyfin-player") return;
       var media = Array.isArray(item.MediaSources) ? item.MediaSources : [];
       if (!media.length) media = [{ Id: item.Id, Name: item.Name, Container: item.Container, Size: item.Size }];
@@ -280,7 +290,7 @@
       if (token !== requestToken || TV.view() !== "jellyfin-player") return;
       console.error("[Jellyfin] Library lookup failed:", error);
       setStatus(error.name === "AbortError"
-        ? "Jellyfin request timed out. Check the server address."
+        ? "Jellyfin did not respond within 60 seconds. Check the server address, network and server logs."
         : (error.message || "Could not connect to Jellyfin."), false);
     });
   }
