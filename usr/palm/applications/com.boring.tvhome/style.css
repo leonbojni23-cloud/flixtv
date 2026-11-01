@@ -1284,6 +1284,14 @@ main#home { transition: transform .11s ease-out !important; }
 }
 @media(max-width:900px) {
   #top .brand { font-size:25px; }
-  #top .catalog-nav { left:48%; }
+  #top .catalog-nav { left:50%; }
   #top .tab { min-width:0; padding:9px 10px; font-size:14px; }
+}
+
+
+/* Desktop preview and simplified catalog navigation. */
+#apps { display: none !important; }
+#top .catalog-nav { left: 50%; max-width: calc(100vw - 340px); }
+@media (max-width: 900px) {
+  #top .catalog-nav { left: 50%; max-width: calc(100vw - 180px); }
 }
