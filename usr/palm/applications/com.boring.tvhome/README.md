@@ -162,3 +162,10 @@ Each feature lives in `features/<name>.js` + `features/<name>.css` and only talk
 | `TV.heroItems()`, `TV.view()`, `TV.idleSince()`, `TV.setBg(url)`, `TV.S`, `TV.C`, `TV.LANGS`, `TV.IMG` | State. |
 | `window.TV_PROFILE = {prefix, name, color, extraQ, hideApps}` | Set by `profiles.js` before `app.js` runs: storage prefix, avatar, extra TMDB discover query (e.g. kids certification), app ids to hide. |
 | `tvready` event on `window` | Fired once `window.TV` exists (for `profiles.js`, which loads first). |
+
+
+## Desktop preview (PC / Mac)
+
+Run the app in a desktop browser without installing webOS tools. From the repository root, run `npm run dev`, then open http://localhost:3000. Set the browser viewport to 1920 × 1080 for the closest TV layout. Use arrow keys to move focus, Enter to select, and Escape or Backspace to go back. The preview server uses only Node.js built-ins and has no npm dependencies.
+
+For a populated catalog, copy `keys.example.js` to `keys.js` in this app directory and add your own TMDB API key. Do not commit `keys.js`; it is gitignored. webOS-only controls such as system settings, installed-app discovery and remote services cannot run in a normal browser.
