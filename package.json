@@ -1,0 +1,11 @@
+{
+  "name": "flixtv-webos",
+  "version": "0.25.1",
+  "private": true,
+  "description": "FLIXTV LG webOS app with a dependency-free desktop preview server",
+  "scripts": {
+    "dev": "node tools/dev-server.js",
+    "start": "node tools/dev-server.js",
+    "check": "node --check usr/palm/applications/com.boring.tvhome/app.js && node --check usr/palm/applications/com.boring.tvhome/tmdb-service.js && node --check tools/dev-server.js"
+  }
+}
