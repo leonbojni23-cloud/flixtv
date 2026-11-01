@@ -169,7 +169,7 @@
     function armStartupTimeout() {
       clearPlaybackTimer();
       playbackTimer = setTimeout(function () {
-        if (token !== playbackToken || !video.paused && video.readyState >= 2) return;
+        if (token !== playbackToken || video.readyState >= 2) return;
         console.warn("[CinePro] Playback startup timed out:", { index: sourceIndex, provider: providerName });
         markSourceFailed(source, "startup timeout");
       }, 25000);
@@ -359,6 +359,8 @@
     failedSources = Object.create(null);
     renderSources();
     renderSubtitles();
+    playbackToken++;
+    clearPlaybackTimer();
     stopPlayback();
     setStatus("Finding streams with CinePro...");
     var url;
