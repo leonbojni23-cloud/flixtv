@@ -1,5 +1,7 @@
-# FLIXTV for LG webOS
+# LG webOS application
 
-This directory is the target home for the LG webOS application.
+- `application/`: web UI, app manifest, styles, features, assets and bundled app-side service scripts.
+- `service/`: standalone webOS system service and startup scripts.
+- `package/`: webOS package metadata.
 
-**Migration note:** the currently working webOS package remains at `../../usr/palm/applications/com.boring.tvhome` for now. Keep that source intact until the complete app, assets, manifests, and package/build workflow can be moved together.
+The source was moved from the former `usr/palm` layout without changing its internal relative paths. Keep app-side assets together because the webOS runtime loads them relative to `index.html`.

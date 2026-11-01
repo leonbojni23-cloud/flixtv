@@ -1,5 +1,11 @@
-# FLIXTV Web Preview
+# FLIXTV Desktop Preview
 
-This directory is reserved for the standalone desktop/browser app.
+The desktop preview runs the same UI source used by the LG webOS app, served locally by `tools/dev-server.js`.
 
-During the migration, the working preview continues to serve the existing webOS UI from `usr/palm/applications/com.boring.tvhome` through `tools/dev-server.js`. The preview will move here when the web and webOS runtime boundaries are separated.
+From the repository root:
+
+```bash
+npm run dev
+```
+
+Open http://localhost:3000 and set the viewport to 1920×1080. Use arrow keys, Enter and Escape. Platform-only webOS system APIs are not available in a desktop browser.

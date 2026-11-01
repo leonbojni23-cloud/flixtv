@@ -4,7 +4,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const APP_ROOT = path.resolve(__dirname, "../usr/palm/applications/com.boring.tvhome");
+const APP_ROOT = path.resolve(__dirname, "../apps/webos/application");
 const HOST = process.env.HOST || "127.0.0.1";
 const PORT = Number(process.env.PORT || 3000);
 
