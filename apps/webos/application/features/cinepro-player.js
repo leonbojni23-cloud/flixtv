@@ -17,6 +17,9 @@
   var subtitles = [];
   var focused = 0;
   var requestToken = 0;
+  var playbackToken = 0;
+  var playbackTimer = null;
+  var failedSources = Object.create(null);
 
   if (!TV || !view || !video || !sourceList || !back) {
     console.error("[CinePro] Player mount or FLIXTV API is missing.");
@@ -73,111 +76,211 @@
     return parsed.toString();
   }
 
+  function clearPlaybackTimer() {
+    if (playbackTimer) {
+      clearTimeout(playbackTimer);
+      playbackTimer = null;
+    }
+  }
+
+  function isSafeProxyUrl(value) {
+    try {
+      var parsed = new URL(value, baseUrl() + "/");
+      var configured = new URL(baseUrl() + "/");
+      return (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+        parsed.origin === configured.origin &&
+        parsed.pathname === "/v1/proxy" &&
+        !parsed.username && !parsed.password;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function markSourceFailed(source, reason) {
+    var index = sources.indexOf(source);
+    if (index < 0 || failedSources[index]) return;
+    failedSources[index] = true;
+    console.warn("[CinePro] Source failed; skipping to next source:", {
+      index: index,
+      provider: source.provider && source.provider.name || "unknown",
+      reason: reason || "playback error"
+    });
+    clearPlaybackTimer();
+    if (hls) {
+      try { hls.destroy(); } catch (error) {}
+      hls = null;
+    }
+    try { video.pause(); } catch (error) {}
+    video.removeAttribute("src");
+    try { video.load(); } catch (error) {}
+    var next = -1;
+    for (var i = index + 1; i < sources.length; i++) {
+      if (!failedSources[i]) { next = i; break; }
+    }
+    if (next < 0) {
+      for (var j = 0; j < index; j++) {
+        if (!failedSources[j]) { next = j; break; }
+      }
+    }
+    if (next >= 0) {
+      setStatus("Source failed. Trying " + (sources[next].provider && sources[next].provider.name || "next source") + "...");
+      playSource(sources[next]);
+    } else {
+      setStatus("All returned sources failed. Try again later.");
+      console.error("[CinePro] Playback exhausted all available sources.");
+    }
+  }
+
   function playSource(source) {
     if (!source || !source.url) return;
+    var sourceIndex = sources.indexOf(source);
+    if (sourceIndex < 0 || failedSources[sourceIndex]) return;
     stopPlayback();
+    clearPlaybackTimer();
+    var token = ++playbackToken;
     var providerName = source.provider && source.provider.name || "source";
-    console.info("[CinePro] Playing source:", {
+    console.info("[CinePro] Starting source:", {
+      index: sourceIndex,
       provider: providerName,
       quality: source.quality || source.type || "Auto",
       streamType: source.type || "unknown"
     });
-    setStatus("Loading " + providerName + " · " + (source.quality || source.type || "Auto"));
+
     var url;
-    try { url = absoluteSource(source.url); }
-    catch (error) {
-      console.error("[CinePro] Invalid stream URL:", error.message);
-      setStatus("Invalid stream URL.");
+    try {
+      url = absoluteSource(source.url);
+      if (!isSafeProxyUrl(url)) throw new Error("Source URL is not a trusted CinePro proxy endpoint.");
+    } catch (error) {
+      console.error("[CinePro] Source rejected:", {
+        index: sourceIndex,
+        provider: providerName,
+        reason: error.message
+      });
+      failedSources[sourceIndex] = true;
+      markSourceFailed(source, error.message);
       return;
     }
 
+    function armStartupTimeout() {
+      clearPlaybackTimer();
+      playbackTimer = setTimeout(function () {
+        if (token !== playbackToken || !video.paused && video.readyState >= 2) return;
+        console.warn("[CinePro] Playback startup timed out:", { index: sourceIndex, provider: providerName });
+        markSourceFailed(source, "startup timeout");
+      }, 25000);
+    }
+
     video.onerror = function () {
+      if (token !== playbackToken) return;
+      var err = video.error;
       console.error("[CinePro] Video element error:", {
-        code: video.error && video.error.code,
-        message: video.error && video.error.message,
+        code: err && err.code,
+        message: err && err.message,
         networkState: video.networkState,
         readyState: video.readyState
       });
+      markSourceFailed(source, "media element error " + (err && err.code || "unknown"));
+    };
+    video.onplaying = function () {
+      if (token !== playbackToken) return;
+      clearPlaybackTimer();
+      setStatus("");
+      console.info("[CinePro] Playback started:", { index: sourceIndex, provider: providerName });
+    };
+    video.onloadedmetadata = function () {
+      if (token === playbackToken) console.info("[CinePro] Media metadata loaded:", {
+        duration: Number.isFinite(video.duration) ? video.duration : null,
+        width: video.videoWidth,
+        height: video.videoHeight
+      });
     };
 
+    armStartupTimeout();
     var nativeHls = video.canPlayType("application/vnd.apple.mpegurl") || video.canPlayType("application/x-mpegURL");
     if (nativeHls) {
-      console.info("[CinePro] Using native HLS playback.");
+      console.info("[CinePro] Using native HLS.");
       video.src = url;
       video.load();
-      video.play().then(function () { setStatus(""); }).catch(function (error) {
-        console.warn("[CinePro] Native playback rejected:", error && error.name, error && error.message);
-        setStatus("Press Play to start this source.");
+      video.play().catch(function (error) {
+        if (token !== playbackToken) return;
+        console.warn("[CinePro] Native play rejected:", error && error.name);
+        if (error && error.name !== "NotAllowedError") markSourceFailed(source, "native play rejected");
+        else setStatus("Press Play to start this source.");
       });
     } else if (window.Hls && window.Hls.isSupported()) {
-      console.info("[CinePro] Using hls.js playback.");
-      hls = new window.Hls({ enableWorker: false, capLevelToPlayerSize: true });
-
-      // Register listeners before loading so early manifest/network errors are not missed.
-      hls.on(window.Hls.Events.MEDIA_ATTACHED, function () {
-        console.info("[CinePro][HLS] Media attached.");
-      });
-      hls.on(window.Hls.Events.MANIFEST_LOADING, function () {
-        console.info("[CinePro][HLS] Manifest loading.");
+      console.info("[CinePro] Using hls.js.");
+      hls = new window.Hls({
+        enableWorker: false,
+        capLevelToPlayerSize: true,
+        startFragPrefetch: true,
+        manifestLoadingTimeOut: 15000,
+        manifestLoadingMaxRetry: 2,
+        levelLoadingTimeOut: 15000,
+        levelLoadingMaxRetry: 2,
+        fragLoadingTimeOut: 20000,
+        fragLoadingMaxRetry: 3,
+        fragLoadingRetryDelay: 500,
+        fragLoadingMaxRetryTimeout: 4000,
+        nudgeMaxRetry: 2
       });
       hls.on(window.Hls.Events.MANIFEST_PARSED, function (event, data) {
+        if (token !== playbackToken) return;
         console.info("[CinePro][HLS] Manifest parsed:", {
           levels: data && data.levels ? data.levels.length : 0,
           audioTracks: data && data.audioTracks ? data.audioTracks.length : 0,
           subtitleTracks: data && data.subtitleTracks ? data.subtitleTracks.length : 0
         });
-        video.play().then(function () { setStatus(""); }).catch(function (error) {
-          console.warn("[CinePro][HLS] Playback rejected:", error && error.name, error && error.message);
-          setStatus("Press Play to start this source.");
+        video.play().catch(function (error) {
+          if (token !== playbackToken) return;
+          console.warn("[CinePro][HLS] Play rejected:", error && error.name);
+          if (error && error.name !== "NotAllowedError") markSourceFailed(source, "HLS play rejected");
+          else setStatus("Press Play to start this source.");
         });
       });
-      hls.on(window.Hls.Events.LEVEL_LOADED, function (event, data) {
-        console.info("[CinePro][HLS] Level loaded:", {
-          level: data && data.level,
-          fragments: data && data.details && data.details.fragments ? data.details.fragments.length : 0,
-          live: !!(data && data.details && data.details.live)
-        });
-      });
-      hls.on(window.Hls.Events.KEY_LOADING, function () {
-        console.info("[CinePro][HLS] Encryption key loading.");
-      });
-      hls.on(window.Hls.Events.KEY_LOADED, function () {
-        console.info("[CinePro][HLS] Encryption key loaded.");
-      });
-      hls.on(window.Hls.Events.FRAG_LOADED, function (event, data) {
-        console.info("[CinePro][HLS] Fragment loaded:", {
-          level: data && data.frag && data.frag.level,
+      hls.on(window.Hls.Events.FRAG_BUFFERED, function (event, data) {
+        if (token !== playbackToken) return;
+        clearPlaybackTimer();
+        console.info("[CinePro][HLS] Fragment buffered:", {
           sn: data && data.frag && data.frag.sn,
-          bytes: data && data.payload ? data.payload.byteLength : null
+          level: data && data.frag && data.frag.level
         });
       });
       hls.on(window.Hls.Events.ERROR, function (event, data) {
-        var response = data && data.response || {};
+        if (token !== playbackToken || !data) return;
+        var response = data.response || {};
         console.error("[CinePro][HLS] Error:", {
-          type: data && data.type,
-          details: data && data.details,
-          fatal: !!(data && data.fatal),
+          type: data.type,
+          details: data.details,
+          fatal: !!data.fatal,
           httpCode: response.code || null,
-          reason: data && data.reason || null,
-          errorMessage: data && data.error && data.error.message || null
+          reason: data.reason || null,
+          message: data.error && data.error.message || null
         });
-        if (data && data.fatal) setStatus("This source could not be played. Try another source.");
+        if (!data.fatal) return;
+        if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) {
+          try { hls.startLoad(); } catch (error) { markSourceFailed(source, "fatal network error"); }
+        } else if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
+          try { hls.recoverMediaError(); } catch (error) { markSourceFailed(source, "fatal media error"); }
+        } else {
+          markSourceFailed(source, "fatal HLS error: " + data.details);
+        }
       });
-
       hls.attachMedia(video);
       hls.loadSource(url);
     } else {
-      console.info("[CinePro] HLS.js unavailable; using direct video playback.");
+      console.info("[CinePro] HLS.js unavailable; attempting direct playback.");
       video.src = url;
       video.load();
-      video.play().then(function () { setStatus(""); }).catch(function (error) {
-        console.warn("[CinePro] Direct playback rejected:", error && error.name, error && error.message);
-        setStatus("This TV/browser cannot play this stream format. Try another source.");
+      video.play().catch(function (error) {
+        if (token !== playbackToken) return;
+        console.warn("[CinePro] Direct play rejected:", error && error.name);
+        if (error && error.name !== "NotAllowedError") markSourceFailed(source, "direct playback rejected");
+        else setStatus("Press Play to start this source.");
       });
     }
 
     [].forEach.call(sourceList.querySelectorAll(".cinepro-source"), function (button) {
-      button.classList.toggle("selected", Number(button.dataset.index) === sources.indexOf(source));
+      button.classList.toggle("selected", Number(button.dataset.index) === sourceIndex);
     });
   }
 
@@ -248,6 +351,7 @@
     var token = ++requestToken;
     sources = [];
     subtitles = [];
+    failedSources = Object.create(null);
     renderSources();
     renderSubtitles();
     stopPlayback();
@@ -268,7 +372,8 @@
       })
       .then(function (data) {
         if (token !== requestToken || TV.view() !== "cinepro-player") return;
-        sources = Array.isArray(data.sources) ? data.sources.filter(function (source) { return source && source.url; }) : [];
+        sources = Array.isArray(data.sources) ? data.sources.filter(function (source) { return source && source.url && isSafeProxyUrl(absoluteSource(source.url)); }) : [];
+        failedSources = Object.create(null);
         subtitles = Array.isArray(data.subtitles) ? data.subtitles.filter(function (track) { return track && track.url; }) : [];
         renderSources();
         renderSubtitles();
@@ -289,6 +394,8 @@
 
   function cleanup() {
     requestToken++;
+    playbackToken++;
+    clearPlaybackTimer();
     stopPlayback();
     currentItem = null;
     currentRequest = null;
