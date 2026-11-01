@@ -167,7 +167,6 @@ body.player-open {
     <span class="tab f cur" data-tab="home">Home</span>
     <span class="tab f" data-tab="movies">Movies</span>
     <span class="tab f" data-tab="series">TV Shows</span>
-    <span class="tab f" data-tab="apps">Apps</span>
   </nav>
 
   <div class="avatar f" id="avatar"></div>
@@ -201,11 +200,8 @@ body.player-open {
 
 </main>
 
-<!-- Legacy Apps view -->
-<main id="apps" hidden>
-  <h2>Your apps</h2>
-  <div id="grid"></div>
-</main>
+<!-- Hidden compatibility mount for the existing app controller. -->
+<main id="apps" hidden aria-hidden="true"><div id="grid"></div></main>
 
 <!-- Series and episodes -->
 <main id="series-view" hidden></main>
