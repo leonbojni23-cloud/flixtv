@@ -1,6 +1,6 @@
 # FLIXTV
 
-FLIXTV is a monorepo for the LG webOS application, desktop preview, and playback services.
+FLIXTV is a monorepo for the LG webOS application, desktop preview, and Jellyfin-backed playback.
 
 ## Repository structure
 
@@ -8,50 +8,64 @@ FLIXTV is a monorepo for the LG webOS application, desktop preview, and playback
 flixtv/
 ├── apps/web/                 # Desktop/browser preview documentation
 ├── apps/webos/
-│   ├── application/          # FLIXTV UI, TMDB catalog, CinePro player and webOS service
+│   ├── application/          # FLIXTV UI, TMDB catalog, Jellyfin player and webOS service
 │   └── package/              # webOS package metadata
 ├── services/                 # Backend service scaffolds
 ├── packages/                 # Shared module scaffolds
 ├── tests/
 ├── tools/dev-server.js       # Lightweight desktop preview server
 ├── releases/                 # Versioned IPK packages
-├── docker-compose.yml        # CinePro Core service
-└── package.json
+└── docker-compose.yml        # Optional Jellyfin server
 ```
 
 ## Desktop development
 
-Requirements: Node.js 18+ for the FLIXTV preview, Docker Desktop with Docker Compose for CinePro Core.
+Requirements: Node.js 18+ for the FLIXTV preview. Jellyfin can run on another computer, NAS, or the optional Docker setup below.
 
-1. Copy `.env.example` to `.env` and set `TMDB_API_KEY`.
-2. Copy `apps/webos/application/keys.example.js` to `keys.js`.
-3. Add your TMDB key to `keys.js`. For desktop preview, leave `CINEPRO_URL` as `http://127.0.0.1:3001`.
-4. Start CinePro Core: `docker compose up -d cinepro-core`.
-5. Start FLIXTV: `npm run dev`.
-6. Open http://localhost:3000.
+1. Copy `apps/webos/application/keys.example.js` to `apps/webos/application/keys.js`.
+2. Set `TMDB_KEY`, `JELLYFIN_URL`, and `JELLYFIN_API_KEY` in `keys.js`.
+3. Start FLIXTV with `npm run dev`.
+4. Open http://localhost:3000.
 
-Useful commands:
+Useful command: `npm run check` runs JavaScript syntax checks.
 
-- `npm run check` runs JavaScript syntax checks.
-- `npm run cinepro:logs` follows CinePro Core logs.
-- `npm run cinepro:down` stops CinePro Core.
+## Connect an existing Jellyfin server
 
-## LG webOS
+1. In Jellyfin Dashboard, create an API key under **API Keys**.
+2. Set `JELLYFIN_URL` to the server address reachable by the device, for example `http://192.168.1.20:8096`.
+3. Set `JELLYFIN_API_KEY` to the generated key.
+4. For webOS, use the computer/NAS LAN address, not `localhost` or `127.0.0.1`.
+5. Allow FLIXTV's origin in Jellyfin's CORS/network settings if the browser blocks API requests.
 
-The app source is in `apps/webos/application`. To connect a TV to CinePro Core running on a computer, set `CINEPRO_URL` in the local, gitignored `keys.js` to the computer's LAN address, for example `http://192.168.1.20:3001`. Do not use `127.0.0.1` on the TV unless CinePro is running on the TV itself.
+Example:
 
-The FLIXTV interface and title-detail screens remain unchanged. The CinePro player receives the existing TMDB movie or episode ID, requests sources from CinePro Core, and presents the returned sources and subtitles in the existing full-screen player view. HLS playback uses native browser support when available and HLS.js otherwise.
+```js
+window.KEYS = {
+  TMDB_KEY: "your-tmdb-key",
+  YT_KEY: "",
+  JELLYFIN_URL: "http://192.168.1.20:8096",
+  JELLYFIN_API_KEY: "your-jellyfin-api-key"
+};
+```
 
-YapGrid's old player file is retained as an unused fallback during testing; FLIXTV's default Play actions now open CinePro.
+FLIXTV keeps TMDB for catalog, artwork, and title details. When Play is selected, it searches the Jellyfin library using the title's TMDB provider ID. Movies are matched to a movie item; episodes are matched by series TMDB ID, season number, and episode number. Playback is delivered by Jellyfin's HLS endpoint, with native HLS used when available and hls.js as the fallback.
 
-## CinePro requirements and limitations
+**Important:** Jellyfin must contain the title and have its TMDB provider IDs correctly identified. A TMDB catalogue result does not mean the title exists in your Jellyfin library. The API key is stored in local `keys.js` and is included in the playback URL because the HTML video element cannot attach Jellyfin authorization headers. Do not publish that file or expose the key.
 
-CinePro Core is built and run as a separate Docker service on port 3001. It needs a TMDB API key. Its API is exposed to the local network by Docker; do not expose this personal-use instance directly to the public internet. The upstream project documents personal/home use and is licensed under PolyForm Noncommercial 1.0.0. Review the upstream license before distributing FLIXTV with CinePro or using it for anything commercial: https://github.com/cinepro-org/core/blob/main/LICENSE.
+## Optional Jellyfin Docker server
+
+The repository's `docker-compose.yml` starts a Jellyfin server on port 8096. Put your media files in `./media` (or adjust the media volume), then run:
+
+```bash
+docker compose up -d jellyfin
+```
+
+Complete Jellyfin's first-run setup at `http://localhost:8096`, add the `/media` library, create an API key, and configure FLIXTV as described above. If you already have a Jellyfin server, you do not need this Docker service.
 
 ## LG webOS application and releases
 
-The webOS app's service scripts remain under `apps/webos/application/service`, alongside the files they are packaged with. Package metadata is in `apps/webos/package`. The archived 0.25.0 IPK is under `releases/0.25.0/`.
+The webOS app source is in `apps/webos/application`; package metadata is in `apps/webos/package`. The archived 0.25.0 IPK is under `releases/0.25.0/`.
 
 ## Architecture status
 
-CinePro Core is an external service, not copied into the FLIXTV repository. The FLIXTV CinePro adapter/player is implemented in `apps/webos/application/features/cinepro-player.js`. The other shared catalog/provider/player/subtitle package directories remain scaffolds.
+Jellyfin is the playback server. The FLIXTV Jellyfin adapter is implemented in `apps/webos/application/features/jellyfin-player.js`. The catalogue remains powered by TMDB; Jellyfin is responsible for matching library items and delivering the video stream.
