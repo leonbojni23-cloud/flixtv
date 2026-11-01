@@ -98,8 +98,9 @@
 
   function markSourceFailed(source, reason) {
     var index = sources.indexOf(source);
-    if (index < 0 || failedSources[index]) return;
-    failedSources[index] = true;
+    if (index < 0) return;
+    if (failedSources[index] === "handling") return;
+    failedSources[index] = "handling";
     console.warn("[CinePro] Source failed; skipping to next source:", {
       index: index,
       provider: source.provider && source.provider.name || "unknown",
@@ -131,6 +132,11 @@
     }
   }
 
+  function isValidSource(source) {
+    try { return !!(source && source.url && isSafeProxyUrl(absoluteSource(source.url))); }
+    catch (error) { return false; }
+  }
+
   function playSource(source) {
     if (!source || !source.url) return;
     var sourceIndex = sources.indexOf(source);
@@ -156,7 +162,6 @@
         provider: providerName,
         reason: error.message
       });
-      failedSources[sourceIndex] = true;
       markSourceFailed(source, error.message);
       return;
     }
@@ -372,7 +377,7 @@
       })
       .then(function (data) {
         if (token !== requestToken || TV.view() !== "cinepro-player") return;
-        sources = Array.isArray(data.sources) ? data.sources.filter(function (source) { return source && source.url && isSafeProxyUrl(absoluteSource(source.url)); }) : [];
+        sources = Array.isArray(data.sources) ? data.sources.filter(isValidSource) : [];
         failedSources = Object.create(null);
         subtitles = Array.isArray(data.subtitles) ? data.subtitles.filter(function (track) { return track && track.url; }) : [];
         renderSources();
