@@ -54,7 +54,23 @@
   }
 
   function absoluteSource(url) {
-    return new URL(url, baseUrl() + "/").toString();
+    var parsed = new URL(url, baseUrl() + "/");
+    var configured = new URL(baseUrl() + "/");
+
+    // CinePro may generate proxy links using its internal container port
+    // (localhost:3000). In FLIXTV, the public host port is configured via
+    // CINEPRO_URL (for this setup: localhost:3001). Rewrite only CinePro
+    // proxy endpoints, never provider URLs.
+    if (
+      parsed.pathname.indexOf("/v1/proxy") === 0 &&
+      (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
+      parsed.port === "3000"
+    ) {
+      parsed.protocol = configured.protocol;
+      parsed.host = configured.host;
+    }
+
+    return parsed.toString();
   }
 
   function playSource(source) {
