@@ -1,7 +1,6 @@
 services:
   cinepro-core:
-    build:
-      context: https://github.com/cinepro-org/core.git#main
+    image: ghcr.io/cinepro-org/core:latest
     container_name: flixtv-cinepro
     ports:
       - "3001:3000"
