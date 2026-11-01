@@ -1,18 +1,11 @@
 services:
-  cinepro-core:
-    image: ghcr.io/cinepro-org/core:latest
-    container_name: flixtv-cinepro
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: flixtv-jellyfin
     ports:
-      - "3001:3000"
-    environment:
-      HOST: 0.0.0.0
-      PORT: 3000
-      NODE_ENV: production
-      TMDB_API_KEY: ${TMDB_API_KEY}
-      TMDB_CACHE_TTL: 86400
-      CACHE_TYPE: memory
-      CORS_ORIGIN: "*"
-      STREMIO_ADDON: "false"
-      MCP_ENABLED: "false"
-      INTERNAL_DEBUG: "false"
+      - "8096:8096"
+    volumes:
+      - ./jellyfin/config:/config
+      - ./jellyfin/cache:/cache
+      - ./media:/media:ro
     restart: unless-stopped
