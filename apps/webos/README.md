@@ -1,7 +1,6 @@
 # LG webOS application
 
-- `application/`: web UI, app manifest, styles, features, assets and bundled app-side service scripts.
-- `service/`: standalone webOS system service and startup scripts.
+- `application/`: app manifest, HTML/CSS/JS, features, assets and the bundled `service/` scripts.
 - `package/`: webOS package metadata.
 
-The source was moved from the former `usr/palm` layout without changing its internal relative paths. Keep app-side assets together because the webOS runtime loads them relative to `index.html`.
+The `application/service/` directory is the authoritative source for service scripts. It stays beside the app because the existing webOS packaging workflow includes it from the app directory. Do not maintain a second copy elsewhere.

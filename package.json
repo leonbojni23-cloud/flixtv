@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node tools/dev-server.js",
     "start": "node tools/dev-server.js",
-    "check": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check tools/dev-server.js && node --check apps/webos/service/service.js",
-    "check:webos": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check apps/webos/service/service.js"
+    "check": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check tools/dev-server.js && node --check apps/webos/application/service/service.js",
+    "check:webos": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check apps/webos/application/service/service.js"
   }
 }
