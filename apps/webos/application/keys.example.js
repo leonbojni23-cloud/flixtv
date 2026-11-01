@@ -1,1 +1,1 @@
-window.KEYS={TMDB_KEY:"",YT_KEY:""};
+window.KEYS={TMDB_KEY:"",YT_KEY:"",CINEPRO_URL:"http://127.0.0.1:3001"};

@@ -1,12 +1,15 @@
 {
   "name": "flixtv",
-  "version": "0.25.1",
+  "version": "0.26.0",
   "private": true,
   "description": "FLIXTV monorepo for LG webOS and desktop preview",
   "scripts": {
     "dev": "node tools/dev-server.js",
     "start": "node tools/dev-server.js",
-    "check": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check tools/dev-server.js && node --check apps/webos/application/service/service.js",
-    "check:webos": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check apps/webos/application/service/service.js"
+    "cinepro:up": "docker compose up -d cinepro-core",
+    "cinepro:logs": "docker compose logs -f cinepro-core",
+    "cinepro:down": "docker compose stop cinepro-core",
+    "check": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check apps/webos/application/features/cinepro-player.js && node --check apps/webos/application/features/details.js && node --check tools/dev-server.js && node --check apps/webos/application/service/service.js",
+    "check:webos": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check apps/webos/application/features/cinepro-player.js && node --check apps/webos/application/features/details.js && node --check apps/webos/application/service/service.js"
   }
 }

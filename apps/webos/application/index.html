@@ -50,18 +50,47 @@ html, body {
   overflow: hidden;
 }
 
-#yapgrid-frame {
+#cinepro-video {
   display: block;
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
   background: #000;
 }
+.cinepro-panel {
+  position: absolute;
+  left: 3.5vw;
+  right: 3.5vw;
+  bottom: 3vh;
+  z-index: 4;
+  padding: 18px 22px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  background: rgba(12,14,18,.88);
+  color: #fff;
+  font: 14px Arial, sans-serif;
+  backdrop-filter: blur(12px);
+}
+.cinepro-panel h3 { margin: 0 0 10px; font-size: 15px; }
+#cinepro-status { margin-bottom: 10px; color: rgba(255,255,255,.78); }
+#cinepro-sources, #cinepro-subtitles { display: flex; flex-wrap: wrap; gap: 8px; }
+.cinepro-source {
+  min-width: 110px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 9px;
+  background: rgba(255,255,255,.07);
+  color: #fff;
+  text-align: left;
+  font: 13px Arial, sans-serif;
+}
+.cinepro-source b, .cinepro-source span { display: block; }
+.cinepro-source span { margin-top: 4px; color: rgba(255,255,255,.65); font-size: 11px; }
+.cinepro-source.selected, .cinepro-source.focus { border-color: #fff; background: rgba(255,255,255,.2); outline: 2px solid rgba(255,255,255,.7); outline-offset: 2px; }
+#cinepro-subtitles { margin-top: 10px; }
+.cinepro-subtitle-label { align-self: center; margin-right: 8px; color: rgba(255,255,255,.7); }
+.cinepro-empty { color: rgba(255,255,255,.7); }
 
 #player-loading {
   position: absolute;
@@ -206,21 +235,20 @@ body.player-open {
 <!-- Series and episodes -->
 <main id="series-view" hidden></main>
 
-<!-- YapGrid player -->
+<!-- CinePro player -->
 <main id="player-view" hidden>
 
   <div id="player-loading">
     Loading player...
   </div>
 
-  <iframe
-    id="yapgrid-frame"
-    title="YapGrid Player"
-    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-    sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
-    referrerpolicy="origin"
-    frameborder="0">
-  </iframe>
+  <video id="cinepro-video" controls playsinline preload="metadata"></video>
+  <section class="cinepro-panel">
+    <h3>Playback sources</h3>
+    <div id="cinepro-status" role="status"></div>
+    <div id="cinepro-sources"></div>
+    <div id="cinepro-subtitles" hidden></div>
+  </section>
 
   <button id="player-back" class="f" type="button" aria-label="Back to title details">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -384,8 +412,9 @@ body.player-open {
 <script src="features/profiles.js"></script>
 <script src="app.js"></script>
 
-<!-- YapGrid player: load after app.js and before details.js -->
-<script src="features/yapgrid-embed.js"></script>
+<!-- CinePro player: load after app.js and before details.js -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
+<script src="features/cinepro-player.js"></script>
 
 <script src="features/details.js"></script>
 <script src="features/search.js"></script>

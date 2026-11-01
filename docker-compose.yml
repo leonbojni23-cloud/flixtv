@@ -1,2 +1,19 @@
-# Docker Compose will define local development services once the media API has an executable Dockerfile.
-# No containers are declared yet, so this file intentionally starts as a scaffold.
+services:
+  cinepro-core:
+    build:
+      context: https://github.com/cinepro-org/core.git#main
+    container_name: flixtv-cinepro
+    ports:
+      - "3001:3000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      NODE_ENV: production
+      TMDB_API_KEY: ${TMDB_API_KEY}
+      TMDB_CACHE_TTL: 86400
+      CACHE_TYPE: memory
+      CORS_ORIGIN: "*"
+      STREMIO_ADDON: "false"
+      MCP_ENABLED: "false"
+      INTERNAL_DEBUG: "false"
+    restart: unless-stopped
