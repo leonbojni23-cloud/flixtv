@@ -76,30 +76,102 @@
   function playSource(source) {
     if (!source || !source.url) return;
     stopPlayback();
-    setStatus("Loading " + (source.provider && source.provider.name || "source") + " · " + (source.quality || source.type || "Auto"));
+    var providerName = source.provider && source.provider.name || "source";
+    console.info("[CinePro] Playing source:", {
+      provider: providerName,
+      quality: source.quality || source.type || "Auto",
+      streamType: source.type || "unknown"
+    });
+    setStatus("Loading " + providerName + " · " + (source.quality || source.type || "Auto"));
     var url;
     try { url = absoluteSource(source.url); }
-    catch (error) { setStatus("Invalid stream URL."); return; }
+    catch (error) {
+      console.error("[CinePro] Invalid stream URL:", error.message);
+      setStatus("Invalid stream URL.");
+      return;
+    }
+
+    video.onerror = function () {
+      console.error("[CinePro] Video element error:", {
+        code: video.error && video.error.code,
+        message: video.error && video.error.message,
+        networkState: video.networkState,
+        readyState: video.readyState
+      });
+    };
 
     var nativeHls = video.canPlayType("application/vnd.apple.mpegurl") || video.canPlayType("application/x-mpegURL");
     if (nativeHls) {
+      console.info("[CinePro] Using native HLS playback.");
       video.src = url;
       video.load();
-      video.play().then(function () { setStatus(""); }).catch(function () { setStatus("Press Play to start this source."); });
+      video.play().then(function () { setStatus(""); }).catch(function (error) {
+        console.warn("[CinePro] Native playback rejected:", error && error.name, error && error.message);
+        setStatus("Press Play to start this source.");
+      });
     } else if (window.Hls && window.Hls.isSupported()) {
+      console.info("[CinePro] Using hls.js playback.");
       hls = new window.Hls({ enableWorker: false, capLevelToPlayerSize: true });
-      hls.loadSource(url);
-      hls.attachMedia(video);
-      hls.on(window.Hls.Events.MANIFEST_PARSED, function () {
-        video.play().then(function () { setStatus(""); }).catch(function () { setStatus("Press Play to start this source."); });
+
+      // Register listeners before loading so early manifest/network errors are not missed.
+      hls.on(window.Hls.Events.MEDIA_ATTACHED, function () {
+        console.info("[CinePro][HLS] Media attached.");
+      });
+      hls.on(window.Hls.Events.MANIFEST_LOADING, function () {
+        console.info("[CinePro][HLS] Manifest loading.");
+      });
+      hls.on(window.Hls.Events.MANIFEST_PARSED, function (event, data) {
+        console.info("[CinePro][HLS] Manifest parsed:", {
+          levels: data && data.levels ? data.levels.length : 0,
+          audioTracks: data && data.audioTracks ? data.audioTracks.length : 0,
+          subtitleTracks: data && data.subtitleTracks ? data.subtitleTracks.length : 0
+        });
+        video.play().then(function () { setStatus(""); }).catch(function (error) {
+          console.warn("[CinePro][HLS] Playback rejected:", error && error.name, error && error.message);
+          setStatus("Press Play to start this source.");
+        });
+      });
+      hls.on(window.Hls.Events.LEVEL_LOADED, function (event, data) {
+        console.info("[CinePro][HLS] Level loaded:", {
+          level: data && data.level,
+          fragments: data && data.details && data.details.fragments ? data.details.fragments.length : 0,
+          live: !!(data && data.details && data.details.live)
+        });
+      });
+      hls.on(window.Hls.Events.KEY_LOADING, function () {
+        console.info("[CinePro][HLS] Encryption key loading.");
+      });
+      hls.on(window.Hls.Events.KEY_LOADED, function () {
+        console.info("[CinePro][HLS] Encryption key loaded.");
+      });
+      hls.on(window.Hls.Events.FRAG_LOADED, function (event, data) {
+        console.info("[CinePro][HLS] Fragment loaded:", {
+          level: data && data.frag && data.frag.level,
+          sn: data && data.frag && data.frag.sn,
+          bytes: data && data.payload ? data.payload.byteLength : null
+        });
       });
       hls.on(window.Hls.Events.ERROR, function (event, data) {
+        var response = data && data.response || {};
+        console.error("[CinePro][HLS] Error:", {
+          type: data && data.type,
+          details: data && data.details,
+          fatal: !!(data && data.fatal),
+          httpCode: response.code || null,
+          reason: data && data.reason || null,
+          errorMessage: data && data.error && data.error.message || null
+        });
         if (data && data.fatal) setStatus("This source could not be played. Try another source.");
       });
+
+      hls.attachMedia(video);
+      hls.loadSource(url);
     } else {
+      console.info("[CinePro] HLS.js unavailable; using direct video playback.");
       video.src = url;
       video.load();
-      video.play().then(function () { setStatus(""); }).catch(function () {
+      video.play().then(function () { setStatus(""); }).catch(function (error) {
+        console.warn("[CinePro] Direct playback rejected:", error && error.name, error && error.message);
         setStatus("This TV/browser cannot play this stream format. Try another source.");
       });
     }
