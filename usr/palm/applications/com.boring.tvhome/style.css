@@ -1172,3 +1172,20 @@ main#home { padding:0 5.2%;z-index:2; }
   .row:not(.poster-row) .card { width:250px; }
 }
 @media(max-height:800px) { #hero { height:500px;padding-top:150px; } .card { height:290px; } .card .pic { height:230px; } }
+
+
+/* FLIXTV desktop preview and simplified TV navigation. */
+#apps { display: none !important; }
+#top { position: relative; }
+#top .catalog-nav { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); display:flex; align-items:center; justify-content:center; gap:8px; padding:5px 7px; border:1px solid rgba(255,255,255,.10); border-radius:9px; background:rgba(12,12,14,.72); max-width:calc(100vw - 340px); }
+#top .tab { min-width:76px; padding:11px 18px; border-radius:6px; color:#c9c9c9; font-size:16px; font-weight:700; text-align:center; }
+#top .tab.cur { color:#fff; background:rgba(255,255,255,.12); box-shadow:inset 0 -2px var(--flix-red); }
+#top .tab.focus { outline:2px solid #fff; outline-offset:1px; background:rgba(255,255,255,.18); }
+.card .pic { border-radius:8px; background:#181818; border:1px solid rgba(255,255,255,.09); overflow:hidden; }
+.card img { border-radius:7px; }
+.card-info { padding:10px 3px 0; }
+.card .ttl { font-size:19px !important; line-height:1.25; letter-spacing:-.2px; font-weight:700; }
+.card .cap { color:#aaa; }
+.focus.card .pic { transform:scale(1.025); border-color:rgba(255,255,255,.8); box-shadow:0 0 0 2px rgba(255,255,255,.95),0 7px 18px rgba(0,0,0,.35); }
+@media(max-width:1200px) { #top .catalog-nav { gap:3px; } #top .tab { min-width:66px; padding:10px 13px; font-size:15px; } }
+@media(max-width:900px) { #top .brand { font-size:25px; } #top .catalog-nav { left:50%; max-width:calc(100vw - 180px); } #top .tab { min-width:0; padding:9px 10px; font-size:14px; } }
