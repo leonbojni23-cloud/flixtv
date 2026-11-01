@@ -44,6 +44,18 @@ Open http://localhost:3000 and set the browser viewport to 1920 × 1080 for the 
 
 For a populated catalog, create `usr/palm/applications/com.boring.tvhome/keys.js` from `keys.example.js` and add your own TMDB API key. The local key file is gitignored and must not be committed. webOS-only controls (system settings, installed-app discovery and remote services) are unavailable in a normal browser; catalog navigation and browser-compatible screens remain testable.
 
+## Desktop preview (PC / Mac)
+The app can be previewed directly in a desktop browser without installing webOS tools.
+From the repository root:
+
+```bash
+npm run dev
+```
+
+Open http://localhost:3000 and set the browser viewport to 1920 × 1080 for the closest match to the TV layout. Use the arrow keys to move focus, Enter to select, and Escape or Backspace to go back. The preview server uses only Node.js built-ins; no npm dependencies are required.
+
+For a populated catalog, create `usr/palm/applications/com.boring.tvhome/keys.js` from `keys.example.js` and add your own TMDB API key. The local key file is gitignored and must not be committed. webOS-only controls (system settings, installed-app discovery and remote services) are unavailable in a normal browser; catalog navigation and browser-compatible screens remain testable.
+
 ## Setup
 1. Copy `keys.example.js` to `keys.js` and add a free TMDB API key and a YouTube Data API v3 key.
    `keys.js` is gitignored.
