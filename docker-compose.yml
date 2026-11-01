@@ -1,0 +1,2 @@
+# Docker Compose will define local development services once the media API has an executable Dockerfile.
+# No containers are declared yet, so this file intentionally starts as a scaffold.
