@@ -111,6 +111,8 @@ $("search").onkeydown=e=>{if(e.key==="Escape"){$("search").value="";search("");$
 const movieGenreSelect=$("movie-genre-select");
 const genreCollections=$("movie-genre-collections");
 const movieCatalogSections=[...document.querySelectorAll("#movies-page > .catalog-row-section")];
+const moviePageTitle=document.querySelector("#movies-page .page-catalog-head h1");
+const movieJumpNav=document.querySelector("#movies-page .catalog-jump-nav");
 const genreNames={28:"Action",12:"Adventure",16:"Animation",35:"Comedy",80:"Crime",99:"Documentary",18:"Drama",10751:"Family",14:"Fantasy",36:"History",27:"Horror",10402:"Music",9648:"Mystery",10749:"Romance",878:"Science Fiction",53:"Thriller",10752:"War",37:"Western"};
 const genreMixes={
   28:[12,878,53,80],12:[28,14,878,10751],16:[10751,12,14,35],35:[10749,28,80,18,10751],80:[53,18,28,9648],99:[36,10402,18],18:[10749,80,53,36,10749],10751:[16,35,12,14],14:[12,28,10751,10749],36:[18,10752,10749],27:[53,9648,80,878],10402:[18,10749,35],9648:[53,80,18,27],10749:[35,18,14,10402],878:[28,12,53,18,14],53:[28,80,9648,27],10752:[28,18,36],37:[28,12,18]
@@ -133,14 +135,18 @@ async function loadGenreCollections(genreId){
  if(!genreId){
   genreCollections.hidden=true;
   movieCatalogSections.forEach(section=>section.hidden=false);
+  moviePageTitle.textContent="Movies";
+  movieJumpNav.hidden=false;
   return;
  }
  movieCatalogSections.forEach(section=>section.hidden=true);
+ moviePageTitle.textContent=primary+" Movies";
+ movieJumpNav.hidden=true;
  genreCollections.hidden=false;
  genreCollections.replaceChildren();
  const rows=[
   makeGenreRow(primary+" Movies",[genreId],0),
-  ...(genreMixes[genreId]||[]).map((secondary,index)=>makeGenreRow(primary+" + "+genreNames[secondary], [genreId,secondary],index+1))
+  ...[...new Set(genreMixes[genreId]||[])].map((secondary,index)=>makeGenreRow(primary+" + "+genreNames[secondary], [genreId,secondary],index+1))
  ];
  genreCollections.scrollIntoView({behavior:"smooth",block:"start"});
  await Promise.all(rows.map(async item=>{
