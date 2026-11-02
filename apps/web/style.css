@@ -441,3 +441,18 @@
 .topbar:after{
   background:linear-gradient(90deg,rgba(5,8,14,.10),rgba(5,8,14,.04))!important;
 }
+
+
+/* Logo refinement: restore a clean white wordmark and restrained red accent */
+.topbar .brand-mark{
+  background:linear-gradient(145deg,#f21d4b,#c90d35)!important;
+  color:#fff!important;
+  box-shadow:0 4px 14px rgba(229,9,54,.20)!important;
+}
+.topbar .brand-name{
+  color:#f7f8fb!important;
+  font-weight:900!important;
+}
+.topbar .brand-name span{
+  color:#ff3158!important;
+}
