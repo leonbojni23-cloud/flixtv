@@ -188,11 +188,102 @@ async function play(item,season,episode){if(!item||!item.id)return;clearTimeout(
 function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){clearTimeout(controlsTimer);clearTimeout(introTimer);$("yapgrid-frame").src="about:blank";$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);$("player-close").onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
-async function search(q){q=q.trim();const request=++searchRequest;if(!q){$("hero").hidden=false;$("catalog").hidden=false;$("search-results").hidden=true;return} $("hero").hidden=true;$("catalog").hidden=true;$("search-results").hidden=false;$("search-count").textContent="Searching…";try{const d=await tmdb("/search/multi?query="+encodeURIComponent(q)+"&include_adult=false");if(request!==searchRequest)return;const items=(d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv")&&x.poster_path);$("search-grid").replaceChildren(...items.map(card));$("search-count").textContent=items.length+" titles"}catch(e){if(request===searchRequest)notice(e.message)}}
-$("search").oninput=e=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>search(e.target.value),220)};
-$("search-trigger").onclick=()=>{const box=$("searchbox");if(innerWidth<=760)box.classList.add("expanded");$("search").focus()};
-$("mobile-search").onclick=()=>{$("searchbox").classList.add("expanded");$("search").focus()};
-$("search").onkeydown=e=>{if(e.key==="Escape"){$("search").value="";search("");$("search").blur();$("searchbox").classList.remove("expanded")}};
+let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
+function showSearchPage(){
+ searchPageActive=true;
+ $("hero").hidden=true;$("catalog").hidden=true;
+ $("search-page").hidden=false;
+ document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));
+ $("search").blur();
+ $("search-page-input").value=$("search").value||$("search-page-input").value;
+ if(!$("search-page-input").value.trim())loadPopularSearch();
+ else runAdvancedSearch();
+ window.scrollTo({top:0,behavior:"instant"});
+}
+function closeSearchPage(){
+ searchPageActive=false;$("search-page").hidden=true;
+ $("hero").hidden=false;$("catalog").hidden=false;
+ openPage("home");
+}
+function renderSearchCards(items){
+ $("search-grid").replaceChildren(...items.filter(x=>x.poster_path).map(card));
+ $("search-count").textContent=items.length+" titles";
+ $("search-empty").hidden=items.length>0;
+}
+async function loadPopularSearch(){
+ const request=++advancedRequest;
+ $("search-heading").textContent="Popular right now";
+ $("search-count").textContent="Loading…";
+ try{
+  const d=await tmdb("/trending/all/week");
+  if(request!==advancedRequest)return;
+  renderSearchCards((d.results||[]).filter(x=>x.media_type==="movie"||x.media_type==="tv"));
+ }catch(e){if(request===advancedRequest)notice(e.message)}
+}
+async function showSuggestions(query){
+ const request=++suggestionRequest,box=$("search-suggestions");
+ if(query.length<2){box.hidden=true;box.replaceChildren();return}
+ try{
+  const d=await tmdb("/search/multi?query="+encodeURIComponent(query)+"&include_adult=false");
+  if(request!==suggestionRequest)return;
+  const items=(d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv")&&x.poster_path).slice(0,6);
+  box.replaceChildren();
+  items.forEach(item=>{
+   const button=document.createElement("button");button.type="button";button.className="search-suggestion";
+   const img=document.createElement("img");img.loading="lazy";img.src=poster(item);img.alt="";
+   const copy=document.createElement("span");copy.className="suggestion-copy";
+   const name=document.createElement("strong");name.textContent=title(item);
+   const meta=document.createElement("small");meta.textContent=(kind(item)==="tv"?"TV Series":"Movie")+" · "+(year(item)||"—");
+   copy.append(name,meta);button.append(img,copy);
+   button.addEventListener("click",()=>{ $("search-page-input").value=title(item);$("search").value=title(item);box.hidden=true;runAdvancedSearch();details(item)});
+   box.append(button);
+  });
+  box.hidden=!items.length;
+ }catch(_){if(request===suggestionRequest)box.hidden=true}
+}
+async function runAdvancedSearch(){
+ const request=++advancedRequest,q=$("search-page-input").value.trim();
+ const type=$("search-type").value,genre=$("search-genre").value,yearValue=$("search-year").value.trim(),sort=$("search-sort").value;
+ $("search-suggestions").hidden=true;
+ $("search-heading").textContent=q?'Results for “'+q+'”':"Explore titles";
+ $("search-count").textContent="Loading…";
+ const hasFilters=!!(genre||yearValue);
+ let path;
+ if(hasFilters){
+  const media=type==="multi"?"movie":type;
+  const params=new URLSearchParams({sort_by:sort,include_adult:"false"});
+  if(genre)params.set("with_genres",genre);
+  if(yearValue&&/^\d{4}$/.test(yearValue))params.set(media==="tv"?"first_air_date_year":"primary_release_year",yearValue);
+  if(q)params.set("with_text_query",q);
+  path="/discover/"+media+"?"+params.toString();
+ }else if(q){
+  path="/search/"+type+"?query="+encodeURIComponent(q)+"&include_adult=false";
+ }else{
+  path=type==="multi"?"/trending/all/week":type==="movie"?"/movie/popular":"/tv/popular";
+ }
+ try{
+  const d=await tmdb(path);
+  if(request!==advancedRequest)return;
+  const items=(d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv"||type!=="multi")&&x.poster_path);
+  renderSearchCards(items);
+ }catch(e){if(request===advancedRequest)notice(e.message)}
+}
+function scheduleSearch(){
+ clearTimeout(searchDebounce);clearTimeout(suggestionDebounce);
+ const q=$("search-page-input").value.trim();
+ $("search").value=q;
+ suggestionDebounce=setTimeout(()=>showSuggestions(q),160);
+ searchDebounce=setTimeout(runAdvancedSearch,280);
+}
+$("search-page-input").addEventListener("input",scheduleSearch);
+["search-type","search-genre","search-year","search-sort"].forEach(id=>$(id).addEventListener("change",runAdvancedSearch));
+$("search-year").addEventListener("keydown",e=>{if(e.key==="Enter")runAdvancedSearch()});
+$("search-clear").onclick=()=>{$("search-page-input").value="";$("search").value="";$("search-suggestions").hidden=true;runAdvancedSearch()};
+$("search-reset").onclick=()=>{$("search-type").value="multi";$("search-genre").value="";$("search-year").value="";$("search-sort").value="popularity.desc";runAdvancedSearch()};
+$("search-page-input").addEventListener("keydown",e=>{if(e.key==="Escape")$("search-suggestions").hidden=true;if(e.key==="Enter"){e.preventDefault();$("search-suggestions").hidden=true;runAdvancedSearch()}});
+$("search").onfocus=()=>showSearchPage();
+$("search-trigger").onclick=showSearchPage;
+$("mobile-search").onclick=showSearchPage;
 const movieGenreSelect=$("movie-genre-select");
 const genreCollections=$("movie-genre-collections");
 const movieCatalogSections=[...document.querySelectorAll("#movies-page > .catalog-row-section")];
