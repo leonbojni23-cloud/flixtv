@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="sq">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
@@ -11,96 +11,96 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="#" aria-label="FLIXTV home"><span class="brand-mark">F</span><span class="brand-name">FLIX<span>TV</span></span></a>
-    <nav class="desktop-nav" aria-label="Main navigation">
-      <button class="nav-link active" data-page="home">Home</button>
-      <button class="nav-link" data-page="movies">Movies</button>
-      <button class="nav-link" data-page="shows">TV Shows</button>
+    <a class="brand" href="#" aria-label="FLIXTV kryefaqja"><span class="brand-mark">F</span><span class="brand-name">FLIX<span>TV</span></span></a>
+    <nav class="desktop-nav" aria-label="Navigimi kryesor">
+      <button class="nav-link active" data-page="home">Kryefaqja</button>
+      <button class="nav-link" data-page="movies">Filma</button>
+      <button class="nav-link" data-page="shows">Seriale</button>
     </nav>
     <div class="top-actions">
-      <label class="searchbox" id="searchbox"><button type="button" class="search-trigger" id="search-trigger" aria-label="Focus search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></button><input id="search" type="search" placeholder="Search movies & shows" autocomplete="off" aria-label="Search movies and shows"></label>
+      <label class="searchbox" id="searchbox"><button type="button" class="search-trigger" id="search-trigger" aria-label="Focus search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></button><input id="search" type="search" placeholder="Kërko filma dhe seriale" autocomplete="off" aria-label="Kërko filma dhe seriale"></label>
     </div>
   </header>
 
   <main id="app">
     <section id="hero" class="hero">
       <div class="hero-backdrop hero-backdrop-a active" id="hero-bg-a"></div><div class="hero-backdrop hero-backdrop-b" id="hero-bg-b"></div>
-      <div class="hero-content" id="hero-content"><span class="eyebrow" id="hero-eyebrow">FLIXTV ORIGINAL PICKS</span><h1 id="hero-title">Discover something great.</h1><p id="hero-overview">Movies and series, all in one place.</p><div class="hero-actions"><button class="primary-btn" id="hero-action">View details</button><div class="hero-controls"><button type="button" id="hero-prev" aria-label="Previous featured title">‹</button><button type="button" id="hero-next" aria-label="Next featured title">›</button></div></div></div>
+      <div class="hero-content" id="hero-content"><span class="eyebrow" id="hero-eyebrow">ZGJEDHJET E FLIXTV</span><h1 id="hero-title">Zbulo diçka të veçantë.</h1><p id="hero-overview">Filma dhe seriale, të gjitha në një vend.</p><div class="hero-actions"><button class="primary-btn" id="hero-action">Shiko detajet</button><div class="hero-controls"><button type="button" id="hero-prev" aria-label="Titulli i mëparshëm">‹</button><button type="button" id="hero-next" aria-label="Titulli i radhës">›</button></div></div></div>
     </section>
     <section id="search-page" class="search-page" hidden>
-      <div class="search-page-head"><span class="catalog-overline"><span class="catalog-live-dot"></span>DISCOVER FLIXTV</span><h1>Find your next <span>watch.</span></h1><p>Search for a movie or TV series.</p></div>
+      <div class="search-page-head"><span class="catalog-overline"><span class="catalog-live-dot"></span>ZBULO FLIXTV</span><h1>Gjej çfarë të shikosh më pas.</h1><p>Kërko një film ose serial televiziv.</p></div>
       <div class="search-main">
-        <div class="search-field-wrap"><svg class="search-large-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg><input id="search-page-input" type="search" placeholder="Search titles, movies, series…" autocomplete="off" spellcheck="false" aria-label="Search titles"><button id="search-clear" type="button" aria-label="Clear search">×</button><div id="search-suggestions" class="search-suggestions" hidden></div></div>
-        <div class="search-results-head"><h2 id="search-heading">Popular right now</h2><span id="search-count"></span></div><div class="card-grid" id="search-grid"></div><div id="search-empty" class="search-empty" hidden>Start typing to search movies and TV shows.</div>
+        <div class="search-field-wrap"><svg class="search-large-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg><input id="search-page-input" type="search" placeholder="Kërko tituj, filma, seriale…" autocomplete="off" spellcheck="false" aria-label="Kërko tituj"><button id="search-clear" type="button" aria-label="Clear search">×</button><div id="search-suggestions" class="search-suggestions" hidden></div></div>
+        <div class="search-results-head"><h2 id="search-heading">Popullore tani</h2><span id="search-count"></span></div><div class="card-grid" id="search-grid"></div><div id="search-empty" class="search-empty" hidden>Fillo të shkruash për të kërkuar filma dhe seriale.</div>
       </div>
     </section>
     <div id="catalog">
       <div id="home-page">
-        <section class="content-section"><div class="section-heading"><h2>Trending this week</h2><span class="section-kicker">HOT RIGHT NOW</span></div><div class="poster-row" id="trending"></div></section>
-        <section class="content-section"><div class="section-heading"><h2>Popular movies</h2><span class="section-kicker">MOVIE PICKS</span></div><div class="poster-row" id="movies"></div></section>
-        <section class="content-section"><div class="section-heading"><h2>Popular TV shows</h2><span class="section-kicker">SERIES PICKS</span></div><div class="poster-row" id="shows"></div></section>
-        <section class="content-section"><div class="section-heading"><h2>Top rated movies</h2><span class="section-kicker">ALL-TIME FAVOURITES</span></div><div class="poster-row" id="home-top-movies"></div></section>
-        <section class="content-section"><div class="section-heading"><h2>Action & Adventure</h2><span class="section-kicker">MOVIE MIX</span></div><div class="poster-row" id="home-action-adventure"></div></section>
-        <section class="content-section"><div class="section-heading"><h2>Comedy & Romance</h2><span class="section-kicker">MOVIE MIX</span></div><div class="poster-row" id="home-comedy-romance"></div></section>
-        <section class="content-section"><div class="section-heading"><h2>Crime & Thriller</h2><span class="section-kicker">MOVIE MIX</span></div><div class="poster-row" id="home-crime-thriller"></div></section>
-        <section class="content-section"><div class="section-heading"><h2>Sci-Fi & Fantasy</h2><span class="section-kicker">MOVIE MIX</span></div><div class="poster-row" id="home-scifi-fantasy"></div></section>
-        <section class="content-section"><div class="section-heading"><h2>Trending series</h2><span class="section-kicker">TV SPOTLIGHT</span></div><div class="poster-row" id="home-trending-shows"></div></section>
-        <section class="content-section"><div class="section-heading"><h2>Action & Fantasy Series</h2><span class="section-kicker">SERIES MIX</span></div><div class="poster-row" id="home-action-fantasy-shows"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Në trend këtë javë</h2><span class="section-kicker">MË TË PËLQYERIT</span></div><div class="poster-row" id="trending"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Filma të njohur</h2><span class="section-kicker">ZGJEDHJE FILMASH</span></div><div class="poster-row" id="movies"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Seriale të njohura</h2><span class="section-kicker">ZGJEDHJE SERIALESH</span></div><div class="poster-row" id="shows"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Filmat më të vlerësuar</h2><span class="section-kicker">MË TË VLERËSUARIT</span></div><div class="poster-row" id="home-top-movies"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Aksion dhe aventurë</h2><span class="section-kicker">PËRZGJEDHJE FILMASH</span></div><div class="poster-row" id="home-action-adventure"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Komedi dhe romancë</h2><span class="section-kicker">PËRZGJEDHJE FILMASH</span></div><div class="poster-row" id="home-comedy-romance"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Krim dhe thriller</h2><span class="section-kicker">PËRZGJEDHJE FILMASH</span></div><div class="poster-row" id="home-crime-thriller"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Fantashkencë dhe fantazi</h2><span class="section-kicker">PËRZGJEDHJE FILMASH</span></div><div class="poster-row" id="home-scifi-fantasy"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Seriale në trend</h2><span class="section-kicker">NË VËMENDJE</span></div><div class="poster-row" id="home-trending-shows"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Seriale aksion dhe fantazi</h2><span class="section-kicker">SERIES MIX</span></div><div class="poster-row" id="home-action-fantasy-shows"></div></section>
       </div>
       <div id="movies-page" hidden>
-        <section class="page-intro page-catalog-head"><div class="catalog-head-main"><div class="catalog-overline"><span class="catalog-live-dot"></span>THE BIG SCREEN</div><h1>Movies</h1></div><div class="catalog-head-side"><span class="catalog-index">FLIXTV&nbsp; / &nbsp;COLLECTION</span><span class="catalog-head-line"></span></div><nav class="catalog-jump-nav" aria-label="Movies categories"><a class="is-current" href="#section-movie-trending">Trending</a><a class="" href="#section-movie-popular">Popular</a><a class="" href="#section-movie-top">Top Rated</a><a class="" href="#section-movie-now">Now Playing</a><a class="" href="#section-movie-upcoming">Coming Soon</a></nav><div class="movie-genre-filter"><label for="movie-genre-select"><span class="genre-filter-icon">☷</span><span>Browse by genre</span></label><select id="movie-genre-select"><option value="">Choose a genre</option><option value="28">Action</option><option value="12">Adventure</option><option value="16">Animation</option><option value="35">Comedy</option><option value="80">Crime</option><option value="99">Documentary</option><option value="18">Drama</option><option value="10751">Family</option><option value="14">Fantasy</option><option value="36">History</option><option value="27">Horror</option><option value="10402">Music</option><option value="9648">Mystery</option><option value="10749">Romance</option><option value="878">Science Fiction</option><option value="53">Thriller</option><option value="10752">War</option><option value="37">Western</option></select></div></section>
+        <section class="page-intro page-catalog-head"><div class="catalog-head-main"><div class="catalog-overline"><span class="catalog-live-dot"></span>EKRANI I MADH</div><h1>Filma</h1></div><div class="catalog-head-side"><span class="catalog-index">FLIXTV&nbsp; / &nbsp;KOLEKSION</span><span class="catalog-head-line"></span></div><nav class="catalog-jump-nav" aria-label="Movies categories"><a class="is-current" href="#section-movie-trending" >Në trend</a><a class="" href="#section-movie-popular" >Të njohur</a><a class="" href="#section-movie-top" >Më të vlerësuar</a><a class="" href="#section-movie-now" >Në kinema</a><a class="" href="#section-movie-upcoming" >Së shpejti</a></nav><div class="movie-genre-filter"><label for="movie-genre-select"><span class="genre-filter-icon">☷</span><span>Shfleto sipas zhanrit</span></label><select id="movie-genre-select"><option value="">Zgjidh një zhanër</option><option value="28">Aksion</option><option value="12">Aventurë</option><option value="16">Animacion</option><option value="35">Komedi</option><option value="80">Krim</option><option value="99">Dokumentar</option><option value="18">Dramë</option><option value="10751">Familjar</option><option value="14">Fantazi</option><option value="36">Histori</option><option value="27">Horror</option><option value="10402">Muzikë</option><option value="9648">Mister</option><option value="10749">Romancë</option><option value="878">Fantashkencë</option><option value="53">Thriller</option><option value="10752">Luftë</option><option value="37">Western</option></select></div></section>
         <div id="movie-genre-collections" class="genre-collections" hidden aria-live="polite"></div>
-        <section class="content-section catalog-row-section" id="section-movie-trending"><div class="section-heading"><h2>Trending movies</h2></div><div class="poster-row" id="movie-trending"></div></section>
-        <section class="content-section catalog-row-section" id="section-movie-popular"><div class="section-heading"><h2>Popular movies</h2></div><div class="poster-row" id="movie-popular"></div></section>
-        <section class="content-section catalog-row-section" id="section-movie-top"><div class="section-heading"><h2>Top rated movies</h2></div><div class="poster-row" id="movie-top"></div></section>
-        <section class="content-section catalog-row-section" id="section-movie-now"><div class="section-heading"><h2>Now playing</h2></div><div class="poster-row" id="movie-now"></div></section>
-        <section class="content-section catalog-row-section" id="section-movie-upcoming"><div class="section-heading"><h2>Coming soon</h2></div><div class="poster-row" id="movie-upcoming"></div></section>
+        <section class="content-section catalog-row-section" id="section-movie-trending"><div class="section-heading"><h2>Filma në trend</h2></div><div class="poster-row" id="movie-trending"></div></section>
+        <section class="content-section catalog-row-section" id="section-movie-popular"><div class="section-heading"><h2>Filma të njohur</h2></div><div class="poster-row" id="movie-popular"></div></section>
+        <section class="content-section catalog-row-section" id="section-movie-top"><div class="section-heading"><h2>Filmat më të vlerësuar</h2></div><div class="poster-row" id="movie-top"></div></section>
+        <section class="content-section catalog-row-section" id="section-movie-now"><div class="section-heading"><h2>Në kinema</h2></div><div class="poster-row" id="movie-now"></div></section>
+        <section class="content-section catalog-row-section" id="section-movie-upcoming"><div class="section-heading"><h2>Së shpejti</h2></div><div class="poster-row" id="movie-upcoming"></div></section>
       </div>
       <div id="shows-page" hidden>
-        <section class="page-intro page-catalog-head"><div class="catalog-head-main"><div class="catalog-overline"><span class="catalog-live-dot"></span>SERIES & STORIES</div><h1>TV Shows</h1></div><div class="catalog-head-side"><span class="catalog-index">FLIXTV&nbsp; / &nbsp;COLLECTION</span><span class="catalog-head-line"></span></div><nav class="catalog-jump-nav" aria-label="TV Shows categories"><a class="is-current" href="#section-show-trending">Trending</a><a class="" href="#section-show-popular">Popular</a><a class="" href="#section-show-top">Top Rated</a><a class="" href="#section-show-airing">Airing Now</a><a class="" href="#section-show-today">Today</a></nav></section>
-        <section class="content-section catalog-row-section" id="section-show-trending"><div class="section-heading"><h2>Trending series</h2></div><div class="poster-row" id="show-trending"></div></section>
-        <section class="content-section catalog-row-section" id="section-show-popular"><div class="section-heading"><h2>Popular series</h2></div><div class="poster-row" id="show-popular"></div></section>
-        <section class="content-section catalog-row-section" id="section-show-top"><div class="section-heading"><h2>Top rated series</h2></div><div class="poster-row" id="show-top"></div></section>
-        <section class="content-section catalog-row-section" id="section-show-airing"><div class="section-heading"><h2>Currently airing</h2></div><div class="poster-row" id="show-airing"></div></section>
-        <section class="content-section catalog-row-section" id="section-show-today"><div class="section-heading"><h2>On TV today</h2></div><div class="poster-row" id="show-today"></div></section>
-        <section class="content-section catalog-row-section" id="section-show-action-adventure"><div class="section-heading"><h2>Action & Adventure Series</h2></div><div class="poster-row" id="show-action-adventure"></div></section>
-        <section class="content-section catalog-row-section" id="section-show-scifi-fantasy"><div class="section-heading"><h2>Sci-Fi & Fantasy Series</h2></div><div class="poster-row" id="show-scifi-fantasy"></div></section>
+        <section class="page-intro page-catalog-head"><div class="catalog-head-main"><div class="catalog-overline"><span class="catalog-live-dot"></span>SERIALE DHE HISTORI</div><h1>Seriale</h1></div><div class="catalog-head-side"><span class="catalog-index">FLIXTV&nbsp; / &nbsp;KOLEKSION</span><span class="catalog-head-line"></span></div><nav class="catalog-jump-nav" aria-label="Kategoritë e serialeve"><a class="is-current" href="#section-show-trending" >Në trend</a><a class="" href="#section-show-popular" >Të njohur</a><a class="" href="#section-show-top" >Më të vlerësuar</a><a class="" href="#section-show-airing">Në transmetim</a><a class="" href="#section-show-today">Sot</a></nav></section>
+        <section class="content-section catalog-row-section" id="section-show-trending"><div class="section-heading"><h2>Seriale në trend</h2></div><div class="poster-row" id="show-trending"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-popular"><div class="section-heading"><h2>Seriale të njohura</h2></div><div class="poster-row" id="show-popular"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-top"><div class="section-heading"><h2>Serialet më të vlerësuara</h2></div><div class="poster-row" id="show-top"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-airing"><div class="section-heading"><h2>Në transmetim aktualisht</h2></div><div class="poster-row" id="show-airing"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-today"><div class="section-heading"><h2>Sot në televizion</h2></div><div class="poster-row" id="show-today"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-action-adventure"><div class="section-heading"><h2>Aksion dhe aventurë Series</h2></div><div class="poster-row" id="show-action-adventure"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-scifi-fantasy"><div class="section-heading"><h2>Fantashkencë dhe fantazi Series</h2></div><div class="poster-row" id="show-scifi-fantasy"></div></section>
         <section class="content-section catalog-row-section" id="section-show-crime-drama"><div class="section-heading"><h2>Crime & Drama Series</h2></div><div class="poster-row" id="show-crime-drama"></div></section>
-        <section class="content-section catalog-row-section" id="section-show-comedy-romance"><div class="section-heading"><h2>Comedy & Romance Series</h2></div><div class="poster-row" id="show-comedy-romance"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-comedy-romance"><div class="section-heading"><h2>Komedi dhe romancë Series</h2></div><div class="poster-row" id="show-comedy-romance"></div></section>
         <section class="content-section catalog-row-section" id="section-show-mystery-thriller"><div class="section-heading"><h2>Mystery & Thriller Series</h2></div><div class="poster-row" id="show-mystery-thriller"></div></section>
       </div>
     </div>
     <div id="notice" class="notice" role="status" hidden></div>
   </main>
 
-  <nav class="mobile-nav" aria-label="Mobile navigation">
-    <button class="active" data-page="home" aria-label="Home">
-      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10.8 8.5-7 8.5 7v9.1a1.6 1.6 0 0 1-1.6 1.6h-4.2v-6.2h-5.4v6.2H5.1a1.6 1.6 0 0 1-1.6-1.6z"/></svg></span><span class="nav-label">Home</span>
+  <nav class="mobile-nav" aria-label="Navigimi në celular">
+    <button class="active" data-page="home" aria-label="Kryefaqja">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10.8 8.5-7 8.5 7v9.1a1.6 1.6 0 0 1-1.6 1.6h-4.2v-6.2h-5.4v6.2H5.1a1.6 1.6 0 0 1-1.6-1.6z"/></svg></span><span class="nav-label">Kryefaqja</span>
     </button>
-    <button data-page="movies" aria-label="Movies">
-      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 4v16M17 4v16M3 9h4m-4 6h4m10-6h4m-4 6h4"/></svg></span><span class="nav-label">Movies</span>
+    <button data-page="movies" aria-label="Filma">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 4v16M17 4v16M3 9h4m-4 6h4m10-6h4m-4 6h4"/></svg></span><span class="nav-label">Filma</span>
     </button>
-    <button data-page="shows" aria-label="Shows">
-      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2.5"/><path d="m8 21 4-4 4 4M8 8h8m-8 4h5"/></svg></span><span class="nav-label">Shows</span>
+    <button data-page="shows" aria-label="Seriale">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2.5"/><path d="m8 21 4-4 4 4M8 8h8m-8 4h5"/></svg></span><span class="nav-label">Seriale</span>
     </button>
-    <button id="mobile-search" aria-label="Search">
-      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg></span><span class="nav-label">Search</span>
+    <button id="mobile-search" aria-label="Kërko">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg></span><span class="nav-label">Kërko</span>
     </button>
   </nav>
 
   <section class="modal" id="details-modal" aria-hidden="true">
     <div class="modal-backdrop" data-close="details"></div>
     <article class="details-sheet">
-      <button class="close-btn" data-close="details" aria-label="Close">×</button>
+      <button class="close-btn" data-close="details" aria-label="Mbyll">×</button>
       <div id="details-backdrop" class="details-backdrop"></div>
-      <div class="details-body"><span class="eyebrow" id="details-type">TITLE</span><h2 id="details-title"></h2><div id="details-meta" class="muted"></div><p id="details-overview"></p><div class="detail-actions"><button id="play-title" class="primary-btn">▶ Play</button><button id="watch-trailer" class="secondary-btn" hidden>Trailer</button></div><div id="episode-controls" hidden><label>Season <select id="season-select"></select></label><label>Episode <select id="episode-select"></select></label><button id="play-episode" class="primary-btn">▶ Play episode</button></div></div>
+      <div class="details-body"><span class="eyebrow" id="details-type">TITLE</span><h2 id="details-title"></h2><div id="details-meta" class="muted"></div><p id="details-overview"></p><div class="detail-actions"><button id="play-title" class="primary-btn">▶ Luaj</button><button id="watch-trailer" class="secondary-btn" hidden>Traileri</button></div><div id="episode-controls" hidden><label>Sezoni <select id="season-select"></select></label><label>Episodi <select id="episode-select"></select></label><button id="play-episode" class="primary-btn">▶ Luaj episodin</button></div></div>
     </article>
   </section>
 
   <section class="player-modal" id="player-modal" aria-hidden="true">
-    <button class="player-close" id="player-close">Back</button>
+    <button class="player-close" id="player-close">Kthehu</button>
     <div class="content-intro" id="content-intro" aria-hidden="true"><div class="intro-copy"><div class="intro-kicker">FLIXTV · INFORMACION I PËRMBAJTJES</div><div class="intro-rating" id="intro-rating"></div><div class="intro-title" id="intro-title"></div><div class="intro-details" id="intro-details"></div><div class="intro-progress"><span></span></div><button type="button" id="intro-skip">KALO</button></div></div>
-    <iframe id="yapgrid-frame" title="YapGrid player" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="origin"></iframe>
+    <iframe id="yapgrid-frame" title="Luajtësi YapGrid" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="origin"></iframe>
   </section>
 
 
