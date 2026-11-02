@@ -655,3 +655,34 @@
  #movies-page .content-section,#shows-page .content-section{padding:19px 16px 17px;scroll-margin-top:70px}
  #movies-page .catalog-row-section .section-heading h2,#shows-page .catalog-row-section .section-heading h2{font-size:17px}
 }
+
+
+/* Movie genre selector */
+.movie-genre-filter{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:0 clamp(18px,5vw,76px) 17px;
+}
+.movie-genre-filter label{
+  display:flex;align-items:center;gap:8px;
+  color:#aeb7c6;font-size:11px;font-weight:700;letter-spacing:.2px;
+}
+.genre-filter-icon{font-size:17px;color:#ff4568;line-height:1}
+.movie-genre-filter select{
+  min-width:190px;max-width:100%;
+  appearance:none;-webkit-appearance:none;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;padding:10px 38px 10px 13px;
+  color:#f5f6fa;background-color:#151b26;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23aeb7c6' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;
+  font-size:12px;font-weight:650;outline:none;
+}
+.movie-genre-filter select:focus{border-color:rgba(229,9,54,.7);box-shadow:0 0 0 3px rgba(229,9,54,.12)}
+.genre-results-section[hidden]{display:none!important}
+.genre-results-section{scroll-margin-top:85px}
+.genre-loading{padding:14px 0;color:#9ba4b5;font-size:12px}
+@media(max-width:760px){
+ .movie-genre-filter{gap:9px;padding:0 16px 12px;align-items:flex-start;flex-direction:column}
+ .movie-genre-filter select{width:min(100%,280px);min-height:38px}
+ .genre-results-section{scroll-margin-top:70px}
+}
