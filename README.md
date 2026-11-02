@@ -69,3 +69,14 @@ The webOS app source is in `apps/webos/application`; package metadata is in `app
 ## Architecture status
 
 Jellyfin is the playback server. The FLIXTV Jellyfin adapter is implemented in `apps/webos/application/features/jellyfin-player.js`. The catalogue remains powered by TMDB; Jellyfin is responsible for matching library items and delivering the video stream.
+
+
+## Mobile and desktop web version
+
+A responsive browser version is available in `apps/web`. It uses the TMDB API for the catalogue and YapGrid for embedded playback. The TMDB API key is entered in the web app settings and stored only in the current browser's local storage.
+
+GitHub Pages deployment is configured through `.github/workflows/pages.yml`. In the repository, open **Settings → Pages** and select **GitHub Actions** as the build and deployment source. After the workflow finishes, open:
+
+`https://leonbojni23-cloud.github.io/flixtv/`
+
+On a phone, open the same address in Safari or Chrome. You can use the browser's **Add to Home Screen** option to install it like an app.
