@@ -35,3 +35,23 @@ Purpose: non-functional popups and intrusive overlays.
 - Keep vidcore.io itself allowlisted; block only independently verified ad domains.
 - Sources can change upstream. Refresh subscriptions in the blocker rather than
   vendoring a stale copy into the app.
+
+
+## 4) FLIXTV gambling pop-up blocklist (custom)
+Subscription URL:
+https://raw.githubusercontent.com/leonbojni23-cloud/flixtv/main/apps/web/filters/flixtv-gambling-popups.txt
+
+This custom list blocks selected gambling/casino domains only when they are
+opened as third-party pop-up tabs. It includes Stake, bet365, 1xBet, Shuffle,
+Roobet, BC.Game, Gamdom, and Rainbet. Candidate domains were cross-checked
+against public gambling-site lists and traffic rankings; this is a curated
+starting point, not a complete global list.
+
+Import this URL into AdGuard's custom filters. It requires a compatible AdGuard
+filtering engine. AdGuard's documentation notes that $popup support varies by
+product/version, with limitations in Chromium MV3. It may not catch every
+redirect or pop-up technique.
+
+Sources:
+- https://www.semrush.com/trending-websites/al/gambling
+- https://igamingcrypto.io/analytics/
