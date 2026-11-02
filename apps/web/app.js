@@ -2,13 +2,13 @@
 "use strict";
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
 /* FLIXTV strict popup allowlist.
-   Only EmbedWave may be opened in a new tab/window from the FLIXTV page.
+   Only CineSrc may be opened in a new tab/window from the FLIXTV page.
    Cross-origin iframe navigation remains isolated by browser security. */
 (()=>{
- const isEmbedWave=url=>{
+ const isCineSrc=url=>{
   try{
    const host=new URL(url,location.href).hostname.toLowerCase();
-   return host==="embedwave.cc"||host.endsWith(".embedwave.cc");
+   return host==="cinesrc.st"||host.endsWith(".cinesrc.st");
   }catch(_){return false}
  };
  let trustedClickTarget=null;
@@ -20,8 +20,8 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  const nativeOpen=window.open.bind(window);
  window.open=function(url,target,features){
   const intentional=trustedClickTarget==="player-open-external";
-  if(!isEmbedWave(url)||!intentional){
-   console.warn("[FLIXTV] Blocked popup: only a user-requested EmbedWave tab is allowed.",url);
+  if(!isCineSrc(url)||!intentional){
+   console.warn("[FLIXTV] Blocked popup: only a user-requested CineSrc tab is allowed.",url);
    return null;
   }
   return nativeOpen(url,target,features);
@@ -31,7 +31,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
   if(!link)return;
   const target=(link.getAttribute("target")||"").toLowerCase();
   if(target!=="_blank")return;
-  if(!isEmbedWave(link.href)){
+  if(!isCineSrc(link.href)){
    event.preventDefault();event.stopImmediatePropagation();
    console.warn("[FLIXTV] Blocked external new tab:",link.href);
   }
@@ -46,7 +46,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  },true);
  const nativeAnchorClick=HTMLAnchorElement.prototype.click;
  HTMLAnchorElement.prototype.click=function(){
-  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!isEmbedWave(this.href)){
+  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!isCineSrc(this.href)){
    console.warn("[FLIXTV] Blocked scripted external tab:",this.href);return;
   }
   return nativeAnchorClick.call(this);
@@ -260,21 +260,23 @@ let currentPlayback=null;
 function buildPlayerUrl(item,season,episode){
  const id=encodeURIComponent(String(item.id)),type=kind(item);
  const path=type==="tv"?"tv/"+id+"/"+Number(season)+"/"+Number(episode):"movie/"+id;
- return "https://embedwave.cc/embed/"+path;
+ return type==="tv"
+  ?"https://cinesrc.st/embed/tv/"+id+"?s="+Number(season)+"&e="+Number(episode)
+  :"https://cinesrc.st/embed/movie/"+id;
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
- $("embedwave-frame").src=buildPlayerUrl(item,season,episode);
+ $("cinesrc-frame").src=buildPlayerUrl(item,season,episode);
  $("content-intro").classList.remove("show");
 }
 window.addEventListener("message",event=>{
- if(event.origin!=="https://embedwave.cc"||event.source!==$("embedwave-frame").contentWindow)return;
+ if(event.origin!=="https://cinesrc.st"||event.source!==$("cinesrc-frame").contentWindow)return;
  const message=event.data;
- if(!message||message.type!=="PLAYER_EVENT"||!message.data)return;
- window.dispatchEvent(new CustomEvent("flixtv:player-event",{detail:message.data}));
+ if(!message||typeof message.type!=="string"||!message.type.startsWith("cinesrc:"))return;
+ window.dispatchEvent(new CustomEvent("flixtv:player-event",{detail:message}));
 });
-async function play(item,season,episode){if(!item||!item.id)return;clearTimeout(introTimer);const path=kind(item)==="tv"?"tv/"+item.id+"/"+Number(season)+"/"+Number(episode):"movie/"+item.id;$("intro-title").textContent=title(item);$("intro-rating").textContent="";$("intro-details").textContent="";$("content-intro").classList.add("show");$("content-intro").setAttribute("aria-hidden","false");$("player-modal").classList.add("attention-active");$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");$("details-modal").classList.remove("open");document.body.classList.add("no-scroll");currentPlayback={item,season,episode};$("embedwave-frame").src=buildPlayerUrl(item,season,episode);$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer);const cert=await contentRating(item);if(!$("player-modal").classList.contains("open"))return;$("intro-rating").textContent=ageLabel(cert);$("intro-details").textContent=(item.genre_ids||[]).map(id=>genreSq[id]).filter(Boolean).slice(0,3).join(" · ")||"Informacioni i klasifikimit";introTimer=setTimeout(()=>{$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")},2800);$("intro-skip").onclick=()=>{clearTimeout(introTimer);$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")}}
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){clearTimeout(controlsTimer);clearTimeout(introTimer);$("embedwave-frame").src="about:blank";currentPlayback=null;$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+async function play(item,season,episode){if(!item||!item.id)return;clearTimeout(introTimer);const path=kind(item)==="tv"?"tv/"+item.id+"/"+Number(season)+"/"+Number(episode):"movie/"+item.id;$("intro-title").textContent=title(item);$("intro-rating").textContent="";$("intro-details").textContent="";$("content-intro").classList.add("show");$("content-intro").setAttribute("aria-hidden","false");$("player-modal").classList.add("attention-active");$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");$("details-modal").classList.remove("open");document.body.classList.add("no-scroll");currentPlayback={item,season,episode};$("cinesrc-frame").src=buildPlayerUrl(item,season,episode);$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer);const cert=await contentRating(item);if(!$("player-modal").classList.contains("open"))return;$("intro-rating").textContent=ageLabel(cert);$("intro-details").textContent=(item.genre_ids||[]).map(id=>genreSq[id]).filter(Boolean).slice(0,3).join(" · ")||"Informacioni i klasifikimit";introTimer=setTimeout(()=>{$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")},2800);$("intro-skip").onclick=()=>{clearTimeout(introTimer);$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")}}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";currentPlayback=null;$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);$("player-close").onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
 let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
