@@ -586,3 +586,56 @@
 #hero[hidden],#home-page[hidden],#movies-page[hidden],#shows-page[hidden],#search-results[hidden]{
   display:none!important;
 }
+
+
+/* Artwork-led introductions for Movies and TV Shows */
+.page-intro.page-artwork{
+  position:relative;
+  min-height:clamp(190px,27vw,310px);
+  margin:0 0 12px;
+  padding:0 clamp(22px,7vw,100px) 34px;
+  display:flex;
+  align-items:flex-end;
+  overflow:hidden;
+  isolation:isolate;
+  background-color:#141a25;
+  background-image:var(--page-artwork,linear-gradient(120deg,#293448,#111722));
+  background-size:cover;
+  background-position:center 32%;
+}
+.page-artwork:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  background-image:var(--page-artwork,linear-gradient(120deg,#293448,#111722));
+  background-size:cover;
+  background-position:center 32%;
+  transform:scale(1.015);
+}
+.page-artwork-shade{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  background:linear-gradient(90deg,rgba(5,7,12,.86),rgba(5,7,12,.42) 55%,rgba(5,7,12,.12)),linear-gradient(0deg,#090b10 0%,rgba(9,11,16,.08) 75%);
+}
+.page-artwork-copy{position:relative;z-index:1}
+.page-artwork .eyebrow{font-size:10px;letter-spacing:2px}
+.page-artwork h1{
+  font-size:clamp(29px,3.8vw,43px);
+  line-height:1.05;
+  letter-spacing:-1.2px;
+  margin:8px 0 0;
+  text-shadow:0 3px 22px #0009;
+}
+@media(max-width:760px){
+  .page-intro.page-artwork{
+    min-height:205px;
+    padding:0 20px 25px;
+    margin-bottom:4px;
+    background-position:center 30%;
+  }
+  .page-artwork:before{background-position:center 30%}
+  .page-artwork h1{font-size:31px;letter-spacing:-.8px;margin-top:7px}
+  .page-artwork .eyebrow{font-size:9px;letter-spacing:1.6px}
+}
