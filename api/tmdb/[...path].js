@@ -6,7 +6,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({error:"Method not allowed"});
   const key = process.env.TMDB_API_KEY;
   if (!key) return res.status(500).json({error:"TMDB_API_KEY is not configured"});
-  const raw = Array.isArray(req.query.path) ? req.query.path.join("/") : String(req.query.path || "");
+  const raw = Array.isArray(req.query.path) ? req.query.path.join("/") : String(req.query.path || req.url.split("?")[0].replace(/^\\/api\\/tmdb\\/?/, ""));
   const pathname = "/" + raw.replace(/^\/+/, "");
   if (!ALLOWED_PREFIXES.some(prefix => pathname.startsWith(prefix))) return res.status(400).json({error:"Unsupported endpoint"});
   const params = new URLSearchParams();
