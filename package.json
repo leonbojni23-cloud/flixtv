@@ -2,11 +2,11 @@
   "name": "flixtv",
   "version": "0.26.0",
   "private": true,
-  "description": "FLIXTV monorepo for LG webOS and desktop preview",
+  "description": "FLIXTV monorepo for LG webOS and responsive web",
   "scripts": {
     "dev": "node tools/dev-server.js",
     "start": "node tools/dev-server.js",
-    "check": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check node --check apps/webos/application/features/details.js && node --check tools/dev-server.js && node --check apps/webos/application/service/service.js",
-    "check:webos": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check node --check apps/webos/application/features/details.js && node --check apps/webos/application/service/service.js"
+    "check": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check apps/webos/application/features/details.js && node --check tools/dev-server.js && node --check apps/webos/application/service/service.js && node --check apps/web/app.js",
+    "check:webos": "node --check apps/webos/application/app.js && node --check apps/webos/application/tmdb-service.js && node --check apps/webos/application/features/details.js && node --check apps/webos/application/service/service.js"
   }
 }
