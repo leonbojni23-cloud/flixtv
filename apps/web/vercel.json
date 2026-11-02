@@ -26,5 +26,16 @@
       "src": "api/translate.js",
       "use": "@vercel/node"
     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Referrer-Policy",
+          "value": "origin"
+        }
+      ]
+    }
   ]
 }
