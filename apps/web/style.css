@@ -70,3 +70,20 @@
  .hero p{-webkit-line-clamp:2}
 }
 @media(prefers-reduced-motion:reduce){.hero-backdrop,.hero-content,.hero-dot{transition:none!important}}
+
+
+/* Featured controls and slower, synchronized transitions */
+.hero-backdrop{transition:opacity 1.9s cubic-bezier(.2,.65,.25,1),transform 12s ease!important}
+.hero-content{transition:opacity .65s cubic-bezier(.22,.61,.36,1),transform .65s cubic-bezier(.22,.61,.36,1)!important}
+.hero-content.changing{opacity:0;transform:translateY(14px);filter:blur(2px)}
+.hero-controls{gap:13px}
+.hero-controls>button{width:25px;height:34px;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;font-size:31px!important;font-weight:300;line-height:1;color:rgba(255,255,255,.78);padding:0;transition:color .2s,transform .2s!important}
+.hero-controls>button:hover{color:#fff;transform:scale(1.12);border:0!important}
+.hero-controls>button:active{transform:scale(.92)}
+.hero-dots{gap:7px}
+.hero-dot{transition:width .55s cubic-bezier(.22,.61,.36,1),background .55s ease,opacity .55s ease}
+@media(max-width:760px){
+ .hero-controls{gap:10px}
+ .hero-controls>button{width:20px;height:30px;font-size:28px!important}
+ .hero-dots{gap:6px}
+}
