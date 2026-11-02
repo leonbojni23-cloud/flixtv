@@ -1,0 +1,15 @@
+! Title: FLIXTV - Gambling popup blocklist
+! Description: Blocks known gambling/casino destinations when opened as pop-up tabs by third-party pages.
+! Format: AdGuard / Adblock Plus filtering syntax.
+! Note: These are popup-only rules. They do not block direct navigation when a user intentionally visits a site.
+! Sources for candidate domains: Semrush Albania gambling category (Aug/Sep 2026) and public crypto-casino market lists.
+! Review before expanding; domains can be shared with non-ad services.
+
+||stake.com^$popup,third-party
+||bet365.com^$popup,third-party
+||1xbet.com^$popup,third-party
+||shuffle.com^$popup,third-party
+||roobet.com^$popup,third-party
+||bc.game^$popup,third-party
+||gamdom.com^$popup,third-party
+||rainbet.com^$popup,third-party
