@@ -4,7 +4,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 let selected=null,searchTimer=null,searchRequest=0,introTimer=null,controlsTimer=null,heroItems=[],heroIndex=0,heroTimer=null,heroLayer=0,heroBusy=false;
 function notice(m){const e=$("notice");e.textContent=m;e.hidden=false;clearTimeout(notice.timer);notice.timer=setTimeout(()=>e.hidden=true,3600)}
 function modal(id,on){$(id).classList.toggle("open",on);$(id).setAttribute("aria-hidden",String(!on));document.body.classList.toggle("no-scroll",on||$("player-modal").classList.contains("open"))}
-function title(x){return x.title||x.name||x.original_title||x.original_name||"Untitled"}
+function title(x){return x.title||x.name||x.original_title||x.original_name||"Pa titull"}
 function kind(x){if(x&&x.media_type==="movie")return"movie";if(x&&x.media_type==="tv")return"tv";if(x&&x.release_date)return"movie";if(x&&x.first_air_date)return"tv";return"movie"}
 function year(x){return(x.release_date||x.first_air_date||"").slice(0,4)}
 function poster(x){return x.poster_path?IMG+"w342"+x.poster_path:""}
@@ -19,7 +19,7 @@ function card(x){
  b.querySelector(".poster-year").textContent=year(x)+(kind(x)==="tv"?" · TV":"");
  b.onclick=()=>details(x);return b
 }
-async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","en-US");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Catalogue request failed ("+r.status+").");return r.json()}
+async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","sq-AL");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Kërkesa për katalogun dështoi ("+r.status+").");return r.json()}
 const pagedRows=new Map();
 async function appendRowPage(state){
  if(!state||state.loading||state.done)return;
@@ -41,7 +41,7 @@ async function appendRowPage(state){
   if(!state.done){
    const sentinel=document.createElement("div");
    sentinel.className="row-more-hint";
-   sentinel.textContent="Loading as you browse";
+   sentinel.textContent="Po ngarkohen titujt...";
    sentinel.style.cssText="flex:0 0 125px;min-height:70px;display:grid;place-items:center;color:#929bab;font-size:11px;text-align:center;padding:10px";
    container.append(sentinel);
    if("IntersectionObserver" in window){
@@ -126,9 +126,9 @@ function showHero(index){
  showHero.contentTimer=setTimeout(()=>{
    if(request!==showHero.requestId)return;
    $("hero-title").textContent=title(item);
-   $("hero-overview").textContent=item.overview||"Discover your next favourite.";
-   $("hero-eyebrow").textContent="FEATURED";
-   $("hero-action").textContent="View details";
+   $("hero-overview").textContent=item.overview||"Zbulo filmin tënd të preferuar.";
+   $("hero-eyebrow").textContent="TË PËRZGJEDHUR";
+   $("hero-action").textContent="Shiko detajet";
    $("hero-action").onclick=()=>details(item);
    requestAnimationFrame(()=>$("hero-content").classList.remove("changing"));
  },180);
@@ -171,14 +171,14 @@ async function home(){
      $("hero").style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";
      $("hero-title").textContent="Discover something great.";
      $("hero-overview").textContent="Movies and series, all in one place.";
-     notice("No featured titles were returned by the catalogue.");
+     notice("Katalogu nuk ktheu tituj të përzgjedhur.");
    }
  }catch(e){
    $("hero").style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";
    notice(e.message);
  }
 }
-async function details(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");selected={...item,...d,media_type:k};$("details-title").textContent=title(d);$("details-type").textContent=k==="tv"?"TV SERIES":"MOVIE";$("details-meta").textContent=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1):"",d.runtime?d.runtime+" min":d.number_of_seasons?d.number_of_seasons+" seasons":""].filter(Boolean).join(" · ");$("details-overview").textContent=d.overview||"No description available.";$("details-backdrop").style.backgroundImage=d.backdrop_path?'linear-gradient(0deg,#111722,transparent 80%),url("'+IMG+"w1280"+d.backdrop_path+'")':"linear-gradient(0deg,#111722,#263143)";const t=(d.videos&&d.videos.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser"));$("watch-trailer").hidden=!t;$("watch-trailer").onclick=()=>window.open("https://www.youtube.com/watch?v="+t.key,"_blank","noopener");$("episode-controls").hidden=k!=="tv";$("play-title").hidden=k==="tv";$("episode-controls").style.display=k==="tv"?"flex":"none";if(k!=="tv"){$("season-select").replaceChildren();$("episode-select").replaceChildren()}if(k==="tv"){const seasons=(d.seasons||[]).filter(s=>s.season_number>=0);$("season-select").innerHTML=seasons.map(s=>'<option value="'+s.season_number+'">'+s.name+"</option>").join("");$("season-select").onchange=episodes;await episodes()}modal("details-modal",true)}catch(e){notice(e.message)}}
+async function details(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");selected={...item,...d,media_type:k};$("details-title").textContent=title(d);$("details-type").textContent=k==="tv"?"SERIAL":"FILM";$("details-meta").textContent=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1):"",d.runtime?d.runtime+" min":d.number_of_seasons?d.number_of_seasons+" sezone":""].filter(Boolean).join(" · ");$("details-overview").textContent=d.overview||"Përshkrimi nuk është i disponueshëm në shqip.";$("details-backdrop").style.backgroundImage=d.backdrop_path?'linear-gradient(0deg,#111722,transparent 80%),url("'+IMG+"w1280"+d.backdrop_path+'")':"linear-gradient(0deg,#111722,#263143)";const t=(d.videos&&d.videos.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser"));$("watch-trailer").hidden=!t;$("watch-trailer").onclick=()=>window.open("https://www.youtube.com/watch?v="+t.key,"_blank","noopener");$("episode-controls").hidden=k!=="tv";$("play-title").hidden=k==="tv";$("episode-controls").style.display=k==="tv"?"flex":"none";if(k!=="tv"){$("season-select").replaceChildren();$("episode-select").replaceChildren()}if(k==="tv"){const seasons=(d.seasons||[]).filter(s=>s.season_number>=0);$("season-select").innerHTML=seasons.map(s=>'<option value="'+s.season_number+'">'+s.name+"</option>").join("");$("season-select").onchange=episodes;await episodes()}modal("details-modal",true)}catch(e){notice(e.message)}}
 async function episodes(){if(!selected)return;try{const s=$("season-select").value,d=await tmdb("/tv/"+selected.id+"/season/"+s);$("episode-select").innerHTML=(d.episodes||[]).map(ep=>'<option value="'+ep.episode_number+'">E'+ep.episode_number+" · "+String(ep.name||"").replace(/[&<>"]/g,"")+"</option>").join("")}catch(e){notice(e.message)}}
 const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",99:"Dokumentar",18:"Dramë",10751:"Familjar",14:"Fantazi",36:"Histori",27:"Horror",10402:"Muzikë",9648:"Mister",10749:"Romancë",878:"Fantashkencë",10770:"Film televiziv",53:"Thriller",10752:"Luftë",37:"Western",10759:"Aksion dhe aventurë",10762:"Për fëmijë",10763:"Lajme",10764:"Reality",10765:"Fantashkencë dhe fantazi",10766:"Sapunoperë",10767:"Talk-show",10768:"Luftë dhe politikë"};
 function ageLabel(cert){const c=String(cert||"").trim().toUpperCase();const map={"G":"Për të gjitha moshat","TV-G":"Për të gjitha moshat","TV-Y":"Për fëmijë","TV-Y7":"Për fëmijë mbi 7 vjeç","PG":"Nën mbikëqyrjen e prindërve","TV-PG":"Nën mbikëqyrjen e prindërve","PG-13":"13+","TV-14":"14+","R":"17+","TV-MA":"18+","NC-17":"18+","18":"18+","16":"16+","15":"15+","12":"12+","U":"Për të gjitha moshat"};return map[c]||c||"Pa klasifikim moshe";}
@@ -213,8 +213,8 @@ function renderSearchCards(items){
 }
 async function loadPopularSearch(){
  const request=++advancedRequest;
- $("search-heading").textContent="Popular right now";
- $("search-count").textContent="Loading…";
+ $("search-heading").textContent="Të njohura tani";
+ $("search-count").textContent="Po ngarkohet…";
  try{
   const d=await tmdb("/trending/all/week");
   if(request!==advancedRequest)return;
@@ -234,7 +234,7 @@ async function showSuggestions(query){
    const img=document.createElement("img");img.loading="lazy";img.src=poster(item);img.alt="";
    const copy=document.createElement("span");copy.className="suggestion-copy";
    const name=document.createElement("strong");name.textContent=title(item);
-   const meta=document.createElement("small");meta.textContent=(kind(item)==="tv"?"TV Series":"Movie")+" · "+(year(item)||"—");
+   const meta=document.createElement("small");meta.textContent=(kind(item)==="tv"?"Serial":"Film")+" · "+(year(item)||"—");
    copy.append(name,meta);button.append(img,copy);
    button.addEventListener("click",()=>{ $("search-page-input").value=title(item);$("search").value=title(item);box.hidden=true;runAdvancedSearch();details(item)});
    box.append(button);
@@ -275,7 +275,7 @@ const genreCollections=$("movie-genre-collections");
 const movieCatalogSections=[...document.querySelectorAll("#movies-page > .catalog-row-section")];
 const moviePageTitle=document.querySelector("#movies-page .page-catalog-head h1");
 const movieJumpNav=document.querySelector("#movies-page .catalog-jump-nav");
-const genreNames={28:"Action",12:"Adventure",16:"Animation",35:"Comedy",80:"Crime",99:"Documentary",18:"Drama",10751:"Family",14:"Fantasy",36:"History",27:"Horror",10402:"Music",9648:"Mystery",10749:"Romance",878:"Science Fiction",53:"Thriller",10752:"War",37:"Western"};
+const genreNames={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",99:"Dokumentar",18:"Dramë",10751:"Familjar",14:"Fantazi",36:"Histori",27:"Horror",10402:"Muzikë",9648:"Mister",10749:"Romancë",878:"Fantashkencë",53:"Thriller",10752:"Luftë",37:"Western"};
 const genreMixes={
   28:[12,878,53,80,18,14],12:[28,14,878,10751,16,37],16:[10751,12,14,35,878,10402],35:[10749,28,80,18,10751,14,16],80:[53,18,28,9648,35,12],99:[36,10402,18,10752,10751],18:[10749,80,53,36,10752,35],10751:[16,35,12,14,10749,28],14:[12,28,10751,10749,878,16],36:[18,10752,10749,99,28],27:[53,9648,80,878,18,14],10402:[18,10749,35,16,99],9648:[53,80,18,27,878,80],10749:[35,18,14,10402,10751,36],878:[28,12,53,18,14,27],53:[28,80,9648,27,18,878],10752:[28,18,36,80,12],37:[28,12,18,36,80,10752]
 };
@@ -314,7 +314,7 @@ async function loadMoreGenreMovies(item,request){
    if(!hint){
     hint=document.createElement("div");
     hint.className="genre-more-hint";
-    hint.textContent="More movies loading as you browse";
+    hint.textContent="Po ngarkohen më shumë filma...";
     hint.style.cssText="flex:0 0 150px;align-self:center;color:#929bab;font-size:12px;text-align:center;padding:12px";
     container.append(hint);
     if("IntersectionObserver" in window){
@@ -345,7 +345,7 @@ async function loadGenreCollections(genreId){
   return;
  }
  movieCatalogSections.forEach(section=>section.hidden=true);
- moviePageTitle.textContent=primary+" Movies";
+ moviePageTitle.textContent=primary+" filma";
  movieJumpNav.hidden=true;
  genreCollections.hidden=false;
  genreCollections.replaceChildren();
