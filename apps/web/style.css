@@ -458,25 +458,25 @@
 }
 
 
-/* Featured artwork: slow cinematic camera drift */
+/* Featured artwork: smoother, more visible cinematic camera movement */
 @keyframes featuredCameraDrift{
-  0%{transform:scale(1.035) translate3d(0,0,0)}
-  50%{transform:scale(1.075) translate3d(-.45%,.25%,0)}
-  100%{transform:scale(1.045) translate3d(.35%,-.2%,0)}
+  0%{transform:scale(1.045) translate3d(0,0,0)}
+  50%{transform:scale(1.15) translate3d(-1.15%,.55%,0)}
+  100%{transform:scale(1.065) translate3d(1%,-.45%,0)}
 }
 .hero-backdrop.active{
-  animation:featuredCameraDrift 22s ease-in-out infinite alternate!important;
+  animation:featuredCameraDrift 30s cubic-bezier(.45,0,.55,1) infinite alternate!important;
   will-change:transform;
 }
 @media(max-width:760px){
   .hero-backdrop.active{
-    animation:featuredCameraDrift 25s ease-in-out infinite alternate!important;
+    animation:featuredCameraDrift 34s cubic-bezier(.45,0,.55,1) infinite alternate!important;
   }
 }
 @media(prefers-reduced-motion:reduce){
   .hero-backdrop.active{
     animation:none!important;
-    transform:scale(1.035)!important;
+    transform:scale(1.045)!important;
     will-change:auto;
   }
 }
