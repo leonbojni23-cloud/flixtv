@@ -407,3 +407,21 @@
     background:linear-gradient(90deg,rgba(7,10,16,.10),rgba(7,10,16,.04))!important;
   }
 }
+
+
+/* True transparent navbar: let the current Featured artwork show through */
+.topbar{
+  background:transparent!important;
+  border-bottom:1px solid rgba(255,255,255,.10)!important;
+  box-shadow:none!important;
+}
+.topbar:before{
+  background-image:var(--header-art,none)!important;
+  background-color:transparent!important;
+  filter:blur(0)!important;
+  opacity:1!important;
+  transform:none!important;
+}
+.topbar:after{
+  background:linear-gradient(90deg,rgba(5,8,14,.10),rgba(5,8,14,.02))!important;
+}
