@@ -18,8 +18,6 @@ function play(item,season,episode){if(!item||!item.id)return;const path=kind(ite
 function closePlayer(){$("yapgrid-frame").src="about:blank";$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);$("player-close").onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
-$("settings-open").onclick=()=>{$("tmdb-key").value=apiKey;modal("settings-modal",true)};
-$("key-form").onsubmit=async e=>{e.preventDefault();apiKey=$("tmdb-key").value.trim();if(!apiKey){notice("Enter your TMDB API key.");return}localStorage.setItem("flixtv_tmdb_key",apiKey);modal("settings-modal",false);await home()};
 async function search(q){q=q.trim();if(!q){$("catalog").hidden=false;$("search-results").hidden=true;return}try{const d=await tmdb("/search/multi?query="+encodeURIComponent(q)+"&include_adult=false"),items=(d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv")&&x.poster_path);$("search-grid").replaceChildren(...items.map(card));$("search-count").textContent=items.length+" titles";$("catalog").hidden=true;$("search-results").hidden=false}catch(e){notice(e.message)}}
 $("search").oninput=e=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>search(e.target.value),350)};
 $("mobile-search").onclick=()=>{document.querySelector(".searchbox").classList.add("expanded");$("search").focus()};
