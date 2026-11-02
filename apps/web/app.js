@@ -10,7 +10,7 @@ function year(x){return(x.release_date||x.first_air_date||"").slice(0,4)}
 function poster(x){return x.poster_path?IMG+"w342"+x.poster_path:""}
 function card(x){const b=document.createElement("button");b.className="poster-card";b.type="button";const src=poster(x);b.innerHTML=(src?'<img loading="lazy" alt="">':'<div class="placeholder">FLIXTV</div>')+'<span class="poster-title"></span><span class="poster-year"></span>';if(src)b.querySelector("img").src=src;b.querySelector(".poster-title").textContent=title(x);b.querySelector(".poster-year").textContent=year(x)+(kind(x)==="tv"?" · TV":"");b.onclick=()=>details(x);return b}
 async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","en-US");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Catalogue request failed ("+r.status+").");return r.json()}
-async function row(id,path){try{const d=await tmdb(path);$(id).replaceChildren(...(d.results||[]).filter(x=>x.poster_path).map(card))}catch(e){notice(e.message)}}
+async function row(id,path){try{const d=await tmdb(path);$(id).replaceChildren(...(d.results||[]).filter(x=>x.poster_path).map(card));return d.results||[]}catch(e){notice(e.message);return []}}
 function showHero(index){
  if(!heroItems.length)return;
  heroIndex=(index+heroItems.length)%heroItems.length;
@@ -124,7 +124,10 @@ async function openPage(page){
  ]:[
   ["show-trending","/trending/tv/week"],["show-popular","/tv/popular"],["show-top","/tv/top_rated"],["show-airing","/tv/on_the_air"],["show-today","/tv/airing_today"]
  ];
- await Promise.all(jobs.map(([id,path])=>row(id,path)));
+ const results=await Promise.all(jobs.map(([id,path])=>row(id,path)));
+ const artwork=(results[0]||[]).find(x=>x.backdrop_path)|| (results[0]||[]).find(x=>x.poster_path);
+ const intro=$(page==="movies"?"movies-intro":"shows-intro");
+ if(artwork){const image=IMG+(artwork.backdrop_path?"w1280":"w780")+ (artwork.backdrop_path||artwork.poster_path);intro.style.setProperty("--page-artwork","url(\""+image+"\")");}
  loadedPages.add(page);
 }
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
