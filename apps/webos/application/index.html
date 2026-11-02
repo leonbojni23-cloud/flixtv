@@ -50,49 +50,15 @@ html, body {
   overflow: hidden;
 }
 
-#jellyfin-video {
+#yapgrid-frame {
   display: block;
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  border: 0;
   background: #000;
 }
-.jellyfin-panel {
-  position: absolute;
-  left: 3.5vw;
-  right: 3.5vw;
-  bottom: 3vh;
-  z-index: 4;
-  padding: 18px 22px;
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 16px;
-  background: rgba(12,14,18,.88);
-  color: #fff;
-  font: 14px Arial, sans-serif;
-  backdrop-filter: blur(12px);
-}
-.jellyfin-panel h3 { margin: 0 0 10px; font-size: 15px; }
-#jellyfin-status { margin-bottom: 10px; color: rgba(255,255,255,.78); }
-#jellyfin-sources, #jellyfin-subtitles { display: flex; flex-wrap: wrap; }
-.jellyfin-source {
-  min-width: 110px;
-  margin: 0 8px 8px 0;
-  padding: 9px 12px;
-  border: 1px solid rgba(255,255,255,.16);
-  border-radius: 9px;
-  background: rgba(255,255,255,.07);
-  color: #fff;
-  text-align: left;
-  font: 13px Arial, sans-serif;
-}
-.jellyfin-source b, .jellyfin-source span { display: block; }
-.jellyfin-source span { margin-top: 4px; color: rgba(255,255,255,.65); font-size: 11px; }
-.jellyfin-source.selected, .jellyfin-source.focus { border-color: #fff; background: rgba(255,255,255,.2); outline: 2px solid rgba(255,255,255,.7); outline-offset: 2px; }
-#jellyfin-subtitles { margin-top: 10px; }
-.jellyfin-subtitle-label { align-self: center; margin-right: 8px; color: rgba(255,255,255,.7); }
-.jellyfin-empty { color: rgba(255,255,255,.7); }
-
 #player-loading {
   position: absolute;
   inset: 0;
@@ -243,13 +209,9 @@ body.player-open {
     Loading player...
   </div>
 
-  <video id="jellyfin-video" controls playsinline preload="metadata"></video>
-  <section class="jellyfin-panel">
-    <h3>Jellyfin versions</h3>
-    <div id="jellyfin-status" role="status"></div>
-    <div id="jellyfin-sources"></div>
-    <div id="jellyfin-subtitles" hidden></div>
-  </section>
+  <iframe id="yapgrid-frame" title="YapGrid video player" src="about:blank"
+    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+    allowfullscreen referrerpolicy="origin"></iframe>
 
   <button id="player-back" class="f" type="button" aria-label="Back to title details">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -413,9 +375,8 @@ body.player-open {
 <script src="features/profiles.js"></script>
 <script src="app.js"></script>
 
-<!-- jellyfin player: load after app.js and before details.js -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
-<script src="features/jellyfin-player.js"></script>
+<!-- YapGrid player: load after app.js and before details.js -->
+<script src="features/yapgrid-embed.js"></script>
 
 <script src="features/details.js"></script>
 <script src="features/search.js"></script>
