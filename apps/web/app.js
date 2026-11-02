@@ -127,7 +127,7 @@ function makeGenreRow(label,idList,index){
  const posters=document.createElement("div");posters.className="poster-row";posters.id="genre-row-"+index;
  posters.innerHTML='<div class="genre-loading">Loading '+label.toLowerCase()+'…</div>';
  section.append(heading,posters);genreCollections.append(section);
- return {id:posters.id,path:"/discover/movie?with_genres="+idList.join(",")+"&sort_by=popularity.desc",page:0,totalPages:10,loading:false,done:false,seen:new Set()};
+ return {id:posters.id,path:"/discover/movie?with_genres="+idList.join(",")+"&sort_by=popularity.desc",page:0,totalPages:10,loading:false,done:false,seen:new Set(),observer:null};
 }
 async function loadMoreGenreMovies(item,request){
  if(item.loading||item.done||request!==genreRequest)return;
@@ -149,8 +149,21 @@ async function loadMoreGenreMovies(item,request){
   if(!container.children.length)container.innerHTML='<div class="genre-loading">No movies found in this collection.</div>';
   else if(!item.done){
    let hint=container.querySelector(".genre-more-hint");
-   if(!hint){hint=document.createElement("div");hint.className="genre-more-hint";hint.textContent="Scroll for more";container.append(hint)}
+   if(!hint){
+    hint=document.createElement("div");
+    hint.className="genre-more-hint";
+    hint.textContent="More movies loading as you browse";
+    hint.style.cssText="flex:0 0 150px;align-self:center;color:#929bab;font-size:12px;text-align:center;padding:12px";
+    container.append(hint);
+    if("IntersectionObserver" in window){
+     item.observer=new IntersectionObserver(entries=>{
+      if(entries.some(entry=>entry.isIntersecting))loadMoreGenreMovies(item,request);
+     },{root:container,rootMargin:"0px 420px 0px 0px",threshold:0});
+     item.observer.observe(hint);
+    }
+   }
   }else{
+   if(item.observer){item.observer.disconnect();item.observer=null}
    const hint=container.querySelector(".genre-more-hint");if(hint)hint.remove();
   }
  }catch(error){
@@ -184,7 +197,7 @@ async function loadGenreCollections(genreId){
   container.addEventListener("scroll",()=>{
    clearTimeout(scrollTimer);
    scrollTimer=setTimeout(()=>{
-    if(container.scrollLeft+container.clientWidth>=container.scrollWidth-520)loadMoreGenreMovies(item,request);
+    if(container.scrollLeft+container.clientWidth>=container.scrollWidth-260)loadMoreGenreMovies(item,request);
    },90);
   },{passive:true});
   loadMoreGenreMovies(item,request);
