@@ -2,13 +2,13 @@
 "use strict";
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
 /* FLIXTV strict popup allowlist.
-   Only CineSrc may be opened in a new tab/window from the FLIXTV page.
+   Only VidBolt may be opened in a new tab/window from the FLIXTV page.
    Cross-origin iframe navigation remains isolated by browser security. */
 (()=>{
- const isCineSrc=url=>{
+ const isVidBolt=url=>{
   try{
    const host=new URL(url,location.href).hostname.toLowerCase();
-   return host==="cinesrc.st"||host.endsWith(".cinesrc.st");
+   return host==="vidbolt.xyz"||host.endsWith(".vidbolt.xyz");
   }catch(_){return false}
  };
  let trustedClickTarget=null;
@@ -20,8 +20,8 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  const nativeOpen=window.open.bind(window);
  window.open=function(url,target,features){
   const intentional=trustedClickTarget==="player-open-external";
-  if(!isCineSrc(url)||!intentional){
-   console.warn("[FLIXTV] Blocked popup: only a user-requested CineSrc tab is allowed.",url);
+  if(!isVidBolt(url)||!intentional){
+   console.warn("[FLIXTV] Blocked popup: only a user-requested VidBolt tab is allowed.",url);
    return null;
   }
   return nativeOpen(url,target,features);
@@ -31,7 +31,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
   if(!link)return;
   const target=(link.getAttribute("target")||"").toLowerCase();
   if(target!=="_blank")return;
-  if(!isCineSrc(link.href)){
+  if(!isVidBolt(link.href)){
    event.preventDefault();event.stopImmediatePropagation();
    console.warn("[FLIXTV] Blocked external new tab:",link.href);
   }
@@ -46,7 +46,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  },true);
  const nativeAnchorClick=HTMLAnchorElement.prototype.click;
  HTMLAnchorElement.prototype.click=function(){
-  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!isCineSrc(this.href)){
+  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!isVidBolt(this.href)){
    console.warn("[FLIXTV] Blocked scripted external tab:",this.href);return;
   }
   return nativeAnchorClick.call(this);
@@ -255,12 +255,12 @@ async function episodes(){if(!selected)return;try{const s=$("season-select").val
 const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",99:"Dokumentar",18:"Dramë",10751:"Familjar",14:"Fantazi",36:"Histori",27:"Horror",10402:"Muzikë",9648:"Mister",10749:"Romancë",878:"Fantashkencë",10770:"Film televiziv",53:"Thriller",10752:"Luftë",37:"Western",10759:"Aksion dhe aventurë",10762:"Për fëmijë",10763:"Lajme",10764:"Reality",10765:"Fantashkencë dhe fantazi",10766:"Sapunoperë",10767:"Talk-show",10768:"Luftë dhe politikë"};
 function ageLabel(cert){const c=String(cert||"").trim().toUpperCase();const map={"G":"Për të gjitha moshat","TV-G":"Për të gjitha moshat","TV-Y":"Për fëmijë","TV-Y7":"Për fëmijë mbi 7 vjeç","PG":"Nën mbikëqyrjen e prindërve","TV-PG":"Nën mbikëqyrjen e prindërve","PG-13":"13+","TV-14":"14+","R":"17+","TV-MA":"18+","NC-17":"18+","18":"18+","16":"16+","15":"15+","12":"12+","U":"Për të gjitha moshat"};return map[c]||c||"Pa klasifikim moshe";}
 async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+(k==="tv"?"/content_ratings":"/release_dates"));if(k==="tv"){const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");return (rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0]||{}).rating||""}const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");const country=rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0];return country&&country.release_dates&&((country.release_dates.find(x=>x.certification)||{}).certification)||""}catch(_){return""}}
-let activePlayerProvider="cinesrc";
+let activePlayerProvider="vidbolt";
 let currentPlayback=null;
 function buildPlayerUrl(item,season,episode){
  const id=encodeURIComponent(String(item.id)),type=kind(item);
- if(type==="tv")return "https://cinesrc.st/embed/tv/"+id+"?s="+encodeURIComponent(String(Number(season)))+"&e="+encodeURIComponent(String(Number(episode)));
- return "https://cinesrc.st/embed/movie/"+id;
+ if(type==="tv")return "https://vidbolt.xyz/tv/"+id+"/"+encodeURIComponent(String(Number(season)))+"/"+encodeURIComponent(String(Number(episode)))+"?theme=7c5cff&autoPlay=true";
+ return "https://vidbolt.xyz/movie/"+id+"?theme=7c5cff&autoPlay=true";
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
@@ -268,9 +268,9 @@ function startPlayback(item,season,episode){
  $("content-intro").classList.remove("show");
 }
 window.addEventListener("message",event=>{
- if(event.origin!=="https://cinesrc.st"||event.source!==$("cinesrc-frame").contentWindow)return;
+ if(event.origin!=="https://vidbolt.xyz"||event.source!==$("cinesrc-frame").contentWindow)return;
  const message=event.data;
- if(!message||typeof message.type!=="string"||!message.type.startsWith("cinesrc:"))return;
+ if(!message||typeof message.type!=="string"||!message.type.startsWith("vidbolt:"))return;
  window.dispatchEvent(new CustomEvent("flixtv:player-event",{detail:message}));
 });
 async function play(item,season,episode){if(!item||!item.id)return;clearTimeout(introTimer);const path=kind(item)==="tv"?"tv/"+item.id+"/"+Number(season)+"/"+Number(episode):"movie/"+item.id;$("intro-title").textContent=title(item);$("intro-rating").textContent="";$("intro-details").textContent="";$("content-intro").classList.add("show");$("content-intro").setAttribute("aria-hidden","false");$("player-modal").classList.add("attention-active");$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");$("details-modal").classList.remove("open");document.body.classList.add("no-scroll");currentPlayback={item,season,episode};$("cinesrc-frame").src=buildPlayerUrl(item,season,episode);$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer);const cert=await contentRating(item);if(!$("player-modal").classList.contains("open"))return;$("intro-rating").textContent=ageLabel(cert);$("intro-details").textContent=(item.genre_ids||[]).map(id=>genreSq[id]).filter(Boolean).slice(0,3).join(" · ")||"Informacioni i klasifikimit";introTimer=setTimeout(()=>{$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")},2800);$("intro-skip").onclick=()=>{clearTimeout(introTimer);$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")}}
