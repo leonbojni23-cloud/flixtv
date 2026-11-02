@@ -91,3 +91,24 @@ Important: these are subscriptions for a compatible content blocker. They do not
 become active for FLIXTV visitors just because the URLs are written in this repository.
 The FLIXTV JavaScript popup guard cannot inspect or block requests inside a
 cross-origin VidCore iframe.
+
+
+## Runtime integration status (FLIXTV web)
+
+The FLIXTV top-level app now downloads the community mega-list below and extracts
+only network filter rules explicitly marked with the `$popup` modifier. Extracted
+popup hostnames are cached in localStorage for 24 hours. Built-in gambling popup
+domains remain as a fallback if the remote list is unavailable.
+
+Community list:
+https://raw.githubusercontent.com/SamirPaulb/filter-lists/refs/heads/main/filters.txt
+
+Important limitations:
+- FLIXTV does not run the full EasyList/uBlock/AdGuard filtering engine. It only
+  extracts simple `||hostname^` rules carrying `$popup` from this community list.
+- The runtime popup guard applies to the top-level FLIXTV document. It cannot
+  intercept popups or network requests initiated inside the cross-origin VidCore
+  iframe. Browser extensions/DNS filtering are still required for those.
+- The external community list is third-party maintained and may change. Only
+  simple popup-domain rules are consumed; cosmetic rules, scriptlets, request
+  rules without `$popup`, and complex syntax are not applied by FLIXTV.
