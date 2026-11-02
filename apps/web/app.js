@@ -204,21 +204,39 @@ async function episodes(){if(!selected)return;try{const s=$("season-select").val
 const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",99:"Dokumentar",18:"Dramë",10751:"Familjar",14:"Fantazi",36:"Histori",27:"Horror",10402:"Muzikë",9648:"Mister",10749:"Romancë",878:"Fantashkencë",10770:"Film televiziv",53:"Thriller",10752:"Luftë",37:"Western",10759:"Aksion dhe aventurë",10762:"Për fëmijë",10763:"Lajme",10764:"Reality",10765:"Fantashkencë dhe fantazi",10766:"Sapunoperë",10767:"Talk-show",10768:"Luftë dhe politikë"};
 function ageLabel(cert){const c=String(cert||"").trim().toUpperCase();const map={"G":"Për të gjitha moshat","TV-G":"Për të gjitha moshat","TV-Y":"Për fëmijë","TV-Y7":"Për fëmijë mbi 7 vjeç","PG":"Nën mbikëqyrjen e prindërve","TV-PG":"Nën mbikëqyrjen e prindërve","PG-13":"13+","TV-14":"14+","R":"17+","TV-MA":"18+","NC-17":"18+","18":"18+","16":"16+","15":"15+","12":"12+","U":"Për të gjitha moshat"};return map[c]||c||"Pa klasifikim moshe";}
 async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+(k==="tv"?"/content_ratings":"/release_dates"));if(k==="tv"){const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");return (rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0]||{}).rating||""}const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");const country=rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0];return country&&country.release_dates&&((country.release_dates.find(x=>x.certification)||{}).certification)||""}catch(_){return""}}
-const PLAYER_CONFIG={provider:"yapgrid",yapgridEnabled:true};
-function buildPlayerUrl(item,season,episode){
+let activePlayerProvider="vidcore";
+let currentPlayback=null;
+function buildPlayerUrl(item,season,episode,provider=activePlayerProvider){
  const id=encodeURIComponent(String(item.id)),type=kind(item);
- if(PLAYER_CONFIG.provider==="vixsrc"){
+ if(provider==="vidcore"){
   return type==="tv"
-   ?"https://vixsrc.to/tv/"+id+"/"+Number(season)+"/"+Number(episode)+"?lang=en&autoplay=false"
-   :"https://vixsrc.to/movie/"+id+"?lang=en&autoplay=false";
+   ?"https://vidcore.io/tv/"+id+"/"+Number(season)+"/"+Number(episode)
+   :"https://vidcore.io/movie/"+id;
  }
- if(PLAYER_CONFIG.provider==="yapgrid"&&PLAYER_CONFIG.yapgridEnabled){
+ if(provider==="yapgrid"){
   const path=type==="tv"?"tv/"+id+"/"+Number(season)+"/"+Number(episode):"movie/"+id;
   return "https://yapgrid.com/embed/"+path+"?lang=en";
  }
  throw new Error("Player provider is disabled.");
 }
+function setPlayerProvider(provider){
+ if(provider!=="vidcore"&&provider!=="yapgrid")return;
+ activePlayerProvider=provider;
+ document.querySelectorAll("[data-player-provider]").forEach(button=>{
+  const active=button.dataset.playerProvider===provider;
+  button.classList.toggle("active",active);
+  button.setAttribute("aria-pressed",String(active));
+ });
+ if(currentPlayback){
+  const {item,season,episode}=currentPlayback;
+  $("yapgrid-frame").src=buildPlayerUrl(item,season,episode,provider);
+ }
+}
+document.querySelectorAll("[data-player-provider]").forEach(button=>{
+ button.addEventListener("click",()=>setPlayerProvider(button.dataset.playerProvider));
+});
 function startPlayback(item,season,episode){
+ currentPlayback={item,season,episode};
  $("yapgrid-frame").src=buildPlayerUrl(item,season,episode);
  $("content-intro").classList.remove("show");
 }
@@ -228,8 +246,8 @@ window.addEventListener("message",event=>{
  if(!message||message.type!=="PLAYER_EVENT"||!message.data)return;
  window.dispatchEvent(new CustomEvent("flixtv:player-event",{detail:message.data}));
 });
-async function play(item,season,episode){if(!item||!item.id)return;clearTimeout(introTimer);const path=kind(item)==="tv"?"tv/"+item.id+"/"+Number(season)+"/"+Number(episode):"movie/"+item.id;$("intro-title").textContent=title(item);$("intro-rating").textContent="";$("intro-details").textContent="";$("content-intro").classList.add("show");$("content-intro").setAttribute("aria-hidden","false");$("player-modal").classList.add("attention-active");$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");$("details-modal").classList.remove("open");document.body.classList.add("no-scroll");$("yapgrid-frame").src=buildPlayerUrl(item,season,episode);$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer);const cert=await contentRating(item);if(!$("player-modal").classList.contains("open"))return;$("intro-rating").textContent=ageLabel(cert);$("intro-details").textContent=(item.genre_ids||[]).map(id=>genreSq[id]).filter(Boolean).slice(0,3).join(" · ")||"Informacioni i klasifikimit";introTimer=setTimeout(()=>{$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")},2800);$("intro-skip").onclick=()=>{clearTimeout(introTimer);$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")}}
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){clearTimeout(controlsTimer);clearTimeout(introTimer);$("yapgrid-frame").src="about:blank";$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+async function play(item,season,episode){if(!item||!item.id)return;clearTimeout(introTimer);const path=kind(item)==="tv"?"tv/"+item.id+"/"+Number(season)+"/"+Number(episode):"movie/"+item.id;$("intro-title").textContent=title(item);$("intro-rating").textContent="";$("intro-details").textContent="";$("content-intro").classList.add("show");$("content-intro").setAttribute("aria-hidden","false");$("player-modal").classList.add("attention-active");$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");$("details-modal").classList.remove("open");document.body.classList.add("no-scroll");currentPlayback={item,season,episode};$("yapgrid-frame").src=buildPlayerUrl(item,season,episode);$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer);const cert=await contentRating(item);if(!$("player-modal").classList.contains("open"))return;$("intro-rating").textContent=ageLabel(cert);$("intro-details").textContent=(item.genre_ids||[]).map(id=>genreSq[id]).filter(Boolean).slice(0,3).join(" · ")||"Informacioni i klasifikimit";introTimer=setTimeout(()=>{$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")},2800);$("intro-skip").onclick=()=>{clearTimeout(introTimer);$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")}}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){clearTimeout(controlsTimer);clearTimeout(introTimer);$("yapgrid-frame").src="about:blank";currentPlayback=null;$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 $("player-open-external").onclick=()=>{const url=$("yapgrid-frame").src;if(url&&url!=="about:blank")window.open(url,"_blank","noopener,noreferrer")};
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);$("player-close").onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
