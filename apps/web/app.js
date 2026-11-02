@@ -244,29 +244,14 @@ async function showSuggestions(query){
 }
 async function runAdvancedSearch(){
  const request=++advancedRequest,q=$("search-page-input").value.trim();
- const type=$("search-type").value,genre=$("search-genre").value,yearValue=$("search-year").value.trim(),sort=$("search-sort").value;
  $("search-suggestions").hidden=true;
- $("search-heading").textContent=q?'Results for “'+q+'”':"Explore titles";
+ $("search-heading").textContent=q?'Results for “'+q+'”':"Popular right now";
  $("search-count").textContent="Loading…";
- const hasFilters=!!(genre||yearValue);
- let path;
- if(hasFilters){
-  const media=type==="multi"?"movie":type;
-  const params=new URLSearchParams({sort_by:sort,include_adult:"false"});
-  if(genre)params.set("with_genres",genre);
-  if(yearValue&&/^\d{4}$/.test(yearValue))params.set(media==="tv"?"first_air_date_year":"primary_release_year",yearValue);
-  if(q)params.set("with_text_query",q);
-  path="/discover/"+media+"?"+params.toString();
- }else if(q){
-  path="/search/"+type+"?query="+encodeURIComponent(q)+"&include_adult=false";
- }else{
-  path=type==="multi"?"/trending/all/week":type==="movie"?"/movie/popular":"/tv/popular";
- }
+ const path=q?"/search/multi?query="+encodeURIComponent(q)+"&include_adult=false":"/trending/all/week";
  try{
   const d=await tmdb(path);
   if(request!==advancedRequest)return;
-  const items=(d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv"||type!=="multi")&&x.poster_path);
-  renderSearchCards(items);
+  renderSearchCards((d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv")&&x.poster_path));
  }catch(e){if(request===advancedRequest)notice(e.message)}
 }
 function scheduleSearch(){
@@ -277,10 +262,7 @@ function scheduleSearch(){
  searchDebounce=setTimeout(runAdvancedSearch,280);
 }
 $("search-page-input").addEventListener("input",scheduleSearch);
-["search-type","search-genre","search-year","search-sort"].forEach(id=>$(id).addEventListener("change",runAdvancedSearch));
-$("search-year").addEventListener("keydown",e=>{if(e.key==="Enter")runAdvancedSearch()});
 $("search-clear").onclick=()=>{$("search-page-input").value="";$("search").value="";$("search-suggestions").hidden=true;runAdvancedSearch()};
-$("search-reset").onclick=()=>{$("search-type").value="multi";$("search-genre").value="";$("search-year").value="";$("search-sort").value="popularity.desc";runAdvancedSearch()};
 $("search-page-input").addEventListener("keydown",e=>{if(e.key==="Escape")$("search-suggestions").hidden=true;if(e.key==="Enter"){e.preventDefault();$("search-suggestions").hidden=true;runAdvancedSearch()}});
 $("search").onfocus=()=>showSearchPage();
 $("search-trigger").onclick=showSearchPage;
