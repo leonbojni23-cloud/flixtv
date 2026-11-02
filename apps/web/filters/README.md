@@ -55,3 +55,39 @@ redirect or pop-up technique.
 Sources:
 - https://www.semrush.com/trending-websites/al/gambling
 - https://igamingcrypto.io/analytics/
+
+
+## 5) Large maintained general-purpose lists
+
+Use these in a compatible blocker (AdGuard app/extension, uBlock Origin, or Brave custom filters).
+Do not paste the list contents into app.js; filter syntax is not executable page JavaScript.
+
+### EasyList (general ads)
+https://easylist.to/easylist/easylist.txt
+
+### EasyPrivacy (trackers and privacy)
+https://easylist.to/easylist/easyprivacy.txt
+
+### AdGuard Base (AdGuard-optimized)
+https://filters.adtidy.org/extension/ublock/filters/2_optimized.txt
+
+### AdGuard Popups / Annoyances
+https://filters.adtidy.org/extension/ublock/filters/19.txt
+
+### Optional: one community-compiled mega-list
+https://raw.githubusercontent.com/SamirPaulb/filter-lists/refs/heads/main/filters.txt
+
+The community mega-list aggregates 70+ sources and includes ads, trackers, malware,
+phishing, and annoyance rules. It is maintained by a third party, not AdGuard.
+Review its source list and update history before enabling it. Do not enable it
+alongside every component list above: substantial overlap can cause duplicate
+rules, slower updates, and site breakage.
+
+Recommended conservative setup: AdGuard Base + EasyList + AdGuard Popups.
+Add EasyPrivacy if tracker blocking is also desired. Choose the community mega-list
+as an alternative bundle, not as an extra layer on top of all component lists.
+
+Important: these are subscriptions for a compatible content blocker. They do not
+become active for FLIXTV visitors just because the URLs are written in this repository.
+The FLIXTV JavaScript popup guard cannot inspect or block requests inside a
+cross-origin VidCore iframe.
