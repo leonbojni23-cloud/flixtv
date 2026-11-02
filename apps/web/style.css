@@ -228,3 +228,10 @@
 }
 .topbar>*{position:relative;z-index:1}
 @media(max-width:760px){.topbar{height:56px}}
+
+
+/* Keep featured artwork clearly visible behind its content */
+.hero{background:#090b10}
+.hero-backdrop{z-index:0!important;filter:none!important}
+.hero-backdrop:after{pointer-events:none}
+.hero-content{z-index:1}
