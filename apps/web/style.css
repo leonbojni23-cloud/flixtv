@@ -190,3 +190,35 @@
 @media(max-width:760px){
   .topbar{height:56px}
 }
+
+
+/* Featured artwork blurred only inside the header surface */
+.topbar{
+  position:sticky;
+  isolation:isolate;
+  overflow:hidden;
+  background:rgba(9,12,18,.34)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+.topbar:before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:-18px;
+  background-image:var(--header-art,linear-gradient(110deg,#111722,#202938));
+  background-size:cover;
+  background-position:center 28%;
+  filter:blur(18px);
+  transform:scale(1.08);
+  opacity:.92;
+}
+.topbar:after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0;
+  background:rgba(8,11,17,.42);
+  pointer-events:none;
+}
+.topbar>*{position:relative;z-index:1}
