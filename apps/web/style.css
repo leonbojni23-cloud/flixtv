@@ -745,3 +745,49 @@
  .search-page .poster-title{font-size:12px}
 }
 @media(max-width:360px){.search-page .card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* App-like viewport: prevent browser zoom and keep overlays sized to the device */
+html{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  overscroll-behavior-x:none;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  overscroll-behavior-x:none;
+}
+#app{width:100%;max-width:100%;min-width:0}
+.modal,.settings-modal{
+  width:100%;
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
+}
+.details-sheet,.settings-card{
+  max-height:92vh;
+  max-height:92svh;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.player-modal{
+  width:100%;
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
+  touch-action:manipulation;
+}
+.player-modal iframe{
+  width:100%;
+  height:100%;
+  height:100dvh;
+}
+@media(max-width:760px){
+  .details-sheet{max-height:92svh}
+  .details-backdrop{flex:0 0 auto}
+}
