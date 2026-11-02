@@ -2,13 +2,13 @@
 "use strict";
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
 /* FLIXTV strict popup allowlist.
-   Only vidcore.io may be opened in a new tab/window from the FLIXTV page.
+   Only EmbedWave may be opened in a new tab/window from the FLIXTV page.
    Cross-origin iframe navigation remains isolated by browser security. */
 (()=>{
- const isVidy=url=>{
+ const isEmbedWave=url=>{
   try{
    const host=new URL(url,location.href).hostname.toLowerCase();
-   return host==="vidy.st"||host.endsWith(".vidy.st");
+   return host==="embedwave.cc"||host.endsWith(".embedwave.cc");
   }catch(_){return false}
  };
  let trustedClickTarget=null;
@@ -20,8 +20,8 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  const nativeOpen=window.open.bind(window);
  window.open=function(url,target,features){
   const intentional=trustedClickTarget==="player-open-external";
-  if(!isVidy(url)||!intentional){
-   console.warn("[FLIXTV] Blocked popup: only a user-requested VidCore tab is allowed.",url);
+  if(!isEmbedWave(url)||!intentional){
+   console.warn("[FLIXTV] Blocked popup: only a user-requested EmbedWave tab is allowed.",url);
    return null;
   }
   return nativeOpen(url,target,features);
@@ -31,7 +31,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
   if(!link)return;
   const target=(link.getAttribute("target")||"").toLowerCase();
   if(target!=="_blank")return;
-  if(!isVidy(link.href)){
+  if(!isEmbedWave(link.href)){
    event.preventDefault();event.stopImmediatePropagation();
    console.warn("[FLIXTV] Blocked external new tab:",link.href);
   }
@@ -46,7 +46,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  },true);
  const nativeAnchorClick=HTMLAnchorElement.prototype.click;
  HTMLAnchorElement.prototype.click=function(){
-  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!isVidy(this.href)){
+  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!isEmbedWave(this.href)){
    console.warn("[FLIXTV] Blocked scripted external tab:",this.href);return;
   }
   return nativeAnchorClick.call(this);
@@ -260,7 +260,7 @@ let currentPlayback=null;
 function buildPlayerUrl(item,season,episode){
  const id=encodeURIComponent(String(item.id)),type=kind(item);
  const path=type==="tv"?"tv/"+id+"/"+Number(season)+"/"+Number(episode):"movie/"+id;
- return "https://vidy.st/"+path;
+ return "https://embedwave.cc/embed/"+path;
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
@@ -268,7 +268,7 @@ function startPlayback(item,season,episode){
  $("content-intro").classList.remove("show");
 }
 window.addEventListener("message",event=>{
- if(event.origin!=="https://vidy.st"||event.source!==$("yapgrid-frame").contentWindow)return;
+ if(event.origin!=="https://embedwave.cc"||event.source!==$("yapgrid-frame").contentWindow)return;
  const message=event.data;
  if(!message||message.type!=="PLAYER_EVENT"||!message.data)return;
  window.dispatchEvent(new CustomEvent("flixtv:player-event",{detail:message.data}));
