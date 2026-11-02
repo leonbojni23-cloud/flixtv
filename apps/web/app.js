@@ -258,18 +258,9 @@ async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"
 let activePlayerProvider="yapgrid";
 let currentPlayback=null;
 function buildPlayerUrl(item,season,episode){
- const rawId=item&&(item.id??item.tmdb_id??item.tmdbId);
- const id=String(rawId??"").trim();
- if(!/^\\d+$/.test(id))throw new Error("TMDB ID mungon ose nuk është i vlefshëm për këtë titull.");
- const type=kind(item);
- if(type==="tv"){
-  const seasonNumber=Number(season),episodeNumber=Number(episode);
-  if(!Number.isInteger(seasonNumber)||seasonNumber<0||!Number.isInteger(episodeNumber)||episodeNumber<1){
-   throw new Error("Zgjidh sezonin dhe episodin përpara luajtjes.");
-  }
-  return "https://yapgrid.com/embed/tv/"+id+"/"+seasonNumber+"/"+episodeNumber;
- }
- return "https://yapgrid.com/embed/movie/"+id;
+ const id=encodeURIComponent(String(item.id)),type=kind(item);
+ const path=type==="tv"?"tv/"+id+"/"+Number(season)+"/"+Number(episode):"movie/"+id;
+ return "https://yapgrid.com/embed/"+path+"?lang=en";
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
