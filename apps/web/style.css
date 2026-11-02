@@ -94,3 +94,9 @@
 .hero-controls>button{width:24px;height:34px;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;font-family:Arial,sans-serif;font-size:34px!important;font-weight:300;line-height:1;color:rgba(255,255,255,.82);padding:0;opacity:.9;transition:opacity .2s ease,transform .2s ease!important}
 .hero-controls>button:hover{color:#fff;opacity:1;transform:scale(1.12)}
 @media(max-width:760px){.hero-controls{gap:13px}.hero-controls>button{width:22px;height:32px;font-size:31px!important}}
+
+
+/* Smooth cinematic featured transition */
+.hero-backdrop{transition:opacity 1.45s cubic-bezier(.22,.61,.36,1),transform 9s ease!important}
+.hero-content{transition:opacity .85s cubic-bezier(.22,.61,.36,1),transform .85s cubic-bezier(.22,.61,.36,1)!important}
+.hero-content.changing{opacity:0;transform:translateY(10px);filter:blur(1px)}
