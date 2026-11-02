@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#090b10">
+  <meta name="description" content="FLIXTV movies and TV shows">
+  <title>FLIXTV</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="FLIXTV home">FLIX<span>TV</span></a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <button class="nav-link active" data-page="home">Home</button>
+      <button class="nav-link" data-page="movies">Movies</button>
+      <button class="nav-link" data-page="shows">TV Shows</button>
+    </nav>
+    <div class="top-actions">
+      <label class="searchbox"><span>⌕</span><input id="search" type="search" placeholder="Search movies and shows" autocomplete="off"></label>
+      <button class="icon-btn" id="settings-open" aria-label="Settings">⚙</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <section id="hero" class="hero">
+      <div class="hero-content"><span class="eyebrow">FEATURED</span><h1>Discover something great.</h1><p>Movies and series, all in one place.</p><button class="primary-btn" id="hero-action">Explore now</button></div>
+    </section>
+    <section id="search-results" class="content-section" hidden><div class="section-heading"><h2>Search results</h2><span id="search-count"></span></div><div class="card-grid" id="search-grid"></div></section>
+    <div id="catalog">
+      <section class="content-section"><div class="section-heading"><h2>Trending this week</h2></div><div class="poster-row" id="trending"></div></section>
+      <section class="content-section"><div class="section-heading"><h2>Popular movies</h2></div><div class="poster-row" id="movies"></div></section>
+      <section class="content-section"><div class="section-heading"><h2>Popular TV shows</h2></div><div class="poster-row" id="shows"></div></section>
+    </div>
+    <div id="notice" class="notice" role="status" hidden></div>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <button class="active" data-page="home"><span>⌂</span>Home</button>
+    <button data-page="movies"><span>▣</span>Movies</button>
+    <button data-page="shows"><span>▤</span>Shows</button>
+    <button id="mobile-search"><span>⌕</span>Search</button>
+  </nav>
+
+  <section class="modal" id="details-modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close="details"></div>
+    <article class="details-sheet">
+      <button class="close-btn" data-close="details" aria-label="Close">×</button>
+      <div id="details-backdrop" class="details-backdrop"></div>
+      <div class="details-body"><span class="eyebrow" id="details-type">TITLE</span><h2 id="details-title"></h2><div id="details-meta" class="muted"></div><p id="details-overview"></p><div class="detail-actions"><button id="play-title" class="primary-btn">▶ Play</button><button id="watch-trailer" class="secondary-btn" hidden>Trailer</button></div><div id="episode-controls" hidden><label>Season <select id="season-select"></select></label><label>Episode <select id="episode-select"></select></label><button id="play-episode" class="primary-btn">▶ Play episode</button></div></div>
+    </article>
+  </section>
+
+  <section class="player-modal" id="player-modal" aria-hidden="true">
+    <button class="player-close" id="player-close">← Back</button>
+    <iframe id="yapgrid-frame" title="YapGrid player" src="about:blank" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="origin"></iframe>
+  </section>
+
+  <section class="settings-modal" id="settings-modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close="settings"></div>
+    <div class="settings-card"><button class="close-btn" data-close="settings">×</button><span class="eyebrow">PREFERENCES</span><h2>FLIXTV settings</h2><p class="muted">Add your TMDB API key to load the catalogue. It is saved only in this browser.</p><form id="key-form"><label for="tmdb-key">TMDB API key (v3)</label><input id="tmdb-key" type="password" autocomplete="off" placeholder="Paste your TMDB API key"><button class="primary-btn" type="submit">Save key</button></form><p class="tiny muted">Your key is stored in local browser storage and is not committed to GitHub.</p></div>
+  </section>
+
+  <script src="./app.js"></script>
+</body>
+</html>
