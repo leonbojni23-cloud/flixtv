@@ -489,8 +489,8 @@
     grid-template-columns:repeat(4,minmax(0,1fr));
     align-items:center;
     gap:5px;
-    padding:2px 12px calc(2px + env(safe-area-inset-bottom))!important;
-    min-height:46px;
+    padding:1px 12px calc(1px + env(safe-area-inset-bottom))!important;
+    min-height:40px;
     background:rgba(9,12,19,.88)!important;
     -webkit-backdrop-filter:blur(24px) saturate(155%)!important;
     backdrop-filter:blur(24px) saturate(155%)!important;
@@ -500,7 +500,7 @@
   .mobile-nav button{
     position:relative;
     min-width:0!important;
-    min-height:36px;
+    min-height:32px;
     padding:7px 4px 5px!important;
     display:flex!important;
     flex-direction:column;
@@ -515,7 +515,7 @@
     -webkit-tap-highlight-color:transparent;
   }
   .mobile-nav .nav-icon{
-    width:25px;height:25px;
+    width:21px;height:21px;
     display:grid;place-items:center;
     color:currentColor;
     font-size:0!important;
@@ -523,7 +523,7 @@
     transition:transform .22s ease,color .22s ease;
   }
   .mobile-nav .nav-icon svg{
-    width:23px;height:23px;
+    width:20px;height:20px;
     fill:none;
     stroke:currentColor;
     stroke-width:1.7;
