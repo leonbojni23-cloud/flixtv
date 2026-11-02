@@ -380,3 +380,30 @@
 @media(max-width:380px){
   .hero:before{padding-top:calc(145% + 48px)!important}
 }
+
+
+/* Extra-transparent navbar glass */
+.topbar{
+  background:rgba(8,12,20,.08)!important;
+  border-bottom:1px solid rgba(255,255,255,.075)!important;
+  box-shadow:0 3px 14px rgba(0,0,0,.06)!important;
+}
+.topbar:before{
+  filter:blur(10px) saturate(1.35)!important;
+  opacity:.82!important;
+}
+.topbar:after{
+  background:linear-gradient(90deg,rgba(7,10,16,.12),rgba(7,10,16,.06))!important;
+}
+@media(max-width:760px){
+  .topbar{
+    background:rgba(8,12,20,.06)!important;
+  }
+  .topbar:before{
+    filter:blur(9px) saturate(1.4)!important;
+    opacity:.78!important;
+  }
+  .topbar:after{
+    background:linear-gradient(90deg,rgba(7,10,16,.10),rgba(7,10,16,.04))!important;
+  }
+}
