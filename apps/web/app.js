@@ -27,15 +27,28 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
    if(match&&!isProtected(match[1].toLowerCase()))popupHosts.add(match[1].toLowerCase());
   }
  };
- const cacheKey="flixtv-community-popup-filter-v1";
+ const cacheKey="flixtv-community-popup-filter-v1",cacheTimeKey=cacheKey+"-time",cacheTtl=24*60*60*1000;
+ let cacheFresh=false;
  try{
-  const cached=localStorage.getItem(cacheKey);
-  if(cached)addPopupRules(cached);
+  const cached=localStorage.getItem(cacheKey),savedAt=Number(localStorage.getItem(cacheTimeKey)||0);
+  if(cached){
+   const domains=JSON.parse(cached);
+   if(Array.isArray(domains))domains.forEach(domain=>{
+    if(typeof domain==="string"&&!isProtected(domain))popupHosts.add(domain);
+   });
+  }
+  cacheFresh=Date.now()-savedAt<cacheTtl;
  }catch(_){}
- fetch(COMMUNITY_FILTER_URL,{mode:"cors",credentials:"omit",cache:"no-cache"})
-  .then(response=>{if(!response.ok)throw new Error("Filter list HTTP "+response.status);return response.text()})
-  .then(text=>{addPopupRules(text);try{localStorage.setItem(cacheKey,text)}catch(_){};console.info("[FLIXTV] Community popup rules loaded:",popupHosts.size)})
-  .catch(error=>console.warn("[FLIXTV] Community filter list unavailable; using built-in popup rules.",error));
+ if(!cacheFresh){
+  fetch(COMMUNITY_FILTER_URL,{mode:"cors",credentials:"omit",cache:"no-cache"})
+   .then(response=>{if(!response.ok)throw new Error("Filter list HTTP "+response.status);return response.text()})
+   .then(text=>{
+    addPopupRules(text);
+    try{localStorage.setItem(cacheKey,JSON.stringify([...popupHosts]));localStorage.setItem(cacheTimeKey,String(Date.now()))}catch(_){}
+    console.info("[FLIXTV] Community popup rules loaded:",popupHosts.size);
+   })
+   .catch(error=>console.warn("[FLIXTV] Community filter list unavailable; using built-in popup rules.",error));
+ }
 
  document.addEventListener("click",event=>{
   trustedClickTarget=event.isTrusted&&event.target&&event.target.closest
