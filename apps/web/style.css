@@ -696,3 +696,7 @@
  font-size:25px;font-weight:300;box-shadow:none;
 }
 .close-btn:active{transform:scale(.96)}
+
+/* Force TV-only controls to stay hidden for movie details */
+#episode-controls[hidden],#episode-controls[style*="display: none"]{display:none!important}
+#play-title[hidden],#watch-trailer[hidden]{display:none!important}
