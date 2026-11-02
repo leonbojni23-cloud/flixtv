@@ -5,10 +5,10 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
    Only vidcore.io may be opened in a new tab/window from the FLIXTV page.
    Cross-origin iframe navigation remains isolated by browser security. */
 (()=>{
- const isVidcore=url=>{
+ const isYapgrid=url=>{
   try{
    const host=new URL(url,location.href).hostname.toLowerCase();
-   return host==="vidcore.io"||host.endsWith(".vidcore.io");
+   return host==="yapgrid.com"||host.endsWith(".yapgrid.com");
   }catch(_){return false}
  };
  let trustedClickTarget=null;
@@ -20,7 +20,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  const nativeOpen=window.open.bind(window);
  window.open=function(url,target,features){
   const intentional=trustedClickTarget==="player-open-external";
-  if(!isVidcore(url)||!intentional){
+  if(!isYapgrid(url)||!intentional){
    console.warn("[FLIXTV] Blocked popup: only a user-requested VidCore tab is allowed.",url);
    return null;
   }
@@ -31,7 +31,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
   if(!link)return;
   const target=(link.getAttribute("target")||"").toLowerCase();
   if(target!=="_blank")return;
-  if(!isVidcore(link.href)){
+  if(!isYapgrid(link.href)){
    event.preventDefault();event.stopImmediatePropagation();
    console.warn("[FLIXTV] Blocked external new tab:",link.href);
   }
@@ -46,7 +46,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  },true);
  const nativeAnchorClick=HTMLAnchorElement.prototype.click;
  HTMLAnchorElement.prototype.click=function(){
-  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!isVidcore(this.href)){
+  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!isYapgrid(this.href)){
    console.warn("[FLIXTV] Blocked scripted external tab:",this.href);return;
   }
   return nativeAnchorClick.call(this);
@@ -255,37 +255,13 @@ async function episodes(){if(!selected)return;try{const s=$("season-select").val
 const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",99:"Dokumentar",18:"Dramë",10751:"Familjar",14:"Fantazi",36:"Histori",27:"Horror",10402:"Muzikë",9648:"Mister",10749:"Romancë",878:"Fantashkencë",10770:"Film televiziv",53:"Thriller",10752:"Luftë",37:"Western",10759:"Aksion dhe aventurë",10762:"Për fëmijë",10763:"Lajme",10764:"Reality",10765:"Fantashkencë dhe fantazi",10766:"Sapunoperë",10767:"Talk-show",10768:"Luftë dhe politikë"};
 function ageLabel(cert){const c=String(cert||"").trim().toUpperCase();const map={"G":"Për të gjitha moshat","TV-G":"Për të gjitha moshat","TV-Y":"Për fëmijë","TV-Y7":"Për fëmijë mbi 7 vjeç","PG":"Nën mbikëqyrjen e prindërve","TV-PG":"Nën mbikëqyrjen e prindërve","PG-13":"13+","TV-14":"14+","R":"17+","TV-MA":"18+","NC-17":"18+","18":"18+","16":"16+","15":"15+","12":"12+","U":"Për të gjitha moshat"};return map[c]||c||"Pa klasifikim moshe";}
 async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+(k==="tv"?"/content_ratings":"/release_dates"));if(k==="tv"){const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");return (rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0]||{}).rating||""}const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");const country=rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0];return country&&country.release_dates&&((country.release_dates.find(x=>x.certification)||{}).certification)||""}catch(_){return""}}
-let activePlayerProvider="vidcore";
+let activePlayerProvider="yapgrid";
 let currentPlayback=null;
-function buildPlayerUrl(item,season,episode,provider=activePlayerProvider){
+function buildPlayerUrl(item,season,episode){
  const id=encodeURIComponent(String(item.id)),type=kind(item);
- if(provider==="vidcore"){
-  return type==="tv"
-   ?"https://vidcore.io/tv/"+id+"/"+Number(season)+"/"+Number(episode)
-   :"https://vidcore.io/movie/"+id;
- }
- if(provider==="yapgrid"){
-  const path=type==="tv"?"tv/"+id+"/"+Number(season)+"/"+Number(episode):"movie/"+id;
-  return "https://yapgrid.com/embed/"+path+"?lang=en";
- }
- throw new Error("Player provider is disabled.");
+ const path=type==="tv"?"tv/"+id+"/"+Number(season)+"/"+Number(episode):"movie/"+id;
+ return "https://yapgrid.com/embed/"+path+"?lang=en";
 }
-function setPlayerProvider(provider){
- if(provider!=="vidcore"&&provider!=="yapgrid")return;
- activePlayerProvider=provider;
- document.querySelectorAll("[data-player-provider]").forEach(button=>{
-  const active=button.dataset.playerProvider===provider;
-  button.classList.toggle("active",active);
-  button.setAttribute("aria-pressed",String(active));
- });
- if(currentPlayback){
-  const {item,season,episode}=currentPlayback;
-  $("yapgrid-frame").src=buildPlayerUrl(item,season,episode,provider);
- }
-}
-document.querySelectorAll("[data-player-provider]").forEach(button=>{
- button.addEventListener("click",()=>setPlayerProvider(button.dataset.playerProvider));
-});
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
  $("yapgrid-frame").src=buildPlayerUrl(item,season,episode);
