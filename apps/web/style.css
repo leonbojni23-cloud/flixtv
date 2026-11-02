@@ -325,3 +325,58 @@
   .hero:before{padding-top:calc(145% + 56px)!important}
   .hero-content{bottom:32px!important}
 }
+
+
+/* Navbar refinement: slimmer profile and clearer featured-art glass */
+.topbar{
+  height:58px!important;
+  min-height:58px!important;
+  padding-top:0!important;
+  padding-bottom:0!important;
+  background:rgba(12,16,25,.18)!important;
+  border-bottom:1px solid rgba(255,255,255,.10)!important;
+  box-shadow:0 5px 18px rgba(0,0,0,.10)!important;
+}
+.topbar:before{
+  inset:-16px!important;
+  filter:blur(12px) saturate(1.25)!important;
+  opacity:1!important;
+}
+.topbar:after{
+  background:linear-gradient(90deg,rgba(7,10,16,.30),rgba(7,10,16,.17))!important;
+}
+.topbar .brand-mark{
+  width:30px!important;height:30px!important;
+  border-radius:9px!important;
+  font-size:18px!important;
+}
+.topbar .brand-name{font-size:22px!important}
+.topbar .searchbox{height:38px!important;border-radius:12px!important}
+.topbar .search-trigger{width:22px!important;height:22px!important}
+.topbar .search-trigger svg{width:19px!important;height:19px!important}
+@media(max-width:760px){
+  .topbar{
+    height:48px!important;
+    min-height:48px!important;
+    padding-left:15px!important;
+    padding-right:15px!important;
+    gap:10px!important;
+  }
+  .topbar .brand{gap:7px!important}
+  .topbar .brand-mark{
+    width:27px!important;height:27px!important;
+    border-radius:8px!important;font-size:16px!important;
+  }
+  .topbar .brand-name{font-size:21px!important}
+  .topbar .searchbox{
+    width:36px!important;height:36px!important;
+    border-radius:11px!important;
+  }
+  .topbar .searchbox .search-trigger{width:34px!important;height:34px!important}
+  .topbar .search-trigger svg{width:18px!important;height:18px!important}
+  .hero{margin-top:-48px!important}
+  .hero:before{padding-top:calc(137% + 48px)!important}
+}
+@media(max-width:380px){
+  .hero:before{padding-top:calc(145% + 48px)!important}
+}
