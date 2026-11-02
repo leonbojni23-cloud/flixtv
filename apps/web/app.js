@@ -8,7 +8,17 @@ function title(x){return x.title||x.name||x.original_title||x.original_name||"Un
 function kind(x){if(x&&x.media_type==="movie")return"movie";if(x&&x.media_type==="tv")return"tv";if(x&&x.release_date)return"movie";if(x&&x.first_air_date)return"tv";return"movie"}
 function year(x){return(x.release_date||x.first_air_date||"").slice(0,4)}
 function poster(x){return x.poster_path?IMG+"w342"+x.poster_path:""}
-function card(x){const b=document.createElement("button");b.className="poster-card";b.type="button";const src=poster(x);b.innerHTML=(src?'<img loading="lazy" alt="">':'<div class="placeholder">FLIXTV</div>')+'<span class="poster-title"></span><span class="poster-year"></span>';if(src)b.querySelector("img").src=src;b.querySelector(".poster-title").textContent=title(x);b.querySelector(".poster-year").textContent=year(x)+(kind(x)==="tv"?" · TV":"");b.onclick=()=>details(x);return b}
+function card(x){
+ const b=document.createElement("button");b.className="poster-card";b.type="button";
+ const src=poster(x),rating=Number(x.vote_average);
+ b.innerHTML=(src?'<img loading="lazy" alt="">':'<div class="placeholder">FLIXTV</div>')+
+  (Number.isFinite(rating)&&rating>0?'<span class="poster-rating" aria-label="TMDB rating '+rating.toFixed(1)+'"><span aria-hidden="true">★</span> '+rating.toFixed(1)+'</span>':"")+
+  '<span class="poster-title"></span><span class="poster-year"></span>';
+ if(src)b.querySelector("img").src=src;
+ b.querySelector(".poster-title").textContent=title(x);
+ b.querySelector(".poster-year").textContent=year(x)+(kind(x)==="tv"?" · TV":"");
+ b.onclick=()=>details(x);return b
+}
 async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","en-US");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Catalogue request failed ("+r.status+").");return r.json()}
 const pagedRows=new Map();
 async function appendRowPage(state){
