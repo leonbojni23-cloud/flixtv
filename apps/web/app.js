@@ -259,7 +259,10 @@ function scheduleSearch(){
  const q=$("search-page-input").value.trim();
  $("search").value=q;
  suggestionDebounce=setTimeout(()=>showSuggestions(q),160);
- searchDebounce=setTimeout(runAdvancedSearch,280);
+ $("search-grid").replaceChildren();
+ $("search-count").textContent="";
+ $("search-heading").textContent=q?"Suggestions":"Popular right now";
+ if(!q)searchDebounce=setTimeout(runAdvancedSearch,280);
 }
 $("search-page-input").addEventListener("input",scheduleSearch);
 $("search-clear").onclick=()=>{$("search-page-input").value="";$("search").value="";$("search-suggestions").hidden=true;runAdvancedSearch()};
