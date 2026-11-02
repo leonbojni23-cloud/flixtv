@@ -698,7 +698,3 @@
  font-size:29px;font-weight:400;transform:none;
 }
 .close-btn:active{transform:scale(.96)}
-@media(max-width:760px){
- .details-sheet{width:calc(100% - 36px);max-height:calc(100dvh - 36px);margin:18px;border-radius:22px;}
- .close-btn{right:16px;top:16px;width:46px;height:46px;}
-}
