@@ -136,7 +136,14 @@ async function home(){
  await Promise.all([
    row("trending","/trending/all/week"),
    row("movies","/movie/popular"),
-   row("shows","/tv/popular")
+   row("shows","/tv/popular"),
+   row("home-top-movies","/movie/top_rated"),
+   row("home-action-adventure","/discover/movie?with_genres=28,12&sort_by=popularity.desc"),
+   row("home-comedy-romance","/discover/movie?with_genres=35,10749&sort_by=popularity.desc"),
+   row("home-crime-thriller","/discover/movie?with_genres=80,53&sort_by=popularity.desc"),
+   row("home-scifi-fantasy","/discover/movie?with_genres=878,14&sort_by=popularity.desc"),
+   row("home-trending-shows","/trending/tv/week"),
+   row("home-action-fantasy-shows","/discover/tv?with_genres=10759,10765&sort_by=popularity.desc")
  ]);
  try{
    let d=await tmdb("/trending/all/week");
@@ -287,7 +294,12 @@ async function openPage(page){
  const jobs=page==="movies"?[
   ["movie-trending","/trending/movie/week"],["movie-popular","/movie/popular"],["movie-top","/movie/top_rated"],["movie-now","/movie/now_playing"],["movie-upcoming","/movie/upcoming"]
  ]:[
-  ["show-trending","/trending/tv/week"],["show-popular","/tv/popular"],["show-top","/tv/top_rated"],["show-airing","/tv/on_the_air"],["show-today","/tv/airing_today"]
+  ["show-trending","/trending/tv/week"],["show-popular","/tv/popular"],["show-top","/tv/top_rated"],["show-airing","/tv/on_the_air"],["show-today","/tv/airing_today"],
+  ["show-action-adventure","/discover/tv?with_genres=10759&sort_by=popularity.desc"],
+  ["show-scifi-fantasy","/discover/tv?with_genres=10765&sort_by=popularity.desc"],
+  ["show-crime-drama","/discover/tv?with_genres=80,18&sort_by=popularity.desc"],
+  ["show-comedy-romance","/discover/tv?with_genres=35,10749&sort_by=popularity.desc"],
+  ["show-mystery-thriller","/discover/tv?with_genres=9648,53&sort_by=popularity.desc"]
  ];
  await Promise.all(jobs.map(([id,path])=>row(id,path)));
  loadedPages.add(page);
