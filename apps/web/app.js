@@ -1,7 +1,7 @@
 (() => {
 "use strict";
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
-let selected=null,searchTimer=null,introTimer=null,controlsTimer=null,heroItems=[],heroIndex=0,heroTimer=null,heroLayer=0,heroBusy=false;
+let selected=null,searchTimer=null,searchRequest=0,introTimer=null,controlsTimer=null,heroItems=[],heroIndex=0,heroTimer=null,heroLayer=0,heroBusy=false;
 function notice(m){const e=$("notice");e.textContent=m;e.hidden=false;clearTimeout(notice.timer);notice.timer=setTimeout(()=>e.hidden=true,3600)}
 function modal(id,on){$(id).classList.toggle("open",on);$(id).setAttribute("aria-hidden",String(!on));document.body.classList.toggle("no-scroll",on||$("player-modal").classList.contains("open"))}
 function title(x){return x.title||x.name||x.original_title||x.original_name||"Untitled"}
@@ -22,9 +22,11 @@ async function play(item,season,episode){if(!item||!item.id)return;clearTimeout(
 function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){clearTimeout(controlsTimer);clearTimeout(introTimer);$("yapgrid-frame").src="about:blank";$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);$("player-close").onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
-async function search(q){q=q.trim();if(!q){$("catalog").hidden=false;$("search-results").hidden=true;return}try{const d=await tmdb("/search/multi?query="+encodeURIComponent(q)+"&include_adult=false"),items=(d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv")&&x.poster_path);$("search-grid").replaceChildren(...items.map(card));$("search-count").textContent=items.length+" titles";$("catalog").hidden=true;$("search-results").hidden=false}catch(e){notice(e.message)}}
-$("search").oninput=e=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>search(e.target.value),350)};
-$("mobile-search").onclick=()=>{document.querySelector(".searchbox").classList.add("expanded");$("search").focus()};
+async function search(q){q=q.trim();const request=++searchRequest;if(!q){$("hero").hidden=false;$("catalog").hidden=false;$("search-results").hidden=true;return} $("hero").hidden=true;$("catalog").hidden=true;$("search-results").hidden=false;$("search-count").textContent="Searching…";try{const d=await tmdb("/search/multi?query="+encodeURIComponent(q)+"&include_adult=false");if(request!==searchRequest)return;const items=(d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv")&&x.poster_path);$("search-grid").replaceChildren(...items.map(card));$("search-count").textContent=items.length+" titles"}catch(e){if(request===searchRequest)notice(e.message)}}
+$("search").oninput=e=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>search(e.target.value),220)};
+$("search-trigger").onclick=()=>{const box=$("searchbox");if(innerWidth<=760)box.classList.add("expanded");$("search").focus()};
+$("mobile-search").onclick=()=>{$("searchbox").classList.add("expanded");$("search").focus()};
+$("search").onkeydown=e=>{if(e.key==="Escape"){$("search").value="";search("");$("search").blur();$("searchbox").classList.remove("expanded")}};
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=async()=>{const page=b.dataset.page;document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));if(page==="home"){await home();return}$("hero").hidden=true;$("catalog").hidden=false;$("search-results").hidden=true;const id=page==="movies"?"movies":"shows";await row(id,page==="movies"?"/movie/popular":"/tv/popular");$(id).scrollIntoView({behavior:"smooth",block:"start"})});
 $("hero-action").onclick=()=>$("catalog").scrollIntoView({behavior:"smooth"});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
