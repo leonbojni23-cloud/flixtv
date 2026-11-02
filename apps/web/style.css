@@ -581,3 +581,8 @@
  #movies-page .poster-row,#shows-page .poster-row{grid-auto-columns:132px;gap:12px}
 }
 
+
+/* Respect page visibility: no Featured hero on Movies or TV Shows */
+#hero[hidden],#home-page[hidden],#movies-page[hidden],#shows-page[hidden],#search-results[hidden]{
+  display:none!important;
+}
