@@ -258,9 +258,18 @@ async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"
 let activePlayerProvider="yapgrid";
 let currentPlayback=null;
 function buildPlayerUrl(item,season,episode){
- const id=encodeURIComponent(String(item.id)),type=kind(item);
- const path=type==="tv"?"tv/"+id+"/"+Number(season)+"/"+Number(episode):"movie/"+id;
- return "https://yapgrid.com/embed/"+path+"?lang=en";
+ const rawId=item&&(item.id??item.tmdb_id??item.tmdbId);
+ const id=String(rawId??"").trim();
+ if(!/^\\d+$/.test(id))throw new Error("TMDB ID mungon ose nuk është i vlefshëm për këtë titull.");
+ const type=kind(item);
+ if(type==="tv"){
+  const seasonNumber=Number(season),episodeNumber=Number(episode);
+  if(!Number.isInteger(seasonNumber)||seasonNumber<0||!Number.isInteger(episodeNumber)||episodeNumber<1){
+   throw new Error("Zgjidh sezonin dhe episodin përpara luajtjes.");
+  }
+  return "https://yapgrid.com/embed/tv/"+id+"/"+seasonNumber+"/"+episodeNumber;
+ }
+ return "https://yapgrid.com/embed/movie/"+id;
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
@@ -275,7 +284,6 @@ window.addEventListener("message",event=>{
 });
 async function play(item,season,episode){if(!item||!item.id)return;clearTimeout(introTimer);const path=kind(item)==="tv"?"tv/"+item.id+"/"+Number(season)+"/"+Number(episode):"movie/"+item.id;$("intro-title").textContent=title(item);$("intro-rating").textContent="";$("intro-details").textContent="";$("content-intro").classList.add("show");$("content-intro").setAttribute("aria-hidden","false");$("player-modal").classList.add("attention-active");$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");$("details-modal").classList.remove("open");document.body.classList.add("no-scroll");currentPlayback={item,season,episode};$("yapgrid-frame").src=buildPlayerUrl(item,season,episode);$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer);const cert=await contentRating(item);if(!$("player-modal").classList.contains("open"))return;$("intro-rating").textContent=ageLabel(cert);$("intro-details").textContent=(item.genre_ids||[]).map(id=>genreSq[id]).filter(Boolean).slice(0,3).join(" · ")||"Informacioni i klasifikimit";introTimer=setTimeout(()=>{$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")},2800);$("intro-skip").onclick=()=>{clearTimeout(introTimer);$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")}}
 function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){clearTimeout(controlsTimer);clearTimeout(introTimer);$("yapgrid-frame").src="about:blank";currentPlayback=null;$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
-$("player-open-external").onclick=()=>{const url=$("yapgrid-frame").src;if(url&&url!=="about:blank")window.open(url,"_blank","noopener,noreferrer")};
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);$("player-close").onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
 let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
