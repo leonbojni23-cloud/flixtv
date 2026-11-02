@@ -108,7 +108,26 @@ $("search").oninput=e=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>sea
 $("search-trigger").onclick=()=>{const box=$("searchbox");if(innerWidth<=760)box.classList.add("expanded");$("search").focus()};
 $("mobile-search").onclick=()=>{$("searchbox").classList.add("expanded");$("search").focus()};
 $("search").onkeydown=e=>{if(e.key==="Escape"){$("search").value="";search("");$("search").blur();$("searchbox").classList.remove("expanded")}};
-document.querySelectorAll("[data-page]").forEach(b=>b.onclick=async()=>{const page=b.dataset.page;document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));if(page==="home"){await home();return}$("hero").hidden=true;$("catalog").hidden=false;$("search-results").hidden=true;const id=page==="movies"?"movies":"shows";await row(id,page==="movies"?"/movie/popular":"/tv/popular");$(id).scrollIntoView({behavior:"smooth",block:"start"})});
+const loadedPages=new Set();
+async function openPage(page){
+ document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+ $("search-results").hidden=true;
+ $("catalog").hidden=false;
+ $("hero").hidden=page!=="home";
+ $("home-page").hidden=page!=="home";
+ $("movies-page").hidden=page!=="movies";
+ $("shows-page").hidden=page!=="shows";
+ if(page==="home"){await home();return}
+ if(loadedPages.has(page))return;
+ const jobs=page==="movies"?[
+  ["movie-trending","/trending/movie/week"],["movie-popular","/movie/popular"],["movie-top","/movie/top_rated"],["movie-now","/movie/now_playing"],["movie-upcoming","/movie/upcoming"]
+ ]:[
+  ["show-trending","/trending/tv/week"],["show-popular","/tv/popular"],["show-top","/tv/top_rated"],["show-airing","/tv/on_the_air"],["show-today","/tv/airing_today"]
+ ];
+ await Promise.all(jobs.map(([id,path])=>row(id,path)));
+ loadedPages.add(page);
+}
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
 $("hero-action").onclick=()=>$("catalog").scrollIntoView({behavior:"smooth"});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
 window.addEventListener("pageshow",()=>{if(heroItems.length>1)startHeroTimer()});
