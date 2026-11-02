@@ -127,7 +127,35 @@ function makeGenreRow(label,idList,index){
  const posters=document.createElement("div");posters.className="poster-row";posters.id="genre-row-"+index;
  posters.innerHTML='<div class="genre-loading">Loading '+label.toLowerCase()+'…</div>';
  section.append(heading,posters);genreCollections.append(section);
- return {id:posters.id,path:"/discover/movie?with_genres="+idList.join(",")+"&sort_by=popularity.desc"};
+ return {id:posters.id,path:"/discover/movie?with_genres="+idList.join(",")+"&sort_by=popularity.desc",page:0,totalPages:10,loading:false,done:false,seen:new Set()};
+}
+async function loadMoreGenreMovies(item,request){
+ if(item.loading||item.done||request!==genreRequest)return;
+ item.loading=true;
+ const nextPage=item.page+1;
+ try{
+  const separator=item.path.includes("?")?"&":"?";
+  const data=await tmdb(item.path+separator+"page="+nextPage);
+  if(request!==genreRequest)return;
+  const results=(data.results||[]).filter(movie=>movie.poster_path&&!item.seen.has(movie.id));
+  results.forEach(movie=>item.seen.add(movie.id));
+  const container=$(item.id);
+  if(results.length)container.append(...results.map(card));
+  item.page=nextPage;
+  item.totalPages=Math.min(Number(data.total_pages)||10,10);
+  item.done=item.page>=item.totalPages||results.length===0;
+  if(!container.children.length)container.innerHTML='<div class="genre-loading">No movies found in this collection.</div>';
+  else if(!item.done){
+   let hint=container.querySelector(".genre-more-hint");
+   if(!hint){hint=document.createElement("div");hint.className="genre-more-hint";hint.textContent="Scroll for more";container.append(hint)}
+  }else{
+   const hint=container.querySelector(".genre-more-hint");if(hint)hint.remove();
+  }
+ }catch(error){
+  if(request===genreRequest){notice(error.message);item.done=true}
+ }finally{
+  item.loading=false;
+ }
 }
 async function loadGenreCollections(genreId){
  const request=++genreRequest;
@@ -148,21 +176,18 @@ async function loadGenreCollections(genreId){
   makeGenreRow(primary+" Movies",[genreId],0),
   ...[...new Set(genreMixes[genreId]||[])].map((secondary,index)=>makeGenreRow(primary+" + "+genreNames[secondary], [genreId,secondary],index+1))
  ];
+ rows.forEach(item=>{
+  const container=$(item.id);
+  let scrollTimer;
+  container.addEventListener("scroll",()=>{
+   clearTimeout(scrollTimer);
+   scrollTimer=setTimeout(()=>{
+    if(container.scrollLeft+container.clientWidth>=container.scrollWidth-520)loadMoreGenreMovies(item,request);
+   },90);
+  },{passive:true});
+  loadMoreGenreMovies(item,request);
+ });
  genreCollections.scrollIntoView({behavior:"smooth",block:"start"});
- await Promise.all(rows.map(async item=>{
-  if(request!==genreRequest)return;
-  try{
-   const data=await tmdb(item.path);
-   if(request!==genreRequest)return;
-   const results=(data.results||[]).filter(movie=>movie.poster_path);
-   $(item.id).replaceChildren(...results.map(card));
-   if(!results.length)$(item.id).innerHTML='<div class="genre-loading">No movies found in this collection.</div>';
-  }catch(error){
-   if(request!==genreRequest)return;
-   $(item.id).innerHTML='<div class="genre-loading">Could not load this collection.</div>';
-   notice(error.message);
-  }
- }));
 }
 if(movieGenreSelect)movieGenreSelect.addEventListener("change",()=>loadGenreCollections(movieGenreSelect.value));
 const loadedPages=new Set();
