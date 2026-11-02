@@ -1,55 +1,17 @@
 (() => {
 "use strict";
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
-/* FLIXTV popup/filter layer.
-   Uses popup rules from the community mega-list in the top-level FLIXTV document.
-   Cross-origin player iframes remain isolated by browser security. */
+/* FLIXTV strict popup allowlist.
+   Only vidcore.io may be opened in a new tab/window from the FLIXTV page.
+   Cross-origin iframe navigation remains isolated by browser security. */
 (()=>{
- const COMMUNITY_FILTER_URL="https://raw.githubusercontent.com/SamirPaulb/filter-lists/refs/heads/main/filters.txt";
- const protectedHosts=["vidcore.io","yapgrid.com","themoviedb.org","tmdb.org","image.tmdb.org"];
- const popupHosts=new Set(["stake.com","bet365.com","1xbet.com","shuffle.com","roobet.com","bc.game","gamdom.com","rainbet.com"]);
- let trustedClickTarget=null;
- const hostMatches=(host,domain)=>host===domain||host.endsWith("."+domain);
- const isProtected=host=>protectedHosts.some(domain=>hostMatches(host,domain));
- const isBlockedPopup=url=>{
+ const isVidcore=url=>{
   try{
-   const parsed=new URL(url,location.href),host=parsed.hostname.toLowerCase();
-   return !isProtected(host)&&[...popupHosts].some(domain=>hostMatches(host,domain));
+   const host=new URL(url,location.href).hostname.toLowerCase();
+   return host==="vidcore.io"||host.endsWith(".vidcore.io");
   }catch(_){return false}
  };
- const addPopupRules=text=>{
-  if(typeof text!=="string")return;
-  for(const line of text.split(/\r?\n/)){
-   const rule=line.trim();
-   if(!rule||rule.startsWith("!")||rule.startsWith("@@"))continue;
-   if(!/\$[^\s]*popup(?:[,\s]|$)/i.test(rule))continue;
-   const match=rule.match(/^\|\|([a-z0-9.-]+)\^/i);
-   if(match&&!isProtected(match[1].toLowerCase()))popupHosts.add(match[1].toLowerCase());
-  }
- };
- const cacheKey="flixtv-community-popup-filter-v1",cacheTimeKey=cacheKey+"-time",cacheTtl=24*60*60*1000;
- let cacheFresh=false;
- try{
-  const cached=localStorage.getItem(cacheKey),savedAt=Number(localStorage.getItem(cacheTimeKey)||0);
-  if(cached){
-   const domains=JSON.parse(cached);
-   if(Array.isArray(domains))domains.forEach(domain=>{
-    if(typeof domain==="string"&&!isProtected(domain))popupHosts.add(domain);
-   });
-  }
-  cacheFresh=Date.now()-savedAt<cacheTtl;
- }catch(_){}
- if(!cacheFresh){
-  fetch(COMMUNITY_FILTER_URL,{mode:"cors",credentials:"omit",cache:"no-cache"})
-   .then(response=>{if(!response.ok)throw new Error("Filter list HTTP "+response.status);return response.text()})
-   .then(text=>{
-    addPopupRules(text);
-    try{localStorage.setItem(cacheKey,JSON.stringify([...popupHosts]));localStorage.setItem(cacheTimeKey,String(Date.now()))}catch(_){}
-    console.info("[FLIXTV] Community popup rules loaded:",popupHosts.size);
-   })
-   .catch(error=>console.warn("[FLIXTV] Community filter list unavailable; using built-in popup rules.",error));
- }
-
+ let trustedClickTarget=null;
  document.addEventListener("click",event=>{
   trustedClickTarget=event.isTrusted&&event.target&&event.target.closest
    ?event.target.closest("button")?.id||null:null;
@@ -57,29 +19,25 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  },true);
  const nativeOpen=window.open.bind(window);
  window.open=function(url,target,features){
-  if(isBlockedPopup(url)){
-   console.warn("[FLIXTV] Blocked gambling/ad popup:",url);
-   return null;
-  }
-  const intentional=trustedClickTarget==="player-open-external"||trustedClickTarget==="watch-trailer";
-  if(!intentional){
-   console.warn("[FLIXTV] Blocked unsolicited popup:",url);
+  const intentional=trustedClickTarget==="player-open-external";
+  if(!isVidcore(url)||!intentional){
+   console.warn("[FLIXTV] Blocked popup: only a user-requested VidCore tab is allowed.",url);
    return null;
   }
   return nativeOpen(url,target,features);
  };
- const blockNewTab=event=>{
+ const blockExternalNewTab=event=>{
   const link=event.target&&event.target.closest?event.target.closest("a[target]"):null;
   if(!link)return;
   const target=(link.getAttribute("target")||"").toLowerCase();
   if(target!=="_blank")return;
-  if(isBlockedPopup(link.href)||!link.hasAttribute("data-allow-external")){
+  if(!isVidcore(link.href)){
    event.preventDefault();event.stopImmediatePropagation();
-   console.warn("[FLIXTV] Blocked new-tab link:",link.href);
+   console.warn("[FLIXTV] Blocked external new tab:",link.href);
   }
  };
- document.addEventListener("click",blockNewTab,true);
- document.addEventListener("auxclick",blockNewTab,true);
+ document.addEventListener("click",blockExternalNewTab,true);
+ document.addEventListener("auxclick",blockExternalNewTab,true);
  document.addEventListener("submit",event=>{
   const form=event.target;
   if(form&&form.tagName==="FORM"&&(form.getAttribute("target")||"").toLowerCase()==="_blank"){
@@ -88,9 +46,8 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  },true);
  const nativeAnchorClick=HTMLAnchorElement.prototype.click;
  HTMLAnchorElement.prototype.click=function(){
-  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&
-    (isBlockedPopup(this.href)||!this.hasAttribute("data-allow-external"))){
-   console.warn("[FLIXTV] Blocked scripted new-tab link:",this.href);return;
+  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!isVidcore(this.href)){
+   console.warn("[FLIXTV] Blocked scripted external tab:",this.href);return;
   }
   return nativeAnchorClick.call(this);
  };
