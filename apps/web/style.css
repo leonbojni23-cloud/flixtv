@@ -425,3 +425,19 @@
 .topbar:after{
   background:linear-gradient(90deg,rgba(5,8,14,.10),rgba(5,8,14,.02))!important;
 }
+
+
+/* Subtle featured-image glass blur on transparent navbar */
+.topbar{
+  background:rgba(8,12,20,.10)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(135%)!important;
+  backdrop-filter:blur(12px) saturate(135%)!important;
+  border-bottom:1px solid rgba(255,255,255,.09)!important;
+}
+.topbar:before{
+  filter:blur(12px) saturate(1.2)!important;
+  opacity:.95!important;
+}
+.topbar:after{
+  background:linear-gradient(90deg,rgba(5,8,14,.10),rgba(5,8,14,.04))!important;
+}
