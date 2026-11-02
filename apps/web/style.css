@@ -177,3 +177,16 @@
     linear-gradient(0deg,#090b10 0%,rgba(9,11,16,.58) 20%,rgba(9,11,16,.02) 76%);
   }
 }
+
+
+/* Header-only glass blur and compact navbar */
+.topbar{
+  height:64px;
+  background:rgba(10,13,20,.68);
+  -webkit-backdrop-filter:blur(22px) saturate(155%);
+  backdrop-filter:blur(22px) saturate(155%);
+  border-bottom:1px solid rgba(255,255,255,.075);
+}
+@media(max-width:760px){
+  .topbar{height:56px}
+}
