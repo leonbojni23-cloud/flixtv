@@ -124,10 +124,7 @@ async function openPage(page){
  ]:[
   ["show-trending","/trending/tv/week"],["show-popular","/tv/popular"],["show-top","/tv/top_rated"],["show-airing","/tv/on_the_air"],["show-today","/tv/airing_today"]
  ];
- const results=await Promise.all(jobs.map(([id,path])=>row(id,path)));
- const artwork=(results[0]||[]).find(x=>x.backdrop_path)|| (results[0]||[]).find(x=>x.poster_path);
- const intro=$(page==="movies"?"movies-intro":"shows-intro");
- if(artwork){const image=IMG+(artwork.backdrop_path?"w1280":"w780")+ (artwork.backdrop_path||artwork.poster_path);intro.style.setProperty("--page-artwork","url(\""+image+"\")");}
+ await Promise.all(jobs.map(([id,path])=>row(id,path)));
  loadedPages.add(page);
 }
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
