@@ -32,7 +32,7 @@ function showHero(index){
  current.classList.remove("active");
  heroLayer=nextLayer;
  hero.style.backgroundImage='linear-gradient(90deg,rgba(5,7,12,.48),rgba(5,7,12,.08)),linear-gradient(0deg,#090b10 0%,transparent 72%)';
- $("header.topbar").style.setProperty("--header-art",image);
+ document.querySelector("header.topbar").style.setProperty("--header-art",image);
  const preload=new Image();
  preload.onload=()=>{
    if(request!==showHero.requestId)return;
