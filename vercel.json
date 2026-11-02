@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "outputDirectory": "apps/web",
+  "functions": {
+    "api/tmdb/[...path].js": {
+      "runtime": "nodejs"
+    }
+  }
+}
