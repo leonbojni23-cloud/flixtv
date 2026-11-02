@@ -1,65 +1,85 @@
 (() => {
 "use strict";
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
-/* FLIXTV popup guard: applies to the top-level FLIXTV document.
-   Cross-origin player frames are isolated by the browser and need browser-level filtering. */
+/* FLIXTV popup/filter layer.
+   Uses popup rules from the community mega-list in the top-level FLIXTV document.
+   Cross-origin player iframes remain isolated by browser security. */
 (()=>{
- const allowedButtons=new Set(["player-open-external","watch-trailer"]);
+ const COMMUNITY_FILTER_URL="https://raw.githubusercontent.com/SamirPaulb/filter-lists/refs/heads/main/filters.txt";
+ const protectedHosts=["vidcore.io","yapgrid.com","themoviedb.org","tmdb.org","image.tmdb.org"];
+ const popupHosts=new Set(["stake.com","bet365.com","1xbet.com","shuffle.com","roobet.com","bc.game","gamdom.com","rainbet.com"]);
  let trustedClickTarget=null;
+ const hostMatches=(host,domain)=>host===domain||host.endsWith("."+domain);
+ const isProtected=host=>protectedHosts.some(domain=>hostMatches(host,domain));
+ const isBlockedPopup=url=>{
+  try{
+   const parsed=new URL(url,location.href),host=parsed.hostname.toLowerCase();
+   return !isProtected(host)&&[...popupHosts].some(domain=>hostMatches(host,domain));
+  }catch(_){return false}
+ };
+ const addPopupRules=text=>{
+  if(typeof text!=="string")return;
+  for(const line of text.split(/\r?\n/)){
+   const rule=line.trim();
+   if(!rule||rule.startsWith("!")||rule.startsWith("@@"))continue;
+   if(!/\$[^\s]*popup(?:[,\s]|$)/i.test(rule))continue;
+   const match=rule.match(/^\|\|([a-z0-9.-]+)\^/i);
+   if(match&&!isProtected(match[1].toLowerCase()))popupHosts.add(match[1].toLowerCase());
+  }
+ };
+ const cacheKey="flixtv-community-popup-filter-v1";
+ try{
+  const cached=localStorage.getItem(cacheKey);
+  if(cached)addPopupRules(cached);
+ }catch(_){}
+ fetch(COMMUNITY_FILTER_URL,{mode:"cors",credentials:"omit",cache:"no-cache"})
+  .then(response=>{if(!response.ok)throw new Error("Filter list HTTP "+response.status);return response.text()})
+  .then(text=>{addPopupRules(text);try{localStorage.setItem(cacheKey,text)}catch(_){};console.info("[FLIXTV] Community popup rules loaded:",popupHosts.size)})
+  .catch(error=>console.warn("[FLIXTV] Community filter list unavailable; using built-in popup rules.",error));
+
  document.addEventListener("click",event=>{
   trustedClickTarget=event.isTrusted&&event.target&&event.target.closest
    ?event.target.closest("button")?.id||null:null;
   queueMicrotask(()=>{trustedClickTarget=null});
  },true);
-
  const nativeOpen=window.open.bind(window);
  window.open=function(url,target,features){
-  if(!trustedClickTarget||!allowedButtons.has(trustedClickTarget)){
-   console.warn("[FLIXTV] Blocked unsolicited window.open:",url);
+  if(isBlockedPopup(url)){
+   console.warn("[FLIXTV] Blocked gambling/ad popup:",url);
+   return null;
+  }
+  const intentional=trustedClickTarget==="player-open-external"||trustedClickTarget==="watch-trailer";
+  if(!intentional){
+   console.warn("[FLIXTV] Blocked unsolicited popup:",url);
    return null;
   }
   return nativeOpen(url,target,features);
  };
-
- const blockNewTabLink=event=>{
+ const blockNewTab=event=>{
   const link=event.target&&event.target.closest?event.target.closest("a[target]"):null;
   if(!link)return;
   const target=(link.getAttribute("target")||"").toLowerCase();
-  if(target==="_blank"&&!link.hasAttribute("data-allow-external")){
-   event.preventDefault();
-   event.stopImmediatePropagation();
+  if(target!=="_blank")return;
+  if(isBlockedPopup(link.href)||!link.hasAttribute("data-allow-external")){
+   event.preventDefault();event.stopImmediatePropagation();
    console.warn("[FLIXTV] Blocked new-tab link:",link.href);
   }
  };
- document.addEventListener("click",blockNewTabLink,true);
- document.addEventListener("auxclick",blockNewTabLink,true);
-
- const blockNewTabForm=event=>{
+ document.addEventListener("click",blockNewTab,true);
+ document.addEventListener("auxclick",blockNewTab,true);
+ document.addEventListener("submit",event=>{
   const form=event.target;
   if(form&&form.tagName==="FORM"&&(form.getAttribute("target")||"").toLowerCase()==="_blank"){
-   event.preventDefault();
-   event.stopImmediatePropagation();
-   console.warn("[FLIXTV] Blocked new-tab form.");
+   event.preventDefault();event.stopImmediatePropagation();
   }
- };
- document.addEventListener("submit",blockNewTabForm,true);
-
+ },true);
  const nativeAnchorClick=HTMLAnchorElement.prototype.click;
  HTMLAnchorElement.prototype.click=function(){
-  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!this.hasAttribute("data-allow-external")){
-   console.warn("[FLIXTV] Blocked scripted new-tab link:",this.href);
-   return;
+  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&
+    (isBlockedPopup(this.href)||!this.hasAttribute("data-allow-external"))){
+   console.warn("[FLIXTV] Blocked scripted new-tab link:",this.href);return;
   }
   return nativeAnchorClick.call(this);
- };
-
- const nativeFormSubmit=HTMLFormElement.prototype.submit;
- HTMLFormElement.prototype.submit=function(){
-  if((this.getAttribute("target")||"").toLowerCase()==="_blank"){
-   console.warn("[FLIXTV] Blocked scripted new-tab form.");
-   return;
-  }
-  return nativeFormSubmit.call(this);
  };
 })();
 let selected=null,searchTimer=null,searchRequest=0,introTimer=null,controlsTimer=null,heroItems=[],heroIndex=0,heroTimer=null,heroLayer=0,heroBusy=false;
