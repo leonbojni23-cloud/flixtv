@@ -109,19 +109,56 @@ $("search-trigger").onclick=()=>{const box=$("searchbox");if(innerWidth<=760)box
 $("mobile-search").onclick=()=>{$("searchbox").classList.add("expanded");$("search").focus()};
 $("search").onkeydown=e=>{if(e.key==="Escape"){$("search").value="";search("");$("search").blur();$("searchbox").classList.remove("expanded")}};
 const movieGenreSelect=$("movie-genre-select");
-if(movieGenreSelect){
- movieGenreSelect.addEventListener("change",async()=>{
-  const genreId=movieGenreSelect.value;
-  const section=$("movie-genre-section");
-  if(!genreId){section.hidden=true;return}
-  const genreName=movieGenreSelect.options[movieGenreSelect.selectedIndex].text;
-  $("movie-genre-title").textContent=genreName+" Movies";
-  section.hidden=false;
-  $("movie-genre-results").innerHTML='<div class="genre-loading">Loading '+genreName.toLowerCase()+' movies…</div>';
-  section.scrollIntoView({behavior:"smooth",block:"start"});
-  await row("movie-genre-results","/discover/movie?with_genres="+encodeURIComponent(genreId)+"&sort_by=popularity.desc");
- });
+const genreCollections=$("movie-genre-collections");
+const movieCatalogSections=[...document.querySelectorAll("#movies-page > .catalog-row-section")];
+const genreNames={28:"Action",12:"Adventure",16:"Animation",35:"Comedy",80:"Crime",99:"Documentary",18:"Drama",10751:"Family",14:"Fantasy",36:"History",27:"Horror",10402:"Music",9648:"Mystery",10749:"Romance",878:"Science Fiction",53:"Thriller",10752:"War",37:"Western"};
+const genreMixes={
+  28:[12,878,53,80],12:[28,14,878,10751],16:[10751,12,14,35],35:[10749,28,80,18,10751],80:[53,18,28,9648],99:[36,10402,18],18:[10749,80,53,36,10749],10751:[16,35,12,14],14:[12,28,10751,10749],36:[18,10752,10749],27:[53,9648,80,878],10402:[18,10749,35],9648:[53,80,18,27],10749:[35,18,14,10402],878:[28,12,53,18,14],53:[28,80,9648,27],10752:[28,18,36],37:[28,12,18]
+};
+let genreRequest=0;
+function makeGenreRow(label,idList,index){
+ const section=document.createElement("section");
+ section.className="content-section catalog-row-section genre-results-section";
+ const heading=document.createElement("div");heading.className="section-heading";
+ const h2=document.createElement("h2");h2.textContent=label;
+ heading.append(h2);
+ const posters=document.createElement("div");posters.className="poster-row";posters.id="genre-row-"+index;
+ posters.innerHTML='<div class="genre-loading">Loading '+label.toLowerCase()+'…</div>';
+ section.append(heading,posters);genreCollections.append(section);
+ return {id:posters.id,path:"/discover/movie?with_genres="+idList.join(",")+"&sort_by=popularity.desc"};
 }
+async function loadGenreCollections(genreId){
+ const request=++genreRequest;
+ const primary=genreNames[genreId];
+ if(!genreId){
+  genreCollections.hidden=true;
+  movieCatalogSections.forEach(section=>section.hidden=false);
+  return;
+ }
+ movieCatalogSections.forEach(section=>section.hidden=true);
+ genreCollections.hidden=false;
+ genreCollections.replaceChildren();
+ const rows=[
+  makeGenreRow(primary+" Movies",[genreId],0),
+  ...(genreMixes[genreId]||[]).map((secondary,index)=>makeGenreRow(primary+" + "+genreNames[secondary], [genreId,secondary],index+1))
+ ];
+ genreCollections.scrollIntoView({behavior:"smooth",block:"start"});
+ await Promise.all(rows.map(async item=>{
+  if(request!==genreRequest)return;
+  try{
+   const data=await tmdb(item.path);
+   if(request!==genreRequest)return;
+   const results=(data.results||[]).filter(movie=>movie.poster_path);
+   $(item.id).replaceChildren(...results.map(card));
+   if(!results.length)$(item.id).innerHTML='<div class="genre-loading">No movies found in this collection.</div>';
+  }catch(error){
+   if(request!==genreRequest)return;
+   $(item.id).innerHTML='<div class="genre-loading">Could not load this collection.</div>';
+   notice(error.message);
+  }
+ }));
+}
+if(movieGenreSelect)movieGenreSelect.addEventListener("change",()=>loadGenreCollections(movieGenreSelect.value));
 const loadedPages=new Set();
 async function openPage(page){
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
