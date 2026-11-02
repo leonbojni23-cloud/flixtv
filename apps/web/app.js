@@ -30,11 +30,16 @@ async function translateOverviewToAlbanian(text){
  }catch(_){return text}
 }
 async function getAlbanianOverview(item,mediaType){
- if(item.overview)return item.overview;
- try{
-  const english=await tmdb("/"+mediaType+"/"+item.id+"?language=en-US");
-  return await translateOverviewToAlbanian(english.overview||"");
- }catch(_){return ""}
+ let source=item.overview||"";
+ if(!source){
+  try{
+   const english=await tmdb("/"+mediaType+"/"+item.id+"?language=en-US");
+   source=english.overview||"";
+  }catch(_){}
+ }
+ if(!source)return "";
+ const translated=await translateOverviewToAlbanian(source);
+ return translated||source;
 }
 const pagedRows=new Map();
 async function appendRowPage(state){
@@ -142,7 +147,7 @@ function showHero(index){
  showHero.contentTimer=setTimeout(()=>{
    if(request!==showHero.requestId)return;
    $("hero-title").textContent=title(item);
-   $("hero-overview").textContent=item.overview||"Po përgatitet përshkrimi në shqip…";if(!item.overview){getAlbanianOverview(item,kind(item)).then(text=>{if(request===showHero.requestId&&text)$("hero-overview").textContent=text})}
+   $("hero-overview").textContent=item.overview||"Po përgatitet përshkrimi në shqip…";getAlbanianOverview(item,kind(item)).then(text=>{if(request===showHero.requestId&&text)$("hero-overview").textContent=text})
    $("hero-eyebrow").textContent="TË PËRZGJEDHUR";
    $("hero-action").textContent="Shiko detajet";
    $("hero-action").onclick=()=>details(item);
