@@ -190,3 +190,41 @@
 @media(max-width:760px){
   .topbar{height:56px}
 }
+
+
+/* FLIXTV navbar: featured artwork glass strip, isolated from page content */
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:10;
+  isolation:isolate;
+  overflow:hidden;
+  height:64px;
+  background:rgba(9,12,18,.42)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  border-bottom:1px solid rgba(255,255,255,.12);
+  box-shadow:0 8px 26px rgba(0,0,0,.16);
+}
+.topbar:before{
+  content:"";
+  position:absolute;
+  z-index:-2;
+  inset:-22px;
+  background-image:var(--header-art,linear-gradient(110deg,#151b27,#293345));
+  background-size:cover;
+  background-position:center 30%;
+  filter:blur(17px);
+  transform:scale(1.08);
+  opacity:.95;
+}
+.topbar:after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0;
+  background:linear-gradient(90deg,rgba(7,10,16,.62),rgba(7,10,16,.38));
+  pointer-events:none;
+}
+.topbar>*{position:relative;z-index:1}
+@media(max-width:760px){.topbar{height:56px}}
