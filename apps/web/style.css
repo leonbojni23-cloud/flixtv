@@ -3,3 +3,27 @@
 .content-intro{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:flex-start;padding:clamp(28px,8vw,110px);background:radial-gradient(ellipse at 22% 48%,#242424 0, #101010 38%,#050505 78%);color:#fff;opacity:0;visibility:hidden;transition:opacity .55s ease,visibility .55s}.content-intro.show{opacity:1;visibility:visible}.intro-copy{width:min(620px,100%);transform:translateY(18px);opacity:0}.content-intro.show .intro-copy{animation:introRise .7s cubic-bezier(.2,.75,.25,1) .12s forwards}@keyframes introRise{to{transform:translateY(0);opacity:1}}.intro-kicker{font-size:11px;letter-spacing:3px;font-weight:800;color:#b7b7b7;margin-bottom:22px}.intro-rating{font-size:clamp(38px,7vw,64px);line-height:1;font-weight:850;letter-spacing:-2px;margin-bottom:14px}.intro-title{font-size:clamp(21px,3vw,32px);font-weight:700;letter-spacing:-.5px;margin-bottom:12px}.intro-details{font-size:clamp(14px,1.8vw,17px);color:#c4c4c4;line-height:1.7}.intro-progress{height:2px;background:#ffffff2b;margin-top:35px;width:min(360px,75%);overflow:hidden}.intro-progress span{display:block;height:100%;width:0;background:#e50936}.content-intro.show .intro-progress span{animation:introProgress 2.8s linear forwards}@keyframes introProgress{to{width:100%}}#intro-skip{margin-top:20px;border:0;background:transparent;color:#aaa;font-size:11px;font-weight:800;letter-spacing:2px;padding:8px 0}#intro-skip:active{color:white}@media(max-width:760px){.content-intro{padding:28px}.intro-kicker{font-size:9px;letter-spacing:2px;margin-bottom:18px}.intro-rating{font-size:52px}.intro-title{font-size:23px}.intro-details{font-size:14px}}
 
 
+
+
+/* Featured carousel */
+.hero{position:relative;min-height:520px;align-items:center;padding:64px clamp(22px,7vw,100px);background-position:center 30%;background-size:cover;isolation:isolate;transition:background-position .35s ease}
+.hero-content{position:relative;z-index:1;max-width:610px;padding:28px 0}
+.hero h1{font-size:clamp(38px,5.6vw,68px);max-width:650px;text-wrap:balance;text-shadow:0 3px 28px #0008}
+.hero p{font-size:clamp(15px,1.5vw,18px);line-height:1.65;color:#e0e3e9;max-width:520px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 2px 15px #000}
+.hero-actions{display:flex;align-items:center;gap:25px;flex-wrap:wrap;margin-top:25px}
+.hero .primary-btn{padding:14px 24px;border-radius:10px;box-shadow:0 8px 26px rgba(229,9,54,.22)}
+.hero-controls{display:flex;align-items:center;gap:12px}
+.hero-controls>button{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(10,13,20,.48);backdrop-filter:blur(12px);font-size:24px;line-height:1;color:#fff;display:grid;place-items:center}
+.hero-dots{display:flex;align-items:center;gap:6px}
+.hero-dot{width:6px;height:6px;padding:0;border:0;border-radius:10px;background:rgba(255,255,255,.42);transition:width .2s ease,background .2s ease}
+.hero-dot.active{width:23px;background:var(--accent)}
+@media(max-width:760px){
+ .hero{min-height:560px;align-items:flex-end;padding:40px 22px 48px;background-position:58% center}
+ .hero-content{padding:20px 0 6px;max-width:100%}
+ .hero h1{font-size:clamp(38px,10vw,54px);letter-spacing:-1.6px;margin:12px 0}
+ .hero p{font-size:15px;line-height:1.55;-webkit-line-clamp:4;max-width:100%}
+ .hero-actions{gap:17px;margin-top:22px}
+ .hero .primary-btn{padding:13px 19px;font-size:14px}
+ .hero-controls{gap:9px}
+ .hero-controls>button{width:32px;height:32px}
+}
