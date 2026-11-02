@@ -141,7 +141,7 @@ function startHeroTimer(){
 }
 async function home(){
  $("catalog").hidden=false;
- $("search-results").hidden=true;
+ $("search-page").hidden=true;
  $("hero").hidden=false;
  await Promise.all([
    row("trending","/trending/all/week"),
@@ -386,6 +386,7 @@ async function openPage(page){
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
  $("search-results").hidden=true;
  $("catalog").hidden=false;
+ searchPageActive=false;
  $("hero").hidden=page!=="home";
  $("home-page").hidden=page!=="home";
  $("movies-page").hidden=page!=="movies";
