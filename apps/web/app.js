@@ -61,6 +61,38 @@ function startHeroTimer(){
  if(heroItems.length<2)return;
  heroTimer=setInterval(()=>{if(!document.hidden)showHero(heroIndex+1)},6500);
 }
+async function home(){
+ $("catalog").hidden=false;
+ $("search-results").hidden=true;
+ $("hero").hidden=false;
+ await Promise.all([
+   row("trending","/trending/all/week"),
+   row("movies","/movie/popular"),
+   row("shows","/tv/popular")
+ ]);
+ try{
+   let d=await tmdb("/trending/all/week");
+   let candidates=(d&&d.results)||[];
+   heroItems=candidates.filter(x=>(x.media_type==="movie"||x.media_type==="tv"||x.title||x.name)&&(x.backdrop_path||x.poster_path)).slice(0,8);
+   if(!heroItems.length){
+     d=await tmdb("/movie/popular");
+     candidates=(d&&d.results)||[];
+     heroItems=candidates.filter(x=>x.backdrop_path||x.poster_path).slice(0,8);
+   }
+   if(heroItems.length){
+     showHero(0);
+     startHeroTimer();
+   }else{
+     $("hero").style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";
+     $("hero-title").textContent="Discover something great.";
+     $("hero-overview").textContent="Movies and series, all in one place.";
+     notice("No featured titles were returned by the catalogue.");
+   }
+ }catch(e){
+   $("hero").style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";
+   notice(e.message);
+ }
+}
 async function details(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");selected={...item,...d,media_type:k};$("details-title").textContent=title(d);$("details-type").textContent=k==="tv"?"TV SERIES":"MOVIE";$("details-meta").textContent=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1):"",d.runtime?d.runtime+" min":d.number_of_seasons?d.number_of_seasons+" seasons":""].filter(Boolean).join(" · ");$("details-overview").textContent=d.overview||"No description available.";$("details-backdrop").style.backgroundImage=d.backdrop_path?'linear-gradient(0deg,#111722,transparent 80%),url("'+IMG+"w1280"+d.backdrop_path+'")':"linear-gradient(0deg,#111722,#263143)";const t=(d.videos&&d.videos.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser"));$("watch-trailer").hidden=!t;$("watch-trailer").onclick=()=>window.open("https://www.youtube.com/watch?v="+t.key,"_blank","noopener");$("episode-controls").hidden=k!=="tv";$("play-title").hidden=k==="tv";if(k==="tv"){const seasons=(d.seasons||[]).filter(s=>s.season_number>=0);$("season-select").innerHTML=seasons.map(s=>'<option value="'+s.season_number+'">'+s.name+"</option>").join("");$("season-select").onchange=episodes;await episodes()}modal("details-modal",true)}catch(e){notice(e.message)}}
 async function episodes(){if(!selected)return;try{const s=$("season-select").value,d=await tmdb("/tv/"+selected.id+"/season/"+s);$("episode-select").innerHTML=(d.episodes||[]).map(ep=>'<option value="'+ep.episode_number+'">E'+ep.episode_number+" · "+String(ep.name||"").replace(/[&<>"]/g,"")+"</option>").join("")}catch(e){notice(e.message)}}
 const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",99:"Dokumentar",18:"Dramë",10751:"Familjar",14:"Fantazi",36:"Histori",27:"Horror",10402:"Muzikë",9648:"Mister",10749:"Romancë",878:"Fantashkencë",10770:"Film televiziv",53:"Thriller",10752:"Luftë",37:"Western",10759:"Aksion dhe aventurë",10762:"Për fëmijë",10763:"Lajme",10764:"Reality",10765:"Fantashkencë dhe fantazi",10766:"Sapunoperë",10767:"Talk-show",10768:"Luftë dhe politikë"};
