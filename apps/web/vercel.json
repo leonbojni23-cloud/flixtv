@@ -21,6 +21,10 @@
     {
       "src": "manifest.webmanifest",
       "use": "@vercel/static"
+    },
+    {
+      "src": "api/translate.js",
+      "use": "@vercel/node"
     }
   ]
 }
