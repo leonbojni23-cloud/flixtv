@@ -729,10 +729,6 @@
 .search-suggestion:hover{background:#202938}
 .search-suggestion img{width:38px;height:56px;object-fit:cover;border-radius:5px;background:#202938}
 .suggestion-copy{display:grid;gap:3px}.suggestion-copy strong{font-size:13px}.suggestion-copy small{font-size:11px;color:#9ba4b5}
-.advanced-search{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:12px;align-items:end;padding:19px 0 30px}
-.advanced-search label{display:grid;gap:7px;color:#9ba4b5;font-size:11px;font-weight:700;letter-spacing:.3px}
-.advanced-search select,.advanced-search input{width:100%;height:42px;min-width:0;padding:0 11px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#151c28;color:#f5f6fa;font-size:13px;outline:none}
-.advanced-search button{height:42px;padding:0 14px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:#c1c8d3;font-size:12px;white-space:nowrap}
 .search-results-head{display:flex;align-items:center;justify-content:space-between;margin:6px 0 17px}
 .search-results-head h2{font-size:19px;margin:0;letter-spacing:-.4px}
 #search-count{color:#9ba4b5;font-size:12px}
@@ -745,10 +741,6 @@
  .search-page-head p{font-size:12px;line-height:1.6}
  .search-field-wrap{min-height:58px;padding:0 12px;gap:10px;border-radius:12px}
  #search-page-input{height:56px;font-size:16px!important;line-height:normal}
- .advanced-search{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:14px 0 24px}
- .advanced-search label{font-size:10px}
- .advanced-search select,.advanced-search input{height:42px;font-size:16px!important}
- .advanced-search button{grid-column:1/-1}
  .search-page .card-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 10px}
  .search-page .poster-title{font-size:12px}
 }
