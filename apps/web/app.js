@@ -196,6 +196,7 @@ function showSearchPage(){
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));
  $("search").blur();
  $("search-page-input").value=$("search").value||$("search-page-input").value;
+ $("search-page-input").focus({preventScroll:true});
  if(!$("search-page-input").value.trim())loadPopularSearch();
  else runAdvancedSearch();
  window.scrollTo({top:0,behavior:"instant"});
