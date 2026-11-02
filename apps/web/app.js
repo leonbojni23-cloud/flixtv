@@ -18,25 +18,25 @@ function showHero(index){
  const nextLayer=heroLayer===0?1:0;
  const next=$(nextLayer===0?"hero-bg-a":"hero-bg-b");
  const current=$(heroLayer===0?"hero-bg-a":"hero-bg-b");
- const imageUrl=IMG+"original"+(item.backdrop_path||item.poster_path);
+ const imageUrl=IMG+(item.backdrop_path?"original":"w1280")+(item.backdrop_path||item.poster_path);
  const image='url("'+imageUrl+'")';
- next.style.backgroundImage=image;
- $("hero").style.backgroundImage='linear-gradient(90deg,rgba(5,7,12,.58),rgba(5,7,12,.12)),linear-gradient(0deg,#090b10 0%,transparent 68%),url("'+imageUrl+'")';
- $("hero").style.backgroundSize="cover";
- $("hero").style.backgroundPosition="center 30%";
- $("header.topbar").style.setProperty("--header-art",image);
+ const hero=$("hero");
  const preload=new Image();
+ preload.onload=()=>{
+   next.style.backgroundImage=image;
+   next.classList.add("active");
+   current.classList.remove("active");
+   heroLayer=nextLayer;
+   hero.style.backgroundImage='linear-gradient(90deg,rgba(5,7,12,.62),rgba(5,7,12,.16)),linear-gradient(0deg,#090b10 0%,transparent 72%),'+image;
+ };
  preload.onerror=()=>{
-   if(item.poster_path){
-     const fallback=IMG+"w1280"+item.poster_path;
-     next.style.backgroundImage='url("'+fallback+'")';
-     $("hero").style.backgroundImage='linear-gradient(90deg,rgba(5,7,12,.58),rgba(5,7,12,.12)),url("'+fallback+'")';
-   }
+   next.style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";
+   next.classList.add("active");
+   current.classList.remove("active");
+   hero.style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";
  };
  preload.src=imageUrl;
- next.classList.add("active");
- current.classList.remove("active");
- heroLayer=nextLayer;
+ $("header.topbar").style.setProperty("--header-art",image);
  $("hero-content").classList.add("changing");
  clearTimeout(showHero.contentTimer);
  showHero.contentTimer=setTimeout(()=>{
@@ -46,8 +46,8 @@ function showHero(index){
    $("hero-action").textContent="View details";
    $("hero-action").onclick=()=>details(item);
    requestAnimationFrame(()=>$("hero-content").classList.remove("changing"));
- },900);
-}function startHeroTimer(){clearInterval(heroTimer);if(heroItems.length<2)return;heroTimer=setInterval(()=>{showHero(heroIndex+1)},7500)}async function home(){$("catalog").hidden=false;$("search-results").hidden=true;$("hero").hidden=false;await Promise.all([row("trending","/trending/all/week"),row("movies","/movie/popular"),row("shows","/tv/popular")]);let d=await tmdb("/trending/movie/week").catch(()=>null);let candidates=(d&&d.results)||[];heroItems=candidates.filter(x=>x.backdrop_path||x.poster_path).slice(0,8);if(!heroItems.length){d=await tmdb("/movie/popular").catch(()=>null);candidates=(d&&d.results)||[];heroItems=candidates.filter(x=>x.backdrop_path||x.poster_path).slice(0,8)}if(heroItems.length){showHero(0);startHeroTimer()}else{$("hero").style.backgroundImage="linear-gradient(135deg,#151b27,#090b10)";$("hero-title").textContent="Discover something great.";$("hero-overview").textContent="Movies and series, all in one place."}}$("hero-prev").onclick=()=>{showHero(heroIndex-1);startHeroTimer()};$("hero-next").onclick=()=>{showHero(heroIndex+1);startHeroTimer()};
+ },450);
+}function startHeroTimer(){clearInterval(heroTimer);if(heroItems.length<2)return;heroTimer=setInterval(()=>{showHero(heroIndex+1)},7500)}async function home(){$("catalog").hidden=false;$("search-results").hidden=true;$("hero").hidden=false;await Promise.all([row("trending","/trending/all/week"),row("movies","/movie/popular"),row("shows","/tv/popular")]);let d=await tmdb("/trending/all/week").catch(()=>null);let candidates=(d&&d.results)||[];heroItems=candidates.filter(x=>(x.media_type==="movie"||x.media_type==="tv"||x.title||x.name)&&(x.backdrop_path||x.poster_path)).slice(0,8);if(!heroItems.length){d=await tmdb("/movie/popular").catch(()=>null);candidates=(d&&d.results)||[];heroItems=candidates.filter(x=>x.backdrop_path||x.poster_path).slice(0,8)}if(heroItems.length){showHero(0);startHeroTimer()}else{$("hero").style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";$("hero-title").textContent="Discover something great.";$("hero-overview").textContent="Movies and series, all in one place."}}$("hero-prev").onclick=()=>{showHero(heroIndex-1);startHeroTimer()};$("hero-next").onclick=()=>{showHero(heroIndex+1);startHeroTimer()};
 async function details(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");selected={...item,...d,media_type:k};$("details-title").textContent=title(d);$("details-type").textContent=k==="tv"?"TV SERIES":"MOVIE";$("details-meta").textContent=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1):"",d.runtime?d.runtime+" min":d.number_of_seasons?d.number_of_seasons+" seasons":""].filter(Boolean).join(" · ");$("details-overview").textContent=d.overview||"No description available.";$("details-backdrop").style.backgroundImage=d.backdrop_path?'linear-gradient(0deg,#111722,transparent 80%),url("'+IMG+"w1280"+d.backdrop_path+'")':"linear-gradient(0deg,#111722,#263143)";const t=(d.videos&&d.videos.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser"));$("watch-trailer").hidden=!t;$("watch-trailer").onclick=()=>window.open("https://www.youtube.com/watch?v="+t.key,"_blank","noopener");$("episode-controls").hidden=k!=="tv";$("play-title").hidden=k==="tv";if(k==="tv"){const seasons=(d.seasons||[]).filter(s=>s.season_number>=0);$("season-select").innerHTML=seasons.map(s=>'<option value="'+s.season_number+'">'+s.name+"</option>").join("");$("season-select").onchange=episodes;await episodes()}modal("details-modal",true)}catch(e){notice(e.message)}}
 async function episodes(){if(!selected)return;try{const s=$("season-select").value,d=await tmdb("/tv/"+selected.id+"/season/"+s);$("episode-select").innerHTML=(d.episodes||[]).map(ep=>'<option value="'+ep.episode_number+'">E'+ep.episode_number+" · "+String(ep.name||"").replace(/[&<>"]/g,"")+"</option>").join("")}catch(e){notice(e.message)}}
 const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",99:"Dokumentar",18:"Dramë",10751:"Familjar",14:"Fantazi",36:"Histori",27:"Horror",10402:"Muzikë",9648:"Mister",10749:"Romancë",878:"Fantashkencë",10770:"Film televiziv",53:"Thriller",10752:"Luftë",37:"Western",10759:"Aksion dhe aventurë",10762:"Për fëmijë",10763:"Lajme",10764:"Reality",10765:"Fantashkencë dhe fantazi",10766:"Sapunoperë",10767:"Talk-show",10768:"Luftë dhe politikë"};
