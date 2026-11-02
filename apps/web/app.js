@@ -260,7 +260,7 @@ let currentPlayback=null;
 function buildPlayerUrl(item,season,episode){
  const id=encodeURIComponent(String(item.id)),type=kind(item);
  const path=type==="tv"?"tv/"+id+"/"+Number(season)+"/"+Number(episode):"movie/"+id;
- return "https://embedwave.cc/embed/"+path;
+ return "about:blank";
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
