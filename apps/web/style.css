@@ -100,3 +100,13 @@
 .hero-backdrop{transition:opacity 1.45s cubic-bezier(.22,.61,.36,1),transform 9s ease!important}
 .hero-content{transition:opacity .85s cubic-bezier(.22,.61,.36,1),transform .85s cubic-bezier(.22,.61,.36,1)!important}
 .hero-content.changing{opacity:0;transform:translateY(10px);filter:blur(1px)}
+
+
+/* Featured: taller frame, brighter artwork */
+.hero{min-height:560px;height:min(76vw,680px);max-height:680px}
+.hero-backdrop:after{background:linear-gradient(90deg,rgba(5,7,12,.86) 0%,rgba(5,7,12,.62) 38%,rgba(5,7,12,.12) 100%),linear-gradient(0deg,#090b10 0%,rgba(9,11,16,.48) 18%,transparent 68%)}
+@media(max-width:760px){
+ .hero{min-height:0;height:auto;max-height:none}
+ .hero:before{padding-top:122%}
+ .hero-backdrop:after{background:linear-gradient(90deg,rgba(5,7,12,.48),rgba(5,7,12,.08)),linear-gradient(0deg,#090b10 0%,rgba(9,11,16,.68) 19%,rgba(9,11,16,.04) 76%)}
+}
