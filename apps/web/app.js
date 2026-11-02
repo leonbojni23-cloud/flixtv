@@ -384,7 +384,7 @@ if(movieGenreSelect)movieGenreSelect.addEventListener("change",()=>loadGenreColl
 const loadedPages=new Set();
 async function openPage(page){
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
- $("search-results").hidden=true;
+ $("search-page").hidden=true;
  $("catalog").hidden=false;
  searchPageActive=false;
  $("hero").hidden=page!=="home";
