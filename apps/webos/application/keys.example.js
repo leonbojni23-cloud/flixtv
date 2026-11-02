@@ -1,1 +1,1 @@
-window.KEYS={TMDB_KEY:"",YT_KEY:"",JELLYFIN_URL:"http://192.168.1.100:8096",JELLYFIN_API_KEY:""};
+window.KEYS={TMDB_KEY:"",YT_KEY:""};
