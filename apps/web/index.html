@@ -19,7 +19,6 @@
     </nav>
     <div class="top-actions">
       <label class="searchbox"><span>⌕</span><input id="search" type="search" placeholder="Search movies and shows" autocomplete="off"></label>
-      <button class="icon-btn" id="settings-open" aria-label="Settings">⚙</button>
     </div>
   </header>
 
@@ -57,10 +56,6 @@
     <iframe id="yapgrid-frame" title="YapGrid player" src="about:blank" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="origin"></iframe>
   </section>
 
-  <section class="settings-modal" id="settings-modal" aria-hidden="true">
-    <div class="modal-backdrop" data-close="settings"></div>
-    <div class="settings-card"><button class="close-btn" data-close="settings">×</button><span class="eyebrow">PREFERENCES</span><h2>FLIXTV settings</h2><p class="muted">Add your TMDB API key to load the catalogue. It is saved only in this browser.</p><form id="key-form"><label for="tmdb-key">TMDB API key (v3)</label><input id="tmdb-key" type="password" autocomplete="off" placeholder="Paste your TMDB API key"><button class="primary-btn" type="submit">Save key</button></form><p class="tiny muted">Your key is stored in local browser storage and is not committed to GitHub.</p></div>
-  </section>
 
   <script src="./app.js"></script>
 </body>
