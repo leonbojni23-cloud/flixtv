@@ -140,6 +140,8 @@ async function loadMoreGenreMovies(item,request){
   const results=(data.results||[]).filter(movie=>movie.poster_path&&!item.seen.has(movie.id));
   results.forEach(movie=>item.seen.add(movie.id));
   const container=$(item.id);
+  const loadingMessage=container.querySelector(".genre-loading");
+  if(loadingMessage)loadingMessage.remove();
   if(results.length)container.append(...results.map(card));
   item.page=nextPage;
   item.totalPages=Math.min(Number(data.total_pages)||10,10);
