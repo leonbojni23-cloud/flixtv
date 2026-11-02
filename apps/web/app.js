@@ -10,7 +10,75 @@ function year(x){return(x.release_date||x.first_air_date||"").slice(0,4)}
 function poster(x){return x.poster_path?IMG+"w342"+x.poster_path:""}
 function card(x){const b=document.createElement("button");b.className="poster-card";b.type="button";const src=poster(x);b.innerHTML=(src?'<img loading="lazy" alt="">':'<div class="placeholder">FLIXTV</div>')+'<span class="poster-title"></span><span class="poster-year"></span>';if(src)b.querySelector("img").src=src;b.querySelector(".poster-title").textContent=title(x);b.querySelector(".poster-year").textContent=year(x)+(kind(x)==="tv"?" · TV":"");b.onclick=()=>details(x);return b}
 async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","en-US");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Catalogue request failed ("+r.status+").");return r.json()}
-async function row(id,path){try{const d=await tmdb(path);$(id).replaceChildren(...(d.results||[]).filter(x=>x.poster_path).map(card));return d.results||[]}catch(e){notice(e.message);return []}}
+const pagedRows=new Map();
+async function appendRowPage(state){
+ if(!state||state.loading||state.done)return;
+ state.loading=true;
+ const nextPage=state.page+1;
+ try{
+  const separator=state.path.includes("?")?"&":"?";
+  const data=await tmdb(state.path+separator+"page="+nextPage);
+  const container=$(state.id);
+  if(!container)return;
+  const results=(data.results||[]).filter(item=>item.poster_path&&!state.seen.has(item.id));
+  results.forEach(item=>state.seen.add(item.id));
+  const hint=container.querySelector(".row-more-hint");
+  if(hint)hint.remove();
+  if(results.length)container.append(...results.map(card));
+  state.page=nextPage;
+  state.totalPages=Math.min(Number(data.total_pages)||10,10);
+  state.done=state.page>=state.totalPages||results.length===0;
+  if(!state.done){
+   const sentinel=document.createElement("div");
+   sentinel.className="row-more-hint";
+   sentinel.textContent="Loading as you browse";
+   sentinel.style.cssText="flex:0 0 125px;min-height:70px;display:grid;place-items:center;color:#929bab;font-size:11px;text-align:center;padding:10px";
+   container.append(sentinel);
+   if("IntersectionObserver" in window){
+    state.observer=new IntersectionObserver(entries=>{
+     if(entries.some(entry=>entry.isIntersecting))appendRowPage(state);
+    },{root:container,rootMargin:"0px 420px 0px 0px",threshold:0});
+    state.observer.observe(sentinel);
+   }
+  }else if(state.observer){state.observer.disconnect();state.observer=null}
+ }catch(error){
+  notice(error.message);
+  state.done=true;
+ }finally{state.loading=false}
+}
+async function row(id,path){
+ try{
+  const data=await tmdb(path);
+  const container=$(id);
+  if(!container)return data.results||[];
+  const results=(data.results||[]).filter(item=>item.poster_path);
+  container.replaceChildren(...results.map(card));
+  const state={id,path,page:1,totalPages:Math.min(Number(data.total_pages)||10,10),loading:false,done:false,seen:new Set(results.map(item=>item.id)),observer:null};
+  state.done=state.page>=state.totalPages||results.length===0;
+  pagedRows.set(id,state);
+  if(!state.done){
+   const sentinel=document.createElement("div");
+   sentinel.className="row-more-hint";
+   sentinel.textContent="Loading as you browse";
+   sentinel.style.cssText="flex:0 0 125px;min-height:70px;display:grid;place-items:center;color:#929bab;font-size:11px;text-align:center;padding:10px";
+   container.append(sentinel);
+   if("IntersectionObserver" in window){
+    state.observer=new IntersectionObserver(entries=>{
+     if(entries.some(entry=>entry.isIntersecting))appendRowPage(state);
+    },{root:container,rootMargin:"0px 420px 0px 0px",threshold:0});
+    state.observer.observe(sentinel);
+   }
+   let scrollTimer;
+   container.addEventListener("scroll",()=>{
+    clearTimeout(scrollTimer);
+    scrollTimer=setTimeout(()=>{
+     if(container.scrollLeft+container.clientWidth>=container.scrollWidth-260)appendRowPage(state);
+    },90);
+   },{passive:true});
+  }
+  return data.results||[];
+ }catch(error){notice(error.message);return []}
+}
 function showHero(index){
  if(!heroItems.length)return;
  heroIndex=(index+heroItems.length)%heroItems.length;
