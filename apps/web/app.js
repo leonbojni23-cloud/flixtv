@@ -108,6 +108,20 @@ $("search").oninput=e=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>sea
 $("search-trigger").onclick=()=>{const box=$("searchbox");if(innerWidth<=760)box.classList.add("expanded");$("search").focus()};
 $("mobile-search").onclick=()=>{$("searchbox").classList.add("expanded");$("search").focus()};
 $("search").onkeydown=e=>{if(e.key==="Escape"){$("search").value="";search("");$("search").blur();$("searchbox").classList.remove("expanded")}};
+const movieGenreSelect=$("movie-genre-select");
+if(movieGenreSelect){
+ movieGenreSelect.addEventListener("change",async()=>{
+  const genreId=movieGenreSelect.value;
+  const section=$("movie-genre-section");
+  if(!genreId){section.hidden=true;return}
+  const genreName=movieGenreSelect.options[movieGenreSelect.selectedIndex].text;
+  $("movie-genre-title").textContent=genreName+" Movies";
+  section.hidden=false;
+  $("movie-genre-results").innerHTML='<div class="genre-loading">Loading '+genreName.toLowerCase()+' movies…</div>';
+  section.scrollIntoView({behavior:"smooth",block:"start"});
+  await row("movie-genre-results","/discover/movie?with_genres="+encodeURIComponent(genreId)+"&sort_by=popularity.desc");
+ });
+}
 const loadedPages=new Set();
 async function openPage(page){
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
