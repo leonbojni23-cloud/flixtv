@@ -19,26 +19,28 @@ function showHero(index){
  const nextLayer=heroLayer===0?1:0;
  const next=$(nextLayer===0?"hero-bg-a":"hero-bg-b");
  const current=$(heroLayer===0?"hero-bg-a":"hero-bg-b");
- const imageUrl=IMG+(item.backdrop_path?"original":"w1280")+(item.backdrop_path||item.poster_path);
+ const path=item.backdrop_path||item.poster_path;
+ const imageUrl=IMG+(item.backdrop_path?"w1280":"w780")+path;
  const image='url("'+imageUrl+'")';
  const hero=$("hero");
+ // Apply the image immediately so the featured panel never stays black while preloading.
+ next.style.backgroundImage=image;
+ next.style.backgroundSize="cover";
+ next.style.backgroundPosition="center 32%";
+ next.style.backgroundColor="#202938";
+ next.classList.add("active");
+ current.classList.remove("active");
+ heroLayer=nextLayer;
+ hero.style.backgroundImage='linear-gradient(90deg,rgba(5,7,12,.48),rgba(5,7,12,.08)),linear-gradient(0deg,#090b10 0%,transparent 72%)';
+ $("header.topbar").style.setProperty("--header-art",image);
  const preload=new Image();
  preload.onload=()=>{
    if(request!==showHero.requestId)return;
    next.style.backgroundImage=image;
-   next.classList.add("active");
-   current.classList.remove("active");
-   heroLayer=nextLayer;
-   hero.style.backgroundImage='linear-gradient(90deg,rgba(5,7,12,.48),rgba(5,7,12,.08)),linear-gradient(0deg,#090b10 0%,transparent 72%),'+image;
-   $("header.topbar").style.setProperty("--header-art",image);
  };
  preload.onerror=()=>{
    if(request!==showHero.requestId)return;
-   next.style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";
-   next.classList.add("active");
-   current.classList.remove("active");
-   heroLayer=nextLayer;
-   hero.style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";
+   next.style.backgroundImage="linear-gradient(135deg,#303b50,#111722)";
  };
  preload.src=imageUrl;
  $("hero-content").classList.add("changing");
@@ -51,16 +53,13 @@ function showHero(index){
    $("hero-action").textContent="View details";
    $("hero-action").onclick=()=>details(item);
    requestAnimationFrame(()=>$("hero-content").classList.remove("changing"));
- },260);
+ },180);
 }
 showHero.requestId=0;
 function startHeroTimer(){
  clearInterval(heroTimer);
  if(heroItems.length<2)return;
- heroTimer=setInterval(()=>{
-   if(document.hidden)return;
-   showHero(heroIndex+1);
- },6500);
+ heroTimer=setInterval(()=>{if(!document.hidden)showHero(heroIndex+1)},6500);
 }
 async function details(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");selected={...item,...d,media_type:k};$("details-title").textContent=title(d);$("details-type").textContent=k==="tv"?"TV SERIES":"MOVIE";$("details-meta").textContent=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1):"",d.runtime?d.runtime+" min":d.number_of_seasons?d.number_of_seasons+" seasons":""].filter(Boolean).join(" · ");$("details-overview").textContent=d.overview||"No description available.";$("details-backdrop").style.backgroundImage=d.backdrop_path?'linear-gradient(0deg,#111722,transparent 80%),url("'+IMG+"w1280"+d.backdrop_path+'")':"linear-gradient(0deg,#111722,#263143)";const t=(d.videos&&d.videos.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser"));$("watch-trailer").hidden=!t;$("watch-trailer").onclick=()=>window.open("https://www.youtube.com/watch?v="+t.key,"_blank","noopener");$("episode-controls").hidden=k!=="tv";$("play-title").hidden=k==="tv";if(k==="tv"){const seasons=(d.seasons||[]).filter(s=>s.season_number>=0);$("season-select").innerHTML=seasons.map(s=>'<option value="'+s.season_number+'">'+s.name+"</option>").join("");$("season-select").onchange=episodes;await episodes()}modal("details-modal",true)}catch(e){notice(e.message)}}
 async function episodes(){if(!selected)return;try{const s=$("season-select").value,d=await tmdb("/tv/"+selected.id+"/season/"+s);$("episode-select").innerHTML=(d.episodes||[]).map(ep=>'<option value="'+ep.episode_number+'">E'+ep.episode_number+" · "+String(ep.name||"").replace(/[&<>"]/g,"")+"</option>").join("")}catch(e){notice(e.message)}}
