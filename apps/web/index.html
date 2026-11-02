@@ -27,7 +27,20 @@
       <div class="hero-backdrop hero-backdrop-a active" id="hero-bg-a"></div><div class="hero-backdrop hero-backdrop-b" id="hero-bg-b"></div>
       <div class="hero-content" id="hero-content"><span class="eyebrow" id="hero-eyebrow">FLIXTV ORIGINAL PICKS</span><h1 id="hero-title">Discover something great.</h1><p id="hero-overview">Movies and series, all in one place.</p><div class="hero-actions"><button class="primary-btn" id="hero-action">View details</button><div class="hero-controls"><button type="button" id="hero-prev" aria-label="Previous featured title">‹</button><button type="button" id="hero-next" aria-label="Next featured title">›</button></div></div></div>
     </section>
-    <section id="search-results" class="content-section" hidden><div class="section-heading"><h2>Search results</h2><span id="search-count"></span></div><div class="card-grid" id="search-grid"></div></section>
+    <section id="search-page" class="search-page" hidden>
+      <div class="search-page-head"><span class="catalog-overline"><span class="catalog-live-dot"></span>DISCOVER FLIXTV</span><h1>Find your next <span>watch.</span></h1><p>Search movies and series, explore genres, and refine your results.</p></div>
+      <div class="search-main">
+        <div class="search-field-wrap"><svg class="search-large-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg><input id="search-page-input" type="search" placeholder="Search titles, movies, series…" autocomplete="off" spellcheck="false" aria-label="Search titles"><button id="search-clear" type="button" aria-label="Clear search">×</button><div id="search-suggestions" class="search-suggestions" hidden></div></div>
+        <div class="advanced-search">
+          <label>Content type<select id="search-type"><option value="multi">Movies & TV Shows</option><option value="movie">Movies only</option><option value="tv">TV shows only</option></select></label>
+          <label>Genre<select id="search-genre"><option value="">All genres</option><option value="28">Action</option><option value="12">Adventure</option><option value="16">Animation</option><option value="35">Comedy</option><option value="80">Crime</option><option value="99">Documentary</option><option value="18">Drama</option><option value="10751">Family</option><option value="14">Fantasy</option><option value="27">Horror</option><option value="9648">Mystery</option><option value="10749">Romance</option><option value="878">Science Fiction</option><option value="53">Thriller</option></select></label>
+          <label>Year<input id="search-year" type="number" inputmode="numeric" min="1900" max="2099" placeholder="Any year"></label>
+          <label>Sort by<select id="search-sort"><option value="popularity.desc">Most popular</option><option value="vote_average.desc">Top rated</option><option value="primary_release_date.desc">Newest</option><option value="primary_release_date.asc">Oldest</option></select></label>
+          <button id="search-reset" type="button">Reset filters</button>
+        </div>
+        <div class="search-results-head"><h2 id="search-heading">Popular right now</h2><span id="search-count"></span></div><div class="card-grid" id="search-grid"></div><div id="search-empty" class="search-empty" hidden>Start typing to search movies and TV shows.</div>
+      </div>
+    </section>
     <div id="catalog">
       <div id="home-page">
         <section class="content-section"><div class="section-heading"><h2>Trending this week</h2><span class="section-kicker">HOT RIGHT NOW</span></div><div class="poster-row" id="trending"></div></section>
