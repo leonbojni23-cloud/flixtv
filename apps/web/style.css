@@ -235,3 +235,93 @@
 .hero-backdrop{z-index:0!important;filter:none!important}
 .hero-backdrop:after{pointer-events:none}
 .hero-content{z-index:1}
+
+
+/* FLIXTV Featured: extended cinematic canvas flowing behind the navbar */
+.hero{
+  height:min(82vw,760px)!important;
+  min-height:660px!important;
+  max-height:760px!important;
+  margin-top:-64px!important;
+  padding:132px clamp(24px,7vw,108px) 66px!important;
+  background-position:center 32%!important;
+}
+.hero-backdrop{
+  inset:0!important;
+  background-position:center 32%!important;
+}
+.hero-content{
+  max-width:680px;
+  padding-bottom:12px;
+}
+.hero .eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,.17);
+  border-radius:999px;
+  background:rgba(8,12,19,.34);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.hero h1{
+  font-size:clamp(44px,6vw,78px)!important;
+  line-height:.99!important;
+  letter-spacing:-2.8px!important;
+  margin:18px 0 16px!important;
+  max-width:680px!important;
+  text-shadow:0 5px 34px rgba(0,0,0,.55);
+}
+.hero p{
+  max-width:560px!important;
+  font-size:clamp(15px,1.45vw,18px)!important;
+  line-height:1.65!important;
+  -webkit-line-clamp:3!important;
+  color:rgba(245,247,251,.88)!important;
+}
+.hero-actions{margin-top:28px!important;gap:22px!important}
+.hero .primary-btn{
+  min-height:50px;
+  padding:0 25px!important;
+  border-radius:12px!important;
+  font-size:14px!important;
+  box-shadow:0 10px 32px rgba(229,9,54,.32)!important;
+}
+.hero-controls>button{
+  width:42px!important;height:42px!important;
+  border:1px solid rgba(255,255,255,.2)!important;
+  border-radius:50%!important;
+  background:rgba(8,12,19,.38)!important;
+  backdrop-filter:blur(12px)!important;
+  -webkit-backdrop-filter:blur(12px)!important;
+  font-size:25px!important;
+}
+.hero-controls>button:hover{background:rgba(255,255,255,.16)!important}
+@media(max-width:760px){
+  .hero{
+    margin-top:-56px!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    padding:0 21px 38px!important;
+  }
+  .hero:before{padding-top:calc(137% + 56px)!important}
+  .hero-backdrop{background-position:58% 30%!important}
+  .hero-content{left:21px!important;right:21px!important;bottom:38px!important;padding:0!important}
+  .hero .eyebrow{font-size:9px!important;padding:7px 10px;letter-spacing:1.5px}
+  .hero h1{
+    font-size:clamp(36px,9.6vw,52px)!important;
+    line-height:1.02!important;
+    letter-spacing:-1.7px!important;
+    margin:13px 0 12px!important;
+  }
+  .hero p{font-size:14px!important;line-height:1.5!important;-webkit-line-clamp:3!important}
+  .hero-actions{margin-top:19px!important;gap:15px!important}
+  .hero .primary-btn{min-height:44px;padding:0 18px!important;font-size:13px!important}
+  .hero-controls>button{width:36px!important;height:36px!important;font-size:22px!important}
+}
+@media(max-width:380px){
+  .hero:before{padding-top:calc(145% + 56px)!important}
+  .hero-content{bottom:32px!important}
+}
