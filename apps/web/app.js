@@ -284,7 +284,7 @@ function buildPlayerUrl(item,season,episode){
   params.set("s",String(Number(season)));
   params.set("e",String(Number(episode)));
  }
- return "https://multiembed.mov/?"+params.toString();
+ return "/api/superembed.js?"+params.toString();
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
