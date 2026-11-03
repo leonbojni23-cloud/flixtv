@@ -50,7 +50,7 @@ html, body {
   overflow: hidden;
 }
 
-#yapgrid-frame {
+#superembed-frame {
   display: block;
   position: absolute;
   inset: 0;
@@ -202,14 +202,14 @@ body.player-open {
 <!-- Series and episodes -->
 <main id="series-view" hidden></main>
 
-<!-- jellyfin player -->
+<!-- SuperEmbed player -->
 <main id="player-view" hidden>
 
   <div id="player-loading">
     Loading player...
   </div>
 
-  <iframe id="yapgrid-frame" title="YapGrid video player" src="about:blank"
+  <iframe id="superembed-frame" title="SuperEmbed video player" src="about:blank"
     allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
     allowfullscreen referrerpolicy="origin"></iframe>
 
@@ -375,8 +375,8 @@ body.player-open {
 <script src="features/profiles.js"></script>
 <script src="app.js"></script>
 
-<!-- YapGrid player: load after app.js and before details.js -->
-<script src="features/yapgrid-embed.js"></script>
+<!-- SuperEmbed player: load after app.js and before details.js -->
+<script src="features/superembed-player.js"></script>
 
 <script src="features/details.js"></script>
 <script src="features/search.js"></script>
