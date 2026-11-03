@@ -33,7 +33,7 @@
     var id = request.tmdbId || tmdb.id || item.tmdbId || item.id;
     var type = request.type || tmdb.type || item.media_type || item.type || "movie";
 
-    if (!/^\\d+$/.test(String(id == null ? "" : id)) || Number(id) < 1) {
+    if (!/^[0-9]+$/.test(String(id == null ? "" : id)) || Number(id) < 1) {
       throw new Error("Missing or invalid TMDB ID.");
     }
 
