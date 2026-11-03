@@ -4,7 +4,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
 (()=>{
- const allowedFrameHost="viduki.net";
+ const allowedFrameHost="multiembed.mov";
  const isAllowedPlayerUrl=url=>{
   try{const host=new URL(url,location.href).hostname.toLowerCase();return host===allowedFrameHost||host.endsWith("."+allowedFrameHost)}
   catch(_){return false}
@@ -276,24 +276,22 @@ async function episodes(){if(!selected)return;try{const s=$("season-select").val
 const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",99:"Dokumentar",18:"Dramë",10751:"Familjar",14:"Fantazi",36:"Histori",27:"Horror",10402:"Muzikë",9648:"Mister",10749:"Romancë",878:"Fantashkencë",10770:"Film televiziv",53:"Thriller",10752:"Luftë",37:"Western",10759:"Aksion dhe aventurë",10762:"Për fëmijë",10763:"Lajme",10764:"Reality",10765:"Fantashkencë dhe fantazi",10766:"Sapunoperë",10767:"Talk-show",10768:"Luftë dhe politikë"};
 function ageLabel(cert){const c=String(cert||"").trim().toUpperCase();const map={"G":"Për të gjitha moshat","TV-G":"Për të gjitha moshat","TV-Y":"Për fëmijë","TV-Y7":"Për fëmijë mbi 7 vjeç","PG":"Nën mbikëqyrjen e prindërve","TV-PG":"Nën mbikëqyrjen e prindërve","PG-13":"13+","TV-14":"14+","R":"17+","TV-MA":"18+","NC-17":"18+","18":"18+","16":"16+","15":"15+","12":"12+","U":"Për të gjitha moshat"};return map[c]||c||"Pa klasifikim moshe";}
 async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+(k==="tv"?"/content_ratings":"/release_dates"));if(k==="tv"){const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");return (rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0]||{}).rating||""}const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");const country=rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0];return country&&country.release_dates&&((country.release_dates.find(x=>x.certification)||{}).certification)||""}catch(_){return""}}
-let activePlayerProvider="viduki";
+let activePlayerProvider="superembed";
 let currentPlayback=null;
 function buildPlayerUrl(item,season,episode){
- const id=encodeURIComponent(String(item.id)),type=kind(item);
- if(type==="tv")return "https://viduki.net/1/tv/"+id+"/"+encodeURIComponent(String(Number(season)))+"/"+encodeURIComponent(String(Number(episode)))+"?color=7c5cff";
- return "https://viduki.net/1/movie/"+id+"?color=7c5cff";
+ const params=new URLSearchParams({video_id:String(item.id),tmdb:"1"});
+ if(kind(item)==="tv"){
+  params.set("s",String(Number(season)));
+  params.set("e",String(Number(episode)));
+ }
+ return "https://multiembed.mov/?"+params.toString();
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
  $("cinesrc-frame").src=buildPlayerUrl(item,season,episode);
  $("content-intro").classList.remove("show");
 }
-window.addEventListener("message",event=>{
- if(!["https://viduki.net","https://www.viduki.net"].includes(event.origin)||event.source!==$("cinesrc-frame").contentWindow)return;
- const message=event.data;
- if(!message||typeof message.type!=="string"||!(message.type.startsWith("viduki:")||message.type==="MEDIA_DATA"))return;
- window.dispatchEvent(new CustomEvent("flixtv:player-event",{detail:message}));
-});
+// SuperEmbed runs inside the iframe; no Viduki-specific postMessage bridge is required.
 async function play(item,season,episode){if(!item||!item.id)return;clearTimeout(introTimer);const path=kind(item)==="tv"?"tv/"+item.id+"/"+Number(season)+"/"+Number(episode):"movie/"+item.id;$("intro-title").textContent=title(item);$("intro-rating").textContent="";$("intro-details").textContent="";$("content-intro").classList.add("show");$("content-intro").setAttribute("aria-hidden","false");$("player-modal").classList.add("attention-active");$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");$("details-modal").classList.remove("open");document.body.classList.add("no-scroll");currentPlayback={item,season,episode};$("cinesrc-frame").src=buildPlayerUrl(item,season,episode);$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer);const cert=await contentRating(item);if(!$("player-modal").classList.contains("open"))return;$("intro-rating").textContent=ageLabel(cert);$("intro-details").textContent=(item.genre_ids||[]).map(id=>genreSq[id]).filter(Boolean).slice(0,3).join(" · ")||"Informacioni i klasifikimit";introTimer=setTimeout(()=>{$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")},2800);$("intro-skip").onclick=()=>{clearTimeout(introTimer);$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active")}}
 function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";currentPlayback=null;$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);$("player-close").onclick=closePlayer;
