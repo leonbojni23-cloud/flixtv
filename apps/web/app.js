@@ -440,7 +440,7 @@ let currentPlayback=null;
 function buildPlayerUrl(item,season,episode,resumeTime=0){
  const id=encodeURIComponent(String(item.id));
  const params=new URLSearchParams({
-  autoplay:"true",muted:"false",controls:"true",autonext:"false",color:"#34cfeb",back:"close"
+  autoplay:"true",muted:"false",controls:"true",autonext:"true",autoskip:"false",color:"#34cfeb",back:"close"
  });
  if(Number(resumeTime)>5){params.set("t",String(Math.floor(Number(resumeTime))));params.set("continueprompt","false")}
  if(kind(item)==="tv"){
