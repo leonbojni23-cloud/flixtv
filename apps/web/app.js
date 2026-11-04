@@ -289,6 +289,7 @@ async function openTitlePage(item,push=false,playMode=false){
  if(!item||!item.id)return;
  try{
   const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");
+  d.overviewSq=await getAlbanianOverview(d,k);
   titlePageItem={...item,...d,media_type:k};
   const seasons=(d.seasons||[]).filter(x=>x.season_number>=0);
   if(k==="tv"&&!seasons.some(x=>x.season_number===titlePageSeason))titlePageSeason=seasons[0]?.season_number??1;
@@ -453,7 +454,7 @@ async function showSuggestions(query){
    const name=document.createElement("strong");name.textContent=title(item);
    const meta=document.createElement("small");meta.textContent=(kind(item)==="tv"?"Serial":"Film")+" · "+(year(item)||"—");
    copy.append(name,meta);button.append(img,copy);
-   button.addEventListener("click",()=>{ $("search-page-input").value=title(item);$("search").value=title(item);box.hidden=true;runAdvancedSearch();details(item)});
+   button.addEventListener("click",()=>{ $("search-page-input").value=title(item);$("search").value=title(item);box.hidden=true;openTitlePage(item,true)});
    box.append(button);
   });
   box.hidden=!items.length;
