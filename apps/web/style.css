@@ -932,7 +932,7 @@ html.deep-route-loading::after{
 @media(hover:none){.continue-card:hover{transform:none}}
 
 
-/* Resume button: distinct cyan accent, separate from the red FLIXTV brand. */
-#title-play{background:#087f9b!important;color:#fff!important;border:1px solid rgba(91,224,245,.48);box-shadow:0 8px 26px rgba(8,127,155,.28)!important}
-#title-play:hover{background:#0b9fbd!important}
-#title-play:focus-visible{outline:3px solid rgba(91,224,245,.72);outline-offset:3px}
+/* First play keeps the FLIXTV red primary style; resume uses the existing cyan accent. */
+#title-play.is-resume{background:#087f9b!important;color:#fff!important;border:1px solid rgba(91,224,245,.48);box-shadow:0 8px 26px rgba(8,127,155,.28)!important}
+#title-play.is-resume:hover{background:#0b9fbd!important}
+#title-play.is-resume:focus-visible{outline:3px solid rgba(91,224,245,.72);outline-offset:3px}
