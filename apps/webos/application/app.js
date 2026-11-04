@@ -2,7 +2,7 @@
  var meta=e.meta||"",rating="",year="",kind="";
  var match=meta.match(/★\s*([0-9]+(?:\.[0-9]+)?)/);
  if(match)rating=match[1];
- var ym=meta.match(/(?:^|\s)(19|20)\\d{2}(?:\s|$)/);
+ var ym=meta.match(/(?:^|\s)(19|20)\d{2}(?:\s|$)/);
  if(ym)year=ym[0].trim();
  kind=/Series|TV/i.test(meta)?"Serial":"Film";
  var image=e.img||e.bg||"";
