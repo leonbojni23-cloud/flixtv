@@ -3,12 +3,12 @@
 
   var tv = window.TV;
   if (!tv) {
-    console.error("[SuperEmbed] TV API is not available. Load app.js first.");
+    console.error("[CineSRC] TV API is not available. Load app.js first.");
     return;
   }
 
   var view = document.getElementById("player-view");
-  var frame = document.getElementById("superembed-frame");
+  var frame = document.getElementById("cinesrc-frame");
   var loading = document.getElementById("player-loading");
   var back = document.getElementById("player-back");
   var currentUrl = "";
@@ -16,7 +16,7 @@
   var controlsTimer = null;
 
   if (!view || !frame) {
-    console.error("[SuperEmbed] Player elements are missing from index.html.");
+    console.error("[CineSRC] Player elements are missing from index.html.");
     return;
   }
 
@@ -25,6 +25,7 @@
     return Number.isInteger(number) && number >= minimum;
   }
 
+  // Keep the same CineSRC endpoint and playback parameters as the web app.
   function buildUrl(item, request) {
     item = item || {};
     request = request || {};
@@ -38,8 +39,19 @@
     }
 
     var params = new URLSearchParams();
-    params.set("video_id", String(id));
-    params.set("tmdb", "1");
+    params.set("autoplay", "true");
+    params.set("muted", "false");
+    params.set("controls", "true");
+    params.set("autonext", "true");
+    params.set("autoskip", "false");
+    params.set("color", "#34cfeb");
+    params.set("back", "close");
+
+    var resumeTime = Number(request.resumeTime || item.resumeTime || 0);
+    if (resumeTime > 5) {
+      params.set("t", String(Math.floor(resumeTime)));
+      params.set("continueprompt", "false");
+    }
 
     if (type === "tv" || type === "series") {
       var season = request.season !== undefined ? request.season : item.season;
@@ -48,9 +60,10 @@
       if (!validInteger(episode, 1)) throw new Error("Invalid episode number.");
       params.set("s", String(Number(season)));
       params.set("e", String(Number(episode)));
+      return "https://cinesrc.st/embed/tv/" + encodeURIComponent(String(id)) + "?" + params.toString();
     }
 
-    return "https://multiembed.mov/?" + params.toString();
+    return "https://cinesrc.st/embed/movie/" + encodeURIComponent(String(id)) + "?" + params.toString();
   }
 
   function setLoading(show, message) {
@@ -74,21 +87,10 @@
     controlsTimer = window.setTimeout(hideControls, 4500);
   }
 
-  function requestFullscreen() {
-    var fn = view.requestFullscreen || view.webkitRequestFullscreen || view.webkitRequestFullScreen;
-    if (!fn) return;
-    try {
-      var result = fn.call(view);
-      if (result && typeof result.catch === "function") result.catch(function() {});
-    } catch (error) {
-      console.warn("[SuperEmbed] Native fullscreen unavailable; using viewport fullscreen.");
-    }
-  }
-
   function openPlayer(payload) {
     var url = payload && payload.url;
-    if (typeof url !== "string" || url.indexOf("https://multiembed.mov/?") !== 0) {
-      tv.toast("Invalid SuperEmbed player URL.");
+    if (typeof url !== "string" || url.indexOf("https://cinesrc.st/embed/") !== 0) {
+      tv.toast("Invalid CineSRC player URL.");
       return false;
     }
 
@@ -97,9 +99,8 @@
     document.body.classList.add("player-open");
     view.classList.remove("player-controls-hidden");
     view.classList.add("player-controls-visible");
-    setLoading(true, "Loading SuperEmbed player...");
+    setLoading(true, "Loading CineSRC player...");
     showControls();
-    requestFullscreen();
 
     if (frame.src !== url) frame.src = url;
     if (loadTimer !== null) window.clearTimeout(loadTimer);
@@ -108,7 +109,7 @@
       setLoading(false);
     }, 20000);
 
-    console.info("[SuperEmbed] Opening:", url);
+    console.info("[CineSRC] Opening:", url);
     return true;
   }
 
@@ -119,16 +120,6 @@
     controlsTimer = null;
 
     view.classList.remove("player-controls-hidden", "player-controls-visible");
-    var exit = document.exitFullscreen || document.webkitExitFullscreen;
-    if ((document.fullscreenElement || document.webkitFullscreenElement) && exit) {
-      try {
-        var result = exit.call(document);
-        if (result && typeof result.catch === "function") result.catch(function() {});
-      } catch (error) {
-        console.warn("[SuperEmbed] Could not exit native fullscreen.");
-      }
-    }
-
     setLoading(false);
     frame.src = "about:blank";
     currentUrl = "";
@@ -141,7 +132,7 @@
       if (loadTimer !== null) window.clearTimeout(loadTimer);
       loadTimer = null;
       setLoading(false);
-      console.info("[SuperEmbed] Player frame loaded.");
+      console.info("[CineSRC] Player frame loaded.");
     }
   });
 
@@ -157,7 +148,7 @@
     back.addEventListener("click", function() { tv.closeView(); });
   }
 
-  tv.addView("superembed-player", {
+  tv.addView("cinesrc-player", {
     nav: function() { return back ? [[back]] : []; },
     show: function(payload) { openPlayer(payload || {}); },
     hide: closePlayer,
@@ -170,25 +161,25 @@
       try {
         url = buildUrl(item, request);
       } catch (error) {
-        console.error("[SuperEmbed] URL error:", error);
-        tv.toast(error.message || "Could not open SuperEmbed.");
+        console.error("[CineSRC] URL error:", error);
+        tv.toast(error.message || "Could not open CineSRC.");
         return false;
       }
 
       var payload = { item: item || null, request: request || {}, url: url };
       if (item && typeof tv.remember === "function") tv.remember(item);
 
-      if (tv.view() === "superembed-player") return openPlayer(payload);
-      tv.openView("superembed-player", payload);
+      if (tv.view() === "cinesrc-player") return openPlayer(payload);
+      tv.openView("cinesrc-player", payload);
       return true;
     },
     close: function() {
-      if (tv.view() === "superembed-player") tv.closeView();
+      if (tv.view() === "cinesrc-player") tv.closeView();
       else closePlayer();
     },
     buildUrl: buildUrl,
     getCurrentUrl: function() { return currentUrl; }
   };
 
-  console.log("[SuperEmbed] Player initialized.");
+  console.log("[CineSRC] Player initialized.");
 }();
