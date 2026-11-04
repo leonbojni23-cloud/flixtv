@@ -1391,3 +1391,10 @@ html.deep-route-loading::after{
   .title-page-actions{margin-top:14px!important}
   .title-page-actions .primary-btn{padding:10px 16px!important;font-size:13px!important}
 }
+
+
+/* Desktop featured copy: lift the title, synopsis and actions higher over the artwork. */
+@media(min-width:761px){
+  .hero{align-items:center!important}
+  .hero-content{margin-bottom:74px!important}
+}
