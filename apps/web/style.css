@@ -1098,3 +1098,17 @@ html.deep-route-loading::after{
 .title-page-cover youtube-video{--media-controls-display:none;--media-control-bar-display:none}
 .title-page-cover .yt-custom-controls{z-index:40!important}
 .title-video-fallback{display:grid;place-items:center;width:100%;height:100%;color:#fff;background:#111}
+
+
+/* Plyr YouTube embed: keep the native Plyr chrome disabled and FLIXTV controls. */
+.title-page-cover #yt-title-trailer,
+.title-page-cover #yt-title-trailer .plyr,
+.title-page-cover #yt-title-trailer .plyr__video-wrapper{
+ width:100%!important;height:100%!important;aspect-ratio:16/9!important;
+}
+.title-page-cover #yt-title-trailer .plyr{position:absolute!important;inset:0!important;background:#05070b!important}
+.title-page-cover #yt-title-trailer .plyr__video-embed,
+.title-page-cover #yt-title-trailer iframe{width:100%!important;height:100%!important}
+.title-page-cover #yt-title-trailer .plyr__controls,
+.title-page-cover #yt-title-trailer .plyr__control--overlaid{display:none!important}
+.title-page-cover .yt-custom-controls{z-index:40!important}
