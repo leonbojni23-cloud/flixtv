@@ -1293,13 +1293,17 @@ html.deep-route-loading::after{
 }
 
 
-/* iOS Home Screen app: push the entire page below the system status bar. */
+/* iOS Home Screen app: place the header in normal flow below the status bar.
+   Sticky top:0 overrides the body's top padding, so disable sticky positioning here. */
 @media (max-width:760px){
  html.ios-home-app body{
-  padding-top:max(env(safe-area-inset-top), 48px);
+  padding-top:0!important;
  }
  html.ios-home-app .topbar{
-  height:62px;
-  padding-top:0;
+  position:relative!important;
+  top:auto!important;
+  margin-top:max(env(safe-area-inset-top), 54px)!important;
+  height:62px!important;
+  padding-top:0!important;
  }
 }
