@@ -1086,3 +1086,15 @@ html.deep-route-loading::after{
  .title-page-cover .yt-play-toggle svg,
  .title-page-cover .yt-mute-toggle svg{width:15px!important;height:15px!important}
 }
+
+
+/* Video.js YouTube media component inside the existing FLIXTV cover. */
+.title-page-cover #yt-title-trailer,
+.title-page-cover .flxtv-videojs-player,
+.title-page-cover youtube-video{
+ display:block!important;width:100%!important;height:100%!important;aspect-ratio:16/9!important;
+}
+.title-page-cover .flxtv-videojs-player{position:absolute!important;inset:0!important;overflow:hidden!important;background:#05070b!important}
+.title-page-cover youtube-video{--media-controls-display:none;--media-control-bar-display:none}
+.title-page-cover .yt-custom-controls{z-index:40!important}
+.title-video-fallback{display:grid;place-items:center;width:100%;height:100%;color:#fff;background:#111}
