@@ -89,7 +89,7 @@ function card(x){
  if(src)b.querySelector("img").src=src;
  b.querySelector(".poster-title").textContent=title(x);
  b.querySelector(".poster-year").textContent=year(x)+(kind(x)==="tv"?" · TV":"");
- b.onclick=()=>details(x);return b
+ b.onclick=()=>openTitlePage(x,true);return b
 }
 async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","sq-AL");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Kërkesa për katalogun dështoi ("+r.status+").");return r.json()}
 async function translateOverviewToAlbanian(text){
@@ -222,7 +222,7 @@ function showHero(index){
    $("hero-overview").textContent=item.overview||"Po përgatitet përshkrimi në shqip…";getAlbanianOverview(item,kind(item)).then(text=>{if(request===showHero.requestId&&text)$("hero-overview").textContent=text})
    $("hero-eyebrow").textContent="TË PËRZGJEDHUR";
    $("hero-action").textContent="Shiko detajet";
-   $("hero-action").onclick=()=>details(item);
+   $("hero-action").onclick=()=>openTitlePage(item,true);
    requestAnimationFrame(()=>$("hero-content").classList.remove("changing"));
  },180);
 }
@@ -271,6 +271,71 @@ async function home(){
    notice(e.message);
  }
 }
+
+function titleSlug(value){return String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+let titlePageItem=null,titlePageSeason=1,titlePageEpisode=1;
+function pageUrl(item,play=false){const slug=titleSlug(title(item))||String(item.id);return "/"+slug+(play?"/play":"")}
+function titlePageMarkup(item,d,playMode=false){
+ const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:"";
+ const meta=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1):"",d.runtime?d.runtime+" min":tv?(d.number_of_seasons||0)+" sezone":""].filter(Boolean).join(" · ");
+ const seasons=tv?(d.seasons||[]).filter(x=>x.season_number>=0):[];
+ return '<div class="title-page-backdrop" style="'+(backdrop?'background-image:linear-gradient(90deg,#090b10 0%,rgba(9,11,16,.72) 48%,rgba(9,11,16,.25)),linear-gradient(0deg,#090b10,transparent 70%),url("'+backdrop+'")':'')+'"></div>'+
+ '<div class="title-page-content"><a class="title-page-back" href="/" data-title-home>‹ <span>Kryefaqja</span></a><div class="title-page-copy"><span class="eyebrow">'+(tv?"SERIAL":"FILM")+'</span><h1>'+escapeHtml(title(d))+'</h1><div class="title-page-meta">'+escapeHtml(meta)+'</div><p>'+escapeHtml(d.overviewSq||d.overview||"Përshkrimi nuk është i disponueshëm.")+'</p>'+
+ (tv?'<div class="title-page-episodes"><label>Sezoni<select id="title-season">'+seasons.map(x=>'<option value="'+x.season_number+'" '+(Number(x.season_number)===titlePageSeason?'selected':'')+'>'+escapeHtml(x.name||("Sezoni "+x.season_number))+'</option>').join("")+'</select></label><label>Episodi<select id="title-episode"></select></label></div>':"")+
+ '<div class="title-page-actions"><button class="primary-btn" id="title-play">▶ '+(tv?"Luaj episodin":"Luaj filmin")+'</button><button class="secondary-btn" id="title-trailer" '+(!((d.videos?.results||[]).some(x=>x.site==="YouTube"&&(x.type==="Trailer"||x.type==="Teaser")))?'hidden':"")+' >Traileri</button></div></div></div>';
+}
+function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+async function openTitlePage(item,push=false,playMode=false){
+ if(!item||!item.id)return;
+ try{
+  const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");
+  titlePageItem={...item,...d,media_type:k};
+  const seasons=(d.seasons||[]).filter(x=>x.season_number>=0);
+  if(k==="tv"&&!seasons.some(x=>x.season_number===titlePageSeason))titlePageSeason=seasons[0]?.season_number??1;
+  if(push)history.pushState({titlePage:true,play:playMode},"",pageUrl(titlePageItem,playMode));
+  $("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;$("search-page").hidden=true;
+  $("title-page").innerHTML=titlePageMarkup(titlePageItem,d,playMode);
+  document.body.classList.remove("no-scroll");
+  if(k==="tv")await loadTitleEpisodes();
+  const trailer=(d.videos?.results||[]).find(x=>x.site==="YouTube"&&(x.type==="Trailer"||x.type==="Teaser"));
+  $("title-trailer").onclick=()=>{if(trailer)window.open("https://www.youtube.com/watch?v="+trailer.key,"_blank","noopener")};
+  $("title-play").onclick=()=>{if(k==="tv"){const s=$("title-season").value,e=$("title-episode").value;titlePageSeason=Number(s);titlePageEpisode=Number(e);history.pushState({titlePage:true,play:true},"",pageUrl(titlePageItem,true)+"?season="+s+"&episode="+e);startTitlePlayback(titlePageSeason,titlePageEpisode)}else{history.pushState({titlePage:true,play:true},"",pageUrl(titlePageItem,true));startTitlePlayback()}};
+  if(k==="tv")$("title-season").onchange=async()=>{titlePageSeason=Number($("title-season").value);await loadTitleEpisodes()};
+  if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1)}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined)}
+  window.scrollTo(0,0);
+ }catch(e){notice(e.message)}
+}
+async function loadTitleEpisodes(){
+ if(!titlePageItem||kind(titlePageItem)!=="tv")return;
+ try{const d=await tmdb("/tv/"+titlePageItem.id+"/season/"+titlePageSeason);const select=$("title-episode");if(!select)return;
+ const episodes=d.episodes||[];select.innerHTML=episodes.map(ep=>'<option value="'+ep.episode_number+'">E'+ep.episode_number+" · "+escapeHtml(ep.name||"Episodi "+ep.episode_number)+'</option>').join("");
+ if(episodes.some(ep=>ep.episode_number===titlePageEpisode))select.value=String(titlePageEpisode);else titlePageEpisode=Number(select.value||1);
+ select.onchange=()=>titlePageEpisode=Number(select.value);
+ }catch(e){notice("Episodet nuk u ngarkuan: "+e.message)}
+}
+function startTitlePlayback(season,episode){
+ if(!titlePageItem)return;
+ $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");
+ document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
+ $("cinesrc-frame").src=buildPlayerUrl(titlePageItem,season,episode);
+}
+async function resolveTitleRoute(){
+ const parts=decodeURIComponent(location.pathname).split("/").filter(Boolean);
+ if(!parts.length){$("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;home();return}
+ const playMode=parts[1]==="play",slug=parts[0];
+ const query=slug.replace(/-/g," ");
+ try{
+  const data=await tmdb("/search/multi?query="+encodeURIComponent(query)+"&include_adult=false");
+  const candidates=(data.results||[]).filter(x=>x.media_type==="movie"||x.media_type==="tv");
+  const match=candidates.find(x=>titleSlug(title(x))===slug)||candidates[0];
+  if(!match){notice("Titulli nuk u gjet.");history.replaceState({},"","/");home();return}
+  titlePageSeason=1;titlePageEpisode=1;
+  await openTitlePage(match,false,playMode);
+ }catch(e){notice(e.message);$("title-page").hidden=true;$("catalog").hidden=false;home()}
+}
+window.addEventListener("popstate",()=>{if(location.pathname==="/"){if($("player-modal").classList.contains("open"))closePlayer();$("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;home()}else{if($("player-modal").classList.contains("open"))closePlayer();resolveTitleRoute()}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("player-modal").classList.contains("open")){e.preventDefault();history.back()}});
+
 async function details(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");selected={...item,...d,media_type:k};$("details-title").textContent=title(d);$("details-type").textContent=k==="tv"?"SERIAL":"FILM";$("details-meta").textContent=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1):"",d.runtime?d.runtime+" min":d.number_of_seasons?d.number_of_seasons+" sezone":""].filter(Boolean).join(" · ");const overview=await getAlbanianOverview(d,k);$("details-overview").textContent=overview||"Përshkrimi nuk është i disponueshëm.";$("details-backdrop").style.backgroundImage=d.backdrop_path?'linear-gradient(0deg,#111722,transparent 80%),url("'+IMG+"w1280"+d.backdrop_path+'")':"linear-gradient(0deg,#111722,#263143)";const t=(d.videos&&d.videos.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser"));$("watch-trailer").hidden=!t;$("watch-trailer").onclick=()=>window.open("https://www.youtube.com/watch?v="+t.key,"_blank","noopener");$("episode-controls").hidden=k!=="tv";$("play-title").hidden=k==="tv";$("episode-controls").style.display=k==="tv"?"flex":"none";if(k!=="tv"){$("season-select").replaceChildren();$("episode-select").replaceChildren()}if(k==="tv"){const seasons=(d.seasons||[]).filter(s=>s.season_number>=0);$("season-select").innerHTML=seasons.map(s=>'<option value="'+s.season_number+'">'+s.name+"</option>").join("");$("season-select").onchange=episodes;await episodes()}modal("details-modal",true)}catch(e){notice(e.message)}}
 async function episodes(){if(!selected)return;try{const s=$("season-select").value,d=await tmdb("/tv/"+selected.id+"/season/"+s);$("episode-select").innerHTML=(d.episodes||[]).map(ep=>'<option value="'+ep.episode_number+'">E'+ep.episode_number+" · "+String(ep.name||"").replace(/[&<>"]/g,"")+"</option>").join("")}catch(e){notice(e.message)}}
 const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",99:"Dokumentar",18:"Dramë",10751:"Familjar",14:"Fantazi",36:"Histori",27:"Horror",10402:"Muzikë",9648:"Mister",10749:"Romancë",878:"Fantashkencë",10770:"Film televiziv",53:"Thriller",10752:"Luftë",37:"Western",10759:"Aksion dhe aventurë",10762:"Për fëmijë",10763:"Lajme",10764:"Reality",10765:"Fantashkencë dhe fantazi",10766:"Sapunoperë",10767:"Talk-show",10768:"Luftë dhe politikë"};
@@ -548,5 +613,5 @@ document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dat
 $("hero-action").onclick=()=>$("catalog").scrollIntoView({behavior:"smooth"});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
 window.addEventListener("pageshow",()=>{if(heroItems.length>1)startHeroTimer()});
-home();
+if(location.pathname!=="/")resolveTitleRoute();else home();
 })();
