@@ -1294,3 +1294,14 @@ html.deep-route-loading::after{
 
 
 
+
+
+/* Refined title detail typography: one synopsis only, calmer heading scale. */
+.title-page-copy h1{font-size:clamp(34px,4.2vw,56px)!important;line-height:1.06!important;letter-spacing:-1.8px!important;margin:12px 0 17px!important}
+.title-page-section-head h2,.title-page-cast-head h2{font-size:clamp(20px,2.4vw,29px)!important;line-height:1.15!important;letter-spacing:-.6px!important}
+.title-page-section-label,.title-page-index,.title-page-cast-head>span{font-size:10px!important}
+@media(max-width:680px){
+ .title-page-copy h1{font-size:clamp(30px,8vw,39px)!important;line-height:1.08!important;letter-spacing:-1.1px!important;margin:10px 0 13px!important}
+ .title-page-section-head h2,.title-page-cast-head h2{font-size:21px!important}
+ .title-page-more{padding-top:30px!important}
+}
