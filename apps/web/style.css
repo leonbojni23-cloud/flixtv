@@ -1305,3 +1305,27 @@ html.deep-route-loading::after{
  .title-page-section-head h2,.title-page-cast-head h2{font-size:21px!important}
  .title-page-more{padding-top:30px!important}
 }
+
+
+/* Further compact the movie and series title block. */
+.title-page-copy{max-width:760px!important}
+.title-page-copy h1{
+ font-size:clamp(30px,3.5vw,46px)!important;
+ line-height:1.08!important;
+ letter-spacing:-1.4px!important;
+ max-width:680px!important;
+ margin:9px 0 13px!important;
+}
+.title-page-kicker{font-size:9px!important;letter-spacing:1.6px!important}
+.title-page-meta{font-size:12px!important;gap:9px!important}
+.title-page-genres{gap:6px!important;margin-top:11px!important}
+.title-page-genres span{font-size:10px!important;padding:4px 9px!important}
+.title-page-overview{font-size:14px!important;line-height:1.6!important;margin-top:14px!important;max-width:620px!important}
+@media(max-width:680px){
+ .title-page-copy{max-width:100%!important}
+ .title-page-copy h1{font-size:clamp(27px,7vw,34px)!important;line-height:1.1!important;letter-spacing:-.9px!important;max-width:100%!important;margin:8px 0 11px!important}
+ .title-page-kicker{font-size:8px!important;letter-spacing:1.3px!important}
+ .title-page-meta{font-size:11px!important;gap:7px!important}
+ .title-page-genres{margin-top:9px!important}
+ .title-page-overview{font-size:13px!important;line-height:1.55!important;margin-top:12px!important}
+}
