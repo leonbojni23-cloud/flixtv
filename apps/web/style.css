@@ -1329,3 +1329,24 @@ html.deep-route-loading::after{
  .title-page-genres{margin-top:9px!important}
  .title-page-overview{font-size:13px!important;line-height:1.55!important;margin-top:12px!important}
 }
+
+
+/* Tighter title details: narrower text column and smaller typography. */
+.title-page-copy{max-width:560px!important;width:min(100%,560px)!important}
+.title-page-copy h1{font-size:clamp(27px,3vw,38px)!important;line-height:1.08!important;letter-spacing:-1.1px!important;max-width:520px!important;margin:7px 0 10px!important}
+.title-page-meta{font-size:11px!important;gap:7px!important}
+.title-page-genres{gap:5px!important;margin-top:8px!important}
+.title-page-genres span{font-size:9px!important;padding:3px 7px!important}
+.title-page-overview{font-size:12px!important;line-height:1.5!important;margin-top:10px!important;max-width:480px!important}
+.title-page-actions{margin-top:13px!important;gap:8px!important}
+.title-page-actions .primary-btn{padding:9px 15px!important;font-size:12px!important}
+@media(max-width:680px){
+ .title-page-copy{max-width:calc(100% - 28px)!important;width:calc(100% - 28px)!important;margin-left:auto!important;margin-right:auto!important}
+ .title-page-copy h1{font-size:clamp(24px,6.2vw,30px)!important;line-height:1.1!important;letter-spacing:-.7px!important;max-width:100%!important;margin:6px 0 8px!important}
+ .title-page-meta{font-size:10px!important;gap:6px!important}
+ .title-page-genres{gap:4px!important;margin-top:7px!important}
+ .title-page-genres span{font-size:8px!important;padding:3px 6px!important}
+ .title-page-overview{font-size:11px!important;line-height:1.48!important;margin-top:9px!important;max-width:100%!important}
+ .title-page-actions{margin-top:11px!important}
+ .title-page-actions .primary-btn{padding:8px 13px!important;font-size:11px!important}
+}
