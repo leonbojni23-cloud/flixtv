@@ -1350,3 +1350,9 @@ html.deep-route-loading::after{
  .title-page-actions{margin-top:11px!important}
  .title-page-actions .primary-btn{padding:8px 13px!important;font-size:11px!important}
 }
+
+
+/* Hard-hide any legacy trailer action left in cached or alternate title markup. */
+#title-page #title-trailer,
+.title-page-actions #title-trailer,
+.title-page-actions .secondary-btn{display:none!important}
