@@ -400,10 +400,10 @@ async function openTitlePage(item,push=false,playMode=false){
   if(titlePlayLabel)titlePlayLabel.textContent=canResume?(k==="tv"?"Vazhdo serialin":"Vazhdo filmin"):(k==="tv"?"Luaj episodin":"Luaj filmin");
   $("title-play").classList.toggle("is-resume",!!canResume);
   $("title-play").onclick=()=>{
-   const params=new URLSearchParams();
-   if(k==="tv"){const s=canResume?Number(savedForTitle.season):Number($("title-season").value),e=canResume?Number(savedForTitle.episode):Number($("title-episode").value);params.set("season",String(s));params.set("episode",String(e));}
-   if(canResume)params.set("t",String(Math.floor(Number(savedForTitle.currentTime)||0)));
-   window.location.assign(pageUrl(titlePageItem,true)+(params.size?"?"+params.toString():""));
+   const season=k==="tv"?(canResume?Number(savedForTitle.season):Number($("title-season").value)):undefined;
+   const episode=k==="tv"?(canResume?Number(savedForTitle.episode):Number($("title-episode").value)):undefined;
+   const resume=canResume?Number(savedForTitle.currentTime)||0:0;
+   startTitlePlayback(season,episode,resume);
   };
   if(k==="tv")$("title-season").onchange=async()=>{titlePageSeason=Number($("title-season").value);titlePageEpisode=1;await loadTitleEpisodes()};
   if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1);await loadTitleEpisodes()}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
@@ -424,12 +424,24 @@ async function loadTitleEpisodes(){
   select.onchange=()=>{titlePageEpisode=Number(select.value)||1};
  }catch(e){if(request===titleEpisodesRequest)notice("Episodet nuk u ngarkuan: "+e.message)}
 }
+function enterCineSrcFullscreen(){
+ const frame=$("cinesrc-frame"),modal=$("player-modal");
+ modal.classList.add("open");
+ // Ask for native fullscreen directly from the Play button gesture.
+ // If unsupported (some TV browsers/iOS), the fixed full-screen modal remains the fallback.
+ const request=frame&&frame.requestFullscreen?frame.requestFullscreen({navigationUI:"hide"}):Promise.reject(new Error("Fullscreen API unavailable"));
+ if(request&&typeof request.then==="function"){
+  request.then(()=>{
+   try{if(screen.orientation&&typeof screen.orientation.lock==="function")screen.orientation.lock("landscape").catch(()=>{})}catch(_){}
+  }).catch(()=>modal.classList.add("css-fullscreen"));
+ }else modal.classList.add("css-fullscreen");
+}
 function startTitlePlayback(season,episode,resumeTime=null){
  if(!titlePageItem)return;
  const saved=getSavedProgress(titlePageItem);
  const startAt=Number(resumeTime)>0?Number(resumeTime):(saved&&kind(titlePageItem)==="tv"&&Number(saved.season)===Number(season||1)&&Number(saved.episode)===Number(episode||1)?Number(saved.currentTime):kind(titlePageItem)==="movie"&&saved?Number(saved.currentTime):0);
  latestPlaybackTime=startAt;latestPlaybackDuration=saved&&startAt===Number(saved.currentTime)?Number(saved.duration)||0:0;lastProgressWrite=0;
- $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");
+ $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterCineSrcFullscreen();
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
  $("cinesrc-frame").src=buildPlayerUrl(titlePageItem,season,episode,startAt);
  startProgressPolling();
@@ -498,6 +510,7 @@ function play(item,season,episode){
  $("content-intro").setAttribute("aria-hidden","true");
  $("player-modal").classList.remove("attention-active");
  $("player-modal").classList.add("open","controls-visible");
+ enterCineSrcFullscreen();
  $("player-modal").setAttribute("aria-hidden","false");
  $("details-modal").classList.remove("open");
  document.body.classList.add("no-scroll");
@@ -507,7 +520,7 @@ function play(item,season,episode){
  startProgressPolling();
  clearTimeout(controlsTimer);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";currentPlayback=null;$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";currentPlayback=null;$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 window.addEventListener("message",event=>{
  if(event.origin!=="https://cinesrc.st"||event.source!==$("cinesrc-frame").contentWindow)return;
  if(!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
