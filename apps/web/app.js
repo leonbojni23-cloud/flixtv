@@ -385,6 +385,10 @@ async function openTitlePage(item,push=false,playMode=false){
   if(k==="tv")await loadTitleEpisodes();
   const trailer=(d.videos?.results||[]).find(x=>x.site==="YouTube"&&(x.type==="Trailer"||x.type==="Teaser"));
   $("title-trailer").onclick=()=>{if(trailer)window.open("https://www.youtube.com/watch?v="+trailer.key,"_blank","noopener")};
+  const savedForTitle=getSavedProgress(titlePageItem);
+  const canResumeMovie=k==="movie"&&savedForTitle&&Number(savedForTitle.currentTime)>5&&(!savedForTitle.duration||Number(savedForTitle.currentTime)<Number(savedForTitle.duration)*0.92);
+  const titlePlayLabel=$("title-play").querySelector("span");
+  if(titlePlayLabel)titlePlayLabel.textContent=canResumeMovie?"Vazhdo filmin":"Luaj filmin";
   $("title-play").onclick=()=>{if(k==="tv"){const s=$("title-season").value,e=$("title-episode").value;window.location.assign(pageUrl(titlePageItem,true)+"?season="+s+"&episode="+e)}else{window.location.assign(pageUrl(titlePageItem,true))}};
   if(k==="tv")$("title-season").onchange=async()=>{titlePageSeason=Number($("title-season").value);await loadTitleEpisodes()};
   if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1)}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
