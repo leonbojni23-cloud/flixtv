@@ -424,8 +424,7 @@ function titlePageMarkup(item,d,playMode=false){
  '<div class="title-page-meta">'+meta.map((x,i)=>'<span class="'+(i===1?'rating':'')+'">'+escapeHtml(x)+'</span>').join('<i></i>')+'</div>'+
  (genres.length?'<div class="title-page-genres">'+genres.map(g=>'<span>'+escapeHtml(g.name)+'</span>').join("")+'</div>':"")+
  '<p class="title-page-overview">'+escapeHtml(overview)+'</p>'+
- (tv?'<div class="title-page-episodes"><label>SEZONI<select id="title-season">'+seasons.map(x=>'<option value="'+x.season_number+'" '+(Number(x.season_number)===titlePageSeason?'selected':'')+'>'+escapeHtml(x.name||("Sezoni "+x.season_number))+'</option>').join("")+'</select></label><label>EPISODI<select id="title-episode"></select></label></div>':"")+
- '<div class="title-page-actions"><button class="primary-btn" id="title-play">▶ <span>'+(tv?"Luaj episodin":"Luaj filmin")+'</span></button></div>'+
+ (tv?'<section class="series-episode-section"><div class="series-section-tabs"><h2>Episodet</h2><span>Më shumë si ky</span></div><div class="series-season-bar"><label for="title-season">Sezoni</label><select id="title-season">'+seasons.map(x=>'<option value="'+x.season_number+'" '+(Number(x.season_number)===titlePageSeason?'selected':'')+'>'+escapeHtml(x.name||("Sezoni "+x.season_number))+'</option>').join("")+'</select><div id="title-episode-list" class="series-episode-list"></div></section>':"")+ '<div class="title-page-actions"><button class="primary-btn" id="title-play">▶ <span>'+(tv?"Luaj episodin":"Luaj filmin")+'</span></button></div>'+(tv?'<div class="series-social-actions"><button type="button" id="series-list">＋ <span>Lista ime</span></button><button type="button" id="series-rate">♡ <span>Vlerëso</span></button><button type="button" id="series-share">↗ <span>Shpërndaj</span></button></div>':"")'+
  '</div></div></div></div>'+ 
  '<section class="title-page-more"><div class="title-page-section-head"><div><span class="title-page-section-label">MË SHUMË INFORMACION</span><h2>Rreth titullit</h2></div><span class="title-page-index">FLIXTV / '+(tv?"SERIALE":"FILMA")+'</span></div><div class="title-page-info-grid"><article class="title-page-facts"><div><span>STATUSI</span><strong>'+escapeHtml(d.status||"Nuk dihet")+'</strong></div><div><span>TITULLI ORIGJINAL</span><strong>'+escapeHtml(d.original_title||d.original_name||title(d))+'</strong></div><div><span>GJUHA ORIGJINALE</span><strong>'+escapeHtml(String(d.original_language||"").toUpperCase())+'</strong></div>'+(d.release_date||d.first_air_date?'<div><span>DATA E PUBLIKIMIT</span><strong>'+escapeHtml(d.release_date||d.first_air_date)+'</strong></div>':"")+'</article></div>'+
  (cast.length?'<div class="title-page-cast-head"><h2>Interpretojnë</h2><span>KASTI KRYESOR</span></div><div class="title-page-cast">'+cast.map(p=>'<div class="title-page-cast-card">'+(p.profile_path?'<img loading="lazy" src="'+IMG+'w185'+p.profile_path+'" alt="">':'<div class="cast-placeholder">FLIXTV</div>')+'<strong>'+escapeHtml(p.name||"")+'</strong><small>'+escapeHtml(p.character||"")+'</small></div>').join("")+'</div>':"")+'</section>';
@@ -470,6 +469,14 @@ async function openTitlePage(item,push=false,playMode=false){
    startTitlePlayback(season,episode,resume);
   };
   if(k==="tv")$("title-season").onchange=async()=>{titlePageSeason=Number($("title-season").value);titlePageEpisode=1;await loadTitleEpisodes()};
+  if(k==="tv"){
+   const listButton=$("series-list"),rateButton=$("series-rate"),shareButton=$("series-share");
+   const readList=()=>{try{return JSON.parse(localStorage.getItem("flixtv-my-list")||"[]")}catch(_){return []}};
+   const refreshList=()=>{const saved=readList().some(x=>Number(x.id)===Number(titlePageItem.id));listButton.classList.toggle("active",saved);listButton.querySelector("span").textContent=saved?"Në listën time":"Lista ime";};
+   refreshList();listButton.onclick=()=>{let items=readList();const exists=items.some(x=>Number(x.id)===Number(titlePageItem.id));items=exists?items.filter(x=>Number(x.id)!==Number(titlePageItem.id)):[...items,{id:titlePageItem.id,title:title(titlePageItem),poster_path:titlePageItem.poster_path,media_type:"tv"}];localStorage.setItem("flixtv-my-list",JSON.stringify(items));refreshList()};
+   rateButton.onclick=()=>{const current=Number(localStorage.getItem("flixtv-rating-"+titlePageItem.id)||0),value=prompt("Vlerësoje serialin nga 1 deri në 10:",current||"");if(value===null)return;const score=Math.max(1,Math.min(10,Math.round(Number(value))));if(Number.isFinite(score)){localStorage.setItem("flixtv-rating-"+titlePageItem.id,String(score));rateButton.querySelector("span").textContent="Vlerësimi yt: "+score+"/10";}};
+   shareButton.onclick=()=>{const shareData={title:title(titlePageItem),text:"Shiko "+title(titlePageItem)+" në FLIXTV",url:location.href};if(navigator.share)navigator.share(shareData).catch(()=>{});else if(navigator.clipboard?.writeText)navigator.clipboard.writeText(location.href).then(()=>notice("Linku u kopjua."),()=>notice("Nuk u kopjua linku."));else notice("Kopjo adresën e faqes për ta shpërndarë.")};
+  }
   if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1);await loadTitleEpisodes()}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
   window.scrollTo(0,0);
  }catch(e){notice(e.message)}
@@ -480,12 +487,11 @@ async function loadTitleEpisodes(){
  try{
   const d=await tmdb("/tv/"+itemId+"/season/"+season);
   if(request!==titleEpisodesRequest||!titlePageItem||Number(titlePageItem.id)!==itemId||Number(titlePageSeason)!==season)return;
-  const select=$("title-episode");if(!select)return;
   const episodes=d.episodes||[];
-  select.replaceChildren(...episodes.map(ep=>{const option=document.createElement("option");option.value=String(ep.episode_number);option.textContent="E"+ep.episode_number+" · "+(ep.name||"Episodi "+ep.episode_number);return option}));
-  if(episodes.some(ep=>Number(ep.episode_number)===Number(titlePageEpisode)))select.value=String(titlePageEpisode);
-  else{titlePageEpisode=Number(episodes[0]?.episode_number||1);select.value=String(titlePageEpisode)}
-  select.onchange=()=>{titlePageEpisode=Number(select.value)||1};
+  const list=$("title-episode-list");if(!list)return;
+  if(!episodes.some(ep=>Number(ep.episode_number)===Number(titlePageEpisode)))titlePageEpisode=Number(episodes[0]?.episode_number||1);
+  list.innerHTML=episodes.map(ep=>'<button type="button" class="series-episode-card '+(Number(ep.episode_number)===titlePageEpisode?'selected':'')+'" data-episode="'+ep.episode_number+'"><span class="series-episode-thumb">'+(ep.still_path?'<img loading="lazy" decoding="async" src="'+IMG+'w300'+ep.still_path+'" alt="">':'<span>FLIXTV</span>')+'<b>▶</b></span><span class="series-episode-copy"><strong>'+ep.episode_number+'. '+escapeHtml(ep.name||("Episodi "+ep.episode_number))+'</strong><small>'+(ep.runtime?ep.runtime+" min":"")+(ep.air_date?" · "+escapeHtml(ep.air_date.slice(0,4)):"")+'</small><span>'+escapeHtml(ep.overview||"Përshkrimi nuk është i disponueshëm.")+'</span></span></button>').join("");
+  list.querySelectorAll("[data-episode]").forEach(card=>card.addEventListener("click",()=>{titlePageEpisode=Number(card.dataset.episode)||1;startTitlePlayback(titlePageSeason,titlePageEpisode,0)}));
  }catch(e){if(request===titleEpisodesRequest)notice("Episodet nuk u ngarkuan: "+e.message)}
 }
 function enterCineSrcFullscreen(){
