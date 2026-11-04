@@ -463,7 +463,7 @@ async function openTitlePage(item,push=false,playMode=false){
   $("title-play").classList.toggle("is-resume",!!canResume);
   $("title-play").onclick=()=>{
    const season=k==="tv"?(canResume?Number(savedForTitle.season):Number($("title-season").value)):undefined;
-   const episode=k==="tv"?(canResume?Number(savedForTitle.episode):Number($("title-episode").value)):undefined;
+   const episode=k==="tv"?(canResume?Number(savedForTitle.episode):Number(titlePageEpisode||1)):undefined;
    const resume=canResume?Number(savedForTitle.currentTime)||0:0;
    startTitlePlayback(season,episode,resume);
   };
