@@ -379,7 +379,11 @@ function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":
 async function openTitlePage(item,push=false,playMode=false){
  if(!item||!item.id)return;
  try{
-  const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,credits");
+  const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,credits&include_video_language=en,null");
+  const hasYouTubePreview=(d.videos?.results||[]).some(v=>v.site==="YouTube"&&v.key&&(v.type==="Trailer"||v.type==="Teaser"));
+  if(!hasYouTubePreview){
+   try{const videoData=await tmdb("/"+k+"/"+item.id+"/videos?language=en-US");if(videoData?.results?.length)d.videos=videoData}catch(_){/* Keep the still-image fallback if trailers are unavailable. */}
+  }
   d.overviewSq=await getAlbanianOverview(d,k);
   titlePageItem={...item,...d,media_type:k};
   const savedForTitle=getSavedProgress(titlePageItem);
