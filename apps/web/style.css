@@ -936,3 +936,12 @@ html.deep-route-loading::after{
 #title-play.is-resume{background:#087f9b!important;color:#fff!important;border:1px solid rgba(91,224,245,.48);box-shadow:0 8px 26px rgba(8,127,155,.28)!important}
 #title-play.is-resume:hover{background:#0b9fbd!important}
 #title-play.is-resume:focus-visible{outline:3px solid rgba(91,224,245,.72);outline-offset:3px}
+
+/* Autoplaying cinematic trailer preview on title pages. */
+.title-page-hero{position:relative}
+.title-page-preview{position:absolute;z-index:-1;inset:0;overflow:hidden;pointer-events:none;opacity:.58;background:#080b11}
+.title-page-preview iframe{position:absolute;top:50%;left:50%;width:max(100%,177.78vh);height:max(100%,56.25vw);min-width:100%;min-height:100%;transform:translate(-50%,-50%);border:0;pointer-events:none}
+.title-page-backdrop{z-index:0;pointer-events:none}
+.title-page-inner{position:relative;z-index:1}
+@media(max-width:680px){.title-page-preview{opacity:.48}.title-page-preview iframe{width:max(100%,177.78vh);height:max(100%,56.25vw)}}
+@media(prefers-reduced-motion:reduce){.title-page-preview{display:none}}
