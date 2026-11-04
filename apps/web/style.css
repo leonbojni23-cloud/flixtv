@@ -1208,3 +1208,35 @@ html.deep-route-loading::after{
   border-radius:0!important;
  }
 }
+
+
+/* Final mobile title layout: isolated back arrow and taller full-width video. */
+.title-page-inner{position:relative!important}
+.title-page-back{
+ position:relative!important;z-index:80!important;
+ display:grid!important;place-items:center!important;
+ width:34px!important;height:34px!important;min-width:34px!important;
+ margin:0 0 0 12px!important;padding:0!important;
+ border:1px solid rgba(255,255,255,.22)!important;
+ border-radius:50%!important;background:rgba(12,14,19,.82)!important;
+ color:#fff!important;font-size:27px!important;line-height:1!important;
+ text-decoration:none!important;
+}
+.title-page-back span{display:none!important}
+.title-page-cover{position:relative!important;z-index:1!important}
+@media(max-width:680px){
+ .title-page-inner{padding:7px 0 28px!important}
+ .title-page-back{margin:0 0 0 12px!important}
+ .title-page-cover{
+  position:relative!important;z-index:1!important;
+  width:100vw!important;max-width:none!important;
+  margin:8px calc(50% - 50vw) 0!important;
+  aspect-ratio:16/10!important;height:auto!important;max-height:none!important;
+  border-radius:0!important;border-left:0!important;border-right:0!important;
+ }
+ .title-page-cover .title-page-preview,
+ .title-page-cover lite-youtube#yt-title-trailer,
+ .title-page-cover .title-page-imdb-video{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ }
+}
