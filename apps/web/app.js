@@ -354,7 +354,7 @@ async function home(){
 }
 
 function titleSlug(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
-let titlePageItem=null,titlePageSeason=1,titlePageEpisode=1;
+let titlePageItem=null,titlePageSeason=1,titlePageEpisode=1,titleEpisodesRequest=0;
 function pageUrl(item,play=false){const slug=titleSlug(title(item))||String(item.id);return "/"+slug+(play?"/play":"")}
 function titlePageMarkup(item,d,playMode=false){
  const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:""),posterPath=d.poster_path?IMG+"w500"+d.poster_path:"";
@@ -412,11 +412,17 @@ async function openTitlePage(item,push=false,playMode=false){
 }
 async function loadTitleEpisodes(){
  if(!titlePageItem||kind(titlePageItem)!=="tv")return;
- try{const d=await tmdb("/tv/"+titlePageItem.id+"/season/"+titlePageSeason);const select=$("title-episode");if(!select)return;
- const episodes=d.episodes||[];select.innerHTML=episodes.map(ep=>'<option value="'+ep.episode_number+'">E'+ep.episode_number+" · "+escapeHtml(ep.name||"Episodi "+ep.episode_number)+'</option>').join("");
- if(episodes.some(ep=>ep.episode_number===titlePageEpisode))select.value=String(titlePageEpisode);else titlePageEpisode=Number(select.value||1);
- select.onchange=()=>titlePageEpisode=Number(select.value);
- }catch(e){notice("Episodet nuk u ngarkuan: "+e.message)}
+ const request=++titleEpisodesRequest,itemId=Number(titlePageItem.id),season=Number(titlePageSeason);
+ try{
+  const d=await tmdb("/tv/"+itemId+"/season/"+season);
+  if(request!==titleEpisodesRequest||!titlePageItem||Number(titlePageItem.id)!==itemId||Number(titlePageSeason)!==season)return;
+  const select=$("title-episode");if(!select)return;
+  const episodes=d.episodes||[];
+  select.replaceChildren(...episodes.map(ep=>{const option=document.createElement("option");option.value=String(ep.episode_number);option.textContent="E"+ep.episode_number+" · "+(ep.name||"Episodi "+ep.episode_number);return option}));
+  if(episodes.some(ep=>Number(ep.episode_number)===Number(titlePageEpisode)))select.value=String(titlePageEpisode);
+  else{titlePageEpisode=Number(episodes[0]?.episode_number||1);select.value=String(titlePageEpisode)}
+  select.onchange=()=>{titlePageEpisode=Number(select.value)||1};
+ }catch(e){if(request===titleEpisodesRequest)notice("Episodet nuk u ngarkuan: "+e.message)}
 }
 function startTitlePlayback(season,episode,resumeTime=null){
  if(!titlePageItem)return;
@@ -510,6 +516,8 @@ window.addEventListener("message",event=>{
   case "cinesrc:ready":
    $("player-modal").dataset.playerState="ready";
    if(latestPlaybackTime>5)sendCineSrcCommand("seek",[latestPlaybackTime]);
+   sendCineSrcCommand("getCurrentTime");
+   sendCineSrcCommand("getDuration");
    break;
   case "cinesrc:play":
   case "cinesrc:pause":
@@ -526,10 +534,16 @@ window.addEventListener("message",event=>{
   case "cinesrc:loadedmetadata":
    latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;break;case "cinesrc:nextepisode":
    if(currentPlayback&&kind(currentPlayback.item)==="tv"){
-    if(Number.isFinite(Number(data.season)))currentPlayback.season=Number(data.season);
-    if(Number.isFinite(Number(data.episode)))currentPlayback.episode=Number(data.episode);
+    const nextSeason=Number(data.season),nextEpisode=Number(data.episode);
+    if(Number.isInteger(nextSeason)&&nextSeason>=0)currentPlayback.season=nextSeason;
+    if(Number.isInteger(nextEpisode)&&nextEpisode>0)currentPlayback.episode=nextEpisode;
     latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
     savePlaybackProgress(true);
+    setTimeout(()=>{
+     if(!$("player-modal").classList.contains("open")||!currentPlayback)return;
+     sendCineSrcCommand("getCurrentTime");
+     sendCineSrcCommand("getDuration");
+    },900);
    }
    break;
   case "cinesrc:ended":
