@@ -1113,3 +1113,40 @@ html.deep-route-loading::after{
 .title-page-cover lite-youtube#yt-title-trailer .lty-playbtn{display:none!important}
 .title-page-cover .yt-custom-controls{z-index:50!important;pointer-events:none!important}
 .title-page-cover .yt-custom-controls button{pointer-events:auto!important}
+
+/* Netflix-inspired trailer controls: playback on the left, audio status on the right. */
+.title-page-cover .yt-custom-controls{
+ position:absolute!important;inset:0!important;z-index:60!important;
+ display:block!important;padding:0!important;margin:0!important;
+ background:none!important;pointer-events:none!important;
+}
+.title-page-cover .yt-custom-controls button{
+ position:absolute!important;bottom:16px!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ gap:8px!important;min-width:0!important;height:40px!important;
+ padding:0 13px!important;flex:initial!important;
+ border:1px solid rgba(255,255,255,.2)!important;border-radius:7px!important;
+ background:rgba(18,18,18,.78)!important;color:#fff!important;
+ box-shadow:0 2px 12px rgba(0,0,0,.28)!important;
+ backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important;
+ font:600 12px/1 system-ui,-apple-system,"Segoe UI",sans-serif!important;
+ letter-spacing:.1px!important;white-space:nowrap!important;
+ cursor:pointer!important;pointer-events:auto!important;
+ transition:background .18s ease,border-color .18s ease,transform .18s ease!important;
+}
+.title-page-cover .yt-custom-controls button:hover{
+ background:rgba(48,48,48,.94)!important;border-color:rgba(255,255,255,.42)!important;
+ transform:translateY(-1px)!important;
+}
+.title-page-cover .yt-custom-controls button:active{transform:scale(.97)!important}
+.title-page-cover .yt-custom-controls button:focus-visible{outline:2px solid #fff!important;outline-offset:3px!important}
+.title-page-cover .yt-custom-controls .yt-play-toggle{left:16px!important;right:auto!important}
+.title-page-cover .yt-custom-controls .yt-mute-toggle{right:16px!important;left:auto!important}
+.title-page-cover .yt-custom-controls button svg{display:block!important;width:17px!important;height:17px!important;flex:0 0 17px!important}
+.title-page-cover .yt-custom-controls button span{display:inline!important}
+@media(max-width:680px){
+ .title-page-cover .yt-custom-controls button{height:36px!important;bottom:10px!important;padding:0 10px!important;gap:6px!important;font-size:11px!important}
+ .title-page-cover .yt-custom-controls .yt-play-toggle{left:10px!important}
+ .title-page-cover .yt-custom-controls .yt-mute-toggle{right:10px!important}
+ .title-page-cover .yt-custom-controls button svg{width:15px!important;height:15px!important;flex-basis:15px!important}
+}
