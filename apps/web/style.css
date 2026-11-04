@@ -1034,3 +1034,55 @@ html.deep-route-loading::after{
  .yt-play-toggle{width:40px!important;height:40px!important;flex-basis:40px!important}
  .yt-play-toggle svg{width:17px;height:17px}
 }
+
+
+/* Final YouTube trailer layout: wider cinematic frame and two compact controls. */
+.title-page-cover{
+ width:min(100%,1240px)!important;
+ max-width:1240px!important;
+ aspect-ratio:16/9!important;
+ max-height:none!important;
+}
+.title-page-cover .youtube-custom-preview{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ overflow:hidden!important;background:#05070b!important;pointer-events:none!important;
+}
+.title-page-cover #yt-title-trailer,
+.title-page-cover #yt-title-trailer iframe{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ min-width:0!important;min-height:0!important;border:0!important;
+}
+.title-page-cover .yt-custom-controls{
+ position:absolute!important;z-index:30!important;left:14px!important;right:auto!important;bottom:14px!important;
+ display:flex!important;align-items:center!important;gap:8px!important;padding:0!important;
+ background:none!important;pointer-events:none!important;
+}
+.title-page-cover .yt-play-toggle,
+.title-page-cover .yt-mute-toggle{
+ pointer-events:auto!important;display:grid!important;place-items:center!important;
+ width:38px!important;height:38px!important;flex:0 0 38px!important;padding:0!important;
+ border:1px solid rgba(255,255,255,.24)!important;border-radius:50%!important;
+ background:rgba(8,11,17,.76)!important;color:#fff!important;
+ box-shadow:0 3px 14px rgba(0,0,0,.32)!important;
+ backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;
+ cursor:pointer!important;transition:background .16s ease,transform .16s ease!important;
+}
+.title-page-cover .yt-play-toggle:hover,
+.title-page-cover .yt-mute-toggle:hover{background:rgba(229,9,54,.9)!important;transform:scale(1.06)!important}
+.title-page-cover .yt-play-toggle:active,
+.title-page-cover .yt-mute-toggle:active{transform:scale(.94)!important}
+.title-page-cover .yt-play-toggle:focus-visible,
+.title-page-cover .yt-mute-toggle:focus-visible{outline:2px solid #fff!important;outline-offset:3px!important}
+.title-page-cover .yt-play-toggle svg,
+.title-page-cover .yt-mute-toggle svg{display:block;width:17px!important;height:17px!important}
+@media(min-width:681px){
+ .title-page-inner{padding-left:clamp(20px,3vw,48px)!important;padding-right:clamp(20px,3vw,48px)!important}
+}
+@media(max-width:680px){
+ .title-page-cover{width:100%!important;max-width:none!important;aspect-ratio:16/9!important;margin-top:18px!important}
+ .title-page-cover .yt-custom-controls{left:10px!important;bottom:10px!important;gap:7px!important}
+ .title-page-cover .yt-play-toggle,
+ .title-page-cover .yt-mute-toggle{width:34px!important;height:34px!important;flex-basis:34px!important}
+ .title-page-cover .yt-play-toggle svg,
+ .title-page-cover .yt-mute-toggle svg{width:15px!important;height:15px!important}
+}
