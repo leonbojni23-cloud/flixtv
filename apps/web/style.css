@@ -1585,3 +1585,19 @@ html.deep-route-loading::after{
 .series-similar-card{display:grid;gap:8px;border:0;background:transparent;color:#fff;text-align:left;cursor:pointer;font:inherit;font-size:13px;font-weight:750}
 .series-similar-card img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:8px;background:#202631}
 @media(max-width:680px){.series-section-tabs{gap:22px}.series-section-tabs button{font-size:18px}.series-episode-copy em{font-size:10px;padding:6px 9px}}
+
+
+/* Refine series overview toggle and make episode rows more compact. */
+.title-page-overview-wrap{max-width:760px}
+.title-page-overview{margin-bottom:0}
+.overview-more{display:block;margin-top:0;padding-top:1px;line-height:1.2}
+.series-episode-card{grid-template-columns:minmax(150px,190px) minmax(0,1fr);gap:15px;padding:11px 0}
+.series-episode-copy{gap:5px}
+.series-episode-copy strong{font-size:16px}
+.series-episode-copy>span{-webkit-line-clamp:2;font-size:13px;line-height:1.4}
+@media(max-width:680px){
+ .series-episode-card{grid-template-columns:minmax(105px,32%) minmax(0,1fr);gap:10px;padding:10px 0}
+ .series-episode-copy{gap:4px}
+ .series-episode-copy strong{font-size:13px}
+ .series-episode-copy>span{-webkit-line-clamp:2;font-size:11px;line-height:1.35}
+}
