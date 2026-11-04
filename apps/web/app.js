@@ -356,6 +356,47 @@ async function home(){
 function titleSlug(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
 let titlePageItem=null,titlePageSeason=1,titlePageEpisode=1,titleEpisodesRequest=0;
 function pageUrl(item,play=false){const slug=titleSlug(title(item))||String(item.id);return "/"+slug+(play?"/play":"")}
+let titleYoutubePlayer=null,titleYoutubeTimer=null,titleYoutubeApiLoading=false,titleYoutubeApiReady=false;
+function loadTitleYoutubeApi(){
+ if(window.YT&&window.YT.Player){titleYoutubeApiReady=true;return Promise.resolve()}
+ if(window.__flxtvYTReady)return window.__flxtvYTReady;
+ window.__flxtvYTReady=new Promise(resolve=>{
+  const previous=window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady=()=>{titleYoutubeApiReady=true;if(typeof previous==="function")previous();resolve()};
+  if(!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')){
+   const script=document.createElement("script");script.src="https://www.youtube.com/iframe_api";script.async=true;document.head.append(script);
+  }
+ });
+ return window.__flxtvYTReady;
+}
+function formatYTTime(value){const n=Math.max(0,Math.floor(Number(value)||0)),m=Math.floor(n/60),s=n%60;return m+":"+String(s).padStart(2,"0")}
+function initTitleYoutubeControls(){
+ const frame=$("yt-title-trailer");if(!frame)return;
+ clearInterval(titleYoutubeTimer);titleYoutubePlayer=null;
+ loadTitleYoutubeApi().then(()=>{
+  if(!$("yt-title-trailer"))return;
+  titleYoutubePlayer=new YT.Player("yt-title-trailer",{events:{
+   onReady:event=>{
+    event.target.mute();event.target.playVideo();
+    const button=document.querySelector(".yt-play-toggle"),progress=document.querySelector(".yt-progress");
+    if(button)button.onclick=()=>{const state=titleYoutubePlayer.getPlayerState();if(state===YT.PlayerState.PLAYING){titleYoutubePlayer.pauseVideo();button.textContent="▶";button.setAttribute("aria-label","Luaj videon");button.setAttribute("aria-pressed","true")}else{titleYoutubePlayer.playVideo();button.textContent="Ⅱ";button.setAttribute("aria-label","Pusho videon");button.setAttribute("aria-pressed","false")}};
+    if(progress)progress.oninput=()=>{const duration=titleYoutubePlayer.getDuration();if(duration>0)titleYoutubePlayer.seekTo(duration*(Number(progress.value)/1000),true)};
+    titleYoutubeTimer=setInterval(()=>{
+     if(!titleYoutubePlayer||typeof titleYoutubePlayer.getCurrentTime!=="function")return;
+     const duration=titleYoutubePlayer.getDuration()||0,current=titleYoutubePlayer.getCurrentTime()||0;
+     const bar=document.querySelector(".yt-progress"),time=document.querySelector(".yt-time");
+     if(bar&&duration>0&&document.activeElement!==bar)bar.value=String(Math.round(current/duration*1000));
+     if(time)time.textContent=formatYTTime(current)+" / "+formatYTTime(duration);
+    },400);
+   },
+   onStateChange:event=>{
+    const button=document.querySelector(".yt-play-toggle");if(!button)return;
+    if(event.data===YT.PlayerState.PLAYING){button.textContent="Ⅱ";button.setAttribute("aria-label","Pusho videon");button.setAttribute("aria-pressed","false")}
+    if(event.data===YT.PlayerState.PAUSED){button.textContent="▶";button.setAttribute("aria-label","Luaj videon");button.setAttribute("aria-pressed","true")}
+   }
+  }});
+ }).catch(()=>{});
+}
 function titlePageMarkup(item,d,playMode=false){
  const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:""),posterPath=d.poster_path?IMG+"w500"+d.poster_path:"";
  const meta=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1)+"/10":"",d.runtime?d.runtime+" min":tv?(d.number_of_seasons||0)+" sezone":""].filter(Boolean);
@@ -365,7 +406,7 @@ function titlePageMarkup(item,d,playMode=false){
  const trailer=(d.videos?.results||[]).filter(x=>x.site==="YouTube"&&x.key&&(x.type==="Trailer"||x.type==="Teaser")).sort((a,b)=>Number(!!b.official)-Number(!!a.official)||Number(b.type==="Trailer")-Number(a.type==="Trailer")||Number(b.iso_639_1==="en")-Number(a.iso_639_1==="en"))[0];
  const imdbVideo=(d.imdbVideos?.videos||[]).find(v=>(v.type||"").toLowerCase()==="trailer"&&Array.isArray(v.playback)&&v.playback.some(p=>p.url&&["MP4","M3U8"].includes(String(p.format||"").toUpperCase())));
  const imdbSource=imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="MP4"&&p.url)||imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="M3U8"&&p.url);
- const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview" aria-hidden="true"><iframe src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(trailer.key)+'?autoplay=1&mute=1&controls=1&loop=1&playlist='+encodeURIComponent(trailer.key)+'&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3" title="Trailer preview" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>':"";
+ const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview youtube-custom-preview"><iframe id="yt-title-trailer" src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(trailer.key)+'?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=1&playlist='+encodeURIComponent(trailer.key)+'&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&origin='+encodeURIComponent(location.origin)+'" title="Trailer preview" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="yt-custom-controls"><button type="button" class="yt-play-toggle" aria-label="Pusho videon" aria-pressed="false">Ⅱ</button><input class="yt-progress" type="range" min="0" max="1000" value="0" step="1" aria-label="Progresi i videos"><span class="yt-time">0:00 / 0:00</span></div></div>':"";
  const cover=preview||(posterPath?'<img class="title-page-poster" src="'+posterPath+'" alt="'+escapeHtml(title(d))+' poster">':'<div class="title-page-poster-placeholder">FLIXTV</div>');
  return '<div class="title-page-hero"><div class="title-page-backdrop" style="'+(backdrop?'background-image:linear-gradient(90deg,#080b11 0%,rgba(8,11,17,.92) 30%,rgba(8,11,17,.48) 66%,rgba(8,11,17,.25)),linear-gradient(0deg,#090b10 0%,transparent 52%),url("'+backdrop+'")':'')+'"></div>'+
  '<div class="title-page-inner"><a class="title-page-back" href="/" data-title-home>‹ <span>Kthehu te FLIXTV</span></a><div class="title-page-cover">'+cover+'</div><div class="title-page-layout"><div class="title-page-copy"><div class="title-page-kicker"><span class="title-page-kicker-dot"></span>'+(tv?"FLIXTV ORIGINAL SERIES":"FLIXTV FILM")+'</div><h1>'+escapeHtml(title(d))+'</h1>'+
@@ -404,6 +445,7 @@ async function openTitlePage(item,push=false,playMode=false){
   if(push)history.pushState({titlePage:true,play:playMode},"",pageUrl(titlePageItem,playMode));
   $("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;$("search-page").hidden=true;
   $("title-page").innerHTML=titlePageMarkup(titlePageItem,d,playMode);
+  initTitleYoutubeControls();
   document.body.classList.remove("no-scroll");
   if(k==="tv")await loadTitleEpisodes();
   const trailer=(d.videos?.results||[]).find(x=>x.site==="YouTube"&&(x.type==="Trailer"||x.type==="Teaser"));
