@@ -359,13 +359,17 @@ function pageUrl(item,play=false){const slug=titleSlug(title(item))||String(item
 let titleYoutubePlayer=null;
 function setTitleYoutubeButton(playing){
  const button=document.querySelector(".yt-play-toggle");if(!button)return;
- button.innerHTML=playing?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h3v14H8zM14 5h3v14h-3z" fill="currentColor"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>';
+ button.innerHTML=playing
+  ?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg><span>Pauzo</span>'
+  :'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg><span>Luaj</span>';
  button.setAttribute("aria-label",playing?"Pusho videon":"Luaj videon");
  button.setAttribute("aria-pressed",String(!playing));
 }
 function setTitleYoutubeMuteButton(muted){
  const button=document.querySelector(".yt-mute-toggle");if(!button)return;
- button.innerHTML=muted?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a3.5 3.5 0 0 0-2-3.16v6.32a3.5 3.5 0 0 0 2-3.16zM14.5 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z" fill="currentColor"/><path d="m18 6 4 4m0-4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a3.5 3.5 0 0 0-2-3.16v6.32a3.5 3.5 0 0 0 2 3.16zM14.5 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z" fill="currentColor"/></svg>';
+ button.innerHTML=muted
+  ?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="m16 9 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Zëri fikur</span>'
+  :'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 9a5 5 0 0 1 0 6m2.5-8.5a8.5 8.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Zëri aktiv</span>';
  button.setAttribute("aria-label",muted?"Aktivizo zërin":"Çaktivizo zërin");
  button.setAttribute("aria-pressed",String(!muted));
 }
