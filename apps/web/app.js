@@ -234,7 +234,7 @@ function startHeroTimer(){
 }
 
 const WATCH_PROGRESS_KEY="flxtv:watch-progress:v1";
-let latestPlaybackTime=0,latestPlaybackDuration=0,lastProgressWrite=0;
+let latestPlaybackTime=0,latestPlaybackDuration=0,lastProgressWrite=0,progressPollTimer=null;
 function readWatchProgress(){
  try{const value=JSON.parse(localStorage.getItem(WATCH_PROGRESS_KEY)||"{}");return value&&typeof value==="object"?value:{}}catch(_){return {}}
 }
@@ -297,6 +297,14 @@ function renderContinueWatching(){
   button.addEventListener("click",()=>window.location.assign(continueWatchUrl(item,entry)));
   row.append(button);
  });
+}
+function startProgressPolling(){
+ clearInterval(progressPollTimer);
+ progressPollTimer=setInterval(()=>{
+  if(!$("player-modal").classList.contains("open")||!currentPlayback)return;
+  sendCineSrcCommand("getCurrentTime");
+  sendCineSrcCommand("getDuration");
+ },4000);
 }
 function sendCineSrcCommand(command,args=[]){
  const frame=$("cinesrc-frame");
@@ -418,6 +426,7 @@ function startTitlePlayback(season,episode,resumeTime=null){
  $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
  $("cinesrc-frame").src=buildPlayerUrl(titlePageItem,season,episode,startAt);
+ startProgressPolling();
 }
 function slugSimilarity(a,b){
  const rows=Array.from({length:b.length+1},(_,i)=>i);
@@ -487,10 +496,12 @@ function play(item,season,episode){
  $("details-modal").classList.remove("open");
  document.body.classList.add("no-scroll");
  currentPlayback={item,season,episode};
+ latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
  $("cinesrc-frame").src=buildPlayerUrl(item,season,episode);
+ startProgressPolling();
  clearTimeout(controlsTimer);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";currentPlayback=null;$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";currentPlayback=null;$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 window.addEventListener("message",event=>{
  if(event.origin!=="https://cinesrc.st"||event.source!==$("cinesrc-frame").contentWindow)return;
  if(!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
@@ -502,8 +513,16 @@ window.addEventListener("message",event=>{
    break;
   case "cinesrc:play":
   case "cinesrc:pause":
+   if(Number.isFinite(Number(data.currentTime)))latestPlaybackTime=Math.max(0,Number(data.currentTime));
+   if(Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
+   if(latestPlaybackTime>0)savePlaybackProgress(true);
+   break;
   case "cinesrc:timeupdate":
-   latestPlaybackTime=Number(data.currentTime)||0;latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;savePlaybackProgress(false);break;
+  case "cinesrc:seeked":
+   if(Number.isFinite(Number(data.currentTime)))latestPlaybackTime=Math.max(0,Number(data.currentTime));
+   if(Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
+   savePlaybackProgress(false);
+   break;
   case "cinesrc:loadedmetadata":
    latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;break;case "cinesrc:nextepisode":
    if(currentPlayback&&kind(currentPlayback.item)==="tv"){
@@ -516,7 +535,7 @@ window.addEventListener("message",event=>{
   case "cinesrc:ended":
    if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
   case "cinesrc:response":
-   if(data.command==="getCurrentTime"&&Number.isFinite(Number(data.result))){latestPlaybackTime=Number(data.result);savePlaybackProgress(true)}
+   if(data.command==="getCurrentTime"&&Number.isFinite(Number(data.result))){latestPlaybackTime=Math.max(0,Number(data.result));if(latestPlaybackTime>0)savePlaybackProgress(true)}else if(data.command==="getDuration"&&Number(data.result)>0){latestPlaybackDuration=Number(data.result);savePlaybackProgress(true)}
    break;
   case "cinesrc:close":
    savePlaybackProgress(true);
@@ -721,7 +740,7 @@ async function openPage(page){
  $("home-page").hidden=page!=="home";
  $("movies-page").hidden=page!=="movies";
  $("shows-page").hidden=page!=="shows";
- if(page==="home"){await home();return}
+ if(page==="home"){renderContinueWatching();await home();return}
  if(loadedPages.has(page))return;
  const jobs=page==="movies"?[
   ["movie-trending","/trending/movie/week"],["movie-popular","/movie/popular"],["movie-top","/movie/top_rated"],["movie-now","/movie/now_playing"],["movie-upcoming","/movie/upcoming"]
@@ -739,6 +758,6 @@ async function openPage(page){
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
 $("hero-action").onclick=()=>{const item=heroItems[heroIndex];if(item)window.location.assign(pageUrl(item));};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
-window.addEventListener("pageshow",()=>{if(heroItems.length>1)startHeroTimer()});
+window.addEventListener("pageshow",()=>{renderContinueWatching();if(heroItems.length>1)startHeroTimer()});
 if(location.pathname!=="/")resolveTitleRoute();else home();
 })();
