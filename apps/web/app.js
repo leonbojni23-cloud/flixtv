@@ -108,8 +108,7 @@ async function getAlbanianOverview(item,mediaType){
   const english=await tmdb("/"+mediaType+"/"+item.id+"?language=en-US");
   source=String(english.overview||"").trim();
  }catch(_){}
- if(!source)source=String(item.overview||"").trim();
- if(!source)return "";
+ if(!source)return String(item.overview||"").trim();
  const translated=String(await translateOverviewToAlbanian(source)||"").trim();
  // Do not silently label untranslated English text as Albanian.
  return translated&&translated.toLowerCase()!==source.toLowerCase()?translated:"";
@@ -433,7 +432,9 @@ function titlePageMarkup(item,d,playMode=false){
  const genres=(d.genres||[]).slice(0,5),cast=(d.credits?.cast||[]).slice(0,6);
  const seasons=tv?(d.seasons||[]).filter(x=>x.season_number>=0):[];
  const overview=d.overviewSq||d.overview||"Përshkrimi nuk është i disponueshëm.";
- const trailer=(d.videos?.results||[]).filter(x=>x.site==="YouTube"&&x.key&&(x.type==="Trailer"||x.type==="Teaser")).sort((a,b)=>Number(!!b.official)-Number(!!a.official)||Number(b.type==="Trailer")-Number(a.type==="Trailer")||Number(b.iso_639_1==="en")-Number(a.iso_639_1==="en"))[0];
+ const youtubeVideos=(d.videos?.results||[]).filter(x=>x.site==="YouTube"&&x.key);
+ const trailerCandidates=youtubeVideos.filter(x=>x.type==="Trailer"||x.type==="Teaser");
+ const trailer=(trailerCandidates.length?trailerCandidates:youtubeVideos).sort((a,b)=>Number(!!b.official)-Number(!!a.official)||Number(b.type==="Trailer")-Number(a.type==="Trailer")||Number(b.iso_639_1==="en")-Number(a.iso_639_1==="en"))[0];
  const imdbVideo=(d.imdbVideos?.videos||[]).find(v=>(v.type||"").toLowerCase()==="trailer"&&Array.isArray(v.playback)&&v.playback.some(p=>p.url&&["MP4","M3U8"].includes(String(p.format||"").toUpperCase())));
  const imdbSource=imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="MP4"&&p.url)||imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="M3U8"&&p.url);
  const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview youtube-custom-preview"><lite-youtube id="yt-title-trailer" videoid="'+escapeHtml(trailer.key)+'" js-api params="controls=0&rel=0&iv_load_policy=3&playsinline=1&autoplay=1&mute=1&enablejsapi=1&fs=0&disablekb=1"></lite-youtube><div class="yt-custom-controls"><button type="button" class="yt-play-toggle" aria-label="Luaj videon" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button><button type="button" class="yt-mute-toggle" aria-label="Aktivizo zërin" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/></svg></button></div></div>':"";
