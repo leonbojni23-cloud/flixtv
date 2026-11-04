@@ -232,7 +232,84 @@ function startHeroTimer(){
  if(heroItems.length<2)return;
  heroTimer=setInterval(()=>{if(!document.hidden)showHero(heroIndex+1)},6500);
 }
+
+const WATCH_PROGRESS_KEY="flxtv:watch-progress:v1";
+let latestPlaybackTime=0,latestPlaybackDuration=0,lastProgressWrite=0;
+function readWatchProgress(){
+ try{const value=JSON.parse(localStorage.getItem(WATCH_PROGRESS_KEY)||"{}");return value&&typeof value==="object"?value:{}}catch(_){return {}}
+}
+function writeWatchProgress(data){
+ try{localStorage.setItem(WATCH_PROGRESS_KEY,JSON.stringify(data))}catch(_){}
+}
+function progressId(item){return (kind(item)==="tv"?"tv:":"movie:")+String(item.id)}
+function getSavedProgress(item){return readWatchProgress()[progressId(item)]||null}
+function savePlaybackProgress(force=false){
+ if(!currentPlayback||!currentPlayback.item||!currentPlayback.item.id)return;
+ const now=Date.now();
+ if(!force&&now-lastProgressWrite<5000)return;
+ const duration=Number(latestPlaybackDuration),time=Number(latestPlaybackTime);
+ if(!Number.isFinite(time)||time<0)return;
+ const data=readWatchProgress(),key=progressId(currentPlayback.item);
+ if(duration>0&&time/duration>=0.92){delete data[key];writeWatchProgress(data);lastProgressWrite=now;renderContinueWatching();return}
+ const item=currentPlayback.item;
+ data[key]={
+  id:item.id,mediaType:kind(item),title:title(item),
+  poster_path:item.poster_path||"",backdrop_path:item.backdrop_path||"",
+  currentTime:time,duration:Number.isFinite(duration)?duration:0,
+  season:kind(item)==="tv"?Number(currentPlayback.season||1):null,
+  episode:kind(item)==="tv"?Number(currentPlayback.episode||1):null,
+  updatedAt:now
+ };
+ writeWatchProgress(data);lastProgressWrite=now;
+ renderContinueWatching();
+}
+function clearPlaybackProgress(item){
+ if(!item)return;
+ const data=readWatchProgress();delete data[progressId(item)];writeWatchProgress(data);renderContinueWatching();
+}
+function formatPlaybackTime(seconds){
+ const value=Math.max(0,Math.floor(Number(seconds)||0)),h=Math.floor(value/3600),m=Math.floor((value%3600)/60),s=value%60;
+ return h?String(h)+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0"):String(m)+":"+String(s).padStart(2,"0");
+}
+function continueWatchUrl(item,entry){
+ const params=new URLSearchParams();
+ if(entry.mediaType==="tv"){params.set("season",String(entry.season||1));params.set("episode",String(entry.episode||1))}
+ params.set("t",String(Math.floor(entry.currentTime||0)));
+ return pageUrl(item,true)+"?"+params.toString();
+}
+function renderContinueWatching(){
+ const row=$("continue-watching"),section=$("continue-watching-section");
+ if(!row||!section)return;
+ const entries=Object.values(readWatchProgress()).filter(x=>x&&x.id&&x.currentTime>0&&(!x.duration||x.currentTime<x.duration*0.92)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,20);
+ row.replaceChildren();
+ section.hidden=!entries.length;
+ entries.forEach(entry=>{
+  const item={id:entry.id,media_type:entry.mediaType,title:entry.title,name:entry.title,poster_path:entry.poster_path,backdrop_path:entry.backdrop_path};
+  const button=document.createElement("button");button.type="button";button.className="continue-card";
+  const image=document.createElement("img");image.loading="lazy";image.alt="";image.src=entry.backdrop_path?IMG+"w500"+entry.backdrop_path:(entry.poster_path?IMG+"w342"+entry.poster_path:"");
+  const body=document.createElement("span");body.className="continue-card-copy";
+  const name=document.createElement("strong");name.textContent=entry.title||"Pa titull";
+  const detail=document.createElement("small");detail.textContent=entry.mediaType==="tv"?"Sezoni "+(entry.season||1)+" · Episodi "+(entry.episode||1):"Vazhdo filmin";
+  const progress=document.createElement("span");progress.className="continue-progress";
+  const fill=document.createElement("i");fill.style.width=(entry.duration>0?Math.min(100,Math.max(0,entry.currentTime/entry.duration*100)):0)+"%";progress.append(fill);
+  const remaining=document.createElement("small");remaining.className="continue-remaining";remaining.textContent=entry.duration>0?"Mbeten "+formatPlaybackTime(Math.max(0,entry.duration-entry.currentTime)):"Vazhdo shikimin";
+  body.append(name,detail,progress,remaining);button.append(image,body);
+  button.addEventListener("click",()=>window.location.assign(continueWatchUrl(item,entry)));
+  row.append(button);
+ });
+}
+function sendCineSrcCommand(command,args=[]){
+ const frame=$("cinesrc-frame");
+ if(!frame||!frame.contentWindow)return;
+ try{frame.contentWindow.postMessage({type:"cinesrc:command",command,args},"https://cinesrc.st")}catch(_){}
+}
+function setPlayerPlayButton(playing){
+ const button=$("flxtv-player-toggle");if(!button)return;
+ button.textContent=playing?"Ⅱ":"▶";button.setAttribute("aria-label",playing?"Pusho videon":"Luaj videon");
+}
+
 async function home(){
+ renderContinueWatching();
  $("catalog").hidden=false;
  $("search-page").hidden=true;
  $("hero").hidden=false;
@@ -310,7 +387,7 @@ async function openTitlePage(item,push=false,playMode=false){
   $("title-trailer").onclick=()=>{if(trailer)window.open("https://www.youtube.com/watch?v="+trailer.key,"_blank","noopener")};
   $("title-play").onclick=()=>{if(k==="tv"){const s=$("title-season").value,e=$("title-episode").value;window.location.assign(pageUrl(titlePageItem,true)+"?season="+s+"&episode="+e)}else{window.location.assign(pageUrl(titlePageItem,true))}};
   if(k==="tv")$("title-season").onchange=async()=>{titlePageSeason=Number($("title-season").value);await loadTitleEpisodes()};
-  if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1)}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined)}
+  if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1)}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
   window.scrollTo(0,0);
  }catch(e){notice(e.message)}
 }
@@ -322,11 +399,15 @@ async function loadTitleEpisodes(){
  select.onchange=()=>titlePageEpisode=Number(select.value);
  }catch(e){notice("Episodet nuk u ngarkuan: "+e.message)}
 }
-function startTitlePlayback(season,episode){
+function startTitlePlayback(season,episode,resumeTime=null){
  if(!titlePageItem)return;
+ const saved=getSavedProgress(titlePageItem);
+ const startAt=Number(resumeTime)>0?Number(resumeTime):(saved&&kind(titlePageItem)==="tv"&&Number(saved.season)===Number(season||1)&&Number(saved.episode)===Number(episode||1)?Number(saved.currentTime):kind(titlePageItem)==="movie"&&saved?Number(saved.currentTime):0);
+ latestPlaybackTime=startAt;latestPlaybackDuration=saved&&startAt===Number(saved.currentTime)?Number(saved.duration)||0:0;lastProgressWrite=0;
  $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
- $("cinesrc-frame").src=buildPlayerUrl(titlePageItem,season,episode);
+ $("cinesrc-frame").src=buildPlayerUrl(titlePageItem,season,episode,startAt);
+ setPlayerPlayButton(true);
 }
 function slugSimilarity(a,b){
  const rows=Array.from({length:b.length+1},(_,i)=>i);
@@ -357,19 +438,14 @@ function ageLabel(cert){const c=String(cert||"").trim().toUpperCase();const map=
 async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+(k==="tv"?"/content_ratings":"/release_dates"));if(k==="tv"){const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");return (rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0]||{}).rating||""}const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");const country=rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0];return country&&country.release_dates&&((country.release_dates.find(x=>x.certification)||{}).certification)||""}catch(_){return""}}
 let activePlayerProvider="cinesrc";
 let currentPlayback=null;
-function buildPlayerUrl(item,season,episode){
+function buildPlayerUrl(item,season,episode,resumeTime=0){
  const id=encodeURIComponent(String(item.id));
  const params=new URLSearchParams({
-  autoplay:"true",
-  muted:"false",
-  controls:"true",
-  autonext:"false",
-  color:"#34cfeb",
-  back:"close"
+  autoplay:"true",muted:"false",controls:"true",autonext:"false",color:"#34cfeb",back:"close"
  });
+ if(Number(resumeTime)>5){params.set("t",String(Math.floor(Number(resumeTime))));params.set("continueprompt","false")}
  if(kind(item)==="tv"){
-  params.set("s",String(Number(season)));
-  params.set("e",String(Number(episode)));
+  params.set("s",String(Number(season||1)));params.set("e",String(Number(episode||1)));
   return "https://cinesrc.st/embed/tv/"+id+"?"+params.toString();
  }
  return "https://cinesrc.st/embed/movie/"+id+"?"+params.toString();
@@ -398,26 +474,52 @@ function hidePlayerControls(){$("player-modal").classList.add("controls-visible"
 window.addEventListener("message",event=>{
  if(event.origin!=="https://cinesrc.st"||event.source!==$("cinesrc-frame").contentWindow)return;
  if(!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
- switch(event.data.type){
+ const data=event.data;
+ switch(data.type){
   case "cinesrc:ready":
    $("player-modal").dataset.playerState="ready";
+   if(latestPlaybackTime>5)sendCineSrcCommand("seek",[latestPlaybackTime]);
    break;
   case "cinesrc:play":
-   $("player-modal").dataset.playerState="playing";
-   break;
+   $("player-modal").dataset.playerState="playing";setPlayerPlayButton(true);break;
   case "cinesrc:pause":
-   $("player-modal").dataset.playerState="paused";
+   $("player-modal").dataset.playerState="paused";setPlayerPlayButton(false);savePlaybackProgress(true);break;
+  case "cinesrc:timeupdate":
+   latestPlaybackTime=Number(data.currentTime)||0;latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;savePlaybackProgress(false);break;
+  case "cinesrc:loadedmetadata":
+   latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;break;
+  case "cinesrc:volumechange":
+   if($("flxtv-volume"))$("flxtv-volume").value=String(Math.max(0,Math.min(1,Number(data.volume)||0)));
+   break;
+  case "cinesrc:nextepisode":
+   if(currentPlayback&&kind(currentPlayback.item)==="tv"){
+    if(Number.isFinite(Number(data.season)))currentPlayback.season=Number(data.season);
+    if(Number.isFinite(Number(data.episode)))currentPlayback.episode=Number(data.episode);
+    latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
+    savePlaybackProgress(true);
+   }
+   break;
+  case "cinesrc:ended":
+   if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
+   latestPlaybackTime=0;latestPlaybackDuration=0;setPlayerPlayButton(false);break;
+  case "cinesrc:response":
+   if(data.command==="getCurrentTime"&&Number.isFinite(Number(data.result))){latestPlaybackTime=Number(data.result);savePlaybackProgress(true)}
    break;
   case "cinesrc:close":
-   if(location.pathname.split("/").filter(Boolean)[1]==="play")history.back();
-   else closePlayer();
+   savePlaybackProgress(true);
+   if(location.pathname.split("/").filter(Boolean)[1]==="play")history.back();else closePlayer();
    break;
   case "cinesrc:error":
    $("player-modal").dataset.playerState="error";
-   notice("CineSRC: "+String(event.data.error||"Videoja nuk u ngarkua. Provo përsëri."));
-   break;
+   notice("CineSRC: "+String(data.error||"Videoja nuk u ngarkua. Provo përsëri."));break;
  }
 });
+$("flxtv-player-toggle").onclick=()=>{if($("player-modal").dataset.playerState==="playing")sendCineSrcCommand("pause");else sendCineSrcCommand("play")};
+$("flxtv-volume").addEventListener("input",event=>sendCineSrcCommand("setVolume",[Number(event.target.value)]));
+$("flxtv-volume").addEventListener("change",event=>sendCineSrcCommand("setVolume",[Number(event.target.value)]));
+window.addEventListener("pagehide",()=>savePlaybackProgress(true));
+window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
+renderContinueWatching();
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);const playerCloseButton=$("player-close");if(playerCloseButton)playerCloseButton.onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
 let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
