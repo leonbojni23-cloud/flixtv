@@ -303,10 +303,6 @@ function sendCineSrcCommand(command,args=[]){
  if(!frame||!frame.contentWindow)return;
  try{frame.contentWindow.postMessage({type:"cinesrc:command",command,args},"https://cinesrc.st")}catch(_){}
 }
-function setPlayerPlayButton(playing){
- const button=$("flxtv-player-toggle");if(!button)return;
- button.textContent=playing?"Ⅱ":"▶";button.setAttribute("aria-label",playing?"Pusho videon":"Luaj videon");
-}
 
 async function home(){
  renderContinueWatching();
@@ -411,7 +407,6 @@ function startTitlePlayback(season,episode,resumeTime=null){
  $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
  $("cinesrc-frame").src=buildPlayerUrl(titlePageItem,season,episode,startAt);
- setPlayerPlayButton(true);
 }
 function slugSimilarity(a,b){
  const rows=Array.from({length:b.length+1},(_,i)=>i);
@@ -485,9 +480,7 @@ window.addEventListener("message",event=>{
    if(latestPlaybackTime>5)sendCineSrcCommand("seek",[latestPlaybackTime]);
    break;
   case "cinesrc:play":
-   $("player-modal").dataset.playerState="playing";setPlayerPlayButton(true);break;
   case "cinesrc:pause":
-   $("player-modal").dataset.playerState="paused";setPlayerPlayButton(false);savePlaybackProgress(true);break;
   case "cinesrc:timeupdate":
    latestPlaybackTime=Number(data.currentTime)||0;latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;savePlaybackProgress(false);break;
   case "cinesrc:loadedmetadata":
@@ -501,7 +494,6 @@ window.addEventListener("message",event=>{
    break;
   case "cinesrc:ended":
    if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
-   latestPlaybackTime=0;latestPlaybackDuration=0;setPlayerPlayButton(false);break;
   case "cinesrc:response":
    if(data.command==="getCurrentTime"&&Number.isFinite(Number(data.result))){latestPlaybackTime=Number(data.result);savePlaybackProgress(true)}
    break;
@@ -514,7 +506,6 @@ window.addEventListener("message",event=>{
    notice("CineSRC: "+String(data.error||"Videoja nuk u ngarkua. Provo përsëri."));break;
  }
 });
-$("flxtv-player-toggle").onclick=()=>{if($("player-modal").dataset.playerState==="playing")sendCineSrcCommand("pause");else sendCineSrcCommand("play")};
 window.addEventListener("pagehide",()=>savePlaybackProgress(true));
 window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
 renderContinueWatching();
