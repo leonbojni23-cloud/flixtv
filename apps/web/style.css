@@ -1447,3 +1447,98 @@ html.deep-route-loading::after{
     overflow:hidden!important;
   }
 }
+
+
+/* Desktop title page: trailer becomes the cinematic background behind title and synopsis. */
+@media(min-width:681px){
+  .title-page-hero{
+    min-height:760px!important;
+    height:min(88vh,900px)!important;
+    overflow:hidden!important;
+    background:#080b11!important;
+  }
+  .title-page-backdrop{display:none!important}
+  .title-page-inner{
+    position:relative!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:flex-start!important;
+    width:100%!important;
+    max-width:none!important;
+    min-height:100%!important;
+    height:100%!important;
+    margin:0!important;
+    padding:28px clamp(36px,7vw,112px) 64px!important;
+    isolation:isolate!important;
+  }
+  .title-page-cover{
+    position:absolute!important;
+    z-index:-1!important;
+    inset:0!important;
+    width:100%!important;
+    max-width:none!important;
+    height:100%!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+    background:#080b11!important;
+  }
+  .title-page-cover::after{
+    content:"";
+    position:absolute;
+    z-index:3;
+    inset:0;
+    pointer-events:none;
+    background:
+      linear-gradient(90deg,rgba(5,7,12,.94) 0%,rgba(5,7,12,.78) 34%,rgba(5,7,12,.34) 72%,rgba(5,7,12,.22) 100%),
+      linear-gradient(0deg,#080b11 0%,rgba(8,11,17,.3) 25%,rgba(8,11,17,.12) 70%,rgba(8,11,17,.38) 100%);
+  }
+  .title-page-cover .title-page-preview,
+  .title-page-cover .title-page-preview iframe,
+  .title-page-cover .title-page-imdb-video,
+  .title-page-cover lite-youtube#yt-title-trailer{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    max-width:none!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    transform:none!important;
+    object-fit:cover!important;
+    border:0!important;
+  }
+  .title-page-cover .title-page-preview iframe,
+  .title-page-cover lite-youtube#yt-title-trailer iframe{
+    pointer-events:none!important;
+  }
+  .title-page-cover .yt-custom-controls{z-index:60!important}
+  .title-page-back{
+    position:relative!important;
+    z-index:8!important;
+    align-self:flex-start!important;
+    margin:0 0 0 0!important;
+  }
+  .title-page-layout{
+    position:relative!important;
+    z-index:5!important;
+    display:flex!important;
+    flex:1 1 auto!important;
+    align-items:center!important;
+    width:min(100%,1240px)!important;
+    padding:70px 0 35px!important;
+    margin:0!important;
+  }
+  .title-page-copy{
+    max-width:760px!important;
+    width:min(100%,760px)!important;
+    margin:0!important;
+    text-shadow:0 2px 18px rgba(0,0,0,.28);
+  }
+}
