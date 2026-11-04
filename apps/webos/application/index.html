@@ -50,7 +50,7 @@ html, body {
   overflow: hidden;
 }
 
-#superembed-frame {
+#cinesrc-frame {
   display: block;
   position: absolute;
   inset: 0;
@@ -202,16 +202,17 @@ body.player-open {
 <!-- Series and episodes -->
 <main id="series-view" hidden></main>
 
-<!-- SuperEmbed player -->
+<!-- CineSRC player -->
 <main id="player-view" hidden>
 
   <div id="player-loading">
     Loading player...
   </div>
 
-  <iframe id="superembed-frame" title="SuperEmbed video player" src="about:blank"
-    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-    allowfullscreen referrerpolicy="origin"></iframe>
+  <iframe id="cinesrc-frame" title="CineSRC video player" src="about:blank"
+     sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+    allow="autoplay; fullscreen; encrypted-media; picture-in-picture; orientation-lock"
+    allowfullscreen referrerpolicy="no-referrer"></iframe>
 
   <button id="player-back" class="f" type="button" aria-label="Back to title details">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -375,7 +376,7 @@ body.player-open {
 <script src="features/profiles.js"></script>
 <script src="app.js"></script>
 
-<!-- SuperEmbed player: load after app.js and before details.js -->
+<!-- CineSRC player: load after app.js and before details.js -->
 <script src="features/superembed-player.js"></script>
 
 <script src="features/details.js"></script>
