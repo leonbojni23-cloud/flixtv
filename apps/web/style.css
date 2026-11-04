@@ -1004,3 +1004,14 @@ html.deep-route-loading::after{
 .title-page-cover .title-page-imdb-video{display:block;width:100%;height:100%;object-fit:cover;background:#05070b}
 .title-page-cover .title-page-preview:has(.title-page-imdb-video){pointer-events:auto!important}
 .title-page-cover .title-page-imdb-video::-webkit-media-controls{opacity:1}
+
+/* YouTube title trailer: FLIXTV-owned minimal controls. */
+.title-page-cover .youtube-custom-preview{pointer-events:auto!important;position:absolute!important;inset:0!important;overflow:hidden!important;background:#05070b}
+.title-page-cover .youtube-custom-preview iframe{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;border:0!important;pointer-events:none!important}
+.yt-custom-controls{position:absolute;z-index:5;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:30px 13px 11px;background:linear-gradient(0deg,rgba(0,0,0,.82),transparent);color:#fff}
+.yt-play-toggle{flex:0 0 34px;width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:17px;font-weight:800;cursor:pointer;display:grid;place-items:center}
+.yt-progress{appearance:none;-webkit-appearance:none;flex:1;min-width:0;height:4px;border-radius:10px;background:rgba(255,255,255,.35);cursor:pointer;accent-color:#e50936}
+.yt-progress::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:#e50936}
+.yt-progress::-moz-range-thumb{width:11px;height:11px;border:0;border-radius:50%;background:#e50936}
+.yt-time{flex:0 0 auto;font-size:10px;font-variant-numeric:tabular-nums;color:#fff}
+@media(max-width:680px){.yt-custom-controls{gap:8px;padding:25px 9px 8px}.yt-play-toggle{width:31px;height:31px;flex-basis:31px}.yt-time{font-size:9px}}
