@@ -372,8 +372,14 @@ async function openTitlePage(item,push=false,playMode=false){
   const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,credits");
   d.overviewSq=await getAlbanianOverview(d,k);
   titlePageItem={...item,...d,media_type:k};
+  const savedForTitle=getSavedProgress(titlePageItem);
+  const savedIsResumable=!!(savedForTitle&&Number(savedForTitle.currentTime)>5&&(!savedForTitle.duration||Number(savedForTitle.currentTime)<Number(savedForTitle.duration)*0.92));
   const seasons=(d.seasons||[]).filter(x=>x.season_number>=0);
-  if(k==="tv"&&!seasons.some(x=>x.season_number===titlePageSeason))titlePageSeason=seasons[0]?.season_number??1;
+  if(k==="tv"){
+   const savedSeason=Number(savedForTitle?.season||0),savedEpisode=Number(savedForTitle?.episode||0);
+   if(savedIsResumable&&seasons.some(x=>Number(x.season_number)===savedSeason)){titlePageSeason=savedSeason;titlePageEpisode=savedEpisode||1}
+   else if(!seasons.some(x=>Number(x.season_number)===titlePageSeason)){titlePageSeason=seasons[0]?.season_number??1;titlePageEpisode=1}
+  }
   if(push)history.pushState({titlePage:true,play:playMode},"",pageUrl(titlePageItem,playMode));
   $("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;$("search-page").hidden=true;
   $("title-page").innerHTML=titlePageMarkup(titlePageItem,d,playMode);
@@ -381,13 +387,18 @@ async function openTitlePage(item,push=false,playMode=false){
   if(k==="tv")await loadTitleEpisodes();
   const trailer=(d.videos?.results||[]).find(x=>x.site==="YouTube"&&(x.type==="Trailer"||x.type==="Teaser"));
   $("title-trailer").onclick=()=>{if(trailer)window.open("https://www.youtube.com/watch?v="+trailer.key,"_blank","noopener")};
-  const savedForTitle=getSavedProgress(titlePageItem);
-  const canResumeMovie=k==="movie"&&savedForTitle&&Number(savedForTitle.currentTime)>5&&(!savedForTitle.duration||Number(savedForTitle.currentTime)<Number(savedForTitle.duration)*0.92);
+  const canResume=savedIsResumable&&(k==="movie"||(Number(savedForTitle.season)===titlePageSeason&&Number(savedForTitle.episode)===titlePageEpisode));
   const titlePlayLabel=$("title-play").querySelector("span");
-  if(titlePlayLabel)titlePlayLabel.textContent=canResumeMovie?"Vazhdo filmin":"Luaj filmin";
-  $("title-play").onclick=()=>{if(k==="tv"){const s=$("title-season").value,e=$("title-episode").value;window.location.assign(pageUrl(titlePageItem,true)+"?season="+s+"&episode="+e)}else{window.location.assign(pageUrl(titlePageItem,true))}};
-  if(k==="tv")$("title-season").onchange=async()=>{titlePageSeason=Number($("title-season").value);await loadTitleEpisodes()};
-  if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1)}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
+  if(titlePlayLabel)titlePlayLabel.textContent=canResume?(k==="tv"?"Vazhdo serialin":"Vazhdo filmin"):(k==="tv"?"Luaj episodin":"Luaj filmin");
+  $("title-play").classList.toggle("is-resume",!!canResume);
+  $("title-play").onclick=()=>{
+   const params=new URLSearchParams();
+   if(k==="tv"){const s=canResume?Number(savedForTitle.season):Number($("title-season").value),e=canResume?Number(savedForTitle.episode):Number($("title-episode").value);params.set("season",String(s));params.set("episode",String(e));}
+   if(canResume)params.set("t",String(Math.floor(Number(savedForTitle.currentTime)||0)));
+   window.location.assign(pageUrl(titlePageItem,true)+(params.size?"?"+params.toString():""));
+  };
+  if(k==="tv")$("title-season").onchange=async()=>{titlePageSeason=Number($("title-season").value);titlePageEpisode=1;await loadTitleEpisodes()};
+  if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1);await loadTitleEpisodes()}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
   window.scrollTo(0,0);
  }catch(e){notice(e.message)}
 }
@@ -427,8 +438,18 @@ async function resolveTitleRoute(){
   await openTitlePage(match,false,playMode);document.documentElement.classList.remove("deep-route-loading");
  }catch(e){document.documentElement.classList.remove("deep-route-loading");notice(e.message);$("title-page").hidden=true;$("catalog").hidden=false;home()}
 }
+async function leavePlayer(){
+ if(!$("player-modal").classList.contains("open"))return;
+ const item=currentPlayback&&currentPlayback.item;
+ const isTitleRoute=location.pathname.split("/").filter(Boolean)[1]==="play";
+ closePlayer();
+ if(isTitleRoute&&item){
+  history.replaceState({titlePage:true},"",pageUrl(item));
+  await openTitlePage(item,false,false);
+ }
+}
 window.addEventListener("popstate",()=>{if(location.pathname==="/"){if($("player-modal").classList.contains("open"))closePlayer();$("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;home()}else{if($("player-modal").classList.contains("open"))closePlayer();resolveTitleRoute()}});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("player-modal").classList.contains("open")){e.preventDefault();history.back()}});
+document.addEventListener("keydown",e=>{if((e.key==="Escape"||e.key==="Backspace")&&$("player-modal").classList.contains("open")){e.preventDefault();leavePlayer()}});
 
 async function details(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");selected={...item,...d,media_type:k};$("details-title").textContent=title(d);$("details-type").textContent=k==="tv"?"SERIAL":"FILM";$("details-meta").textContent=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1):"",d.runtime?d.runtime+" min":d.number_of_seasons?d.number_of_seasons+" sezone":""].filter(Boolean).join(" · ");const overview=await getAlbanianOverview(d,k);$("details-overview").textContent=overview||"Përshkrimi nuk është i disponueshëm.";$("details-backdrop").style.backgroundImage=d.backdrop_path?'linear-gradient(0deg,#111722,transparent 80%),url("'+IMG+"w1280"+d.backdrop_path+'")':"linear-gradient(0deg,#111722,#263143)";const t=(d.videos&&d.videos.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser"));$("watch-trailer").hidden=!t;$("watch-trailer").onclick=()=>window.open("https://www.youtube.com/watch?v="+t.key,"_blank","noopener");$("episode-controls").hidden=k!=="tv";$("play-title").hidden=k==="tv";$("episode-controls").style.display=k==="tv"?"flex":"none";if(k!=="tv"){$("season-select").replaceChildren();$("episode-select").replaceChildren()}if(k==="tv"){const seasons=(d.seasons||[]).filter(s=>s.season_number>=0);$("season-select").innerHTML=seasons.map(s=>'<option value="'+s.season_number+'">'+s.name+"</option>").join("");$("season-select").onchange=episodes;await episodes()}modal("details-modal",true)}catch(e){notice(e.message)}}
 async function episodes(){if(!selected)return;try{const s=$("season-select").value,d=await tmdb("/tv/"+selected.id+"/season/"+s);$("episode-select").innerHTML=(d.episodes||[]).map(ep=>'<option value="'+ep.episode_number+'">E'+ep.episode_number+" · "+String(ep.name||"").replace(/[&<>"]/g,"")+"</option>").join("")}catch(e){notice(e.message)}}
@@ -499,7 +520,7 @@ window.addEventListener("message",event=>{
    break;
   case "cinesrc:close":
    savePlaybackProgress(true);
-   if(location.pathname.split("/").filter(Boolean)[1]==="play")history.back();else closePlayer();
+   leavePlayer();
    break;
   case "cinesrc:error":
    $("player-modal").dataset.playerState="error";
