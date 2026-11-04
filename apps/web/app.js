@@ -490,8 +490,22 @@ async function loadTitleEpisodes(){
   if(!isCurrent())return;
   if(!episodes.some(ep=>Number(ep.episode_number)===Number(titlePageEpisode)))titlePageEpisode=Number(episodes[0]?.episode_number||1);
   const saved=getSavedProgress(titlePageItem),savedCanResume=!!(saved&&Number(saved.currentTime)>5&&(!saved.duration||Number(saved.currentTime)<Number(saved.duration)*0.92));
-  list.innerHTML=episodes.map(ep=>{const epNo=Number(ep.episode_number),overview=String(ep.overview||"").trim();return '<button type="button" class="series-episode-card '+(epNo===titlePageEpisode?'selected':'')+'" data-episode="'+epNo+'"><span class="series-episode-thumb">'+(ep.still_path?'<img loading="lazy" decoding="async" src="'+IMG+'w300'+ep.still_path+'" alt="">':'<span>FLIXTV</span>')+'<b>▶</b></span><span class="series-episode-copy"><strong>'+escapeHtml(ep.name||("Episodi "+epNo))+'</strong><small>E'+epNo+(ep.runtime?" · "+ep.runtime+" min":"")+(ep.air_date?" · "+escapeHtml(ep.air_date.slice(0,4)):"")+'</small>'+(overview?'<span>'+escapeHtml(overview)+'</span>':'')+'</span></button>'}).join("");
-  list.querySelectorAll("[data-episode]").forEach(card=>card.addEventListener("click",()=>{const ep=Number(card.dataset.episode)||1;titlePageEpisode=ep;const resume=savedCanResume&&Number(saved.season)===season&&Number(saved.episode)===ep?Number(saved.currentTime):0;startTitlePlayback(season,ep,resume)}));
+  list.innerHTML=episodes.map(ep=>{
+   const epNo=Number(ep.episode_number),overview=String(ep.overview||"").trim();
+   return '<article class="series-episode-card '+(epNo===titlePageEpisode?'selected':'')+'" data-episode="'+epNo+'" role="button" tabindex="0"><span class="series-episode-thumb">'+(ep.still_path?'<img loading="lazy" decoding="async" src="'+IMG+'w300'+ep.still_path+'" alt="">':'<span>FLIXTV</span>')+'<b>▶</b></span><span class="series-episode-copy"><strong>'+escapeHtml(ep.name||("Episodi "+epNo))+'</strong><small>E'+epNo+(ep.runtime?" · "+ep.runtime+" min":"")+(ep.air_date?" · "+escapeHtml(ep.air_date.slice(0,4)):"")+'</small>'+(overview?'<span class="series-episode-overview">'+escapeHtml(overview)+'</span><button type="button" class="episode-overview-more" aria-expanded="false" aria-label="Shfaq përshkrimin e plotë">…</button>':'')+'</span></article>'
+  }).join("");
+  list.querySelectorAll("[data-episode]").forEach(card=>{
+   const play=()=>{const ep=Number(card.dataset.episode)||1;titlePageEpisode=ep;const resume=savedCanResume&&Number(saved.season)===season&&Number(saved.episode)===ep?Number(saved.currentTime):0;startTitlePlayback(season,ep,resume)};
+   card.addEventListener("click",event=>{if(event.target.closest(".episode-overview-more"))return;play()});
+   card.addEventListener("keydown",event=>{if(event.target===card&&(event.key==="Enter"||event.key===" ")){event.preventDefault();play()}});
+   const more=card.querySelector(".episode-overview-more");
+   if(more)more.addEventListener("click",event=>{
+    event.stopPropagation();
+    const copy=card.querySelector(".series-episode-overview"),expanded=copy.classList.toggle("expanded");
+    more.classList.toggle("active",expanded);more.setAttribute("aria-expanded",String(expanded));
+    more.setAttribute("aria-label",expanded?"Mbyll përshkrimin":"Shfaq përshkrimin e plotë");
+   });
+  });
  };
  try{
   let episodes=titleSeasonEpisodeCache.get(cacheKey);
@@ -500,22 +514,20 @@ async function loadTitleEpisodes(){
   if(!isCurrent())return;
   episodes=d.episodes||[];
   titleSeasonEpisodeCache.set(cacheKey,episodes);
-  renderEpisodes(episodes); // Show the season immediately; translations happen below.
-  if(!episodes.some(ep=>!String(ep.overview||"").trim()))return;
+  renderEpisodes(episodes);
+  // Always fetch English source text: TMDB's sq-AL response can still contain English descriptions.
   (async()=>{
    try{
     const english=await tmdb("/tv/"+itemId+"/season/"+season+"?language=en-US");
-    if(!isCurrent())return;
     const englishByNumber=new Map((english.episodes||[]).map(ep=>[Number(ep.episode_number),ep]));
     const translated=await Promise.all(episodes.map(async ep=>{
-     if(String(ep.overview||"").trim())return ep;
-     const source=String(englishByNumber.get(Number(ep.episode_number))?.overview||"").trim();
-     if(!source)return ep;
+     const source=String(englishByNumber.get(Number(ep.episode_number))?.overview||ep.overview||"").trim();
+     if(!source)return {...ep,overview:""};
      return {...ep,overview:await translateOverviewToAlbanian(source)};
     }));
     titleSeasonEpisodeCache.set(cacheKey,translated);
     renderEpisodes(translated);
-   }catch(error){console.warn("Episode overview fallback failed:",error)}
+   }catch(error){console.warn("Episode overview translation failed:",error)}
   })();
  }catch(e){if(isCurrent())notice("Episodet nuk u ngarkuan: "+e.message)}
 }
