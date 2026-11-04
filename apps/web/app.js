@@ -502,8 +502,22 @@ function enterCineSrcFullscreen(){
   }).catch(()=>modal.classList.add("css-fullscreen"));
  }else modal.classList.add("css-fullscreen");
 }
+function stopTitlePagePreview(){
+ const nativePreview=document.querySelector(".title-page-imdb-video");
+ if(nativePreview){try{nativePreview.pause();nativePreview.currentTime=0}catch(_){}}
+ const youtubeHost=$("yt-title-trailer");
+ const stopYoutube=player=>{
+  if(!player)return;
+  try{player.pauseVideo();player.stopVideo()}catch(_){}
+ };
+ if(titleYoutubePlayer)stopYoutube(titleYoutubePlayer);
+ else if(youtubeHost&&typeof youtubeHost.getYTPlayer==="function"){
+  youtubeHost.getYTPlayer().then(stopYoutube).catch(()=>{});
+ }
+}
 function startTitlePlayback(season,episode,resumeTime=null){
  if(!titlePageItem)return;
+ stopTitlePagePreview();
  const saved=getSavedProgress(titlePageItem);
  const startAt=Number(resumeTime)>0?Number(resumeTime):(saved&&kind(titlePageItem)==="tv"&&Number(saved.season)===Number(season||1)&&Number(saved.episode)===Number(episode||1)?Number(saved.currentTime):kind(titlePageItem)==="movie"&&saved?Number(saved.currentTime):0);
  latestPlaybackTime=startAt;latestPlaybackDuration=saved&&startAt===Number(saved.currentTime)?Number(saved.duration)||0:0;lastProgressWrite=0;
