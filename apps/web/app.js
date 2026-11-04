@@ -491,11 +491,7 @@ window.addEventListener("message",event=>{
   case "cinesrc:timeupdate":
    latestPlaybackTime=Number(data.currentTime)||0;latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;savePlaybackProgress(false);break;
   case "cinesrc:loadedmetadata":
-   latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;break;
-  case "cinesrc:volumechange":
-   if($("flxtv-volume"))$("flxtv-volume").value=String(Math.max(0,Math.min(1,Number(data.volume)||0)));
-   break;
-  case "cinesrc:nextepisode":
+   latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;break;case "cinesrc:nextepisode":
    if(currentPlayback&&kind(currentPlayback.item)==="tv"){
     if(Number.isFinite(Number(data.season)))currentPlayback.season=Number(data.season);
     if(Number.isFinite(Number(data.episode)))currentPlayback.episode=Number(data.episode);
@@ -519,8 +515,6 @@ window.addEventListener("message",event=>{
  }
 });
 $("flxtv-player-toggle").onclick=()=>{if($("player-modal").dataset.playerState==="playing")sendCineSrcCommand("pause");else sendCineSrcCommand("play")};
-$("flxtv-volume").addEventListener("input",event=>sendCineSrcCommand("setVolume",[Number(event.target.value)]));
-$("flxtv-volume").addEventListener("change",event=>sendCineSrcCommand("setVolume",[Number(event.target.value)]));
 window.addEventListener("pagehide",()=>savePlaybackProgress(true));
 window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
 renderContinueWatching();
