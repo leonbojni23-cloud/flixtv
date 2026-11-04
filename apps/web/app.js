@@ -335,7 +335,7 @@ function slugSimilarity(a,b){
 }
 async function resolveTitleRoute(){
  const parts=decodeURIComponent(location.pathname).split("/").filter(Boolean);
- if(!parts.length){$("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;home();return}
+ if(!parts.length){document.documentElement.classList.remove("deep-route-loading");$("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;home();return}
  const playMode=parts[1]==="play",slug=parts[0];
  const query=slug.replace(/-/g," ");
  try{
@@ -344,8 +344,8 @@ async function resolveTitleRoute(){
   const match=candidates.find(x=>titleSlug(title(x))===slug||titleSlug(x.original_title||x.original_name||"")===slug)||candidates.find(x=>slugSimilarity(titleSlug(title(x)),slug)>=0.68);
   if(!match){$("title-page").hidden=true;$("catalog").hidden=true;$("hero").hidden=true;$("title-page").innerHTML='<div class="title-page-not-found"><span>404</span><h1>Titulli nuk u gjet</h1><p>Kontrollo adresën ose kërko titullin në FLIXTV.</p><a class="primary-btn" href="/">Kthehu në FLIXTV</a></div>'; $("title-page").hidden=false;return}
   titlePageSeason=1;titlePageEpisode=1;
-  await openTitlePage(match,false,playMode);
- }catch(e){notice(e.message);$("title-page").hidden=true;$("catalog").hidden=false;home()}
+  await openTitlePage(match,false,playMode);document.documentElement.classList.remove("deep-route-loading");
+ }catch(e){document.documentElement.classList.remove("deep-route-loading");notice(e.message);$("title-page").hidden=true;$("catalog").hidden=false;home()}
 }
 window.addEventListener("popstate",()=>{if(location.pathname==="/"){if($("player-modal").classList.contains("open"))closePlayer();$("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;home()}else{if($("player-modal").classList.contains("open"))closePlayer();resolveTitleRoute()}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("player-modal").classList.contains("open")){e.preventDefault();history.back()}});
