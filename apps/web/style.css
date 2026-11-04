@@ -1291,3 +1291,14 @@ html.deep-route-loading::after{
 .title-page-cover .yt-custom-controls button{
  pointer-events:auto!important;
 }
+
+
+/* iOS installed web app: keep the header below the status bar / Dynamic Island. */
+@media (display-mode: standalone){
+ @media (max-width:760px){
+  .topbar{
+   height:calc(62px + env(safe-area-inset-top));
+   padding-top:env(safe-area-inset-top);
+  }
+ }
+}
