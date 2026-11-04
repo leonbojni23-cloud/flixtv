@@ -375,53 +375,53 @@ function setTitleYoutubeButton(playing){
  button.setAttribute("aria-label",playing?"Pusho videon":"Luaj videon");
  button.setAttribute("aria-pressed",String(!playing));
 }
+function setTitleYoutubeMuteButton(muted){
+ const button=document.querySelector(".yt-mute-toggle");if(!button)return;
+ button.innerHTML=muted?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a3.5 3.5 0 0 0-2-3.16v6.32a3.5 3.5 0 0 0 2-3.16zM14.5 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z" fill="currentColor"/><path d="m18 6 4 4m0-4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a3.5 3.5 0 0 0-2-3.16v6.32a3.5 3.5 0 0 0 2-3.16zM14.5 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z" fill="currentColor"/></svg>';
+ button.setAttribute("aria-label",muted?"Aktivizo zërin":"Çaktivizo zërin");
+ button.setAttribute("aria-pressed",String(!muted));
+}
 function initTitleYoutubeControls(){
- const frame=$("yt-title-trailer"),button=document.querySelector(".yt-play-toggle");
- if(!frame||!button)return;
+ const frame=$("yt-title-trailer"),playButton=document.querySelector(".yt-play-toggle"),muteButton=document.querySelector(".yt-mute-toggle");
+ if(!frame||!playButton||!muteButton)return;
  clearInterval(titleYoutubeTimer);titleYoutubePlayer=null;
- let ready=false,pendingAction=null;
- const runAction=action=>{
-  if(!ready||!titleYoutubePlayer)return;
+ let ready=false,desiredPlaying=true;
+ const togglePlayback=()=>{
+  if(!ready||!titleYoutubePlayer){desiredPlaying=!desiredPlaying;return}
   const state=titleYoutubePlayer.getPlayerState();
-  if(action==="toggle"){
-   if(state===YT.PlayerState.PLAYING||state===YT.PlayerState.BUFFERING){
-    titleYoutubePlayer.pauseVideo();
-   }else{
-    // A real button tap is allowed to start playback with sound on supported browsers.
-    titleYoutubePlayer.unMute();
-    titleYoutubePlayer.playVideo();
-   }
-  }else{
-   titleYoutubePlayer.mute();
+  if(state===YT.PlayerState.PLAYING||state===YT.PlayerState.BUFFERING)titleYoutubePlayer.pauseVideo();
+  else titleYoutubePlayer.playVideo();
+ };
+ playButton.onclick=event=>{event.preventDefault();event.stopPropagation();togglePlayback()};
+ muteButton.onclick=event=>{
+  event.preventDefault();event.stopPropagation();
+  if(!ready||!titleYoutubePlayer)return;
+  if(titleYoutubePlayer.isMuted()){
+   titleYoutubePlayer.unMute();titleYoutubePlayer.setVolume(100);setTitleYoutubeMuteButton(false);
+   // User gesture explicitly authorizes sound; ensure playback continues.
    titleYoutubePlayer.playVideo();
+  }else{
+   titleYoutubePlayer.mute();setTitleYoutubeMuteButton(true);
   }
  };
- button.onclick=()=>{
-  if(!ready){pendingAction="toggle";return}
-  runAction("toggle");
- };
  loadTitleYoutubeApi().then(()=>{
-  const currentFrame=$("yt-title-trailer");
-  if(!currentFrame||currentFrame!==frame)return;
+  if($("yt-title-trailer")!==frame)return;
   titleYoutubePlayer=new YT.Player(frame,{
+   videoId:frame.getAttribute("data-video-id"),
+   playerVars:{autoplay:1,controls:0,disablekb:1,fs:0,playsinline:1,rel:0,iv_load_policy:3,origin:location.origin},
    events:{
     onReady:event=>{
-     ready=true;
-     // Muted autoplay is the only reliable automatic start on mobile Safari/Chrome.
-     event.target.mute();
-     event.target.playVideo();
-     setTitleYoutubeButton(false);
-     if(pendingAction){const action=pendingAction;pendingAction=null;runAction(action)}
+     ready=true;event.target.mute();event.target.playVideo();
+     setTitleYoutubeButton(false);setTitleYoutubeMuteButton(true);
     },
     onStateChange:event=>{
      if(event.data===YT.PlayerState.PLAYING)setTitleYoutubeButton(true);
      if(event.data===YT.PlayerState.PAUSED||event.data===YT.PlayerState.ENDED)setTitleYoutubeButton(false);
-     if(event.data===YT.PlayerState.CUED||event.data===YT.PlayerState.UNSTARTED)setTitleYoutubeButton(false);
     },
     onError:()=>{ready=false;setTitleYoutubeButton(false)}
    }
   });
- }).catch(()=>setTitleYoutubeButton(false));
+ }).catch(()=>{setTitleYoutubeButton(false);setTitleYoutubeMuteButton(true)});
 }
 function titlePageMarkup(item,d,playMode=false){
  const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:""),posterPath=d.poster_path?IMG+"w500"+d.poster_path:"";
@@ -432,7 +432,7 @@ function titlePageMarkup(item,d,playMode=false){
  const trailer=(d.videos?.results||[]).filter(x=>x.site==="YouTube"&&x.key&&(x.type==="Trailer"||x.type==="Teaser")).sort((a,b)=>Number(!!b.official)-Number(!!a.official)||Number(b.type==="Trailer")-Number(a.type==="Trailer")||Number(b.iso_639_1==="en")-Number(a.iso_639_1==="en"))[0];
  const imdbVideo=(d.imdbVideos?.videos||[]).find(v=>(v.type||"").toLowerCase()==="trailer"&&Array.isArray(v.playback)&&v.playback.some(p=>p.url&&["MP4","M3U8"].includes(String(p.format||"").toUpperCase())));
  const imdbSource=imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="MP4"&&p.url)||imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="M3U8"&&p.url);
- const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview youtube-custom-preview"><iframe id="yt-title-trailer" src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(trailer.key)+'?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&playsinline=1&rel=0&iv_load_policy=3&origin='+encodeURIComponent(location.origin)+'" title="Trailer preview" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="yt-custom-controls"><button type="button" class="yt-play-toggle" aria-label="Luaj videon" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button></div></div>':"";
+ const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview youtube-custom-preview"><div id="yt-title-trailer" data-video-id="'+escapeHtml(trailer.key)+'" title="Trailer preview"></div><div class="yt-custom-controls"><button type="button" class="yt-play-toggle" aria-label="Luaj videon" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button><button type="button" class="yt-mute-toggle" aria-label="Aktivizo zërin" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/></svg></button></div></div>':"";
  const cover=preview||(posterPath?'<img class="title-page-poster" src="'+posterPath+'" alt="'+escapeHtml(title(d))+' poster">':'<div class="title-page-poster-placeholder">FLIXTV</div>');
  return '<div class="title-page-hero"><div class="title-page-backdrop" style="'+(backdrop?'background-image:linear-gradient(90deg,#080b11 0%,rgba(8,11,17,.92) 30%,rgba(8,11,17,.48) 66%,rgba(8,11,17,.25)),linear-gradient(0deg,#090b10 0%,transparent 52%),url("'+backdrop+'")':'')+'"></div>'+
  '<div class="title-page-inner"><a class="title-page-back" href="/" data-title-home>‹ <span>Kthehu te FLIXTV</span></a><div class="title-page-cover">'+cover+'</div><div class="title-page-layout"><div class="title-page-copy"><div class="title-page-kicker"><span class="title-page-kicker-dot"></span>'+(tv?"FLIXTV ORIGINAL SERIES":"FLIXTV FILM")+'</div><h1>'+escapeHtml(title(d))+'</h1>'+
