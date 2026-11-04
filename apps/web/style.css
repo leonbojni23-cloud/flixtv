@@ -904,16 +904,14 @@ body{
  .title-page-cast-head{margin:36px 0 16px}
 }
 
-/* Keep the homepage from flashing while a deep movie or playback URL resolves. */
-html.deep-route-loading body:before{
- content:"PO NGARKOHET";
- position:fixed;inset:0;z-index:99999;display:grid;place-items:center;
- padding-top:0;background:#080b11;color:#aeb8c8;
+
+/* Hard gate: never paint the catalog shell on a deep-link request. */
+html.deep-route-loading body{visibility:hidden!important}
+html.deep-route-loading::before{
+ content:"";position:fixed;inset:0;z-index:2147483646;background:#080b11;visibility:visible;
+}
+html.deep-route-loading::after{
+ content:"PO NGARKOHET";position:fixed;z-index:2147483647;left:50%;top:50%;
+ transform:translate(-50%,-50%);visibility:visible;color:#aeb8c8;
  font-size:11px;font-weight:850;letter-spacing:3px;
 }
-html.deep-route-loading body:after{
- content:"";position:fixed;z-index:100000;left:calc(50% - 13px);top:calc(50% - 28px);
- width:26px;height:26px;border:2px solid rgba(255,255,255,.13);
- border-top-color:#34cfeb;border-radius:50%;animation:flxtv-route-spin .8s linear infinite;
-}
-@keyframes flxtv-route-spin{to{transform:rotate(360deg)}}
