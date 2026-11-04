@@ -396,6 +396,13 @@ function initTitleYoutubeControls(){
     if(event.data===YT.PlayerState.PLAYING)setTitleYoutubeButton(true);
     if(event.data===YT.PlayerState.PAUSED||event.data===YT.PlayerState.ENDED)setTitleYoutubeButton(false);
    },
+   onAutoplayBlocked:()=>{
+    // Browsers commonly block autoplay with sound. Retry muted so the trailer still starts.
+    if(titleYoutubePlayer&&typeof titleYoutubePlayer.mute==="function"){
+     titleYoutubePlayer.mute();
+     titleYoutubePlayer.playVideo();
+    }
+   },
    onError:()=>setTitleYoutubeButton(false)
   }});
  }).catch(()=>setTitleYoutubeButton(false));
