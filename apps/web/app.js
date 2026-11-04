@@ -379,32 +379,48 @@ function initTitleYoutubeControls(){
  const frame=$("yt-title-trailer"),button=document.querySelector(".yt-play-toggle");
  if(!frame||!button)return;
  clearInterval(titleYoutubeTimer);titleYoutubePlayer=null;
- button.onclick=()=>{
-  if(!titleYoutubePlayer||typeof titleYoutubePlayer.getPlayerState!=="function")return;
+ let ready=false,pendingAction=null;
+ const runAction=action=>{
+  if(!ready||!titleYoutubePlayer)return;
   const state=titleYoutubePlayer.getPlayerState();
-  if(state===YT.PlayerState.PLAYING||state===YT.PlayerState.BUFFERING)titleYoutubePlayer.pauseVideo();
-  else titleYoutubePlayer.playVideo();
+  if(action==="toggle"){
+   if(state===YT.PlayerState.PLAYING||state===YT.PlayerState.BUFFERING){
+    titleYoutubePlayer.pauseVideo();
+   }else{
+    // A real button tap is allowed to start playback with sound on supported browsers.
+    titleYoutubePlayer.unMute();
+    titleYoutubePlayer.playVideo();
+   }
+  }else{
+   titleYoutubePlayer.mute();
+   titleYoutubePlayer.playVideo();
+  }
+ };
+ button.onclick=()=>{
+  if(!ready){pendingAction="toggle";return}
+  runAction("toggle");
  };
  loadTitleYoutubeApi().then(()=>{
-  if(!$("yt-title-trailer"))return;
-  titleYoutubePlayer=new YT.Player("yt-title-trailer",{events:{
-   onReady:event=>{
-    setTitleYoutubeButton(false);
-    event.target.playVideo();
-   },
-   onStateChange:event=>{
-    if(event.data===YT.PlayerState.PLAYING)setTitleYoutubeButton(true);
-    if(event.data===YT.PlayerState.PAUSED||event.data===YT.PlayerState.ENDED)setTitleYoutubeButton(false);
-   },
-   onAutoplayBlocked:()=>{
-    // Browsers commonly block autoplay with sound. Retry muted so the trailer still starts.
-    if(titleYoutubePlayer&&typeof titleYoutubePlayer.mute==="function"){
-     titleYoutubePlayer.mute();
-     titleYoutubePlayer.playVideo();
-    }
-   },
-   onError:()=>setTitleYoutubeButton(false)
-  }});
+  const currentFrame=$("yt-title-trailer");
+  if(!currentFrame||currentFrame!==frame)return;
+  titleYoutubePlayer=new YT.Player(frame,{
+   events:{
+    onReady:event=>{
+     ready=true;
+     // Muted autoplay is the only reliable automatic start on mobile Safari/Chrome.
+     event.target.mute();
+     event.target.playVideo();
+     setTitleYoutubeButton(false);
+     if(pendingAction){const action=pendingAction;pendingAction=null;runAction(action)}
+    },
+    onStateChange:event=>{
+     if(event.data===YT.PlayerState.PLAYING)setTitleYoutubeButton(true);
+     if(event.data===YT.PlayerState.PAUSED||event.data===YT.PlayerState.ENDED)setTitleYoutubeButton(false);
+     if(event.data===YT.PlayerState.CUED||event.data===YT.PlayerState.UNSTARTED)setTitleYoutubeButton(false);
+    },
+    onError:()=>{ready=false;setTitleYoutubeButton(false)}
+   }
+  });
  }).catch(()=>setTitleYoutubeButton(false));
 }
 function titlePageMarkup(item,d,playMode=false){
@@ -416,7 +432,7 @@ function titlePageMarkup(item,d,playMode=false){
  const trailer=(d.videos?.results||[]).filter(x=>x.site==="YouTube"&&x.key&&(x.type==="Trailer"||x.type==="Teaser")).sort((a,b)=>Number(!!b.official)-Number(!!a.official)||Number(b.type==="Trailer")-Number(a.type==="Trailer")||Number(b.iso_639_1==="en")-Number(a.iso_639_1==="en"))[0];
  const imdbVideo=(d.imdbVideos?.videos||[]).find(v=>(v.type||"").toLowerCase()==="trailer"&&Array.isArray(v.playback)&&v.playback.some(p=>p.url&&["MP4","M3U8"].includes(String(p.format||"").toUpperCase())));
  const imdbSource=imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="MP4"&&p.url)||imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="M3U8"&&p.url);
- const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview youtube-custom-preview"><iframe id="yt-title-trailer" src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(trailer.key)+'?enablejsapi=1&autoplay=1&mute=0&controls=0&disablekb=1&fs=0&playsinline=1&rel=0&iv_load_policy=3&origin='+encodeURIComponent(location.origin)+'" title="Trailer preview" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="yt-custom-controls"><button type="button" class="yt-play-toggle" aria-label="Luaj videon" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button></div></div>':"";
+ const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview youtube-custom-preview"><iframe id="yt-title-trailer" src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(trailer.key)+'?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&playsinline=1&rel=0&iv_load_policy=3&origin='+encodeURIComponent(location.origin)+'" title="Trailer preview" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="yt-custom-controls"><button type="button" class="yt-play-toggle" aria-label="Luaj videon" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button></div></div>':"";
  const cover=preview||(posterPath?'<img class="title-page-poster" src="'+posterPath+'" alt="'+escapeHtml(title(d))+' poster">':'<div class="title-page-poster-placeholder">FLIXTV</div>');
  return '<div class="title-page-hero"><div class="title-page-backdrop" style="'+(backdrop?'background-image:linear-gradient(90deg,#080b11 0%,rgba(8,11,17,.92) 30%,rgba(8,11,17,.48) 66%,rgba(8,11,17,.25)),linear-gradient(0deg,#090b10 0%,transparent 52%),url("'+backdrop+'")':'')+'"></div>'+
  '<div class="title-page-inner"><a class="title-page-back" href="/" data-title-home>‹ <span>Kthehu te FLIXTV</span></a><div class="title-page-cover">'+cover+'</div><div class="title-page-layout"><div class="title-page-copy"><div class="title-page-kicker"><span class="title-page-kicker-dot"></span>'+(tv?"FLIXTV ORIGINAL SERIES":"FLIXTV FILM")+'</div><h1>'+escapeHtml(title(d))+'</h1>'+
