@@ -318,9 +318,25 @@ function play(item,season,episode){
 function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";currentPlayback=null;$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 window.addEventListener("message",event=>{
  if(event.origin!=="https://cinesrc.st"||event.source!==$("cinesrc-frame").contentWindow)return;
- if(!event.data||typeof event.data!=="object")return;
- if(event.data.type==="cinesrc:close")closePlayer();
- if(event.data.type==="cinesrc:error")notice("CineSRC: "+String(event.data.error||"Gabim gjatë ngarkimit të videos."));
+ if(!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
+ switch(event.data.type){
+  case "cinesrc:ready":
+   $("player-modal").dataset.playerState="ready";
+   break;
+  case "cinesrc:play":
+   $("player-modal").dataset.playerState="playing";
+   break;
+  case "cinesrc:pause":
+   $("player-modal").dataset.playerState="paused";
+   break;
+  case "cinesrc:close":
+   closePlayer();
+   break;
+  case "cinesrc:error":
+   $("player-modal").dataset.playerState="error";
+   notice("CineSRC: "+String(event.data.error||"Videoja nuk u ngarkua. Provo përsëri."));
+   break;
+ }
 });
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);$("player-close").onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
