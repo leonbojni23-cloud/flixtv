@@ -995,3 +995,6 @@ html.deep-route-loading::after{
  .title-page-actions .primary-btn{flex:1 1 190px!important}
  .title-page-actions .secondary-btn{flex:0 1 auto!important}
 }
+
+/* Keep native trailer controls interactive while autoplay starts muted. */
+.title-page-cover .title-page-preview,.title-page-cover .title-page-preview iframe{pointer-events:auto!important}
