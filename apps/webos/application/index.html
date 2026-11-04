@@ -9,7 +9,6 @@
 <link rel="stylesheet" href="style.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="features/details.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="features/search.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="features/ambient.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="features/profiles.css" media="print" onload="this.media='all'">
 
 <style>
@@ -138,6 +137,15 @@ html, body {
 
 body.player-open {
   overflow: hidden;
+}
+
+/* Release TV rendering resources while CineSRC is playing. */
+body.player-open > #bg,
+body.player-open > #bgBlur,
+body.player-open > #shade,
+body.player-open > #top,
+body.player-open > #home {
+  display: none !important;
 }
 
 </style>
@@ -370,9 +378,6 @@ body.player-open {
 <!-- TMDB service: must load before app.js -->
 <script src="tmdb-service.js"></script>
 
-<!-- Diagnostic logger: confirms TV-to-PC connection before app startup -->
-<script src="debug-logger.js"></script>
-
 <script src="features/profiles.js"></script>
 <script src="app.js"></script>
 
@@ -381,7 +386,6 @@ body.player-open {
 
 <script src="features/details.js"></script>
 <script src="features/search.js"></script>
-<script src="features/ambient.js"></script>
 
 
 
