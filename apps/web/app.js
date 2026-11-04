@@ -375,36 +375,34 @@ function initTitleYoutubeControls(){
  let player=null,playing=true,muted=true;
  const updatePlay=()=>setTitleYoutubeButton(playing);
  const updateMute=()=>setTitleYoutubeMuteButton(muted);
- playButton.onclick=async event=>{
-  event.preventDefault();event.stopPropagation();if(!player)return;
-  try{if(playing){await player.pause();playing=false}else{await player.play();playing=true}updatePlay()}
-  catch(error){console.warn("Plyr playback command failed",error)}
+ const getPlayer=async()=>{
+  if(player)return player;
+  if(typeof host.getYTPlayer!=="function")throw new Error("Lite YouTube API nuk u ngarkua");
+  player=await host.getYTPlayer();
+  if(!player)throw new Error("YouTube player nuk u krijua");
+  titleYoutubePlayer=player;
+  try{player.mute()}catch(_){}
+  muted=true;updateMute();
+  return player;
  };
- muteButton.onclick=event=>{
-  event.preventDefault();event.stopPropagation();if(!player)return;
-  muted=!muted;player.muted=muted;updateMute();
-  if(!muted&&player.paused)player.play().catch(()=>{});
+ playButton.onclick=async event=>{
+  event.preventDefault();event.stopPropagation();
+  try{const p=await getPlayer();if(playing){p.pauseVideo();playing=false}else{p.playVideo();playing=true}updatePlay()}
+  catch(error){console.warn("Lite YouTube playback command failed",error)}
+ };
+ muteButton.onclick=async event=>{
+  event.preventDefault();event.stopPropagation();
+  try{const p=await getPlayer();if(muted){p.unMute();muted=false;if(p.getPlayerState()!==1)p.playVideo()}else{p.mute();muted=true}updateMute()}
+  catch(error){console.warn("Lite YouTube audio command failed",error)}
  };
  updatePlay();updateMute();
- if(typeof window.Plyr!=="function"){
-  host.innerHTML='<div class="title-video-fallback">Plyr nuk u ngarkua. Rifresko faqen.</div>';
-  console.error("Plyr library is unavailable");return;
- }
- player=new window.Plyr(host,{
-  autoplay:true,muted:true,clickToPlay:false,hideControls:true,
-  controls:[],
-  ratio:"16:9",
-  youtube:{noCookie:true,rel:0,iv_load_policy:3,modestbranding:1}
- });
- titleYoutubePlayer=player;
- player.on("ready",()=>{
-  player.muted=true;muted=true;updateMute();
-  player.play().catch(error=>console.warn("Plyr autoplay was blocked",error));
- });
- player.on("playing",()=>{playing=true;updatePlay()});
- player.on("pause",()=>{playing=false;updatePlay()});
- player.on("volumechange",()=>{muted=player.muted;updateMute()});
- player.on("error",event=>console.error("Plyr YouTube error",event));
+ const activate=()=>{
+  host.click();
+  getPlayer().then(p=>{try{p.mute();muted=true;updateMute();p.playVideo();playing=true;updatePlay()}catch(_){} })
+   .catch(error=>console.warn("Lite YouTube initialization failed",error));
+ };
+ if(customElements.get("lite-youtube"))activate();
+ else customElements.whenDefined("lite-youtube").then(activate);
 }
 function titlePageMarkup(item,d,playMode=false){
  const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:""),posterPath=d.poster_path?IMG+"w500"+d.poster_path:"";
@@ -415,7 +413,7 @@ function titlePageMarkup(item,d,playMode=false){
  const trailer=(d.videos?.results||[]).filter(x=>x.site==="YouTube"&&x.key&&(x.type==="Trailer"||x.type==="Teaser")).sort((a,b)=>Number(!!b.official)-Number(!!a.official)||Number(b.type==="Trailer")-Number(a.type==="Trailer")||Number(b.iso_639_1==="en")-Number(a.iso_639_1==="en"))[0];
  const imdbVideo=(d.imdbVideos?.videos||[]).find(v=>(v.type||"").toLowerCase()==="trailer"&&Array.isArray(v.playback)&&v.playback.some(p=>p.url&&["MP4","M3U8"].includes(String(p.format||"").toUpperCase())));
  const imdbSource=imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="MP4"&&p.url)||imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="M3U8"&&p.url);
- const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview youtube-custom-preview"><div id="yt-title-trailer" data-plyr-provider="youtube" data-plyr-embed-id="'+escapeHtml(trailer.key)+'"></div><div class="yt-custom-controls"><button type="button" class="yt-play-toggle" aria-label="Luaj videon" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button><button type="button" class="yt-mute-toggle" aria-label="Aktivizo zërin" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/></svg></button></div></div>':"";
+ const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview youtube-custom-preview"><lite-youtube id="yt-title-trailer" videoid="'+escapeHtml(trailer.key)+'" js-api params="controls=0&rel=0&iv_load_policy=3&playsinline=1&autoplay=1&mute=1&enablejsapi=1"></lite-youtube><div class="yt-custom-controls"><button type="button" class="yt-play-toggle" aria-label="Luaj videon" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button><button type="button" class="yt-mute-toggle" aria-label="Aktivizo zërin" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/></svg></button></div></div>':"";
  const cover=preview||(posterPath?'<img class="title-page-poster" src="'+posterPath+'" alt="'+escapeHtml(title(d))+' poster">':'<div class="title-page-poster-placeholder">FLIXTV</div>');
  return '<div class="title-page-hero"><div class="title-page-backdrop" style="'+(backdrop?'background-image:linear-gradient(90deg,#080b11 0%,rgba(8,11,17,.92) 30%,rgba(8,11,17,.48) 66%,rgba(8,11,17,.25)),linear-gradient(0deg,#090b10 0%,transparent 52%),url("'+backdrop+'")':'')+'"></div>'+
  '<div class="title-page-inner"><a class="title-page-back" href="/" data-title-home>‹ <span>Kthehu te FLIXTV</span></a><div class="title-page-cover">'+cover+'</div><div class="title-page-layout"><div class="title-page-copy"><div class="title-page-kicker"><span class="title-page-kicker-dot"></span>'+(tv?"FLIXTV ORIGINAL SERIES":"FLIXTV FILM")+'</div><h1>'+escapeHtml(title(d))+'</h1>'+
