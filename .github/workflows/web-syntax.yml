@@ -1,0 +1,16 @@
+name: Web syntax check
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/app.js"
+      - ".github/workflows/web-syntax.yml"
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node --check apps/web/app.js
