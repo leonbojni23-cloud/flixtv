@@ -324,7 +324,6 @@ async function loadTitleEpisodes(){
 }
 function startTitlePlayback(season,episode){
  if(!titlePageItem)return;
- $("topbar").hidden=true;
  $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
  $("cinesrc-frame").src=buildPlayerUrl(titlePageItem,season,episode);
