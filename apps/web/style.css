@@ -1630,3 +1630,39 @@ html.deep-route-loading::after{
 .series-episode-card,
 .series-episode-thumb,
 .series-episode-thumb img{border-radius:0!important}
+
+
+/* Expandable episode synopsis with a clear red ellipsis control. */
+.series-episode-copy{position:relative}
+.series-episode-copy>.series-episode-overview{
+ display:-webkit-box;
+ -webkit-line-clamp:2;
+ -webkit-box-orient:vertical;
+ overflow:hidden;
+}
+.series-episode-copy>.series-episode-overview.expanded{
+ display:block;
+ -webkit-line-clamp:unset;
+ overflow:visible;
+ white-space:normal;
+}
+.episode-overview-more{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ justify-self:start;
+ width:28px;
+ height:18px;
+ margin:-3px 0 0 -5px;
+ padding:0;
+ border:0;
+ background:transparent;
+ color:#ef3340;
+ font-size:25px;
+ font-weight:900;
+ line-height:10px;
+ letter-spacing:2px;
+ cursor:pointer;
+}
+.episode-overview-more:hover,.episode-overview-more.active{color:#ff6872}
+.series-episode-card{cursor:pointer}
