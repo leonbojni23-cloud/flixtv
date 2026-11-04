@@ -1601,3 +1601,26 @@ html.deep-route-loading::after{
  .series-episode-copy strong{font-size:13px}
  .series-episode-copy>span{-webkit-line-clamp:2;font-size:11px;line-height:1.35}
 }
+
+
+/* Netflix-inspired compact episode rows and tighter overview control. */
+.title-page-overview-wrap{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:7px;row-gap:0}
+.title-page-overview{margin:0!important}
+.title-page-overview.collapsed{-webkit-line-clamp:3}
+.overview-more{display:inline-block;margin:0!important;padding:0!important;line-height:1.25;vertical-align:baseline}
+.series-episode-card{grid-template-columns:minmax(120px,165px) minmax(0,1fr);gap:13px;padding:10px 0}
+.series-episode-thumb{border-radius:4px}
+.series-episode-thumb>b{font-size:26px}
+.series-episode-copy{gap:4px}
+.series-episode-copy strong{font-size:15px;line-height:1.25}
+.series-episode-copy small{font-size:12px}
+.series-episode-copy>span{-webkit-line-clamp:2;font-size:12px;line-height:1.35}
+@media(max-width:680px){
+ .series-episode-card{grid-template-columns:minmax(95px,31%) minmax(0,1fr);gap:10px;padding:9px 0}
+ .series-episode-thumb{border-radius:4px}
+ .series-episode-thumb>b{font-size:22px}
+ .series-episode-copy{gap:3px}
+ .series-episode-copy strong{font-size:13px;line-height:1.25}
+ .series-episode-copy small{font-size:10px}
+ .series-episode-copy>span{-webkit-line-clamp:2;font-size:11px;line-height:1.3}
+}
