@@ -409,7 +409,8 @@ window.addEventListener("message",event=>{
    $("player-modal").dataset.playerState="paused";
    break;
   case "cinesrc:close":
-   closePlayer();
+   if(location.pathname.split("/").filter(Boolean)[1]==="play")history.back();
+   else closePlayer();
    break;
   case "cinesrc:error":
    $("player-modal").dataset.playerState="error";
