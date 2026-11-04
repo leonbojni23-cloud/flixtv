@@ -493,13 +493,12 @@ async function loadTitleEpisodes(){
 function enterCineSrcFullscreen(){
  const frame=$("cinesrc-frame"),modal=$("player-modal");
  modal.classList.add("open");
- // Ask for native fullscreen directly from the Play button gesture.
- // If unsupported (some TV browsers/iOS), the fixed full-screen modal remains the fallback.
+ // Keep fullscreen, but do not force landscape orientation.
+ // CineSRC handles its own rotate-phone prompt; iOS Safari does not support
+ // programmatic orientation locking, so requesting it here cannot dismiss that prompt.
  const request=frame&&frame.requestFullscreen?frame.requestFullscreen({navigationUI:"hide"}):Promise.reject(new Error("Fullscreen API unavailable"));
  if(request&&typeof request.then==="function"){
-  request.then(()=>{
-   try{if(screen.orientation&&typeof screen.orientation.lock==="function")screen.orientation.lock("landscape").catch(()=>{})}catch(_){}
-  }).catch(()=>modal.classList.add("css-fullscreen"));
+  request.catch(()=>modal.classList.add("css-fullscreen"));
  }else modal.classList.add("css-fullscreen");
 }
 function stopTitlePagePreview(){
