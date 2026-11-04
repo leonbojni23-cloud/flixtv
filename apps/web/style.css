@@ -1293,10 +1293,13 @@ html.deep-route-loading::after{
 }
 
 
-/* iOS Home Screen app: keep FLIXTV branding clear of the clock and Dynamic Island. */
+/* iOS Home Screen app: push the entire page below the system status bar. */
 @media (max-width:760px){
- html.ios-home-app .topbar{
-  height:calc(62px + max(env(safe-area-inset-top), 48px));
+ html.ios-home-app body{
   padding-top:max(env(safe-area-inset-top), 48px);
+ }
+ html.ios-home-app .topbar{
+  height:62px;
+  padding-top:0;
  }
 }
