@@ -934,3 +934,9 @@ html.deep-route-loading::after{
 .flxtv-player-toolbar input{width:105px;accent-color:var(--accent);cursor:pointer}
 @media(max-width:600px){.continue-card{flex-basis:220px}.flxtv-player-toolbar{bottom:12px;gap:8px;padding:7px 10px}.flxtv-player-toolbar input{width:80px}}
 @media(hover:none){.continue-card:hover{transform:none}}
+
+
+/* Resume button: distinct cyan accent, separate from the red FLIXTV brand. */
+#title-play{background:#087f9b!important;color:#fff!important;border:1px solid rgba(91,224,245,.48);box-shadow:0 8px 26px rgba(8,127,155,.28)!important}
+#title-play:hover{background:#0b9fbd!important}
+#title-play:focus-visible{outline:3px solid rgba(91,224,245,.72);outline-offset:3px}
