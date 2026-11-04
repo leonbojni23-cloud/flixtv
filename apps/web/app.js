@@ -280,8 +280,11 @@ let activePlayerProvider="embedwave";
 let currentPlayback=null;
 function buildPlayerUrl(item,season,episode){
  const id=encodeURIComponent(String(item.id));
- if(kind(item)==="tv")return "https://embedwave.cc/embed/tv/"+id+"/"+encodeURIComponent(String(Number(season)))+"/"+encodeURIComponent(String(Number(episode)));
- return "https://embedwave.cc/embed/movie/"+id;
+ const params=new URLSearchParams({server:"1",nobrand:"1"});
+ // Do not request autoplay: browsers may only permit autoplay when muted.
+ // Leaving it off preserves the user's ability to start playback with sound.
+ if(kind(item)==="tv")return "https://embedwave.cc/embed/tv/"+id+"/"+encodeURIComponent(String(Number(season)))+"/"+encodeURIComponent(String(Number(episode)))+"?"+params.toString();
+ return "https://embedwave.cc/embed/movie/"+id+"?"+params.toString();
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
