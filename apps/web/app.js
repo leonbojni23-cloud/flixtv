@@ -356,11 +356,14 @@ async function home(){
 function titleSlug(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
 let titlePageItem=null,titlePageSeason=1,titlePageEpisode=1,titleEpisodesRequest=0;
 function pageUrl(item,play=false){const slug=titleSlug(title(item))||String(item.id);return "/"+slug+(play?"/play":"")}
-let titleYoutubePlayer=null;
-function sendTitleYoutubeCommand(command,args=[]){
- const frame=$("yt-title-trailer");
- if(!frame||!frame.contentWindow)return;
- frame.contentWindow.postMessage(JSON.stringify({event:"command",func:command,args}),"*");
+let titleYoutubePlayer=null,titleYoutubeLoadPromise=null;
+async function loadVideoJsYoutube(){
+ if(titleYoutubeLoadPromise)return titleYoutubeLoadPromise;
+ titleYoutubeLoadPromise=Promise.all([
+  import("https://cdn.jsdelivr.net/npm/@videojs/cdn@10.3.0/video-player.js"),
+  import("https://cdn.jsdelivr.net/npm/@videojs/cdn@10.3.0/media/youtube-video.js")
+ ]).then(()=>customElements.whenDefined("youtube-video"));
+ return titleYoutubeLoadPromise;
 }
 function setTitleYoutubeButton(playing){
  const button=document.querySelector(".yt-play-toggle");if(!button)return;
@@ -375,19 +378,45 @@ function setTitleYoutubeMuteButton(muted){
  button.setAttribute("aria-pressed",String(!muted));
 }
 function initTitleYoutubeControls(){
- const frame=$("yt-title-trailer"),playButton=document.querySelector(".yt-play-toggle"),muteButton=document.querySelector(".yt-mute-toggle");
- if(!frame||!playButton||!muteButton)return;
- let playing=true,muted=true;
- playButton.onclick=event=>{
+ const host=$("yt-title-trailer"),playButton=document.querySelector(".yt-play-toggle"),muteButton=document.querySelector(".yt-mute-toggle");
+ if(!host||!playButton||!muteButton)return;
+ let media=null,playing=true,muted=true;
+ const updatePlay=()=>setTitleYoutubeButton(playing);
+ const updateMute=()=>setTitleYoutubeMuteButton(muted);
+ playButton.onclick=async event=>{
   event.preventDefault();event.stopPropagation();
-  playing=!playing;sendTitleYoutubeCommand(playing?"playVideo":"pauseVideo");setTitleYoutubeButton(playing);
+  if(!media)return;
+  try{if(playing){await media.pause();playing=false}else{await media.play();playing=true}updatePlay()}catch(error){console.warn("Video.js playback command failed",error)}
  };
  muteButton.onclick=event=>{
   event.preventDefault();event.stopPropagation();
-  muted=!muted;sendTitleYoutubeCommand(muted?"mute":"unMute");setTitleYoutubeMuteButton(muted);
-  if(!muted)sendTitleYoutubeCommand("setVolume",[100]);
+  if(!media)return;
+  muted=!muted;media.muted=muted;updateMute();
+  if(!muted&&media.paused)media.play().catch(()=>{});
  };
- setTitleYoutubeButton(true);setTitleYoutubeMuteButton(true);
+ updatePlay();updateMute();
+ loadVideoJsYoutube().then(()=>{
+  if($("yt-title-trailer")!==host)return;
+  const player=document.createElement("video-player");
+  player.className="flxtv-videojs-player";
+  player.setAttribute("playsinline","");
+  const video=document.createElement("youtube-video");
+  video.id="flxtv-youtube-media";
+  video.setAttribute("src","https://www.youtube-nocookie.com/embed/"+host.dataset.videoId);
+  video.setAttribute("autoplay","");
+  video.setAttribute("muted","");
+  video.setAttribute("playsinline","");
+  video.setAttribute("preload","metadata");
+  player.append(video);host.replaceChildren(player);media=video;
+  video.addEventListener("playing",()=>{playing=true;updatePlay()});
+  video.addEventListener("pause",()=>{playing=false;updatePlay()});
+  video.addEventListener("volumechange",()=>{muted=video.muted;updateMute()});
+  video.addEventListener("error",event=>console.error("Video.js YouTube error",event));
+ }).catch(error=>{
+  console.error("Video.js YouTube component failed to load",error);
+  host.innerHTML='<div class="title-video-fallback">Traileri nuk mund të ngarkohet.</div>';
+  setTitleYoutubeButton(false);
+ });
 }
 function titlePageMarkup(item,d,playMode=false){
  const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:""),posterPath=d.poster_path?IMG+"w500"+d.poster_path:"";
@@ -398,7 +427,7 @@ function titlePageMarkup(item,d,playMode=false){
  const trailer=(d.videos?.results||[]).filter(x=>x.site==="YouTube"&&x.key&&(x.type==="Trailer"||x.type==="Teaser")).sort((a,b)=>Number(!!b.official)-Number(!!a.official)||Number(b.type==="Trailer")-Number(a.type==="Trailer")||Number(b.iso_639_1==="en")-Number(a.iso_639_1==="en"))[0];
  const imdbVideo=(d.imdbVideos?.videos||[]).find(v=>(v.type||"").toLowerCase()==="trailer"&&Array.isArray(v.playback)&&v.playback.some(p=>p.url&&["MP4","M3U8"].includes(String(p.format||"").toUpperCase())));
  const imdbSource=imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="MP4"&&p.url)||imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="M3U8"&&p.url);
- const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview youtube-custom-preview"><iframe id="yt-title-trailer" title="Trailer preview" src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(trailer.key)+'?autoplay=1&mute=1&controls=0&modestbranding=1&disablekb=1&playsinline=1&rel=0&iv_load_policy=3&enablejsapi=1&origin='+encodeURIComponent(location.origin)+'" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="yt-custom-controls"><button type="button" class="yt-play-toggle" aria-label="Luaj videon" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button><button type="button" class="yt-mute-toggle" aria-label="Aktivizo zërin" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/></svg></button></div></div>':"";
+ const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview youtube-custom-preview"><div id="yt-title-trailer" data-video-id="'+escapeHtml(trailer.key)+'"></div><div class="yt-custom-controls"><button type="button" class="yt-play-toggle" aria-label="Luaj videon" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button><button type="button" class="yt-mute-toggle" aria-label="Aktivizo zërin" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/></svg></button></div></div>':"";
  const cover=preview||(posterPath?'<img class="title-page-poster" src="'+posterPath+'" alt="'+escapeHtml(title(d))+' poster">':'<div class="title-page-poster-placeholder">FLIXTV</div>');
  return '<div class="title-page-hero"><div class="title-page-backdrop" style="'+(backdrop?'background-image:linear-gradient(90deg,#080b11 0%,rgba(8,11,17,.92) 30%,rgba(8,11,17,.48) 66%,rgba(8,11,17,.25)),linear-gradient(0deg,#090b10 0%,transparent 52%),url("'+backdrop+'")':'')+'"></div>'+
  '<div class="title-page-inner"><a class="title-page-back" href="/" data-title-home>‹ <span>Kthehu te FLIXTV</span></a><div class="title-page-cover">'+cover+'</div><div class="title-page-layout"><div class="title-page-copy"><div class="title-page-kicker"><span class="title-page-kicker-dot"></span>'+(tv?"FLIXTV ORIGINAL SERIES":"FLIXTV FILM")+'</div><h1>'+escapeHtml(title(d))+'</h1>'+
