@@ -102,16 +102,35 @@ async function translateOverviewToAlbanian(text){
  }catch(_){return text}
 }
 async function getAlbanianOverview(item,mediaType){
- let source=item.overview||"";
- if(!source){
-  try{
-   const english=await tmdb("/"+mediaType+"/"+item.id+"?language=en-US");
-   source=english.overview||"";
-  }catch(_){}
- }
+ let source="";
+ // Prefer a predictable English source so an English synopsis is never mistaken for an Albanian one.
+ try{
+  const english=await tmdb("/"+mediaType+"/"+item.id+"?language=en-US");
+  source=String(english.overview||"").trim();
+ }catch(_){}
+ if(!source)source=String(item.overview||"").trim();
  if(!source)return "";
- const translated=await translateOverviewToAlbanian(source);
- return translated||source;
+ const translated=String(await translateOverviewToAlbanian(source)||"").trim();
+ // Do not silently label untranslated English text as Albanian.
+ return translated&&translated.toLowerCase()!==source.toLowerCase()?translated:"";
+}
+async function loadTitleVideos(item,details){
+ const type=kind(item),base="/"+type+"/"+item.id+"/videos";
+ const languages=[ "en-US", "en-GB", item.original_language?item.original_language+"-"+String(item.original_language).toUpperCase():null, "sq-AL" ].filter(Boolean);
+ const results=[...(details.videos?.results||[])];
+ const seen=new Set(results.map(v=>v.key).filter(Boolean));
+ for(const language of languages){
+  try{
+   const data=await tmdb(base+"?language="+encodeURIComponent(language));
+   for(const video of data.results||[]){
+    if(video?.site==="YouTube"&&video.key&&!seen.has(video.key)){results.push(video);seen.add(video.key)}
+   }
+   if(results.some(v=>v.site==="YouTube"&&v.key&&(v.type==="Trailer"||v.type==="Teaser")))break;
+  }catch(error){console.warn("Trailer lookup failed for",language,error)}
+ }
+ // Include any official trailer/teaser first, then a usable YouTube video as last resort.
+ details.videos={...(details.videos||{}),results};
+ return details;
 }
 const pagedRows=new Map();
 async function appendRowPage(state){
@@ -433,10 +452,7 @@ async function openTitlePage(item,push=false,playMode=false){
  if(!item||!item.id)return;
  try{
   const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,credits,external_ids&include_video_language=en,null");
-  const hasYouTubePreview=(d.videos?.results||[]).some(v=>v.site==="YouTube"&&v.key&&(v.type==="Trailer"||v.type==="Teaser"));
-  if(!hasYouTubePreview){
-   try{const videoData=await tmdb("/"+k+"/"+item.id+"/videos?language=en-US");if(videoData?.results?.length)d.videos=videoData}catch(_){/* Keep the still-image fallback if trailers are unavailable. */}
-  }
+  await loadTitleVideos(item,d);
   const imdbId=d.external_ids?.imdb_id;
   if(imdbId){
    try{const imdbResponse=await fetch("/api/imdb-videos?id="+encodeURIComponent(imdbId));if(imdbResponse.ok){const imdbData=await imdbResponse.json();if(Array.isArray(imdbData.videos))d.imdbVideos=imdbData}}catch(_){/* Use the existing YouTube fallback if IMDb is unavailable. */}
