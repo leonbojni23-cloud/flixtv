@@ -945,3 +945,10 @@ html.deep-route-loading::after{
 .title-page-inner{position:relative;z-index:1}
 @media(max-width:680px){.title-page-preview{opacity:.48}.title-page-preview iframe{width:max(100%,177.78vh);height:max(100%,56.25vw)}}
 @media(prefers-reduced-motion:reduce){.title-page-preview{display:none}}
+
+/* Keep the trailer above the still backdrop while the title content stays readable. */
+.title-page-preview{z-index:1}
+.title-page-backdrop{z-index:0}
+.title-page-inner{z-index:2}
+.title-page-hero:has(.title-page-preview) .title-page-backdrop{opacity:.22!important}
+@media(max-width:680px){.title-page-hero:has(.title-page-preview) .title-page-backdrop{opacity:.18!important}}
