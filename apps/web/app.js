@@ -626,6 +626,7 @@ async function openPage(page){
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
 $("hero-action").onclick=()=>{const item=heroItems[heroIndex];if(item)window.location.assign(pageUrl(item));};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
-window.addEventListener("pagehide",()=>{try{sessionStorage.setItem("flxtv:last-page-url",location.pathname+location.search+location.hash)}catch(_){}});\nwindow.addEventListener("pageshow",event=>{if(event.persisted){try{const previous=sessionStorage.getItem("flxtv:last-page-url");if(previous){history.replaceState(history.state,"",previous);sessionStorage.removeItem("flxtv:last-page-url")}}catch(_){}}if(heroItems.length>1)startHeroTimer()});
+window.addEventListener("pagehide",()=>{try{sessionStorage.setItem("flxtv:last-page-url",location.pathname+location.search+location.hash)}catch(_){}});
+window.addEventListener("pageshow",event=>{if(event.persisted){try{const previous=sessionStorage.getItem("flxtv:last-page-url");if(previous){history.replaceState(history.state,"",previous);sessionStorage.removeItem("flxtv:last-page-url")}}catch(_){}}if(heroItems.length>1)startHeroTimer()});
 if(location.pathname!=="/")resolveTitleRoute();else home();
 })();
