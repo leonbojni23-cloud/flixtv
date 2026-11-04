@@ -485,11 +485,26 @@ async function loadTitleEpisodes(){
  try{
   const d=await tmdb("/tv/"+itemId+"/season/"+season);
   if(request!==titleEpisodesRequest||!titlePageItem||Number(titlePageItem.id)!==itemId||Number(titlePageSeason)!==season)return;
-  const episodes=d.episodes||[];
+  let episodes=d.episodes||[];
   const list=$("title-episode-list");if(!list)return;
+  // TMDB Albanian season data can omit episode overviews. Fetch English only
+  // when needed, then translate those missing descriptions using the app translator.
+  if(episodes.some(ep=>!String(ep.overview||"").trim())){
+   try{
+    const english=await tmdb("/tv/"+itemId+"/season/"+season+"?language=en-US");
+    if(request!==titleEpisodesRequest||!titlePageItem||Number(titlePageItem.id)!==itemId||Number(titlePageSeason)!==season)return;
+    const englishByNumber=new Map((english.episodes||[]).map(ep=>[Number(ep.episode_number),ep]));
+    episodes=await Promise.all(episodes.map(async ep=>{
+     if(String(ep.overview||"").trim())return ep;
+     const source=String(englishByNumber.get(Number(ep.episode_number))?.overview||"").trim();
+     if(!source)return ep;
+     return {...ep,overview:await translateOverviewToAlbanian(source)};
+    }));
+   }catch(error){console.warn("Episode overview fallback failed:",error)}
+  }
   if(!episodes.some(ep=>Number(ep.episode_number)===Number(titlePageEpisode)))titlePageEpisode=Number(episodes[0]?.episode_number||1);
   const saved=getSavedProgress(titlePageItem),savedCanResume=!!(saved&&Number(saved.currentTime)>5&&(!saved.duration||Number(saved.currentTime)<Number(saved.duration)*0.92));
-  list.innerHTML=episodes.map(ep=>{const epNo=Number(ep.episode_number),isSaved=savedCanResume&&Number(saved.season)===season&&Number(saved.episode)===epNo;return '<button type="button" class="series-episode-card '+(epNo===titlePageEpisode?'selected':'')+'" data-episode="'+epNo+'"><span class="series-episode-thumb">'+(ep.still_path?'<img loading="lazy" decoding="async" src="'+IMG+'w300'+ep.still_path+'" alt="">':'<span>FLIXTV</span>')+'<b>▶</b></span><span class="series-episode-copy"><strong>'+escapeHtml(ep.name||("Episodi "+epNo))+'</strong><small>E'+epNo+(ep.runtime?" · "+ep.runtime+" min":"")+(ep.air_date?" · "+escapeHtml(ep.air_date.slice(0,4)):"")+'</small><span>'+escapeHtml(ep.overview||"Përshkrimi nuk është i disponueshëm.")+'</span></span></button>'}).join("");
+  list.innerHTML=episodes.map(ep=>{const epNo=Number(ep.episode_number),isSaved=savedCanResume&&Number(saved.season)===season&&Number(saved.episode)===epNo;const overview=String(ep.overview||"").trim();return '<button type="button" class="series-episode-card '+(epNo===titlePageEpisode?'selected':'')+'" data-episode="'+epNo+'"><span class="series-episode-thumb">'+(ep.still_path?'<img loading="lazy" decoding="async" src="'+IMG+'w300'+ep.still_path+'" alt="">':'<span>FLIXTV</span>')+'<b>▶</b></span><span class="series-episode-copy"><strong>'+escapeHtml(ep.name||("Episodi "+epNo))+'</strong><small>E'+epNo+(ep.runtime?" · "+ep.runtime+" min":"")+(ep.air_date?" · "+escapeHtml(ep.air_date.slice(0,4)):"")+'</small>'+(overview?'<span>'+escapeHtml(overview)+'</span>':'')+'</span></button>'}).join("");
   list.querySelectorAll("[data-episode]").forEach(card=>card.addEventListener("click",()=>{const ep=Number(card.dataset.episode)||1;titlePageEpisode=ep;const resume=savedCanResume&&Number(saved.season)===season&&Number(saved.episode)===ep?Number(saved.currentTime):0;startTitlePlayback(season,ep,resume)}));
  }catch(e){if(request===titleEpisodesRequest)notice("Episodet nuk u ngarkuan: "+e.message)}
 }
