@@ -25,6 +25,10 @@
     {
       "src": "api/translate.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/imdb-videos.js",
+      "use": "@vercel/node"
     }
   ],
   "rewrites": [
