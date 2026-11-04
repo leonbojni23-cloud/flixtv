@@ -14,6 +14,39 @@
   var currentUrl = "";
   var loadTimer = null;
   var controlsTimer = null;
+  var openedAt = 0;
+  var readyAt = 0;
+  var LAST_SERVER_KEY = "flixtv.cinesrc.lastserver";
+
+  function getLastServer() {
+    try { return localStorage.getItem(LAST_SERVER_KEY) || ""; }
+    catch (error) { return ""; }
+  }
+
+  function onCineSrcMessage(event) {
+    if (event.origin !== "https://cinesrc.st") return;
+    var data = event.data;
+    if (!data || typeof data !== "object" || typeof data.type !== "string") return;
+
+    if (data.type === "cinesrc:sourceused" && data.sourceId != null) {
+      try { localStorage.setItem(LAST_SERVER_KEY, String(data.sourceId)); } catch (error) {}
+      console.info("[CineSRC] Server selected:", String(data.sourceId), "after", openedAt ? Date.now() - openedAt : 0, "ms");
+      return;
+    }
+
+    if (data.type === "cinesrc:ready") {
+      readyAt = Date.now();
+      console.info("[CineSRC] Ready after", openedAt ? readyAt - openedAt : 0, "ms");
+    } else if (data.type === "cinesrc:play") {
+      console.info("[CineSRC] Playback started after", openedAt ? Date.now() - openedAt : 0, "ms");
+    } else if (data.type === "cinesrc:loadedmetadata") {
+      console.info("[CineSRC] Media metadata loaded after", openedAt ? Date.now() - openedAt : 0, "ms");
+    } else if (data.type === "cinesrc:error") {
+      console.warn("[CineSRC] Player error:", data.error || data);
+    }
+  }
+
+  window.addEventListener("message", onCineSrcMessage, false);
 
   if (!view || !frame) {
     console.error("[CineSRC] Player elements are missing from index.html.");
@@ -46,6 +79,13 @@
     params.set("autoskip", "false");
     params.set("color", "#34cfeb");
     params.set("back", "close");
+
+    // Prefer the last server that successfully started a stream on this TV.
+    var lastServer = getLastServer();
+    if (lastServer) {
+      params.set("lastserver", lastServer);
+      params.set("prioritize", "true");
+    }
 
     var resumeTime = Number(request.resumeTime || item.resumeTime || 0);
     if (resumeTime > 5) {
@@ -95,6 +135,8 @@
     }
 
     currentUrl = url;
+    openedAt = Date.now();
+    readyAt = 0;
     view.hidden = false;
     document.body.classList.add("player-open");
     view.classList.remove("player-controls-hidden");
@@ -132,7 +174,7 @@
       if (loadTimer !== null) window.clearTimeout(loadTimer);
       loadTimer = null;
       setLoading(false);
-      console.info("[CineSRC] Player frame loaded.");
+      console.info("[CineSRC] iframe document loaded after", openedAt ? Date.now() - openedAt : 0, "ms");
     }
   });
 
