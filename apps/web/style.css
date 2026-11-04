@@ -1270,3 +1270,24 @@ html.deep-route-loading::after{
   border-radius:0!important;border:0!important;
  }
 }
+
+
+/* Smaller back affordance on phones. */
+@media(max-width:680px){
+ .title-page-back{
+  top:9px!important;left:9px!important;
+  width:30px!important;height:30px!important;min-width:30px!important;
+ }
+ .title-page-back svg{width:18px!important;height:18px!important}
+}
+
+/* Keep YouTube's own interactive chrome disabled; FLIXTV controls stay outside iframe. */
+.title-page-cover .youtube-custom-preview,
+.title-page-cover lite-youtube#yt-title-trailer,
+.title-page-cover lite-youtube#yt-title-trailer iframe{
+ pointer-events:none!important;
+}
+.title-page-cover .yt-custom-controls,
+.title-page-cover .yt-custom-controls button{
+ pointer-events:auto!important;
+}
