@@ -1188,3 +1188,118 @@ main#home { padding:0 5.2%;z-index:2; }
 .focus.card .pic { transform:scale(1.025); border-color:rgba(255,255,255,.8); box-shadow:0 0 0 2px rgba(255,255,255,.95),0 7px 18px rgba(0,0,0,.35); }
 @media(max-width:1200px) { #top .catalog-nav { gap:3px; } #top .tab { min-width:66px; padding:10px 13px; font-size:15px; } }
 @media(max-width:900px) { #top .brand { font-size:25px; } #top .catalog-nav { left:50%; max-width:calc(100vw - 180px); } #top .tab { min-width:0; padding:9px 10px; font-size:14px; } }
+
+
+/* FLIXTV web-inspired TV catalog: lightweight portrait poster cards */
+#rows {
+  padding-top: 0;
+}
+.row {
+  margin-bottom: 28px;
+}
+.row h3 {
+  font-size: 27px;
+  font-weight: 650;
+  letter-spacing: -.35px;
+  margin-bottom: 15px;
+}
+.strip {
+  height: 374px;
+  white-space: nowrap;
+  overflow: visible;
+}
+.card {
+  width: 190px;
+  margin-right: 22px;
+  text-align: left;
+}
+.card .pic {
+  width: 190px;
+  height: 285px;
+  border-radius: 9px;
+  overflow: hidden;
+  position: relative;
+  background: #1b2029;
+  transform: none;
+  box-shadow: none;
+}
+.card .pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.card .poster-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8e98a8;
+  background: linear-gradient(145deg,#283142,#111722);
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+.card .poster-rating {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: rgba(8,10,14,.86);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 750;
+}
+.card .card-info {
+  padding: 10px 2px 0;
+  min-width: 0;
+}
+.card .ttl {
+  position: static;
+  display: block;
+  max-width: 100%;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 650;
+  color: #f7f8fb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: none;
+}
+.card .cap {
+  display: block;
+  margin-top: 5px;
+  font-size: 14px;
+  line-height: 1.2;
+  color: #9ba4b5;
+  opacity: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card.focus .pic {
+  transform: scale(1.045);
+  box-shadow: 0 0 0 3px #fff, 0 9px 24px rgba(0,0,0,.48);
+}
+.card.focus .cap {
+  opacity: 1;
+  color: #cbd2dd;
+}
+.row.poster-row .strip {
+  height: 374px;
+}
+#heroBtn {
+  border-radius: 8px;
+  background: #e50914;
+  color: #fff;
+  padding: 14px 28px;
+  font-size: 21px;
+  font-weight: 700;
+}
+#heroBtn.focus {
+  background: #fff;
+  color: #111;
+}
