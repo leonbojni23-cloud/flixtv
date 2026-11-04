@@ -1086,3 +1086,24 @@ html.deep-route-loading::after{
  .title-page-cover .yt-play-toggle svg,
  .title-page-cover .yt-mute-toggle svg{width:15px!important;height:15px!important}
 }
+
+
+/* YouTube UI masks: soften title/branding overlays without changing the video frame. */
+.title-page-cover .youtube-custom-preview::before,
+.title-page-cover .youtube-custom-preview::after{
+ content:"";position:absolute;left:0;right:0;z-index:12;pointer-events:none;
+}
+.title-page-cover .youtube-custom-preview::before{
+ top:0;height:76px;
+ background:linear-gradient(180deg,rgba(0,0,0,.88) 0%,rgba(0,0,0,.48) 48%,transparent 100%);
+}
+.title-page-cover .youtube-custom-preview::after{
+ bottom:0;height:58px;
+ background:linear-gradient(0deg,rgba(0,0,0,.72) 0%,rgba(0,0,0,.24) 58%,transparent 100%);
+}
+.title-page-cover .youtube-custom-preview iframe{z-index:1!important}
+.title-page-cover .yt-custom-controls{z-index:30!important}
+@media(max-width:680px){
+ .title-page-cover .youtube-custom-preview::before{height:58px}
+ .title-page-cover .youtube-custom-preview::after{height:46px}
+}
