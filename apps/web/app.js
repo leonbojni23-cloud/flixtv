@@ -624,7 +624,7 @@ async function openPage(page){
  loadedPages.add(page);
 }
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
-$("hero-action").onclick=()=>$("catalog").scrollIntoView({behavior:"smooth"});
+$("hero-action").onclick=()=>{const item=heroItems[heroIndex];if(item)window.location.assign(pageUrl(item));};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
 window.addEventListener("pageshow",()=>{if(heroItems.length>1)startHeroTimer()});
 if(location.pathname!=="/")resolveTitleRoute();else home();
