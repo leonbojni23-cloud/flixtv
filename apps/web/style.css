@@ -1240,3 +1240,33 @@ html.deep-route-loading::after{
   position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
  }
 }
+
+
+/* Match the approved mobile title layout: video starts directly below the header,
+   with a clean back chevron floating inside its upper-left corner. */
+@media(max-width:680px){
+ .title-page-inner{
+  position:relative!important;
+  padding:0 0 28px!important;
+ }
+ .title-page-back{
+  position:absolute!important;z-index:100!important;
+  top:12px!important;left:12px!important;
+  display:grid!important;place-items:center!important;
+  width:38px!important;height:38px!important;min-width:38px!important;
+  margin:0!important;padding:0!important;
+  border:1px solid rgba(255,255,255,.3)!important;
+  border-radius:50%!important;
+  background:rgba(8,11,17,.58)!important;
+  color:#fff!important;line-height:1!important;
+  box-shadow:0 2px 10px rgba(0,0,0,.24)!important;
+  backdrop-filter:blur(8px)!important;-webkit-backdrop-filter:blur(8px)!important;
+ }
+ .title-page-back svg{display:block!important;width:23px!important;height:23px!important}
+ .title-page-cover{
+  width:100vw!important;max-width:none!important;
+  margin:0 calc(50% - 50vw)!important;
+  aspect-ratio:16/10!important;height:auto!important;max-height:none!important;
+  border-radius:0!important;border:0!important;
+ }
+}
