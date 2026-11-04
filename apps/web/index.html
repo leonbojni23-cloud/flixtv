@@ -38,6 +38,7 @@
     </section>
     <div id="catalog">
       <div id="home-page">
+        <section class="content-section continue-watching-section" id="continue-watching-section" hidden><div class="section-heading"><h2>Vazhdo shikimin</h2><span class="section-kicker">VAZHDO KU E LE</span></div><div class="poster-row continue-watching-row" id="continue-watching"></div></section>
         <section class="content-section"><div class="section-heading"><h2>Në trend këtë javë</h2><span class="section-kicker">MË TË PËLQYERIT</span></div><div class="poster-row" id="trending"></div></section>
         <section class="content-section"><div class="section-heading"><h2>Filma të njohur</h2><span class="section-kicker">ZGJEDHJE FILMASH</span></div><div class="poster-row" id="movies"></div></section>
         <section class="content-section"><div class="section-heading"><h2>Seriale të njohura</h2><span class="section-kicker">ZGJEDHJE SERIALESH</span></div><div class="poster-row" id="shows"></div></section>
@@ -104,6 +105,11 @@
     <div class="player-actions"><div class="player-provider-switch" aria-label="Serveri aktiv"></div></div>
     <div class="content-intro" id="content-intro" aria-hidden="true"><div class="intro-copy"><div class="intro-kicker">FLIXTV · INFORMACION I PËRMBAJTJES</div><div class="intro-rating" id="intro-rating"></div><div class="intro-title" id="intro-title"></div><div class="intro-details" id="intro-details"></div><div class="intro-progress"><span></span></div><button type="button" id="intro-skip">KALO</button></div></div>
     <iframe id="cinesrc-frame" title="CineSRC player" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="no-referrer"></iframe>
+    <div class="flxtv-player-toolbar" aria-label="Kontrollet FLIXTV të videos">
+      <button type="button" id="flxtv-player-toggle" aria-label="Pusho videon">Ⅱ</button>
+      <label for="flxtv-volume">Volumi</label>
+      <input id="flxtv-volume" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volumi i videos">
+    </div>
   </section>
 
 
