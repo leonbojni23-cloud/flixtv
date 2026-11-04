@@ -479,34 +479,45 @@ async function openTitlePage(item,push=false,playMode=false){
   window.scrollTo(0,0);
  }catch(e){notice(e.message)}
 }
+const titleSeasonEpisodeCache=new Map();
 async function loadTitleEpisodes(){
  if(!titlePageItem||kind(titlePageItem)!=="tv")return;
  const request=++titleEpisodesRequest,itemId=Number(titlePageItem.id),season=Number(titlePageSeason);
+ const cacheKey=itemId+":"+season,list=$("title-episode-list");
+ if(!list)return;
+ const isCurrent=()=>request===titleEpisodesRequest&&titlePageItem&&Number(titlePageItem.id)===itemId&&Number(titlePageSeason)===season;
+ const renderEpisodes=episodes=>{
+  if(!isCurrent())return;
+  if(!episodes.some(ep=>Number(ep.episode_number)===Number(titlePageEpisode)))titlePageEpisode=Number(episodes[0]?.episode_number||1);
+  const saved=getSavedProgress(titlePageItem),savedCanResume=!!(saved&&Number(saved.currentTime)>5&&(!saved.duration||Number(saved.currentTime)<Number(saved.duration)*0.92));
+  list.innerHTML=episodes.map(ep=>{const epNo=Number(ep.episode_number),overview=String(ep.overview||"").trim();return '<button type="button" class="series-episode-card '+(epNo===titlePageEpisode?'selected':'')+'" data-episode="'+epNo+'"><span class="series-episode-thumb">'+(ep.still_path?'<img loading="lazy" decoding="async" src="'+IMG+'w300'+ep.still_path+'" alt="">':'<span>FLIXTV</span>')+'<b>▶</b></span><span class="series-episode-copy"><strong>'+escapeHtml(ep.name||("Episodi "+epNo))+'</strong><small>E'+epNo+(ep.runtime?" · "+ep.runtime+" min":"")+(ep.air_date?" · "+escapeHtml(ep.air_date.slice(0,4)):"")+'</small>'+(overview?'<span>'+escapeHtml(overview)+'</span>':'')+'</span></button>'}).join("");
+  list.querySelectorAll("[data-episode]").forEach(card=>card.addEventListener("click",()=>{const ep=Number(card.dataset.episode)||1;titlePageEpisode=ep;const resume=savedCanResume&&Number(saved.season)===season&&Number(saved.episode)===ep?Number(saved.currentTime):0;startTitlePlayback(season,ep,resume)}));
+ };
  try{
+  let episodes=titleSeasonEpisodeCache.get(cacheKey);
+  if(episodes){renderEpisodes(episodes);return}
   const d=await tmdb("/tv/"+itemId+"/season/"+season);
-  if(request!==titleEpisodesRequest||!titlePageItem||Number(titlePageItem.id)!==itemId||Number(titlePageSeason)!==season)return;
-  let episodes=d.episodes||[];
-  const list=$("title-episode-list");if(!list)return;
-  // TMDB Albanian season data can omit episode overviews. Fetch English only
-  // when needed, then translate those missing descriptions using the app translator.
-  if(episodes.some(ep=>!String(ep.overview||"").trim())){
+  if(!isCurrent())return;
+  episodes=d.episodes||[];
+  titleSeasonEpisodeCache.set(cacheKey,episodes);
+  renderEpisodes(episodes); // Show the season immediately; translations happen below.
+  if(!episodes.some(ep=>!String(ep.overview||"").trim()))return;
+  (async()=>{
    try{
     const english=await tmdb("/tv/"+itemId+"/season/"+season+"?language=en-US");
-    if(request!==titleEpisodesRequest||!titlePageItem||Number(titlePageItem.id)!==itemId||Number(titlePageSeason)!==season)return;
+    if(!isCurrent())return;
     const englishByNumber=new Map((english.episodes||[]).map(ep=>[Number(ep.episode_number),ep]));
-    episodes=await Promise.all(episodes.map(async ep=>{
+    const translated=await Promise.all(episodes.map(async ep=>{
      if(String(ep.overview||"").trim())return ep;
      const source=String(englishByNumber.get(Number(ep.episode_number))?.overview||"").trim();
      if(!source)return ep;
      return {...ep,overview:await translateOverviewToAlbanian(source)};
     }));
+    titleSeasonEpisodeCache.set(cacheKey,translated);
+    renderEpisodes(translated);
    }catch(error){console.warn("Episode overview fallback failed:",error)}
-  }
-  if(!episodes.some(ep=>Number(ep.episode_number)===Number(titlePageEpisode)))titlePageEpisode=Number(episodes[0]?.episode_number||1);
-  const saved=getSavedProgress(titlePageItem),savedCanResume=!!(saved&&Number(saved.currentTime)>5&&(!saved.duration||Number(saved.currentTime)<Number(saved.duration)*0.92));
-  list.innerHTML=episodes.map(ep=>{const epNo=Number(ep.episode_number),isSaved=savedCanResume&&Number(saved.season)===season&&Number(saved.episode)===epNo;const overview=String(ep.overview||"").trim();return '<button type="button" class="series-episode-card '+(epNo===titlePageEpisode?'selected':'')+'" data-episode="'+epNo+'"><span class="series-episode-thumb">'+(ep.still_path?'<img loading="lazy" decoding="async" src="'+IMG+'w300'+ep.still_path+'" alt="">':'<span>FLIXTV</span>')+'<b>▶</b></span><span class="series-episode-copy"><strong>'+escapeHtml(ep.name||("Episodi "+epNo))+'</strong><small>E'+epNo+(ep.runtime?" · "+ep.runtime+" min":"")+(ep.air_date?" · "+escapeHtml(ep.air_date.slice(0,4)):"")+'</small>'+(overview?'<span>'+escapeHtml(overview)+'</span>':'')+'</span></button>'}).join("");
-  list.querySelectorAll("[data-episode]").forEach(card=>card.addEventListener("click",()=>{const ep=Number(card.dataset.episode)||1;titlePageEpisode=ep;const resume=savedCanResume&&Number(saved.season)===season&&Number(saved.episode)===ep?Number(saved.currentTime):0;startTitlePlayback(season,ep,resume)}));
- }catch(e){if(request===titleEpisodesRequest)notice("Episodet nuk u ngarkuan: "+e.message)}
+  })();
+ }catch(e){if(isCurrent())notice("Episodet nuk u ngarkuan: "+e.message)}
 }
 function enterCineSrcFullscreen(){
  const frame=$("cinesrc-frame"),modal=$("player-modal");
