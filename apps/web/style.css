@@ -1356,3 +1356,38 @@ html.deep-route-loading::after{
 #title-page #title-trailer,
 .title-page-actions #title-trailer,
 .title-page-actions .secondary-btn{display:none!important}
+
+
+/* Restore readable title hierarchy and keep the primary play action compact. */
+.title-page-copy{max-width:760px!important;width:min(100%,760px)!important}
+.title-page-copy h1{
+  font-size:clamp(36px,4.1vw,52px)!important;
+  line-height:1.06!important;
+  letter-spacing:-1.5px!important;
+  max-width:720px!important;
+  margin:12px 0 15px!important;
+}
+.title-page-kicker{font-size:10px!important;letter-spacing:1.8px!important}
+.title-page-meta{font-size:14px!important;gap:10px!important}
+.title-page-genres{gap:7px!important;margin-top:11px!important}
+.title-page-genres span{font-size:11px!important;padding:5px 10px!important}
+.title-page-overview{font-size:15px!important;line-height:1.65!important;margin-top:14px!important;max-width:680px!important}
+.title-page-actions{display:flex!important;align-items:center!important;gap:10px!important;margin-top:18px!important}
+.title-page-actions .primary-btn{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:max-content!important;min-width:0!important;max-width:max-content!important;
+  flex:0 0 auto!important;align-self:flex-start!important;
+  padding:11px 19px!important;font-size:14px!important;line-height:1.2!important;
+  white-space:nowrap!important;
+}
+@media(max-width:680px){
+  .title-page-copy{max-width:calc(100% - 28px)!important;width:calc(100% - 28px)!important;margin-left:auto!important;margin-right:auto!important}
+  .title-page-copy h1{font-size:clamp(32px,8vw,40px)!important;line-height:1.08!important;letter-spacing:-1px!important;margin:9px 0 11px!important}
+  .title-page-kicker{font-size:9px!important;letter-spacing:1.5px!important}
+  .title-page-meta{font-size:12px!important;gap:8px!important}
+  .title-page-genres{gap:5px!important;margin-top:9px!important}
+  .title-page-genres span{font-size:10px!important;padding:4px 8px!important}
+  .title-page-overview{font-size:14px!important;line-height:1.58!important;margin-top:11px!important}
+  .title-page-actions{margin-top:14px!important}
+  .title-page-actions .primary-btn{padding:10px 16px!important;font-size:13px!important}
+}
