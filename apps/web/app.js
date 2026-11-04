@@ -425,7 +425,7 @@ function titlePageMarkup(item,d,playMode=false){
  (genres.length?'<div class="title-page-genres">'+genres.map(g=>'<span>'+escapeHtml(g.name)+'</span>').join("")+'</div>':"")+
  '<p class="title-page-overview">'+escapeHtml(overview)+'</p>'+
  (tv?'<div class="title-page-episodes"><label>SEZONI<select id="title-season">'+seasons.map(x=>'<option value="'+x.season_number+'" '+(Number(x.season_number)===titlePageSeason?'selected':'')+'>'+escapeHtml(x.name||("Sezoni "+x.season_number))+'</option>').join("")+'</select></label><label>EPISODI<select id="title-episode"></select></label></div>':"")+
- '<div class="title-page-actions"><button class="primary-btn" id="title-play">▶ <span>'+(tv?"Luaj episodin":"Luaj filmin")+'</span></button><button class="secondary-btn" id="title-trailer" '+(!((d.videos?.results||[]).some(x=>x.site==="YouTube"&&(x.type==="Trailer"||x.type==="Teaser")))?'hidden':"")+' >▷ Traileri</button></div>'+
+ '<div class="title-page-actions"><button class="primary-btn" id="title-play">▶ <span>'+(tv?"Luaj episodin":"Luaj filmin")+'</span></button></div>'+
  '</div></div></div></div>'+ 
  '<section class="title-page-more"><div class="title-page-section-head"><div><span class="title-page-section-label">MË SHUMË INFORMACION</span><h2>Rreth titullit</h2></div><span class="title-page-index">FLIXTV / '+(tv?"SERIALE":"FILMA")+'</span></div><div class="title-page-info-grid"><article class="title-page-facts"><div><span>STATUSI</span><strong>'+escapeHtml(d.status||"Nuk dihet")+'</strong></div><div><span>TITULLI ORIGJINAL</span><strong>'+escapeHtml(d.original_title||d.original_name||title(d))+'</strong></div><div><span>GJUHA ORIGJINALE</span><strong>'+escapeHtml(String(d.original_language||"").toUpperCase())+'</strong></div>'+(d.release_date||d.first_air_date?'<div><span>DATA E PUBLIKIMIT</span><strong>'+escapeHtml(d.release_date||d.first_air_date)+'</strong></div>':"")+'</article></div>'+
  (cast.length?'<div class="title-page-cast-head"><h2>Interpretojnë</h2><span>KASTI KRYESOR</span></div><div class="title-page-cast">'+cast.map(p=>'<div class="title-page-cast-card">'+(p.profile_path?'<img loading="lazy" src="'+IMG+'w185'+p.profile_path+'" alt="">':'<div class="cast-placeholder">FLIXTV</div>')+'<strong>'+escapeHtml(p.name||"")+'</strong><small>'+escapeHtml(p.character||"")+'</small></div>').join("")+'</div>':"")+'</section>';
@@ -459,8 +459,6 @@ async function openTitlePage(item,push=false,playMode=false){
   initTitleYoutubeControls();
   document.body.classList.remove("no-scroll");
   if(k==="tv")await loadTitleEpisodes();
-  const trailer=(d.videos?.results||[]).find(x=>x.site==="YouTube"&&(x.type==="Trailer"||x.type==="Teaser"));
-  $("title-trailer").onclick=()=>{if(trailer)window.open("https://www.youtube.com/watch?v="+trailer.key,"_blank","noopener")};
   const canResume=savedIsResumable&&(k==="movie"||(Number(savedForTitle.season)===titlePageSeason&&Number(savedForTitle.episode)===titlePageEpisode));
   const titlePlayLabel=$("title-play").querySelector("span");
   if(titlePlayLabel)titlePlayLabel.textContent=canResume?(k==="tv"?"Vazhdo serialin":"Vazhdo filmin"):(k==="tv"?"Luaj episodin":"Luaj filmin");
