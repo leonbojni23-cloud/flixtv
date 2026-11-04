@@ -1150,3 +1150,23 @@ html.deep-route-loading::after{
  .title-page-cover .yt-custom-controls .yt-mute-toggle{right:10px!important}
  .title-page-cover .yt-custom-controls button svg{width:15px!important;height:15px!important;flex-basis:15px!important}
 }
+
+
+/* Icon-only trailer controls. */
+.title-page-cover .yt-custom-controls button{
+ width:42px!important;height:42px!important;min-width:42px!important;
+ padding:0!important;gap:0!important;border-radius:50%!important;
+}
+.title-page-cover .yt-custom-controls button span{display:none!important}
+.title-page-cover .yt-custom-controls button svg{
+ width:19px!important;height:19px!important;flex:0 0 19px!important;
+}
+@media(max-width:680px){
+ .title-page-cover .yt-custom-controls button{
+  width:36px!important;height:36px!important;min-width:36px!important;
+  padding:0!important;
+ }
+ .title-page-cover .yt-custom-controls button svg{
+  width:16px!important;height:16px!important;flex-basis:16px!important;
+ }
+}
