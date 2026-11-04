@@ -954,3 +954,20 @@ html.deep-route-loading::after{
 .title-page-hero:has(.title-page-preview) .title-page-backdrop{display:none!important}
 .title-page-hero:has(.title-page-preview) .title-page-preview{opacity:.78!important}
 @media(max-width:680px){.title-page-hero:has(.title-page-preview) .title-page-preview{opacity:.72!important}}
+
+
+/* Dedicated cover frame: trailer replaces the still poster and stays out of title details. */
+.title-page-hero{min-height:0}
+.title-page-inner{min-height:0}
+.title-page-cover{position:relative;width:min(100%,960px);aspect-ratio:16/9;max-height:540px;margin:28px auto 0;overflow:hidden;border:1px solid rgba(255,255,255,.13);border-radius:14px;background:#05070b;box-shadow:0 22px 55px rgba(0,0,0,.38)}
+.title-page-cover>.title-page-poster{display:block;width:100%;height:100%;aspect-ratio:auto;object-fit:cover;border:0;border-radius:0}
+.title-page-cover>.title-page-poster-placeholder{width:100%;height:100%;aspect-ratio:auto}
+.title-page-cover .title-page-preview{position:absolute;inset:0;z-index:1;width:100%;height:100%;opacity:1!important;overflow:hidden;background:#05070b}
+.title-page-cover .title-page-preview iframe{position:absolute;top:50%;left:50%;width:max(100%,177.78vh);height:max(100%,56.25vw);min-width:100%;min-height:100%;transform:translate(-50%,-50%);border:0}
+.title-page-layout{display:block;flex:initial;padding-top:32px}
+.title-page-copy{max-width:900px}
+@media(max-width:680px){
+ .title-page-inner{padding:22px 19px 38px}
+ .title-page-cover{width:100%;aspect-ratio:16/9;max-height:none;margin:20px auto 0;border-radius:10px}
+ .title-page-layout{padding-top:28px}
+}
