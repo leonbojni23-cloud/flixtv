@@ -363,7 +363,9 @@ function titlePageMarkup(item,d,playMode=false){
  const seasons=tv?(d.seasons||[]).filter(x=>x.season_number>=0):[];
  const overview=d.overviewSq||d.overview||"Përshkrimi nuk është i disponueshëm.";
  const trailer=(d.videos?.results||[]).filter(x=>x.site==="YouTube"&&x.key&&(x.type==="Trailer"||x.type==="Teaser")).sort((a,b)=>Number(!!b.official)-Number(!!a.official)||Number(b.type==="Trailer")-Number(a.type==="Trailer")||Number(b.iso_639_1==="en")-Number(a.iso_639_1==="en"))[0];
- const preview=trailer?'<div class="title-page-preview" aria-hidden="true"><iframe src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(trailer.key)+'?autoplay=1&mute=1&controls=1&loop=1&playlist='+encodeURIComponent(trailer.key)+'&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3" title="Trailer preview" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>':"";
+ const imdbVideo=(d.imdbVideos?.videos||[]).find(v=>(v.type||"").toLowerCase()==="trailer"&&Array.isArray(v.playback)&&v.playback.some(p=>p.url&&["MP4","M3U8"].includes(String(p.format||"").toUpperCase())));
+ const imdbSource=imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="MP4"&&p.url)||imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="M3U8"&&p.url);
+ const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':trailer?'<div class="title-page-preview" aria-hidden="true"><iframe src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(trailer.key)+'?autoplay=1&mute=1&controls=1&loop=1&playlist='+encodeURIComponent(trailer.key)+'&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3" title="Trailer preview" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>':"";
  const cover=preview||(posterPath?'<img class="title-page-poster" src="'+posterPath+'" alt="'+escapeHtml(title(d))+' poster">':'<div class="title-page-poster-placeholder">FLIXTV</div>');
  return '<div class="title-page-hero"><div class="title-page-backdrop" style="'+(backdrop?'background-image:linear-gradient(90deg,#080b11 0%,rgba(8,11,17,.92) 30%,rgba(8,11,17,.48) 66%,rgba(8,11,17,.25)),linear-gradient(0deg,#090b10 0%,transparent 52%),url("'+backdrop+'")':'')+'"></div>'+
  '<div class="title-page-inner"><a class="title-page-back" href="/" data-title-home>‹ <span>Kthehu te FLIXTV</span></a><div class="title-page-cover">'+cover+'</div><div class="title-page-layout"><div class="title-page-copy"><div class="title-page-kicker"><span class="title-page-kicker-dot"></span>'+(tv?"FLIXTV ORIGINAL SERIES":"FLIXTV FILM")+'</div><h1>'+escapeHtml(title(d))+'</h1>'+
@@ -380,10 +382,14 @@ function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":
 async function openTitlePage(item,push=false,playMode=false){
  if(!item||!item.id)return;
  try{
-  const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,credits&include_video_language=en,null");
+  const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,credits,external_ids&include_video_language=en,null");
   const hasYouTubePreview=(d.videos?.results||[]).some(v=>v.site==="YouTube"&&v.key&&(v.type==="Trailer"||v.type==="Teaser"));
   if(!hasYouTubePreview){
    try{const videoData=await tmdb("/"+k+"/"+item.id+"/videos?language=en-US");if(videoData?.results?.length)d.videos=videoData}catch(_){/* Keep the still-image fallback if trailers are unavailable. */}
+  }
+  const imdbId=d.external_ids?.imdb_id;
+  if(imdbId){
+   try{const imdbResponse=await fetch("/api/imdb-videos?id="+encodeURIComponent(imdbId));if(imdbResponse.ok){const imdbData=await imdbResponse.json();if(Array.isArray(imdbData.videos))d.imdbVideos=imdbData}}catch(_){/* Use the existing YouTube fallback if IMDb is unavailable. */}
   }
   d.overviewSq=await getAlbanianOverview(d,k);
   titlePageItem={...item,...d,media_type:k};
