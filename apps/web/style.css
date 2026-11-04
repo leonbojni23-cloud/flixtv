@@ -1293,16 +1293,4 @@ html.deep-route-loading::after{
 }
 
 
-/* iOS Home Screen app: reserve a clear blank band above the header.
-   The spacer is part of the header itself, so all page content starts below it. */
-@media (max-width:760px){
- html.ios-home-app .topbar{
-  position:relative!important;
-  top:auto!important;
-  margin-top:0!important;
-  height:116px!important;
-  padding:54px 16px 0!important;
-  box-sizing:border-box!important;
-  align-items:center!important;
- }
-}
+
