@@ -276,7 +276,7 @@ function titleSlug(value){return String(value||"").normalize("NFD").replace(/[\u
 let titlePageItem=null,titlePageSeason=1,titlePageEpisode=1;
 function pageUrl(item,play=false){const slug=titleSlug(title(item))||String(item.id);return "/"+slug+(play?"/play":"")}
 function titlePageMarkup(item,d,playMode=false){
- const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:"",posterPath=d.poster_path?IMG+"w500"+d.poster_path:"";
+ const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:""),posterPath=d.poster_path?IMG+"w500"+d.poster_path:"";
  const meta=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1)+"/10":"",d.runtime?d.runtime+" min":tv?(d.number_of_seasons||0)+" sezone":""].filter(Boolean);
  const genres=(d.genres||[]).slice(0,5),cast=(d.credits?.cast||[]).slice(0,6);
  const seasons=tv?(d.seasons||[]).filter(x=>x.season_number>=0):[];
