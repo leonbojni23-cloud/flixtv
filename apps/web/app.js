@@ -89,7 +89,7 @@ function card(x){
  if(src)b.querySelector("img").src=src;
  b.querySelector(".poster-title").textContent=title(x);
  b.querySelector(".poster-year").textContent=year(x)+(kind(x)==="tv"?" · TV":"");
- b.onclick=()=>openTitlePage(x,true);return b
+ b.onclick=()=>window.location.assign(pageUrl(x));return b
 }
 async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","sq-AL");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Kërkesa për katalogun dështoi ("+r.status+").");return r.json()}
 async function translateOverviewToAlbanian(text){
@@ -222,7 +222,7 @@ function showHero(index){
    $("hero-overview").textContent=item.overview||"Po përgatitet përshkrimi në shqip…";getAlbanianOverview(item,kind(item)).then(text=>{if(request===showHero.requestId&&text)$("hero-overview").textContent=text})
    $("hero-eyebrow").textContent="TË PËRZGJEDHUR";
    $("hero-action").textContent="Shiko detajet";
-   $("hero-action").onclick=()=>openTitlePage(item,true);
+   $("hero-action").onclick=()=>window.location.assign(pageUrl(item));
    requestAnimationFrame(()=>$("hero-content").classList.remove("changing"));
  },180);
 }
@@ -272,23 +272,31 @@ async function home(){
  }
 }
 
-function titleSlug(value){return String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+function titleSlug(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
 let titlePageItem=null,titlePageSeason=1,titlePageEpisode=1;
 function pageUrl(item,play=false){const slug=titleSlug(title(item))||String(item.id);return "/"+slug+(play?"/play":"")}
 function titlePageMarkup(item,d,playMode=false){
- const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:"";
- const meta=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1):"",d.runtime?d.runtime+" min":tv?(d.number_of_seasons||0)+" sezone":""].filter(Boolean).join(" · ");
+ const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:"",posterPath=d.poster_path?IMG+"w500"+d.poster_path:"";
+ const meta=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1)+"/10":"",d.runtime?d.runtime+" min":tv?(d.number_of_seasons||0)+" sezone":""].filter(Boolean);
+ const genres=(d.genres||[]).slice(0,5),cast=(d.credits?.cast||[]).slice(0,6);
  const seasons=tv?(d.seasons||[]).filter(x=>x.season_number>=0):[];
- return '<div class="title-page-backdrop" style="'+(backdrop?'background-image:linear-gradient(90deg,#090b10 0%,rgba(9,11,16,.72) 48%,rgba(9,11,16,.25)),linear-gradient(0deg,#090b10,transparent 70%),url("'+backdrop+'")':'')+'"></div>'+
- '<div class="title-page-content"><a class="title-page-back" href="/" data-title-home>‹ <span>Kryefaqja</span></a><div class="title-page-copy"><span class="eyebrow">'+(tv?"SERIAL":"FILM")+'</span><h1>'+escapeHtml(title(d))+'</h1><div class="title-page-meta">'+escapeHtml(meta)+'</div><p>'+escapeHtml(d.overviewSq||d.overview||"Përshkrimi nuk është i disponueshëm.")+'</p>'+
- (tv?'<div class="title-page-episodes"><label>Sezoni<select id="title-season">'+seasons.map(x=>'<option value="'+x.season_number+'" '+(Number(x.season_number)===titlePageSeason?'selected':'')+'>'+escapeHtml(x.name||("Sezoni "+x.season_number))+'</option>').join("")+'</select></label><label>Episodi<select id="title-episode"></select></label></div>':"")+
- '<div class="title-page-actions"><button class="primary-btn" id="title-play">▶ '+(tv?"Luaj episodin":"Luaj filmin")+'</button><button class="secondary-btn" id="title-trailer" '+(!((d.videos?.results||[]).some(x=>x.site==="YouTube"&&(x.type==="Trailer"||x.type==="Teaser")))?'hidden':"")+' >Traileri</button></div></div></div>';
+ const overview=d.overviewSq||d.overview||"Përshkrimi nuk është i disponueshëm.";
+ return '<div class="title-page-hero"><div class="title-page-backdrop" style="'+(backdrop?'background-image:linear-gradient(90deg,#080b11 0%,rgba(8,11,17,.92) 30%,rgba(8,11,17,.48) 66%,rgba(8,11,17,.25)),linear-gradient(0deg,#090b10 0%,transparent 52%),url("'+backdrop+'")':'')+'"></div>'+
+ '<div class="title-page-inner"><a class="title-page-back" href="/" data-title-home>‹ <span>Kthehu te FLIXTV</span></a><div class="title-page-layout"><div class="title-page-copy"><div class="title-page-kicker"><span class="title-page-kicker-dot"></span>'+(tv?"FLIXTV ORIGINAL SERIES":"FLIXTV FILM")+'</div><h1>'+escapeHtml(title(d))+'</h1>'+
+ '<div class="title-page-meta">'+meta.map((x,i)=>'<span class="'+(i===1?'rating':'')+'">'+escapeHtml(x)+'</span>').join('<i></i>')+'</div>'+
+ (genres.length?'<div class="title-page-genres">'+genres.map(g=>'<span>'+escapeHtml(g.name)+'</span>').join("")+'</div>':"")+
+ '<p class="title-page-overview">'+escapeHtml(overview)+'</p>'+
+ (tv?'<div class="title-page-episodes"><label>SEZONI<select id="title-season">'+seasons.map(x=>'<option value="'+x.season_number+'" '+(Number(x.season_number)===titlePageSeason?'selected':'')+'>'+escapeHtml(x.name||("Sezoni "+x.season_number))+'</option>').join("")+'</select></label><label>EPISODI<select id="title-episode"></select></label></div>':"")+
+ '<div class="title-page-actions"><button class="primary-btn" id="title-play">▶ <span>'+(tv?"Luaj episodin":"Luaj filmin")+'</span></button><button class="secondary-btn" id="title-trailer" '+(!((d.videos?.results||[]).some(x=>x.site==="YouTube"&&(x.type==="Trailer"||x.type==="Teaser")))?'hidden':"")+' >▷ Traileri</button></div>'+
+ '</div><div class="title-page-poster-wrap">'+(posterPath?'<img class="title-page-poster" src="'+posterPath+'" alt="'+escapeHtml(title(d))+' poster">':'<div class="title-page-poster-placeholder">FLIXTV</div>')+'<div class="title-page-poster-caption"><span>FLIXTV</span><small>'+(tv?"SERIAL":"FILM")+'</small></div></div></div></div></div>'+
+ '<section class="title-page-more"><div class="title-page-section-head"><div><span class="title-page-section-label">MË SHUMË INFORMACION</span><h2>Rreth titullit</h2></div><span class="title-page-index">FLIXTV / '+(tv?"SERIALE":"FILMA")+'</span></div><div class="title-page-info-grid"><article class="title-page-info-card"><span>PËRSHKRIMI</span><p>'+escapeHtml(overview)+'</p></article><article class="title-page-facts"><div><span>STATUSI</span><strong>'+escapeHtml(d.status||"Nuk dihet")+'</strong></div><div><span>TITULLI ORIGJINAL</span><strong>'+escapeHtml(d.original_title||d.original_name||title(d))+'</strong></div><div><span>GJUHA ORIGJINALE</span><strong>'+escapeHtml(String(d.original_language||"").toUpperCase())+'</strong></div>'+(d.release_date||d.first_air_date?'<div><span>DATA E PUBLIKIMIT</span><strong>'+escapeHtml(d.release_date||d.first_air_date)+'</strong></div>':"")+'</article></div>'+
+ (cast.length?'<div class="title-page-cast-head"><h2>Interpretojnë</h2><span>KASTI KRYESOR</span></div><div class="title-page-cast">'+cast.map(p=>'<div class="title-page-cast-card">'+(p.profile_path?'<img loading="lazy" src="'+IMG+'w185'+p.profile_path+'" alt="">':'<div class="cast-placeholder">FLIXTV</div>')+'<strong>'+escapeHtml(p.name||"")+'</strong><small>'+escapeHtml(p.character||"")+'</small></div>').join("")+'</div>':"")+'</section>';
 }
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 async function openTitlePage(item,push=false,playMode=false){
  if(!item||!item.id)return;
  try{
-  const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");
+  const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,credits");
   d.overviewSq=await getAlbanianOverview(d,k);
   titlePageItem={...item,...d,media_type:k};
   const seasons=(d.seasons||[]).filter(x=>x.season_number>=0);
@@ -300,7 +308,7 @@ async function openTitlePage(item,push=false,playMode=false){
   if(k==="tv")await loadTitleEpisodes();
   const trailer=(d.videos?.results||[]).find(x=>x.site==="YouTube"&&(x.type==="Trailer"||x.type==="Teaser"));
   $("title-trailer").onclick=()=>{if(trailer)window.open("https://www.youtube.com/watch?v="+trailer.key,"_blank","noopener")};
-  $("title-play").onclick=()=>{if(k==="tv"){const s=$("title-season").value,e=$("title-episode").value;titlePageSeason=Number(s);titlePageEpisode=Number(e);history.pushState({titlePage:true,play:true},"",pageUrl(titlePageItem,true)+"?season="+s+"&episode="+e);startTitlePlayback(titlePageSeason,titlePageEpisode)}else{history.pushState({titlePage:true,play:true},"",pageUrl(titlePageItem,true));startTitlePlayback()}};
+  $("title-play").onclick=()=>{if(k==="tv"){const s=$("title-season").value,e=$("title-episode").value;window.location.assign(pageUrl(titlePageItem,true)+"?season="+s+"&episode="+e)}else{window.location.assign(pageUrl(titlePageItem,true))}};
   if(k==="tv")$("title-season").onchange=async()=>{titlePageSeason=Number($("title-season").value);await loadTitleEpisodes()};
   if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1)}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined)}
   window.scrollTo(0,0);
@@ -316,9 +324,15 @@ async function loadTitleEpisodes(){
 }
 function startTitlePlayback(season,episode){
  if(!titlePageItem)return;
+ $("topbar").hidden=true;
  $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
  $("cinesrc-frame").src=buildPlayerUrl(titlePageItem,season,episode);
+}
+function slugSimilarity(a,b){
+ const rows=Array.from({length:b.length+1},(_,i)=>i);
+ for(let i=1;i<=a.length;i++){let prev=rows[0];rows[0]=i;for(let j=1;j<=b.length;j++){const temp=rows[j];rows[j]=Math.min(rows[j]+1,rows[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=temp}}
+ return 1-rows[b.length]/Math.max(a.length,b.length,1);
 }
 async function resolveTitleRoute(){
  const parts=decodeURIComponent(location.pathname).split("/").filter(Boolean);
@@ -328,8 +342,8 @@ async function resolveTitleRoute(){
  try{
   const data=await tmdb("/search/multi?query="+encodeURIComponent(query)+"&include_adult=false");
   const candidates=(data.results||[]).filter(x=>x.media_type==="movie"||x.media_type==="tv");
-  const match=candidates.find(x=>titleSlug(title(x))===slug)||candidates[0];
-  if(!match){notice("Titulli nuk u gjet.");history.replaceState({},"","/");home();return}
+  const match=candidates.find(x=>titleSlug(title(x))===slug||titleSlug(x.original_title||x.original_name||"")===slug)||candidates.find(x=>slugSimilarity(titleSlug(title(x)),slug)>=0.68);
+  if(!match){$("title-page").hidden=true;$("catalog").hidden=true;$("hero").hidden=true;$("title-page").innerHTML='<div class="title-page-not-found"><span>404</span><h1>Titulli nuk u gjet</h1><p>Kontrollo adresën ose kërko titullin në FLIXTV.</p><a class="primary-btn" href="/">Kthehu në FLIXTV</a></div>'; $("title-page").hidden=false;return}
   titlePageSeason=1;titlePageEpisode=1;
   await openTitlePage(match,false,playMode);
  }catch(e){notice(e.message);$("title-page").hidden=true;$("catalog").hidden=false;home()}
@@ -454,7 +468,7 @@ async function showSuggestions(query){
    const name=document.createElement("strong");name.textContent=title(item);
    const meta=document.createElement("small");meta.textContent=(kind(item)==="tv"?"Serial":"Film")+" · "+(year(item)||"—");
    copy.append(name,meta);button.append(img,copy);
-   button.addEventListener("click",()=>{ $("search-page-input").value=title(item);$("search").value=title(item);box.hidden=true;openTitlePage(item,true)});
+   button.addEventListener("click",()=>{ $("search-page-input").value=title(item);$("search").value=title(item);box.hidden=true;window.location.assign(pageUrl(item))});
    box.append(button);
   });
   box.hidden=!items.length;
