@@ -549,15 +549,11 @@ async function loadTitleEpisodes(){
  }catch(e){if(isCurrent())notice("Episodet nuk u ngarkuan: "+e.message)}
 }
 function enterCineSrcFullscreen(){
- const frame=$("cinesrc-frame"),modal=$("player-modal");
- modal.classList.add("open");
- // Keep fullscreen, but do not force landscape orientation.
- // CineSRC handles its own rotate-phone prompt; iOS Safari does not support
- // programmatic orientation locking, so requesting it here cannot dismiss that prompt.
- const request=frame&&frame.requestFullscreen?frame.requestFullscreen({navigationUI:"hide"}):Promise.reject(new Error("Fullscreen API unavailable"));
- if(request&&typeof request.then==="function"){
-  request.catch(()=>modal.classList.add("css-fullscreen"));
- }else modal.classList.add("css-fullscreen");
+ const modal=$("player-modal");
+ // Use an in-page CSS fullscreen on iOS Safari. Native video fullscreen can
+ // detach the iframe player UI and hide CineSRC-rendered subtitles.
+ modal.classList.add("open","css-fullscreen");
+ document.body.classList.add("no-scroll");
 }
 function stopTitlePagePreview(){
  const nativePreview=document.querySelector(".title-page-imdb-video");
