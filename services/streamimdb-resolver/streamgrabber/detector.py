@@ -30,8 +30,10 @@ async def _click_play_candidates(scope: Page | Frame) -> None:
     selectors = [
         "button:has-text('Play')",
         "[aria-label*='Play' i]",
+        "button[title*='play' i]",
+        "[data-testid*='play' i]",
+        ".vjs-big-play-button",
         "video",
-        "button",
     ]
     for selector in selectors:
         try:
@@ -104,6 +106,7 @@ async def capture_streams(
     found: dict[str, Capture] = {}
     request_headers: dict[str, dict[str, str]] = {}
     page_title: str | None = None
+    response_tasks: list[asyncio.Task] = []
 
     def remember_request(request: Request) -> None:
         request_headers[request.url] = dict(request.headers)
@@ -136,7 +139,12 @@ async def capture_streams(
         context = await browser.new_context(user_agent=user_agent) if user_agent else await browser.new_context()
         page = await context.new_page()
         context.on("request", remember_request)
-        context.on("response", lambda response: asyncio.create_task(remember_response(response)))
+
+        def schedule_response_capture(response: Response) -> None:
+            task = asyncio.create_task(remember_response(response))
+            response_tasks.append(task)
+
+        context.on("response", schedule_response_capture)
         await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
         page_title = await _best_source_name(page)
         deadline = asyncio.get_event_loop().time() + timeout_ms / 1000
@@ -153,6 +161,8 @@ async def capture_streams(
                 break
             await page.wait_for_timeout(750)
         page_title = await _best_source_name(page) or page_title
+        if response_tasks:
+            await asyncio.gather(*response_tasks, return_exceptions=True)
         for capture in found.values():
             source_name = await _source_name_for_url(page, capture.source_url)
             if source_name:
