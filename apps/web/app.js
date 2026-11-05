@@ -923,7 +923,7 @@ function sportsIcon(value){
 }
 function sportsImage(item){
  const images=[item.poster,item.posterUrl,item.poster_url,item.background,item.backgroundUrl,item.logo,item.thumbnail,item.thumb,item.image,item.imageUrl,item.picture,item.fanart,item.logoUrl,item.icon,...(Array.isArray(item.images)?item.images:[])];
- return images.find(v=>typeof v==="string"&&/^https?:\\/\\//i.test(v))||"";
+ return images.find(v=>typeof v==="string"&&/^https?:\/\//i.test(v))||"";
 }
 function sportsTeamInfo(value){
  if(!value)return null;
