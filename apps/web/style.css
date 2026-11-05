@@ -486,7 +486,7 @@
 @media(max-width:760px){
   .mobile-nav{
     display:grid!important;
-    grid-template-columns:repeat(4,minmax(0,1fr));
+    grid-template-columns:repeat(5,minmax(0,1fr));
     align-items:center;
     gap:5px;
     padding:1px 12px calc(1px + env(safe-area-inset-bottom))!important;
@@ -1693,3 +1693,19 @@ html.deep-route-loading::after{
 .sports-team-pair b{overflow:hidden;text-overflow:ellipsis}
 .sports-team-pair i{font-size:10px;color:var(--muted);font-style:normal}
 .sports-countdown{font-size:11px!important;color:#ffb64d!important;font-weight:700}
+
+@media(max-width:760px){
+ .sports-brand-art{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:0;letter-spacing:-2px}
+ .sports-brand-art span{font-size:clamp(30px,8vw,46px)!important;font-weight:1000;line-height:1;filter:none!important}
+ .sports-brand-art small{font-size:12px;font-weight:850;letter-spacing:2px;color:#fff}
+ .sports-brand-art.tnt{background:linear-gradient(135deg,#162b53,#07152f)!important;color:#fff}
+ .sports-brand-art.tnt span{background:#e31b35;padding:5px 12px;border-radius:4px}
+ .sports-brand-art.cnn{background:#101820!important;color:#fff}
+ .sports-brand-art.cnn span{font-family:Georgia,serif;font-size:52px!important;letter-spacing:-4px;text-shadow:2px 2px 0 #d71920}
+ .sports-brand-art.msnbc{background:#101820!important;color:#fff}
+ .sports-brand-art.msnbc span{font-size:clamp(25px,6vw,38px)!important;letter-spacing:-1.5px}
+ .sports-brand-art.sky{background:linear-gradient(135deg,#16264a,#111827)!important;color:#fff}
+ .sports-brand-art.sky span{font-style:italic;font-size:54px!important;font-weight:950;letter-spacing:-4px}
+ .sports-brand-art.sky small{font-size:13px;letter-spacing:3px}
+ .mobile-nav{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+}
