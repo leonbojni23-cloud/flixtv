@@ -59,5 +59,10 @@
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/streams.js": {
+      "maxDuration": 30
+    }
+  }
 }
