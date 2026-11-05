@@ -460,7 +460,7 @@ async function openTitlePage(item,push=false,playMode=false){
   await loadTitleVideos(item,d);
   const imdbId=d.external_ids?.imdb_id;
   if(imdbId){
-   try{const imdbResponse=await fetch("/api/imdb-videos?id="+encodeURIComponent(imdbId));if(imdbResponse.ok){const imdbData=await imdbResponse.json();if(Array.isArray(imdbData.videos))d.imdbVideos=imdbData}}catch(_){/* Use the existing YouTube fallback if IMDb is unavailable. */}
+   try{const imdbResponse=await fetch("/api/imdb-videos.js?id="+encodeURIComponent(imdbId));if(imdbResponse.ok){const imdbData=await imdbResponse.json();if(Array.isArray(imdbData.videos))d.imdbVideos=imdbData}}catch(_){/* Use the existing YouTube fallback if IMDb is unavailable. */}
   }
   d.overviewSq=await getAlbanianOverview(d,k);
   titlePageItem={...item,...d,media_type:k};
