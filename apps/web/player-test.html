@@ -10,6 +10,7 @@
 :root{color-scheme:dark;--bg:#090b10;--panel:#141a25;--line:#2b3443;--muted:#a4adbd;--accent:#e50936}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0,#1b2638,transparent 55%),var(--bg);color:#f7f8fb;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:28px 18px}.wrap{max-width:1000px;margin:auto}.brand{font-weight:900;letter-spacing:-1.5px;font-size:24px}.brand span{color:var(--accent)}h1{font-size:clamp(25px,4vw,38px);margin:25px 0 5px}.muted{color:var(--muted)}.panel{background:#111722;border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:20px}.source{display:flex;gap:10px;flex-wrap:wrap}.source input{flex:1;min-width:220px;background:#090e17;border:1px solid var(--line);border-radius:9px;padding:13px;color:#fff}.btn,select{border:1px solid var(--line);border-radius:9px;background:#202a39;color:white;padding:11px 15px;font:inherit}.btn.primary{background:var(--accent);border-color:var(--accent);font-weight:700}.video-wrap{position:relative;background:#000;border-radius:12px;overflow:hidden;aspect-ratio:16/9;margin-top:15px}.video-wrap video{width:100%;height:100%;display:block;background:#000}.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:13px}.status{padding:10px 12px;border-radius:9px;background:#0b111b;border:1px solid var(--line);color:#cbd5e1;margin-top:14px;overflow-wrap:anywhere}.status.error{border-color:#7d2638;color:#ff9bad}.log{font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;max-height:180px;overflow:auto;color:#aeb9ca}.powered{margin-top:25px;text-align:center;color:#8e98a9;font-size:12px}.powered a{color:#cbd5e1}.hint{font-size:13px;color:#a4adbd;margin-top:9px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
+<script src="./m3u8-extractor.js"></script>
 <script src="./player-engine.js"></script>
 </head>
 <body><main class="wrap">
@@ -36,6 +37,30 @@
  const $=id=>document.getElementById(id), video=$("video"), status=$("status"), log=$("log"), quality=$("quality");
  let player=null;
  const write=(message,error=false)=>{status.textContent=message;status.classList.toggle("error",error);log.textContent=new Date().toLocaleTimeString()+"  "+message+"\n"+log.textContent.slice(0,3500)};
+ const extractorStatus=$("extract-status"), candidates=$("candidates");
+ const showCandidates=(items)=>{
+   candidates.replaceChildren();
+   items.forEach((item,index)=>candidates.add(new Option((index+1)+". "+item.host+" · "+item.url.slice(0,100),item.url)));
+   extractorStatus.textContent=items.length ? "U gjetën "+items.length+" URL M3U8. Zgjidh njërën dhe shtype Përdor në player." : "Nuk u gjet asnjë URL M3U8 në source.";
+   if(!items.length)candidates.add(new Option("Nuk ka rezultate",""));
+ };
+ $("extract-code").addEventListener("click",()=>{
+   const items=window.FlixM3U8Extractor.extract($("source-code").value);
+   showCandidates(items);
+ });
+ $("extract-page").addEventListener("click",async()=>{
+   try{
+     extractorStatus.textContent="Po shkarkohet faqja…";
+     const result=await window.FlixM3U8Extractor.fromUrl($("source-page").value.trim());
+     showCandidates(result.candidates);
+     extractorStatus.textContent += " Source: "+result.sourceLength+" karaktere.";
+   }catch(error){extractorStatus.textContent=error.message+" Shumë faqe bllokojnë leximin nga browser-i me CORS. Në atë rast ngjit source-in manualisht."; }
+ });
+ $("use-candidate").addEventListener("click",()=>{
+   if(!candidates.value){extractorStatus.textContent="Nuk ke zgjedhur një URL.";return;}
+   $("stream-url").value=candidates.value;
+   $("load").click();
+ });
  const setQualities=levels=>{
    quality.replaceChildren(new Option("Auto","-1"));
    levels.forEach(level=>quality.add(new Option(level.height?level.height+"p":Math.round(level.bitrate/1000)+" kbps",String(level.index))));
