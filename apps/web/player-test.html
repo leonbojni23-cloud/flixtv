@@ -18,6 +18,15 @@
 <h1>Testimi i motorrit HLS</h1>
 <p class="muted">Faqe e izoluar për të testuar M3U8 me motorin e ri, pa ndryshuar player-in ekzistues të FLIXTV.</p>
 <section class="panel">
+<strong>Extractor M3U8</strong>
+<p class="hint">Vendos URL-në e faqes së videos ose ngjit HTML/JSON/JS të burimit. Extractor-i kërkon URL M3U8 të ekspozuara.</p>
+<div class="source" style="margin-top:10px"><input id="source-page" type="url" autocomplete="off" placeholder="https://faqja-e-videos.example/..."><button class="btn" id="extract-page">Ekstrakto nga URL</button></div>
+<label for="source-code" class="hint" style="display:block;margin-top:12px">Ose ngjit source/HTML të faqes</label>
+<textarea id="source-code" rows="5" spellcheck="false" placeholder="Ngjit këtu HTML, JSON ose JavaScript..." style="width:100%;margin-top:7px;background:#090e17;border:1px solid var(--line);border-radius:9px;padding:12px;color:#fff;font:12px/1.5 ui-monospace,monospace"></textarea>
+<div class="toolbar"><button class="btn" id="extract-code">Kërko M3U8 në source</button><select id="candidates" aria-label="M3U8 të gjetura" style="flex:1;min-width:180px"><option value="">Nuk ka rezultate</option></select><button class="btn primary" id="use-candidate">Përdor në player</button></div>
+<div id="extract-status" class="status" role="status">Extractor-i është gati.</div>
+</section>
+<section class="panel">
 <label for="stream-url"><strong>URL e stream-it M3U8</strong></label>
 <div class="source" style="margin-top:9px"><input id="stream-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://.../playlist.m3u8"><button class="btn primary" id="load">Ngarko stream-in</button></div>
 <p class="hint">Përdor URL të autorizuar nga CineSRC. URL-të me token mund të skadojnë. Mos i publiko dhe mos i dërgo palëve të treta.</p>
