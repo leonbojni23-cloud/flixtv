@@ -1713,7 +1713,7 @@ html.deep-route-loading::after{
 #continue-watching.continue-watching-row{
  display:grid!important;
  grid-auto-flow:column!important;
- grid-auto-columns:220px!important;
+ grid-auto-columns:190px!important;
  grid-template-columns:none!important;
  column-gap:14px!important;
  gap:14px!important;
@@ -1723,9 +1723,9 @@ html.deep-route-loading::after{
 }
 #continue-watching .continue-card{
  display:flex!important;
- width:220px!important;
- min-width:220px!important;
- max-width:220px!important;
+ width:190px!important;
+ min-width:190px!important;
+ max-width:190px!important;
  flex:none!important;
  margin:0!important;
 }
@@ -1738,5 +1738,5 @@ html.deep-route-loading::after{
  margin-right:7px!important;
 }
 @media(max-width:760px){
- #continue-watching.continue-watching-row{grid-auto-columns:220px!important;column-gap:14px!important}
+ #continue-watching.continue-watching-row{grid-auto-columns:190px!important;column-gap:14px!important}
 }
