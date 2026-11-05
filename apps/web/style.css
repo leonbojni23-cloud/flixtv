@@ -1709,3 +1709,34 @@ html.deep-route-loading::after{
  .sports-brand-art.sky small{font-size:13px;letter-spacing:3px}
  .mobile-nav{grid-template-columns:repeat(5,minmax(0,1fr))!important}
 }
+/* Continue Watching is a horizontal grid row: size its grid tracks, not flex items. */
+#continue-watching.continue-watching-row{
+ display:grid!important;
+ grid-auto-flow:column!important;
+ grid-auto-columns:220px!important;
+ grid-template-columns:none!important;
+ column-gap:14px!important;
+ gap:14px!important;
+ align-items:stretch!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+}
+#continue-watching .continue-card{
+ display:flex!important;
+ width:220px!important;
+ min-width:220px!important;
+ max-width:220px!important;
+ flex:none!important;
+ margin:0!important;
+}
+#continue-watching .continue-card-copy{width:100%!important;min-width:0!important}
+#continue-watching .continue-progress{
+ width:auto!important;
+ min-width:0!important;
+ max-width:none!important;
+ margin-left:7px!important;
+ margin-right:7px!important;
+}
+@media(max-width:760px){
+ #continue-watching.continue-watching-row{grid-auto-columns:220px!important;column-gap:14px!important}
+}
