@@ -26,7 +26,10 @@ def classify_url(url: str, content_type: str = "") -> str | None:
     return None
 
 
-async def _click_play_candidates(scope: Page | Frame) -> None:
+async def _click_play_candidates(scope: Page | Frame, clicked_scopes: set[str]) -> None:
+    scope_key = str(scope.url or "")
+    if scope_key in clicked_scopes:
+        return
     selectors = [
         "button:has-text('Play')",
         "[aria-label*='Play' i]",
@@ -40,6 +43,8 @@ async def _click_play_candidates(scope: Page | Frame) -> None:
             loc = scope.locator(selector).first
             if await loc.count():
                 await loc.click(timeout=1000, force=True)
+                clicked_scopes.add(scope_key)
+                return
         except Exception:
             pass
 
@@ -107,6 +112,7 @@ async def capture_streams(
     request_headers: dict[str, dict[str, str]] = {}
     page_title: str | None = None
     response_tasks: list[asyncio.Task] = []
+    clicked_scopes: set[str] = []
 
     def remember_request(request: Request) -> None:
         request_headers[request.url] = dict(request.headers)
@@ -151,10 +157,10 @@ async def capture_streams(
         while asyncio.get_event_loop().time() < deadline:
             for frame in page.frames:
                 try:
-                    await _click_play_candidates(frame)
+                    await _click_play_candidates(frame, clicked_scopes)
                 except Exception:
                     pass
-            await _click_play_candidates(page)
+            await _click_play_candidates(page, clicked_scopes)
             page_title = await _best_source_name(page) or page_title
             if any(c.kind in {"hls", "dash"} for c in found.values()):
                 await page.wait_for_timeout(2500)
