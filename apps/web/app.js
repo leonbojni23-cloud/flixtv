@@ -979,12 +979,6 @@ function playSportsStream(stream){
  modal.classList.add("open");modal.setAttribute("aria-hidden","false");
  $("sports-player-close").onclick=()=>{modal.classList.remove("open");modal.setAttribute("aria-hidden","true");card.innerHTML='<button class="close-btn" data-close="sports-settings" aria-label="Mbyll">×</button><span class="catalog-overline">SPORTS STREAMS</span><h2>Konfiguro Sport</h2><p class="muted tiny">Manifesti kryesor konfigurohet në server. URL lokale përdoret vetëm për zhvillim.</p><form id="sports-settings-form"><label for="sports-manifest-input">Manifest URL</label><input id="sports-manifest-input" type="url" placeholder="https://sports.highfly.to/…/manifest.json" required autocomplete="off"><button class="primary-btn" type="submit">Ruaj dhe lidhu</button><button class="secondary-btn" id="sports-clear" type="button">Hiq konfigurimin</button></form>';bindSportsSettings()};
 }
-function bindSportsSettings(){
- const form=$("sports-settings-form");if(!form)return;
- $("sports-manifest-input").value=sportsUrl();
- form.onsubmit=async event=>{event.preventDefault();const value=$("sports-manifest-input").value.trim();try{const u=new URL(value);if(u.protocol!=="https:"||!["sports.highfly.to","sportsfree.highfly.to","sportsfree-us2.highfly.to"].includes(u.hostname)||!/^\/[^/]+\/manifest\.json$/.test(u.pathname))throw Error("Vendos manifest URL personale të Sports Streams.");localStorage.setItem(SPORTS_MANIFEST_KEY,value);modal("sports-settings",false);await loadSports()}catch(error){notice(error.message)}};
- const clear=$("sports-clear");if(clear)clear.onclick=()=>{localStorage.removeItem(SPORTS_MANIFEST_KEY);$("sports-manifest-input").value="";notice("Konfigurimi u hoq.");};
-}
 async function loadSports(){
  const grid=$("sports-grid");grid.replaceChildren();
  $("sports-status").textContent="Po lidhet me Sports Streams…";
@@ -1030,8 +1024,6 @@ async function openPage(page){
  loadedPages.add(page);
 }
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
- $("sports-settings").onclick=()=>{bindSportsSettings();modal("sports-settings",true)};
- bindSportsSettings();
  document.querySelectorAll("[data-close]").forEach(e=>{if(e.dataset.close==="sports-settings")e.onclick=()=>modal("sports-settings",false)});
 $("hero-action").onclick=()=>{const item=heroItems[heroIndex];if(item)window.location.assign(pageUrl(item));};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
