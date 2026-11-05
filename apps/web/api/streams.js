@@ -9,7 +9,7 @@ function sendError(res, status, error) {
 }
 
 function validId(value) {
-  return /^\\d{1,10}$/.test(String(value || ""));
+  return /^\d{1,10}$/.test(String(value || ""));
 }
 
 function validHttpsUrl(value) {
@@ -78,11 +78,11 @@ module.exports = async function handler(req, res) {
     if (!embedResponse.ok) return sendError(res, 502, "VixSrc embed unavailable");
 
     const html = await embedResponse.text();
-    const token = html.match(/token["']\\s*:\\s*["']([^"']+)/)?.[1];
-    const expires = html.match(/expires["']\\s*:\\s*["']([^"']+)/)?.[1];
-    const playlist = html.match(/url\\s*:\\s*["']([^"']+)/)?.[1];
+    const token = html.match(/token["']\s*:\s*["']([^"']+)/)?.[1];
+    const expires = html.match(/expires["']\s*:\s*["']([^"']+)/)?.[1];
+    const playlist = html.match(/url\s*:\s*["']([^"']+)/)?.[1];
 
-    if (!token || !expires || !playlist || !/^\\d+$/.test(expires)) {
+    if (!token || !expires || !playlist || !/^\d+$/.test(expires)) {
       return sendError(res, 502, "VixSrc stream data missing");
     }
     if (Number(expires) * 1000 - 60000 <= Date.now()) {
