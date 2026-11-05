@@ -6,7 +6,7 @@ import re
 from typing import Any
 from urllib.parse import urlparse
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from streamgrabber.detector import capture_streams
@@ -143,7 +143,11 @@ async def resolve(
     type: str = Query("movie", pattern="^(movie|tv)$"),
     season: int | None = Query(None, ge=1, le=100),
     episode: int | None = Query(None, ge=1, le=500),
+    x_resolver_key: str | None = Header(None),
 ) -> dict[str, Any]:
+    expected_key = os.getenv("RESOLVER_API_KEY", "")
+    if not expected_key or x_resolver_key != expected_key:
+        raise HTTPException(status_code=401, detail="Unauthorized")
     media_id = tmdbId.strip()
     if not IMDB_ID_RE.fullmatch(media_id):
         raise HTTPException(status_code=400, detail="tmdbId must be a numeric TMDB ID or IMDb ID such as tt1234567")
