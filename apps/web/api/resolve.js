@@ -97,7 +97,7 @@ module.exports = async function handler(req, res) {
 
     const executablePath = await chromium.executablePath(packUrl);
     browser = await puppeteer.launch({
-      args: chromium.args,
+      args: await puppeteer.defaultArgs({ args: chromium.args, headless: "shell" }),
       defaultViewport: chromium.defaultViewport,
       executablePath,
       headless: "shell"
