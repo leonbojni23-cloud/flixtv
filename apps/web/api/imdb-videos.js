@@ -1,4 +1,4 @@
-const ALLOWED_ID = /^tt\\d{5,12}$/;
+const ALLOWED_ID = /^tt\d{5,12}$/;
 
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
