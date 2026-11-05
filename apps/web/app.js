@@ -613,7 +613,7 @@ async function leavePlayer(){
   await openTitlePage(item,false,false);
  }
 }
-window.addEventListener("popstate",()=>{if($("player-modal").classList.contains("open"))closePlayer();if(location.pathname.replace(/\\/$/,"")==="/sports"){openPage("sports",false)}else if(location.pathname==="/"){ $("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;openPage("home",false)}else{resolveTitleRoute()}});
+window.addEventListener("popstate",()=>{if($("player-modal").classList.contains("open"))closePlayer();if(location.pathname.replace(/\/$/,"")==="/sports"){openPage("sports",false)}else if(location.pathname==="/"){ $("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;openPage("home",false)}else{resolveTitleRoute()}});
 document.addEventListener("keydown",e=>{if((e.key==="Escape"||e.key==="Backspace")&&$("player-modal").classList.contains("open")){e.preventDefault();leavePlayer()}});
 
 async function details(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");selected={...item,...d,media_type:k};$("details-title").textContent=title(d);$("details-type").textContent=k==="tv"?"SERIAL":"FILM";$("details-meta").textContent=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1):"",d.runtime?d.runtime+" min":d.number_of_seasons?d.number_of_seasons+" sezone":""].filter(Boolean).join(" · ");const overview=await getAlbanianOverview(d,k);$("details-overview").textContent=overview||"Përshkrimi nuk është i disponueshëm.";$("details-backdrop").style.backgroundImage=d.backdrop_path?'linear-gradient(0deg,#111722,transparent 80%),url("'+IMG+"w1280"+d.backdrop_path+'")':"linear-gradient(0deg,#111722,#263143)";const t=(d.videos&&d.videos.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser"));$("watch-trailer").hidden=!t;$("watch-trailer").onclick=()=>window.open("https://www.youtube.com/watch?v="+t.key,"_blank","noopener");$("episode-controls").hidden=k!=="tv";$("play-title").hidden=k==="tv";$("episode-controls").style.display=k==="tv"?"flex":"none";if(k!=="tv"){$("season-select").replaceChildren();$("episode-select").replaceChildren()}if(k==="tv"){const seasons=(d.seasons||[]).filter(s=>s.season_number>=0);$("season-select").innerHTML=seasons.map(s=>'<option value="'+s.season_number+'">'+s.name+"</option>").join("");$("season-select").onchange=episodes;await episodes()}modal("details-modal",true)}catch(e){notice(e.message)}}
@@ -1063,7 +1063,8 @@ async function loadSports(){
 }
 
 const loadedPages=new Set();
-async function openPage(page){
+async function openPage(page,updateHistory=true){
+  if(updateHistory){const target=page==="sports"?"/sports":page==="home"?"/":location.pathname;if(target!==location.pathname)history.pushState({page},"",target)}
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
  $("search-page").hidden=true;
  $("sports-page").hidden=page!=="sports";
@@ -1094,5 +1095,5 @@ document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dat
 $("hero-action").onclick=()=>{const item=heroItems[heroIndex];if(item)window.location.assign(pageUrl(item));};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
 window.addEventListener("pageshow",()=>{renderContinueWatching();if(heroItems.length>1)startHeroTimer()});
-if(location.pathname.replace(/\\/$/,"")==="/sports")openPage("sports",false);else if(location.pathname!=="/")resolveTitleRoute();else home();
+if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);else if(location.pathname!=="/")resolveTitleRoute();else home();
 })();
