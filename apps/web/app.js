@@ -906,7 +906,7 @@ async function sportsRequest(path){
  if(!response.ok)throw new Error(data.error||"Sports Streams nuk u ngarkua.");
  return data;
 }
-function sportsLabel(value){return String(value||"Sport").replace(/[_-]+/g," ").replace(/\\b\\w/g,c=>c.toUpperCase())}
+function sportsLabel(value){return String(value||"Sport").replace(/[_-]+/g," ").replace(/\b\w/g,c=>c.toUpperCase())}
 function sportsIcon(value){
  const v=String(value||"").toLowerCase();
  if(/football|soccer|futboll/.test(v))return "⚽";
@@ -923,7 +923,7 @@ function sportsIcon(value){
 }
 function sportsImage(item){
  const images=[item.poster,item.posterUrl,item.poster_url,item.background,item.backgroundUrl,item.logo,item.thumbnail,item.thumb,item.image,item.imageUrl,item.picture,item.fanart,...(Array.isArray(item.images)?item.images:[])];
- return images.find(v=>typeof v==="string"&&/^https?:\\/\\//i.test(v))||"";
+ return images.find(v=>typeof v==="string"&&/^https?:\/\//i.test(v))||"";
 }
 function sportsDate(item){
  const raw=item.start||item.startsAt||item.startTime||item.start_time||item.date||item.datetime||item.releaseDate||item.release_date||item.time;
