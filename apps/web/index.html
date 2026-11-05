@@ -30,7 +30,7 @@
     <nav class="desktop-nav" aria-label="Navigimi kryesor">
       <button class="nav-link active" data-page="home">Kryefaqja</button>
       <button class="nav-link" data-page="movies">Filma</button>
-      <button class="nav-link" data-page="shows">Seriale</button>
+      <button class="nav-link" data-page="shows">Seriale</button><button class="nav-link" data-page="sports">Sport</button>
     </nav>
     <div class="top-actions">
       <label class="searchbox" id="searchbox"><button type="button" class="search-trigger" id="search-trigger" aria-label="Focus search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></button><input id="search" type="search" placeholder="Kërko filma dhe seriale" autocomplete="off" aria-label="Kërko filma dhe seriale"></label>
@@ -86,6 +86,12 @@
         <section class="content-section catalog-row-section" id="section-show-mystery-thriller"><div class="section-heading"><h2>Mystery & Thriller Series</h2></div><div class="poster-row" id="show-mystery-thriller"></div></section>
       </div>
     </div>
+    <section id="sports-page" class="sports-page" hidden aria-live="polite">
+      <header class="sports-head"><div><span class="catalog-overline"><span class="catalog-live-dot"></span>FLIXTV LIVE</span><h1>Sport</h1><p>Ndeshje live dhe evente sportive.</p></div><button id="sports-settings" class="secondary-btn" type="button">⚙ Konfigurimi</button></header>
+      <div class="sports-toolbar"><div id="sports-categories" class="sports-categories"></div><span id="sports-status" class="muted">Po ngarkohet…</span></div>
+      <div id="sports-grid" class="sports-grid"></div>
+      <div id="sports-empty" class="sports-empty" hidden></div>
+    </section>
     <section id="title-page" class="title-page" hidden aria-live="polite"></section>
     <div id="notice" class="notice" role="status" hidden></div>
   </main>
@@ -100,10 +106,13 @@
     <button data-page="shows" aria-label="Seriale">
       <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2.5"/><path d="m8 21 4-4 4 4M8 8h8m-8 4h5"/></svg></span><span class="nav-label">Seriale</span>
     </button>
+    <button data-page="sports" aria-label="Sport"><span class="nav-icon">⚽</span><span class="nav-label">Sport</span></button>
     <button id="mobile-search" aria-label="Kërko">
       <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg></span><span class="nav-label">Kërko</span>
     </button>
   </nav>
+
+  <section class="modal" id="sports-settings-modal" aria-hidden="true"><div class="modal-backdrop" data-close="sports-settings"></div><article class="settings-card"><button class="close-btn" data-close="sports-settings" aria-label="Mbyll">×</button><span class="catalog-overline">SPORTS STREAMS</span><h2>Konfiguro Sport</h2><p class="muted tiny">Vendos manifest URL personal nga Sports Streams. Ruhet vetëm në këtë shfletues, jo në GitHub.</p><form id="sports-settings-form"><label for="sports-manifest-input">Manifest URL</label><input id="sports-manifest-input" type="url" placeholder="https://sports.highfly.to/…/manifest.json" required autocomplete="off"><button class="primary-btn" type="submit">Ruaj dhe lidhu</button><button class="secondary-btn" id="sports-clear" type="button">Hiq konfigurimin</button></form></article></section>
 
   <section class="modal" id="details-modal" aria-hidden="true">
     <div class="modal-backdrop" data-close="details"></div>
