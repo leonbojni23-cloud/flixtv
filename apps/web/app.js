@@ -922,15 +922,38 @@ function sportsIcon(value){
  return "🏆";
 }
 function sportsImage(item){
- const images=[item.poster,item.posterUrl,item.poster_url,item.background,item.backgroundUrl,item.logo,item.thumbnail,item.thumb,item.image,item.imageUrl,item.picture,item.fanart,...(Array.isArray(item.images)?item.images:[])];
- return images.find(v=>typeof v==="string"&&/^https?:\/\//i.test(v))||"";
+ const images=[item.poster,item.posterUrl,item.poster_url,item.background,item.backgroundUrl,item.logo,item.thumbnail,item.thumb,item.image,item.imageUrl,item.picture,item.fanart,item.logoUrl,item.icon,...(Array.isArray(item.images)?item.images:[])];
+ return images.find(v=>typeof v==="string"&&/^https?:\\/\\//i.test(v))||"";
+}
+function sportsTeamInfo(value){
+ if(!value)return null;
+ if(typeof value==="string")return {name:value,logo:""};
+ if(typeof value!=="object")return null;
+ return {name:value.name||value.title||value.shortName||value.abbreviation||"",logo:value.logo||value.logoUrl||value.image||value.badge||value.crest||""};
+}
+function sportsTeams(item){
+ const pair=item.teams||item.competitors||item.participants||[];
+ const home=sportsTeamInfo(item.homeTeam||item.home||item.team1||pair[0]);
+ const away=sportsTeamInfo(item.awayTeam||item.away||item.team2||pair[1]);
+ return home&&away&&home.name&&away.name?{home,away}:null;
+}
+function sportsStartDate(item){
+ const raw=item.start||item.startsAt||item.startTime||item.start_time||item.date||item.datetime||item.releaseDate||item.release_date||item.time||item.kickoff||item.scheduled||item.timestamp;
+ if(raw===undefined||raw===null||raw==="")return null;
+ const date=typeof raw==="number"?(raw<1e12?new Date(raw*1000):new Date(raw)):new Date(raw);
+ return Number.isNaN(date.getTime())?null:date;
 }
 function sportsDate(item){
- const raw=item.start||item.startsAt||item.startTime||item.start_time||item.date||item.datetime||item.releaseDate||item.release_date||item.time;
- if(!raw)return "";
- let date=typeof raw==="number"?(raw<1e12?new Date(raw*1000):new Date(raw)):new Date(raw);
- if(Number.isNaN(date.getTime()))return "";
+ const date=sportsStartDate(item);if(!date)return "";
  return new Intl.DateTimeFormat("sq-AL",{timeZone:"Europe/Tirane",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:false}).format(date);
+}
+function sportsCountdown(item){
+ const date=sportsStartDate(item);if(!date)return "";
+ const diff=date.getTime()-Date.now();if(diff<=0)return "";
+ const total=Math.floor(diff/60000),hours=Math.floor(total/60),minutes=total%60;
+ if(hours&&minutes)return "Vazhdon në: "+hours+" orë e "+minutes+" minuta";
+ if(hours)return "Vazhdon në: "+hours+" orë";
+ return "Vazhdon në: "+minutes+" minuta";
 }
 function renderSportsItems(items){
  const grid=$("sports-grid");grid.replaceChildren();
@@ -941,15 +964,18 @@ function renderSportsItems(items){
   const live=item.live===true||String(item.name||item.title||"").toLowerCase().includes("live");
   const titleText=item.name||item.title||item.id||"Event sportiv";
   const category=sportsLabel(item.type||item.category||sportsActiveCatalog?.name||"Sport");
-  const image=sportsImage(item),time=sportsDate(item);
-  button.innerHTML='<div class="sports-card-media"><div class="sports-card-art"><span></span></div></div><span class="sports-card-copy"><small></small><strong></strong><time></time><em>Shiko eventin →</em></span>';
+  const image=sportsImage(item),time=sportsDate(item),countdown=sportsCountdown(item),teams=sportsTeams(item);
+  button.innerHTML='<div class="sports-card-media"><div class="sports-card-art"><span></span></div></div><span class="sports-card-copy"><small></small><strong></strong><div class="sports-team-pair" hidden><span class="sports-team-home"><img alt=""><b></b></span><i>VS</i><span class="sports-team-away"><img alt=""><b></b></span></div><time></time><em class="sports-countdown"></em><em>Shiko eventin →</em></span>';
   const media=button.querySelector(".sports-card-media"),art=button.querySelector(".sports-card-art");
   art.querySelector("span").textContent=sportsIcon(category);
   if(image){const img=document.createElement("img");img.loading="lazy";img.alt="";img.src=image;img.onerror=()=>{img.remove();art.hidden=false};media.prepend(img);art.hidden=true}
   button.querySelector("small").textContent=live?"● LIVE":category;
   button.querySelector("strong").textContent=titleText;
+  if(teams){const pair=button.querySelector(".sports-team-pair");pair.hidden=false;const home=pair.querySelector(".sports-team-home"),away=pair.querySelector(".sports-team-away");home.querySelector("b").textContent=teams.home.name;away.querySelector("b").textContent=teams.away.name;if(teams.home.logo){home.querySelector("img").src=teams.home.logo}else{home.querySelector("img").hidden=true}if(teams.away.logo){away.querySelector("img").src=teams.away.logo}else{away.querySelector("img").hidden=true}}
   button.querySelector("time").textContent=time?("Shqipëri · "+time):"";
   button.querySelector("time").hidden=!time;
+  button.querySelector(".sports-countdown").textContent=countdown;
+  button.querySelector(".sports-countdown").hidden=!countdown;
   button.addEventListener("click",()=>openSportsEvent(item));
   grid.append(button);
  });
