@@ -1752,3 +1752,9 @@ html.deep-route-loading::after{
 .sports-source.active::before{content:"✓";background:#e50936;color:#fff;font-size:14px;padding:0}
 .sports-source.active::after{content:"ZGJEDHUR";color:#ff7890}
 @media(max-width:760px){.sports-source-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.sports-source{min-height:48px;padding:8px 9px;gap:8px;font-size:11px;border-radius:10px}.sports-source::before{flex-basis:25px;width:25px;height:25px;border-radius:8px}.sports-source::after{display:none}}
+
+
+/* iOS Safari: keep CineSRC inside the page so its own subtitle overlay remains visible. */
+.player-modal.css-fullscreen{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-height:100dvh!important;overflow:hidden!important;z-index:2147483000!important;background:#000!important;}
+.player-modal.css-fullscreen iframe{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;height:100dvh!important;max-height:100dvh!important;border:0!important;}
+@supports(padding:env(safe-area-inset-top)){.player-modal.css-fullscreen{padding:0!important;padding-top:env(safe-area-inset-top)!important;padding-bottom:env(safe-area-inset-bottom)!important;}}
