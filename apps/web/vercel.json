@@ -3,6 +3,10 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/sports.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "api/tmdb.js",
       "use": "@vercel/node"
     },
@@ -32,8 +36,14 @@
     }
   ],
   "rewrites": [
-    {"source": "/:slug/:action(play)", "destination": "/index.html"},
-    {"source": "/:slug", "destination": "/index.html"}
+    {
+      "source": "/:slug/:action(play)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:slug",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
