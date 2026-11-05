@@ -10,7 +10,7 @@ HTTP wrapper around the MIT-licensed Streamgrabber capture and StreamIMDb/VaPlay
 
 The resolver first uses the project's existing StreamIMDb/VaPlayer episode metadata function. If it returns no valid HTTPS stream URLs, it opens the corresponding StreamIMDb embed in Playwright and captures HLS and subtitle network requests.
 
-The API returns stream URLs, a limited set of playback headers, subtitle tracks, and the resolution method. It does not download or re-host media.
+The API returns stream URLs, a limited set of playback headers, subtitle tracks, and the resolution method. It does not download or re-host media. Set a strong `RESOLVER_API_KEY` environment variable; every resolve request must provide it in `X-Resolver-Key`. FLIXTV's Vercel function sends the matching `STREAMIMDB_RESOLVER_API_KEY` secret.
 
 ## Run locally
 
@@ -28,6 +28,6 @@ On Windows PowerShell, activate the venv with `.venv\\Scripts\\Activate.ps1`.
 
 ## Deploy
 
-Build the Dockerfile from the repository root. Configure `CORS_ORIGINS` to the exact FLIXTV web origin(s), separated by commas. `CAPTURE_TIMEOUT_MS` defaults to 20000.
+Build the Dockerfile from the repository root. Configure `RESOLVER_API_KEY` with a long random secret, and configure `CORS_ORIGINS` to the exact FLIXTV web origin(s), separated by commas. `CAPTURE_TIMEOUT_MS` defaults to 20000. In Vercel, set `STREAMIMDB_RESOLVER_URL` to the deployed service base URL and `STREAMIMDB_RESOLVER_API_KEY` to the same secret.
 
 Only use this resolver with streams and services you are authorized to access. Signed stream URLs may expire; resolve again when playback fails due to expiry.
