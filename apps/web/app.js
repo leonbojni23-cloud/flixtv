@@ -320,8 +320,12 @@ function startProgressPolling(){
  clearInterval(progressPollTimer);
  progressPollTimer=setInterval(()=>{
   if(!$("player-modal").classList.contains("open")||!currentPlayback)return;
-  sendCineSrcCommand("getCurrentTime");
-  sendCineSrcCommand("getDuration");
+  const video=$("resolved-video");
+  if(video&&!video.hidden&&Number.isFinite(video.currentTime)){
+   latestPlaybackTime=Number(video.currentTime)||0;
+   latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
+   savePlaybackProgress(false);
+  }
  },4000);
 }
 function sendCineSrcCommand(command,args=[]){
@@ -663,14 +667,15 @@ async function playResolvedStream(item,season,episode){
 }
 async function startPlaybackWithFallback(item,season,episode){
  try{
+  const frame=$("cinesrc-frame");
+  if(frame){frame.hidden=true;frame.removeAttribute("src")}
   await playResolvedStream(item,season,episode);
  }catch(error){
-  console.warn("[FLIXTV] VixSrc playback unavailable:",error);
+  console.warn("[FLIXTV] Direct stream playback unavailable:",error);
   stopResolvedVideo();
   const frame=$("cinesrc-frame");
-  frame.hidden=false;
-  frame.src=buildPlayerUrl(item,season,episode);
-  notice("VixSrc nuk u hap. Po provojmë CineSRC.");
+  if(frame){frame.hidden=true;frame.removeAttribute("src")}
+  notice("Transmetimi direkt nuk është i disponueshëm. CineSRC është çaktivizuar përkohësisht.");
  }
 }
 
@@ -694,7 +699,7 @@ function startPlayback(item,season,episode){
  startPlaybackWithFallback(item,season,episode);
  $("content-intro").classList.remove("show");
 }
-// CineSRC is the only enabled playback source.
+// Direct HLS playback only. CineSRC iframe fallback is disabled.
 function play(item,season,episode){
  if(!item||!item.id)return;
  clearTimeout(introTimer);
@@ -708,7 +713,8 @@ function play(item,season,episode){
  document.body.classList.add("no-scroll");
  currentPlayback={item,season,episode};
  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
- $("cinesrc-frame").src=buildPlayerUrl(item,season,episode);
+ const frame=$("cinesrc-frame");if(frame){frame.hidden=true;frame.removeAttribute("src")}
+ startPlaybackWithFallback(item,season,episode);
  startProgressPolling();
  clearTimeout(controlsTimer);
 }
