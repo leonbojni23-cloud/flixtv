@@ -636,6 +636,7 @@ async function playResolvedStream(item,season,episode){
  frame.hidden=true;
  video.hidden=false;
  video.controls=true;
+ video.crossOrigin="anonymous";
  const type=kind(item)==="tv"?"tv":"movie";
  const params=new URLSearchParams({type,tmdbId:String(item.id)});
  if(type==="tv"){params.set("season",String(Number(season||1)));params.set("episode",String(Number(episode||1)))}
@@ -644,19 +645,72 @@ async function playResolvedStream(item,season,episode){
  if(!response.ok||!payload||!payload.ok||!payload.stream||!payload.stream.url)throw new Error(payload&&payload.error||"Nuk u gjet stream");
  const streamUrl=payload.stream.url;
  if(!/^https:\/\//i.test(streamUrl))throw new Error("Invalid HLS URL");
- activePlayerProvider=payload.provider||"VixSrc";
- if(video.canPlayType("application/vnd.apple.mpegurl")){
+ let streamHost="";
+ try{streamHost=new URL(streamUrl).hostname}catch(_){throw new Error("Adresa e stream-it nuk është e vlefshme")}
+ const streamHeaders=payload.stream.headers&&typeof payload.stream.headers==="object"?payload.stream.headers:{};
+ const forbiddenHeaders=new Set(["referer","referrer","origin","host","user-agent","cookie","content-length","connection","accept-encoding"]);
+ const usableHeaders=Object.entries(streamHeaders).filter(([name,value])=>{
+  if(forbiddenHeaders.has(String(name).toLowerCase()))return false;
+  return typeof value==="string"||typeof value==="number";
+ });
+ const blockedHeaderNames=Object.keys(streamHeaders).filter(name=>forbiddenHeaders.has(String(name).toLowerCase()));
+ if(blockedHeaderNames.length)console.warn("[FLIXTV] Browser cannot set restricted stream headers:",blockedHeaderNames);
+ activePlayerProvider=payload.provider||"StreamIMDb";
+ const isNativeHls=!!video.canPlayType("application/vnd.apple.mpegurl");
+ if(isNativeHls){
+  // Native Safari HLS cannot attach custom request headers. Try it only when no
+  // browser-restricted headers are required by the upstream provider.
+  if(blockedHeaderNames.length){
+   throw new Error("Burimi kërkon headers që Safari nuk lejon t'i vendosë player-i ("+blockedHeaderNames.join(", ")+"). Nevojitet mbështetje nga serveri i autorizuar i burimit.");
+  }
   video.src=streamUrl;
  }else if(window.Hls&&window.Hls.isSupported()){
-  activeHlsInstance=new window.Hls({enableWorker:true,lowLatencyMode:false});
+  activeHlsInstance=new window.Hls({
+   enableWorker:true,
+   lowLatencyMode:false,
+   xhrSetup(xhr){
+    for(const [name,value] of usableHeaders){
+     try{xhr.setRequestHeader(name,String(value))}catch(error){console.warn("[FLIXTV] Header could not be applied:",name,error)}
+    }
+   },
+   fetchSetup(context,init){
+    const headers=new Headers(init&&init.headers||{});
+    for(const [name,value] of usableHeaders){
+     try{headers.set(name,String(value))}catch(error){console.warn("[FLIXTV] Fetch header could not be applied:",name,error)}
+    }
+    return new Request(context.url,{...(init||{}),headers,mode:"cors"});
+   }
+  });
+  activeHlsInstance.on(window.Hls.Events.ERROR,(_,data)=>{
+   if(!data)return;
+   console.warn("[FLIXTV] HLS error",{
+    type:data.type,details:data.details,fatal:data.fatal,
+    responseCode:data.response&&data.response.code,
+    responseText:data.response&&String(data.response.text||"").slice(0,180),
+    url:data.url||""
+   });
+   if(!data.fatal)return;
+   if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR){
+    notice("Stream-i nuk u shkarkua. Kontrollo CORS, statusin HTTP dhe headers e burimit.");
+    try{activeHlsInstance.startLoad()}catch(_){}
+   }else if(data.type===window.Hls.ErrorTypes.MEDIA_ERROR){
+    notice("Gabim në dekodimin e videos. Po provohet rikuperimi…");
+    try{activeHlsInstance.recoverMediaError()}catch(_){}
+   }else{
+    notice("Gabim HLS: "+(data.details||"stream error"));
+    stopResolvedVideo();
+   }
+  });
   activeHlsInstance.loadSource(streamUrl);
   activeHlsInstance.attachMedia(video);
-  activeHlsInstance.on(window.Hls.Events.ERROR,(_,data)=>{
-   if(data&&data.fatal)notice("Gabim HLS: "+(data.details||"stream error"));
-  });
  }else{
   throw new Error("Ky shfletues nuk mbështet HLS");
  }
+ video.onerror=()=>{
+  const mediaError=video.error;
+  console.error("[FLIXTV] Native video error",mediaError&&{code:mediaError.code,message:mediaError.message,host:streamHost});
+  notice("Videoja nuk u hap. Kontrollo CORS, Referer dhe përgjigjen e playlistës te Network.");
+ };
  video.onloadedmetadata=()=>{if(latestPlaybackTime>5){try{video.currentTime=latestPlaybackTime}catch(_){}}};
  video.ontimeupdate=()=>{latestPlaybackTime=Number(video.currentTime)||0;latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;savePlaybackProgress(false)};
  video.onplay=()=>{latestPlaybackTime=Number(video.currentTime)||0;savePlaybackProgress(true)};
