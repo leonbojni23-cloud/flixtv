@@ -112,7 +112,7 @@ async def capture_streams(
     request_headers: dict[str, dict[str, str]] = {}
     page_title: str | None = None
     response_tasks: list[asyncio.Task] = []
-    clicked_scopes: set[str] = []
+    clicked_scopes: set[str] = set()
 
     def remember_request(request: Request) -> None:
         request_headers[request.url] = dict(request.headers)
