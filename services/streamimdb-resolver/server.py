@@ -54,8 +54,20 @@ def _safe_headers(headers: dict[str, str] | None, fallback_referer: str) -> dict
 
 
 def _resolve_sync(media_id: str, media_type: str, season: int | None, episode: int | None) -> dict[str, Any]:
-    info = episode_info(media_id, media_type, season, episode)
-    streams = [url for url in info.stream_urls if isinstance(url, str) and _valid_stream_url(url)]
+    info = None
+    try:
+        info = episode_info(media_id, media_type, season, episode)
+    except Exception:
+        # The browser-capture fallback is safe for movies. For TV, the episode
+        # selector must be resolved explicitly; silently returning the default
+        # episode would be incorrect.
+        if media_type == "tv":
+            raise
+
+    streams = [
+        url for url in (info.stream_urls if info else [])
+        if isinstance(url, str) and _valid_stream_url(url)
+    ]
 
     if streams:
         return {
@@ -74,6 +86,9 @@ def _resolve_sync(media_id: str, media_type: str, season: int | None, episode: i
             "episode": info.episode if media_type == "tv" else None,
             "resolutionMethod": "streamdata-api",
         }
+
+    if media_type == "tv":
+        raise RuntimeError("The StreamIMDb episode API returned no playable URL")
 
     embed_url = streamimdb_url(media_id, media_type)
     captures = asyncio.run(
