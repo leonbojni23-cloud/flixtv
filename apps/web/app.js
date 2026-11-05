@@ -648,23 +648,16 @@ async function playResolvedStream(item,season,episode){
  try{streamHost=new URL(streamUrl).hostname}catch(_){throw new Error("Adresa e stream-it nuk është e vlefshme")}
  const streamHeaders=payload.stream.headers&&typeof payload.stream.headers==="object"?payload.stream.headers:{};
  const forbiddenHeaders=new Set(["referer","referrer","origin","host","user-agent","cookie","content-length","connection","accept-encoding"]);
- const usableHeaders=Object.entries(streamHeaders).filter(([name,value])=>{
-  if(forbiddenHeaders.has(String(name).toLowerCase()))return false;
-  return typeof value==="string"||typeof value==="number";
- });
+ const usableHeaders=Object.entries(streamHeaders).filter(([name,value])=>!forbiddenHeaders.has(String(name).toLowerCase())&&(typeof value==="string"||typeof value==="number"));
  const blockedHeaderNames=Object.keys(streamHeaders).filter(name=>forbiddenHeaders.has(String(name).toLowerCase()));
- if(blockedHeaderNames.length)console.warn("[FLIXTV] Browser cannot set restricted stream headers:",blockedHeaderNames);
+ if(blockedHeaderNames.length)console.warn("[FLIXTV] Ignoring browser-forbidden upstream headers:",blockedHeaderNames);
  activePlayerProvider=payload.provider||"StreamIMDb";
+ const directMedia=/\.(?:mp4|m4v|webm|ogv)(?:$|[?#])/i.test(streamUrl)||/^(?:mp4|webm|video)$/i.test(String(payload.stream.format||""));
  const isNativeHls=!!video.canPlayType("application/vnd.apple.mpegurl");
- if(isNativeHls){
-  // Native Safari HLS cannot attach custom request headers. Try it only when no
-  // browser-restricted headers are required by the upstream provider.
-  if(blockedHeaderNames.length){
-   throw new Error("Burimi kërkon headers që Safari nuk lejon t'i vendosë player-i ("+blockedHeaderNames.join(", ")+"). Nevojitet mbështetje nga serveri i autorizuar i burimit.");
-  }
+ if(directMedia||isNativeHls){
+  video.removeAttribute("crossorigin");
   video.src=streamUrl;
  }else if(window.Hls&&window.Hls.isSupported()){
-  if(blockedHeaderNames.length){throw new Error("Burimi kërkon headers të rezervuara nga shfletuesi ("+blockedHeaderNames.join(", ")+"). Player-i nuk mund t’i vendosë drejtpërdrejt.");}
   video.crossOrigin="anonymous";
   activeHlsInstance=new window.Hls({
    enableWorker:true,
@@ -702,10 +695,10 @@ async function playResolvedStream(item,season,episode){
     stopResolvedVideo();
    }
   });
-  activeHlsInstance.loadSource(streamUrl);
   activeHlsInstance.attachMedia(video);
+  activeHlsInstance.loadSource(streamUrl);
  }else{
-  throw new Error("Ky shfletues nuk mbështet HLS");
+  throw new Error("Ky shfletues nuk mbështet HLS dhe burimi nuk është format videoje direkt");
  }
  video.onerror=()=>{
   const mediaError=video.error;
