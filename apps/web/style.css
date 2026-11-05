@@ -1740,3 +1740,15 @@ html.deep-route-loading::after{
 @media(max-width:760px){
  #continue-watching.continue-watching-row{grid-auto-columns:145px!important;column-gap:14px!important}
 }
+
+
+/* Compact, clearly selectable sports stream source cards. */
+.sports-source-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:9px;align-items:stretch}
+.sports-source{position:relative;display:flex;align-items:center;gap:10px;min-width:0;min-height:54px;padding:10px 36px 10px 11px;border:1px solid rgba(148,163,184,.2);border-radius:12px;background:linear-gradient(145deg,#1b2432,#121923);color:#e8edf6;font-size:13px;font-weight:750;line-height:1.35;text-align:left;overflow:hidden;cursor:pointer;transition:background .18s,border-color .18s,transform .18s,box-shadow .18s}
+.sports-source::before{content:"▶";flex:0 0 28px;width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:rgba(229,9,54,.13);color:#ff4568;font-size:11px;padding-left:2px;box-sizing:border-box}
+.sports-source::after{content:"ZGJIDH";position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#8793a5;font-size:8px;font-weight:900;letter-spacing:.7px}
+.sports-source:hover{border-color:rgba(255,49,91,.75);background:linear-gradient(145deg,#252333,#171923);transform:translateY(-1px)}
+.sports-source.active{border-color:#ff315b;background:linear-gradient(120deg,rgba(229,9,54,.24),rgba(35,28,43,.96));box-shadow:inset 0 0 0 1px rgba(255,49,91,.2),0 4px 16px rgba(229,9,54,.12);color:#fff}
+.sports-source.active::before{content:"✓";background:#e50936;color:#fff;font-size:14px;padding:0}
+.sports-source.active::after{content:"ZGJEDHUR";color:#ff7890}
+@media(max-width:760px){.sports-source-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.sports-source{min-height:48px;padding:8px 9px;gap:8px;font-size:11px;border-radius:10px}.sports-source::before{flex-basis:25px;width:25px;height:25px;border-radius:8px}.sports-source::after{display:none}}
