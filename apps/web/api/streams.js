@@ -7,7 +7,7 @@ function sendError(res, status, error) {
 }
 
 function validId(value) {
-  return /^(?:tt\\d{7,10}|\\d{1,12})$/i.test(String(value || ""));
+  return /^(?:tt\d{7,10}|\d{1,12})$/i.test(String(value || ""));
 }
 
 module.exports = async function handler(req, res) {
@@ -29,11 +29,11 @@ module.exports = async function handler(req, res) {
 
   if (!["movie", "tv"].includes(type)) return sendError(res, 400, "type must be movie or tv");
   if (!validId(tmdbId)) return sendError(res, 400, "Invalid TMDB or IMDb ID");
-  if (type === "tv" && (!/^\\d{1,3}$/.test(season) || !/^\\d{1,3}$/.test(episode) || Number(season) < 1 || Number(episode) < 1)) {
+  if (type === "tv" && (!/^\d{1,3}$/.test(season) || !/^\d{1,3}$/.test(episode) || Number(season) < 1 || Number(episode) < 1)) {
     return sendError(res, 400, "TV requests require valid season and episode");
   }
 
-  const resolverBase = String(process.env.STREAMIMDB_RESOLVER_URL || "").replace(/\\/$/, "");
+  const resolverBase = String(process.env.STREAMIMDB_RESOLVER_URL || "").replace(/\/$/, "");
   if (!resolverBase) {
     return sendError(res, 503, "StreamIMDb resolver is not configured");
   }
@@ -59,7 +59,7 @@ module.exports = async function handler(req, res) {
       return sendError(res, response.status >= 400 && response.status < 500 ? response.status : 502, message || "StreamIMDb resolution failed");
     }
 
-    const stream = payload.streams.find(item => item && typeof item.url === "string" && /^https:\\/\\//i.test(item.url));
+    const stream = payload.streams.find(item => item && typeof item.url === "string" && /^https:\/\//i.test(item.url));
     if (!stream) return sendError(res, 502, "Resolver returned no valid HTTPS stream");
 
     return res.status(200).json({
