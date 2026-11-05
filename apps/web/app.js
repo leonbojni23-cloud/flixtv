@@ -922,8 +922,17 @@ function sportsIcon(value){
  return "🏆";
 }
 function sportsImage(item){
- const images=[item.poster,item.posterUrl,item.poster_url,item.background,item.backgroundUrl,item.logo,item.thumbnail,item.thumb,item.image,item.imageUrl,item.picture,item.fanart,item.logoUrl,item.icon,...(Array.isArray(item.images)?item.images:[])];
+ const images=[item.poster,item.posterUrl,item.poster_url,item.background,item.backgroundUrl,item.logo,item.logoUrl,item.thumbnail,item.thumb,item.image,item.imageUrl,item.picture,item.fanart,item.icon,...(Array.isArray(item.images)?item.images:[])];
  return images.find(v=>typeof v==="string"&&/^https?:\/\//i.test(v))||"";
+}
+function sportsBrand(item){
+ const name=String(item.name||item.title||item.id||"").toLowerCase();
+ if(/tnt\s*sport\s*1/.test(name))return {text:"TNT",sub:"SPORT 1",className:"tnt"};
+ if(/tnt\s*sport\s*2/.test(name))return {text:"TNT",sub:"SPORT 2",className:"tnt"};
+ if(/sky\s*sports/.test(name))return {text:"sky",sub:"SPORTS",className:"sky"};
+ if(/\bcnn\b/.test(name))return {text:"CNN",sub:"",className:"cnn"};
+ if(/\bmsnbc\b/.test(name))return {text:"MSNBC",sub:"",className:"msnbc"};
+ return null;
 }
 function sportsTeamInfo(value){
  if(!value)return null;
@@ -964,10 +973,11 @@ function renderSportsItems(items){
   const live=item.live===true||String(item.name||item.title||"").toLowerCase().includes("live");
   const titleText=item.name||item.title||item.id||"Event sportiv";
   const category=sportsLabel(item.type||item.category||sportsActiveCatalog?.name||"Sport");
-  const image=sportsImage(item),time=sportsDate(item),countdown=sportsCountdown(item),teams=sportsTeams(item);
+  const image=sportsImage(item),time=sportsDate(item),countdown=sportsCountdown(item),teams=sportsTeams(item),brand=sportsBrand(item);
   button.innerHTML='<div class="sports-card-media"><div class="sports-card-art"><span></span></div></div><span class="sports-card-copy"><small></small><strong></strong><div class="sports-team-pair" hidden><span class="sports-team-home"><img alt=""><b></b></span><i>VS</i><span class="sports-team-away"><img alt=""><b></b></span></div><time></time><em class="sports-countdown"></em><em>Shiko eventin →</em></span>';
-  const media=button.querySelector(".sports-card-media"),art=button.querySelector(".sports-card-art");
-  art.querySelector("span").textContent=sportsIcon(category);
+  const media=button.querySelector(".sports-card-media"),art=button.querySelector(".sports-card-art"),artLabel=art.querySelector("span");
+  artLabel.textContent=brand?brand.text:sportsIcon(category);
+  if(brand){art.classList.add("sports-brand-art",brand.className);if(brand.sub){const sub=document.createElement("small");sub.textContent=brand.sub;art.append(sub)}}
   if(image){const img=document.createElement("img");img.loading="lazy";img.alt="";img.src=image;img.onerror=()=>{img.remove();art.hidden=false};media.prepend(img);art.hidden=true}
   button.querySelector("small").textContent=live?"● LIVE":category;
   button.querySelector("strong").textContent=titleText;
