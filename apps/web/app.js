@@ -896,17 +896,127 @@ async function loadGenreCollections(genreId){
  genreCollections.scrollIntoView({behavior:"smooth",block:"start"});
 }
 if(movieGenreSelect)movieGenreSelect.addEventListener("change",()=>loadGenreCollections(movieGenreSelect.value));
+
+const SPORTS_MANIFEST_KEY="flxtv:sports-manifest:v1";
+let sportsManifest=null,sportsCatalogs=[],sportsActiveCatalog=null;
+function sportsUrl(){try{return localStorage.getItem(SPORTS_MANIFEST_KEY)||""}catch(_){return""}}
+async function sportsRequest(path){
+ const manifest=sportsUrl();if(!manifest)throw new Error("Konfiguro fillimisht Sports Streams.");
+ const response=await fetch("/api/sports.js",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({manifest,path})});
+ const data=await response.json().catch(()=>({}));
+ if(!response.ok)throw new Error(data.error||"Sports Streams nuk u ngarkua.");
+ return data;
+}
+function sportsLabel(value){return String(value||"Sport").replace(/[_-]+/g," ").replace(/\\b\\w/g,c=>c.toUpperCase())}
+function renderSportsItems(items){
+ const grid=$("sports-grid");grid.replaceChildren();
+ $("sports-empty").hidden=items.length>0;
+ $("sports-empty").textContent=items.length?"":"Nuk ka evente në këtë kategori për momentin.";
+ items.forEach(item=>{
+  const button=document.createElement("button");button.type="button";button.className="sports-card";
+  const live=String(item.name||item.title||"").toLowerCase().includes("live")||item.live===true;
+  const titleText=item.name||item.title||item.id||"Event sportiv";
+  const category=sportsLabel(item.type||item.category||sportsActiveCatalog?.name||"Sport");
+  const image=item.poster||item.posterUrl||item.background||item.logo||"";
+  button.innerHTML=(image?'<img loading="lazy" alt="">':'<div class="sports-card-art">LIVE</div>')+'<span class="sports-card-copy"><small></small><strong></strong><em>Shiko eventin →</em></span>';
+  if(image){const img=button.querySelector("img");img.src=image;img.onerror=()=>img.remove()}
+  button.querySelector("small").textContent=live?"● LIVE":category;
+  button.querySelector("strong").textContent=titleText;
+  button.addEventListener("click",()=>openSportsEvent(item));
+  grid.append(button);
+ });
+}
+async function loadSportsCatalog(catalog){
+ sportsActiveCatalog=catalog;$("sports-status").textContent="Po ngarkohen eventet…";
+ try{
+  const data=await sportsRequest("catalog/"+encodeURIComponent(catalog.type)+"/"+encodeURIComponent(catalog.id)+".json");
+  renderSportsItems(data.metas||data.items||[]);
+  $("sports-status").textContent=(data.metas||data.items||[]).length+" evente";
+ }catch(error){$("sports-status").textContent="Gabim";$("sports-empty").hidden=false;$("sports-empty").textContent=error.message}
+}
+async function openSportsEvent(item){
+ const type=item.type||sportsActiveCatalog?.type||"sport";
+ const id=item.id;if(!id)return;
+ $("sports-status").textContent="Po kërkohen burimet…";
+ try{
+  let meta=item;
+  try{const d=await sportsRequest("meta/"+encodeURIComponent(type)+"/"+encodeURIComponent(id)+".json");meta=d.meta||item}catch(_){}
+  const videoId=meta.videos?.[0]?.id||id;
+  const result=await sportsRequest("stream/"+encodeURIComponent(type)+"/"+encodeURIComponent(videoId)+".json");
+  const streams=result.streams||[];
+  if(!streams.length)throw new Error("Nuk u gjet burim transmetimi për këtë event.");
+  showSportsStreams(meta,streams);
+  $("sports-status").textContent="Zgjidh një burim";
+ }catch(error){notice(error.message);$("sports-status").textContent="Gati"}
+}
+function showSportsStreams(meta,streams){
+ const grid=$("sports-grid");grid.replaceChildren();
+ const head=document.createElement("div");head.className="sports-event-head";
+ const h=document.createElement("h2");h.textContent=meta.name||meta.title||"Event sportiv";
+ const back=document.createElement("button");back.className="secondary-btn";back.type="button";back.textContent="← Kthehu te eventet";back.onclick=()=>sportsActiveCatalog&&loadSportsCatalog(sportsActiveCatalog);
+ head.append(h,back);grid.append(head);
+ streams.forEach((stream,index)=>{
+  const button=document.createElement("button");button.type="button";button.className="sports-source";
+  const label=stream.name||stream.title||stream.description||("Burimi "+(index+1));
+  button.textContent=label;button.onclick=()=>playSportsStream(stream);
+  grid.append(button);
+ });
+}
+function playSportsStream(stream){
+ const url=stream.url||stream.externalUrl||stream.ytId&&("https://www.youtube.com/watch?v="+stream.ytId);
+ if(!url){notice("Ky burim nuk ka adresë të luajtshme.");return}
+ let parsed;try{parsed=new URL(url)}catch(_){notice("Adresa e burimit është e pavlefshme.");return}
+ if(parsed.protocol!=="https:"&&parsed.protocol!=="http:"){notice("Protokoll i palejuar.");return}
+ const modal=$("sports-settings-modal");
+ const card=modal.querySelector(".settings-card");
+ card.innerHTML='<button class="close-btn" type="button" id="sports-player-close" aria-label="Mbyll">×</button><h2 class="sports-player-title"></h2><div class="sports-player-stage"></div>';
+ card.querySelector("h2").textContent=stream.title||stream.name||"Transmetim sportiv";
+ const stage=card.querySelector(".sports-player-stage");
+ if(/\\.(m3u8|mp4|webm)(?:$|\\?)/i.test(url)){
+  const video=document.createElement("video");video.controls=true;video.autoplay=true;video.playsInline=true;video.src=url;stage.append(video);
+ }else{
+  const frame=document.createElement("iframe");frame.src=url;frame.allow="autoplay; fullscreen; encrypted-media; picture-in-picture";frame.allowFullscreen=true;frame.referrerPolicy="no-referrer";stage.append(frame);
+ }
+ modal.classList.add("open");modal.setAttribute("aria-hidden","false");
+ $("sports-player-close").onclick=()=>{modal.classList.remove("open");modal.setAttribute("aria-hidden","true");card.innerHTML='<button class="close-btn" data-close="sports-settings" aria-label="Mbyll">×</button><span class="catalog-overline">SPORTS STREAMS</span><h2>Konfiguro Sport</h2><p class="muted tiny">Vendos manifest URL personal nga Sports Streams. Ruhet vetëm në këtë shfletues, jo në GitHub.</p><form id="sports-settings-form"><label for="sports-manifest-input">Manifest URL</label><input id="sports-manifest-input" type="url" placeholder="https://sports.highfly.to/…/manifest.json" required autocomplete="off"><button class="primary-btn" type="submit">Ruaj dhe lidhu</button><button class="secondary-btn" id="sports-clear" type="button">Hiq konfigurimin</button></form>';bindSportsSettings()};
+}
+function bindSportsSettings(){
+ const form=$("sports-settings-form");if(!form)return;
+ $("sports-manifest-input").value=sportsUrl();
+ form.onsubmit=async event=>{event.preventDefault();const value=$("sports-manifest-input").value.trim();try{const u=new URL(value);if(u.protocol!=="https:"||!["sports.highfly.to","sportsfree.highfly.to","sportsfree-us2.highfly.to"].includes(u.hostname)||!/^\\/[^/]+\\/manifest\\.json$/.test(u.pathname))throw Error("Vendos manifest URL personale të Sports Streams.");localStorage.setItem(SPORTS_MANIFEST_KEY,value);modal("sports-settings",false);await loadSports()}catch(error){notice(error.message)}};
+ const clear=$("sports-clear");if(clear)clear.onclick=()=>{localStorage.removeItem(SPORTS_MANIFEST_KEY);$("sports-manifest-input").value="";notice("Konfigurimi u hoq.");};
+}
+async function loadSports(){
+ const grid=$("sports-grid");grid.replaceChildren();
+ if(!sportsUrl()){$("sports-status").textContent="Nuk është konfiguruar";$("sports-empty").hidden=false;$("sports-empty").textContent="Shto manifest URL te Konfigurimi për të parë ndeshjet live.";return}
+ $("sports-status").textContent="Po lidhet me Sports Streams…";
+ try{
+  sportsManifest=await sportsRequest("manifest.json");
+  sportsCatalogs=(sportsManifest.catalogs||[]).filter(c=>c.type==="sport"||sportsManifest.types?.includes(c.type));
+  const cats=$("sports-categories");cats.replaceChildren();
+  sportsCatalogs.forEach((catalog,index)=>{
+   const button=document.createElement("button");button.type="button";button.className="sports-category"+(index===0?" active":"");button.textContent=catalog.name||sportsLabel(catalog.id);
+   button.onclick=()=>{cats.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===button));loadSportsCatalog(catalog)};
+   cats.append(button);
+  });
+  if(!sportsCatalogs.length)throw new Error("Manifest u hap, por nuk përmban katalogë sportivë.");
+  await loadSportsCatalog(sportsCatalogs[0]);
+ }catch(error){$("sports-status").textContent="Lidhja dështoi";$("sports-empty").hidden=false;$("sports-empty").textContent=error.message+" Kontrollo manifest URL te Konfigurimi."}
+}
+
 const loadedPages=new Set();
 async function openPage(page){
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
  $("search-page").hidden=true;
- $("catalog").hidden=false;
+ $("sports-page").hidden=page!=="sports";
+ $("catalog").hidden=page==="sports";
  searchPageActive=false;
  $("hero").hidden=page!=="home";
  $("home-page").hidden=page!=="home";
  $("movies-page").hidden=page!=="movies";
  $("shows-page").hidden=page!=="shows";
  if(page==="home"){renderContinueWatching();await home();return}
+ if(page==="sports"){await loadSports();return}
  if(loadedPages.has(page))return;
  const jobs=page==="movies"?[
   ["movie-trending","/trending/movie/week"],["movie-popular","/movie/popular"],["movie-top","/movie/top_rated"],["movie-now","/movie/now_playing"],["movie-upcoming","/movie/upcoming"]
@@ -922,6 +1032,9 @@ async function openPage(page){
  loadedPages.add(page);
 }
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
+ $("sports-settings").onclick=()=>{bindSportsSettings();modal("sports-settings",true)};
+ bindSportsSettings();
+ document.querySelectorAll("[data-close]").forEach(e=>{if(e.dataset.close==="sports-settings")e.onclick=()=>modal("sports-settings",false)});
 $("hero-action").onclick=()=>{const item=heroItems[heroIndex];if(item)window.location.assign(pageUrl(item));};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
 window.addEventListener("pageshow",()=>{renderContinueWatching();if(heroItems.length>1)startHeroTimer()});
