@@ -637,7 +637,8 @@ async function playResolvedStream(item,season,episode){
  video.hidden=false;
  video.controls=true;
  const type=kind(item)==="tv"?"tv":"movie";
- const params=new URLSearchParams({type,tmdbId:String(item.id)});
+ const resolverId=item.external_ids&&item.external_ids.imdb_id?item.external_ids.imdb_id:item.id;
+ const params=new URLSearchParams({type,tmdbId:String(resolverId)});
  if(type==="tv"){params.set("season",String(Number(season||1)));params.set("episode",String(Number(episode||1)))}
  const response=await fetch("/api/streams.js?"+params.toString(),{headers:{Accept:"application/json"},cache:"no-store"});
  const payload=await response.json().catch(()=>null);
