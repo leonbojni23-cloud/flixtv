@@ -46,7 +46,10 @@ module.exports = async function handler(req, res) {
 
   try {
     const response = await fetch(resolverBase + "/v1/resolve?" + params.toString(), {
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        "X-Resolver-Key": String(process.env.STREAMIMDB_RESOLVER_API_KEY || "")
+      },
       signal: AbortSignal.timeout(TIMEOUT_MS)
     });
     const payload = await response.json().catch(() => null);
