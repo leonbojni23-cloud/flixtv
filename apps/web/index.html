@@ -15,7 +15,7 @@
     })();
   </script>
   <meta name="mobile-web-app-capable" content="yes">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'self' https:; connect-src 'self' https://api.themoviedb.org https://flixtv-snowy.vercel.app https://www.youtube.com https://www.youtube-nocookie.com; img-src 'self' data: https://image.tmdb.org; media-src 'self' blob: data: https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://www.youtube-nocookie.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data:; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src 'self' https:; connect-src 'self' https: https://api.themoviedb.org https://flixtv-snowy.vercel.app https://www.youtube.com https://www.youtube-nocookie.com; img-src 'self' data: https://image.tmdb.org; media-src 'self' blob: data: https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://www.youtube-nocookie.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data:; upgrade-insecure-requests">
   <meta name="description" content="FLIXTV movies and TV shows">
   <title>FLIXTV</title>
   <link rel="manifest" href="/manifest.webmanifest">
@@ -126,8 +126,9 @@
   <section class="player-modal" id="player-modal" aria-hidden="true">
     <div class="player-actions"><div class="player-provider-switch" aria-label="Serveri aktiv"></div></div>
     <div class="content-intro" id="content-intro" aria-hidden="true"><div class="intro-copy"><div class="intro-kicker">FLIXTV · INFORMACION I PËRMBAJTJES</div><div class="intro-rating" id="intro-rating"></div><div class="intro-title" id="intro-title"></div><div class="intro-details" id="intro-details"></div><div class="intro-progress"><span></span></div><button type="button" id="intro-skip">KALO</button></div></div>
-    <iframe id="cinesrc-frame" title="CineSRC player" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation" allow="autoplay; fullscreen; encrypted-media; picture-in-picture; orientation-lock" allowfullscreen referrerpolicy="no-referrer"></iframe></section>
+    <video id="resolved-video" title="FLIXTV video player" playsinline preload="metadata" hidden></video><iframe id="cinesrc-frame" title="CineSRC player" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation" allow="autoplay; fullscreen; encrypted-media; picture-in-picture; orientation-lock" allowfullscreen referrerpolicy="no-referrer"></iframe></section>
 
-  <script src="/app.js?v=20261105-2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
+  <script src="/app.js?v=20261105-streams"></script>
 </body>
 </html>

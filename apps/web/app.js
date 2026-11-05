@@ -320,8 +320,12 @@ function startProgressPolling(){
  clearInterval(progressPollTimer);
  progressPollTimer=setInterval(()=>{
   if(!$("player-modal").classList.contains("open")||!currentPlayback)return;
-  sendCineSrcCommand("getCurrentTime");
-  sendCineSrcCommand("getDuration");
+  const video=$("resolved-video");
+  if(video&&!video.hidden&&Number.isFinite(video.currentTime)){
+   latestPlaybackTime=Number(video.currentTime)||0;
+   latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
+   savePlaybackProgress(false);
+  }
  },4000);
 }
 function sendCineSrcCommand(command,args=[]){
@@ -577,7 +581,7 @@ function startTitlePlayback(season,episode,resumeTime=null){
  playbackReturnToTitlePage=!$("title-page").hidden;
  $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterCineSrcFullscreen();
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
- $("cinesrc-frame").src=buildPlayerUrl(titlePageItem,season,episode,startAt);
+ startPlaybackWithFallback(titlePageItem,season,episode).then(()=>{if(startAt>5){latestPlaybackTime=startAt}});
  startProgressPolling();
 }
 function slugSimilarity(a,b){
@@ -617,6 +621,64 @@ async function episodes(){if(!selected)return;try{const s=$("season-select").val
 const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",99:"Dokumentar",18:"Dramë",10751:"Familjar",14:"Fantazi",36:"Histori",27:"Horror",10402:"Muzikë",9648:"Mister",10749:"Romancë",878:"Fantashkencë",10770:"Film televiziv",53:"Thriller",10752:"Luftë",37:"Western",10759:"Aksion dhe aventurë",10762:"Për fëmijë",10763:"Lajme",10764:"Reality",10765:"Fantashkencë dhe fantazi",10766:"Sapunoperë",10767:"Talk-show",10768:"Luftë dhe politikë"};
 function ageLabel(cert){const c=String(cert||"").trim().toUpperCase();const map={"G":"Për të gjitha moshat","TV-G":"Për të gjitha moshat","TV-Y":"Për fëmijë","TV-Y7":"Për fëmijë mbi 7 vjeç","PG":"Nën mbikëqyrjen e prindërve","TV-PG":"Nën mbikëqyrjen e prindërve","PG-13":"13+","TV-14":"14+","R":"17+","TV-MA":"18+","NC-17":"18+","18":"18+","16":"16+","15":"15+","12":"12+","U":"Për të gjitha moshat"};return map[c]||c||"Pa klasifikim moshe";}
 async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+(k==="tv"?"/content_ratings":"/release_dates"));if(k==="tv"){const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");return (rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0]||{}).rating||""}const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");const country=rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0];return country&&country.release_dates&&((country.release_dates.find(x=>x.certification)||{}).certification)||""}catch(_){return""}}
+
+let activeHlsInstance=null;
+let resolvedStreamUrl="";
+function stopResolvedVideo(){
+ const video=$("resolved-video");
+ if(activeHlsInstance){try{activeHlsInstance.destroy()}catch(_){}activeHlsInstance=null}
+ if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
+}
+async function playResolvedStream(item,season,episode){
+ const video=$("resolved-video"),frame=$("cinesrc-frame");
+ if(!video||!frame)throw new Error("Player elements missing");
+ stopResolvedVideo();
+ frame.hidden=true;
+ video.hidden=false;
+ video.controls=true;
+ const type=kind(item)==="tv"?"tv":"movie";
+ const params=new URLSearchParams({type,tmdbId:String(item.id)});
+ if(type==="tv"){params.set("season",String(Number(season||1)));params.set("episode",String(Number(episode||1)))}
+ const response=await fetch("/api/streams.js?"+params.toString(),{headers:{Accept:"application/json"},cache:"no-store"});
+ const payload=await response.json().catch(()=>null);
+ if(!response.ok||!payload||!payload.ok||!payload.stream||!payload.stream.url)throw new Error(payload&&payload.error||"Nuk u gjet stream");
+ const streamUrl=payload.stream.url;
+ if(!/^https:\/\//i.test(streamUrl))throw new Error("Invalid HLS URL");
+ activePlayerProvider=payload.provider||"VixSrc";
+ if(video.canPlayType("application/vnd.apple.mpegurl")){
+  video.src=streamUrl;
+ }else if(window.Hls&&window.Hls.isSupported()){
+  activeHlsInstance=new window.Hls({enableWorker:true,lowLatencyMode:false});
+  activeHlsInstance.loadSource(streamUrl);
+  activeHlsInstance.attachMedia(video);
+  activeHlsInstance.on(window.Hls.Events.ERROR,(_,data)=>{
+   if(data&&data.fatal)notice("Gabim HLS: "+(data.details||"stream error"));
+  });
+ }else{
+  throw new Error("Ky shfletues nuk mbështet HLS");
+ }
+ video.onloadedmetadata=()=>{if(latestPlaybackTime>5){try{video.currentTime=latestPlaybackTime}catch(_){}}};
+ video.ontimeupdate=()=>{latestPlaybackTime=Number(video.currentTime)||0;latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;savePlaybackProgress(false)};
+ video.onplay=()=>{latestPlaybackTime=Number(video.currentTime)||0;savePlaybackProgress(true)};
+ video.onpause=()=>{latestPlaybackTime=Number(video.currentTime)||0;savePlaybackProgress(true)};
+ video.onended=()=>{if(currentPlayback)clearPlaybackProgress(currentPlayback.item)};
+ const playResult=video.play();
+ if(playResult&&typeof playResult.catch==="function")playResult.catch(()=>notice("Shtyp Play në video për të nisur transmetimin."));
+}
+async function startPlaybackWithFallback(item,season,episode){
+ try{
+  const frame=$("cinesrc-frame");
+  if(frame){frame.hidden=true;frame.removeAttribute("src")}
+  await playResolvedStream(item,season,episode);
+ }catch(error){
+  console.warn("[FLIXTV] Direct stream playback unavailable:",error);
+  stopResolvedVideo();
+  const frame=$("cinesrc-frame");
+  if(frame){frame.hidden=true;frame.removeAttribute("src")}
+  notice("Transmetimi direkt nuk është i disponueshëm. CineSRC është çaktivizuar përkohësisht.");
+ }
+}
+
 let activePlayerProvider="cinesrc";
 let currentPlayback=null;
 let playbackReturnToTitlePage=false;
@@ -634,10 +696,10 @@ function buildPlayerUrl(item,season,episode,resumeTime=0){
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
- $("cinesrc-frame").src=buildPlayerUrl(item,season,episode);
+ startPlaybackWithFallback(item,season,episode);
  $("content-intro").classList.remove("show");
 }
-// CineSRC is the only enabled playback source.
+// Direct HLS playback only. CineSRC iframe fallback is disabled.
 function play(item,season,episode){
  if(!item||!item.id)return;
  clearTimeout(introTimer);
@@ -651,11 +713,12 @@ function play(item,season,episode){
  document.body.classList.add("no-scroll");
  currentPlayback={item,season,episode};
  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
- $("cinesrc-frame").src=buildPlayerUrl(item,season,episode);
+ const frame=$("cinesrc-frame");if(frame){frame.hidden=true;frame.removeAttribute("src")}
+ startPlaybackWithFallback(item,season,episode);
  startProgressPolling();
  clearTimeout(controlsTimer);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 window.addEventListener("message",event=>{
  if(event.origin!=="https://cinesrc.st"||event.source!==$("cinesrc-frame").contentWindow)return;
  if(!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
