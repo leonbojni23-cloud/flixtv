@@ -9,7 +9,7 @@ function sendError(res, status, error) {
 }
 
 function validId(value) {
-  return /^(?:tt\\d{7,10}|\\d{1,12})$/i.test(String(value || ""));
+  return /^(?:tt\d{7,10}|\d{1,12})$/i.test(String(value || ""));
 }
 
 function buildEmbedUrl(type, id, season, episode) {
@@ -45,7 +45,7 @@ function isHlsResponse(response) {
     return false;
   }
 
-  return /\\.m3u8$/i.test(pathname) ||
+  return /\.m3u8$/i.test(pathname) ||
     contentType.includes("application/vnd.apple.mpegurl") ||
     contentType.includes("application/x-mpegurl") ||
     contentType.includes("audio/mpegurl");
@@ -75,18 +75,17 @@ module.exports = async function handler(req, res) {
   if (!validId(id)) return sendError(res, 400, "Invalid TMDB or IMDb ID");
 
   if (type === "tv" &&
-      (!/^\\d{1,3}$/.test(season) || !/^\\d{1,3}$/.test(episode) ||
+      (!/^\d{1,3}$/.test(season) || !/^\d{1,3}$/.test(episode) ||
        Number(season) < 1 || Number(episode) < 1)) {
     return sendError(res, 400, "TV requests require valid season and episode");
   }
 
   const packUrl = String(process.env.CHROMIUM_PACK_URL || "").trim();
-  if (!packUrl || !/^https:\\/\\//i.test(packUrl)) {
+  if (!packUrl || !/^https:\/\//i.test(packUrl)) {
     return sendError(res, 503, "CHROMIUM_PACK_URL must be configured with an HTTPS Chromium pack URL");
   }
 
   let browser;
-  let page;
   let timeoutId;
 
   try {
@@ -104,7 +103,7 @@ module.exports = async function handler(req, res) {
       headless: "shell"
     });
 
-    page = await browser.newPage();
+    const page = await browser.newPage();
     page.setDefaultNavigationTimeout(NAVIGATION_TIMEOUT_MS);
     await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36");
 
