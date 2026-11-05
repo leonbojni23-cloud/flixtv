@@ -907,7 +907,7 @@ async function sportsRequest(path){
  if(!response.ok)throw new Error(data.error||"Sports Streams nuk u ngarkua.");
  return data;
 }
-function sportsLabel(value){return String(value||"Sport").replace(/[_-]+/g," ").replace(/\\b\\w/g,c=>c.toUpperCase())}
+function sportsLabel(value){return String(value||"Sport").replace(/[_-]+/g," ").replace(/\b\w/g,c=>c.toUpperCase())}
 function renderSportsItems(items){
  const grid=$("sports-grid");grid.replaceChildren();
  $("sports-empty").hidden=items.length>0;
@@ -972,7 +972,7 @@ function playSportsStream(stream){
  card.innerHTML='<button class="close-btn" type="button" id="sports-player-close" aria-label="Mbyll">×</button><h2 class="sports-player-title"></h2><div class="sports-player-stage"></div>';
  card.querySelector("h2").textContent=stream.title||stream.name||"Transmetim sportiv";
  const stage=card.querySelector(".sports-player-stage");
- if(/\\.(m3u8|mp4|webm)(?:$|\\?)/i.test(url)){
+ if(/\.(m3u8|mp4|webm)(?:$|\?)/i.test(url)){
   const video=document.createElement("video");video.controls=true;video.autoplay=true;video.playsInline=true;video.src=url;stage.append(video);
  }else{
   const frame=document.createElement("iframe");frame.src=url;frame.allow="autoplay; fullscreen; encrypted-media; picture-in-picture";frame.allowFullscreen=true;frame.referrerPolicy="no-referrer";stage.append(frame);
@@ -983,7 +983,7 @@ function playSportsStream(stream){
 function bindSportsSettings(){
  const form=$("sports-settings-form");if(!form)return;
  $("sports-manifest-input").value=sportsUrl();
- form.onsubmit=async event=>{event.preventDefault();const value=$("sports-manifest-input").value.trim();try{const u=new URL(value);if(u.protocol!=="https:"||!["sports.highfly.to","sportsfree.highfly.to","sportsfree-us2.highfly.to"].includes(u.hostname)||!/^\\/[^/]+\\/manifest\\.json$/.test(u.pathname))throw Error("Vendos manifest URL personale të Sports Streams.");localStorage.setItem(SPORTS_MANIFEST_KEY,value);modal("sports-settings",false);await loadSports()}catch(error){notice(error.message)}};
+ form.onsubmit=async event=>{event.preventDefault();const value=$("sports-manifest-input").value.trim();try{const u=new URL(value);if(u.protocol!=="https:"||!["sports.highfly.to","sportsfree.highfly.to","sportsfree-us2.highfly.to"].includes(u.hostname)||!/^\/[^/]+\/manifest\.json$/.test(u.pathname))throw Error("Vendos manifest URL personale të Sports Streams.");localStorage.setItem(SPORTS_MANIFEST_KEY,value);modal("sports-settings",false);await loadSports()}catch(error){notice(error.message)}};
  const clear=$("sports-clear");if(clear)clear.onclick=()=>{localStorage.removeItem(SPORTS_MANIFEST_KEY);$("sports-manifest-input").value="";notice("Konfigurimi u hoq.");};
 }
 async function loadSports(){
