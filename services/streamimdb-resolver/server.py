@@ -9,13 +9,12 @@ from urllib.parse import urlparse
 from fastapi import FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from streamgrabber.detector import capture_streams
+from streamgrabber.detector import capture_streams, classify_url
 from streamgrabber.models import DEFAULT_USER_AGENT
 from streamgrabber.resolver import streamimdb_url
 from streamgrabber.vaplayer import episode_info
 
 IMDB_ID_RE = re.compile(r"^(?:tt\d{7,10}|\d{1,12})$", re.I)
-DEFAULT_REFERER = "https://nextgencloudfabric.com/"
 CAPTURE_TIMEOUT_MS = int(os.getenv("CAPTURE_TIMEOUT_MS", "20000"))
 
 app = FastAPI(title="FLIXTV StreamIMDb Resolver", version="1.0.0")
@@ -42,16 +41,10 @@ def _valid_stream_url(value: str) -> bool:
         return False
 
 
-def _safe_headers(headers: dict[str, str] | None, fallback_referer: str) -> dict[str, str]:
-    source = headers or {}
-    result: dict[str, str] = {"User-Agent": DEFAULT_USER_AGENT}
-    for key in ("Referer", "Origin"):
-        value = next((v for k, v in source.items() if k.lower() == key.lower()), None)
-        if value and value.startswith("https://"):
-            result[key] = value
-    result.setdefault("Referer", fallback_referer)
-    return result
-
+def _playback_headers() -> dict[str, str]:
+    # Captured browser headers describe the resolver's request, not requirements
+    # that should be copied into the end-user browser.
+    return {}
 
 def _resolve_sync(media_id: str, media_type: str, season: int | None, episode: int | None) -> dict[str, Any]:
     info = None
@@ -75,8 +68,8 @@ def _resolve_sync(media_id: str, media_type: str, season: int | None, episode: i
             "streams": [
                 {
                     "url": url,
-                    "format": "hls" if ".m3u8" in url.lower() else "auto",
-                    "headers": _safe_headers(None, DEFAULT_REFERER),
+                    "format": "hls" if classify_url(url) == "hls" else "auto",
+                    "headers": _playback_headers(),
                     "expiresAt": None,
                 }
                 for url in streams
@@ -105,14 +98,18 @@ def _resolve_sync(media_id: str, media_type: str, season: int | None, episode: i
             "url": item.url,
             "format": item.kind,
             "language": None,
-            "headers": _safe_headers(item.headers, item.source_url or embed_url),
+            "headers": _playback_headers(),
         }
         for item in captures
         if item.kind in {"vtt", "srt"}
     ]
 
     if not hls:
-        raise HTTPException(status_code=404, detail="No HLS stream was detected for this title")
+        kinds = sorted({item.kind for item in captures})
+        raise HTTPException(
+            status_code=404,
+            detail="No HLS stream was detected. Captured media types: " + (", ".join(kinds) if kinds else "none"),
+        )
 
     return {
         "title": next((item.page_title for item in hls if item.page_title), ""),
