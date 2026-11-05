@@ -46,6 +46,7 @@ def _playback_headers() -> dict[str, str]:
     # that should be copied into the end-user browser.
     return {}
 
+
 def _resolve_sync(media_id: str, media_type: str, season: int | None, episode: int | None) -> dict[str, Any]:
     info = None
     try:
@@ -117,7 +118,7 @@ def _resolve_sync(media_id: str, media_type: str, season: int | None, episode: i
             {
                 "url": item.url,
                 "format": "hls",
-                "headers": _safe_headers(item.headers, item.source_url or embed_url),
+                "headers": _playback_headers(),
                 "expiresAt": None,
             }
             for item in hls
