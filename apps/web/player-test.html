@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090b10">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; connect-src 'self' https://cinesrc.st https://*.bright67.online https://cdn.jsdelivr.net; media-src 'self' blob: data: https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+<title>FLIXTV · HLS Engine Test</title>
+<style>
+:root{color-scheme:dark;--bg:#090b10;--panel:#141a25;--line:#2b3443;--muted:#a4adbd;--accent:#e50936}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0,#1b2638,transparent 55%),var(--bg);color:#f7f8fb;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:28px 18px}.wrap{max-width:1000px;margin:auto}.brand{font-weight:900;letter-spacing:-1.5px;font-size:24px}.brand span{color:var(--accent)}h1{font-size:clamp(25px,4vw,38px);margin:25px 0 5px}.muted{color:var(--muted)}.panel{background:#111722;border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:20px}.source{display:flex;gap:10px;flex-wrap:wrap}.source input{flex:1;min-width:220px;background:#090e17;border:1px solid var(--line);border-radius:9px;padding:13px;color:#fff}.btn,select{border:1px solid var(--line);border-radius:9px;background:#202a39;color:white;padding:11px 15px;font:inherit}.btn.primary{background:var(--accent);border-color:var(--accent);font-weight:700}.video-wrap{position:relative;background:#000;border-radius:12px;overflow:hidden;aspect-ratio:16/9;margin-top:15px}.video-wrap video{width:100%;height:100%;display:block;background:#000}.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:13px}.status{padding:10px 12px;border-radius:9px;background:#0b111b;border:1px solid var(--line);color:#cbd5e1;margin-top:14px;overflow-wrap:anywhere}.status.error{border-color:#7d2638;color:#ff9bad}.log{font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;max-height:180px;overflow:auto;color:#aeb9ca}.powered{margin-top:25px;text-align:center;color:#8e98a9;font-size:12px}.powered a{color:#cbd5e1}.hint{font-size:13px;color:#a4adbd;margin-top:9px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
+<script src="./player-engine.js" defer></script>
+</head>
+<body><main class="wrap">
+<div class="brand">FLIX<span>TV</span></div>
+<h1>Testimi i motorrit HLS</h1>
+<p class="muted">Faqe e izoluar për të testuar M3U8 me motorin e ri, pa ndryshuar player-in ekzistues të FLIXTV.</p>
+<section class="panel">
+<label for="stream-url"><strong>URL e stream-it M3U8</strong></label>
+<div class="source" style="margin-top:9px"><input id="stream-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://.../playlist.m3u8"><button class="btn primary" id="load">Ngarko stream-in</button></div>
+<p class="hint">Përdor URL të autorizuar nga CineSRC. URL-të me token mund të skadojnë. Mos i publiko dhe mos i dërgo palëve të treta.</p>
+<div class="video-wrap"><video id="video" controls playsinline preload="metadata"></video></div>
+<div class="toolbar">
+<button class="btn" id="play">Luaj</button><button class="btn" id="pause">Pauzë</button>
+<label for="quality" class="muted">Cilësia</label><select id="quality"><option value="-1">Auto</option></select>
+<button class="btn" id="fullscreen">Fullscreen</button>
+</div>
+<div id="status" class="status" role="status">Në pritje të URL-së M3U8.</div>
+</section>
+<section class="panel"><strong>Diagnostikimi</strong><pre id="log" class="log">Engine: po inicializohet…</pre></section>
+<div class="powered">Powered by <a href="https://cinesrc.st" target="_blank" rel="noopener noreferrer">CineSRC</a></div>
+</main>
+<script>
+(() => {
+ const $=id=>document.getElementById(id), video=$("video"), status=$("status"), log=$("log"), quality=$("quality");
+ let player=null;
+ const write=(message,error=false)=>{status.textContent=message;status.classList.toggle("error",error);log.textContent=new Date().toLocaleTimeString()+"  "+message+"\n"+log.textContent.slice(0,3500)};
+ const setQualities=levels=>{
+   quality.replaceChildren(new Option("Auto","-1"));
+   levels.forEach(level=>quality.add(new Option(level.height?level.height+"p":Math.round(level.bitrate/1000)+" kbps",String(level.index))));
+   write("Manifest u lexua. U gjetën "+levels.length+" nivele cilësie.");
+ };
+ if(!window.FlixHlsPlayer){write("Motorri nuk u ngarkua. Kontrollo player-engine.js dhe CDN.",true);return;}
+ player=new FlixHlsPlayer(video,{onState:event=>write("Gjendja: "+event.state+" · Engine: "+(event.engine||"HLS")),onError:error=>write("Gabim: "+error.message,true),onLevels:setQualities});
+ write("Gati. HLS.js: "+(window.Hls&&Hls.isSupported()?"i mbështetur":"jo i mbështetur")+" · Native HLS: "+(video.canPlayType("application/vnd.apple.mpegurl")?"i mbështetur":"jo i mbështetur"));
+ $("load").addEventListener("click",async()=>{
+   const url=$("stream-url").value.trim();
+   try{await player.load(url);write("Po ngarkohet manifesti M3U8…");}catch(error){write(error.message,true);}
+ });
+ $("play").addEventListener("click",()=>video.play().catch(error=>write(error.message,true)));
+ $("pause").addEventListener("click",()=>video.pause());
+ quality.addEventListener("change",()=>{if(quality.value!=="-1"&&player.setQuality(Number(quality.value)))write("Cilësia u vendos në "+quality.selectedOptions[0].textContent);else if(player.hls){player.hls.currentLevel=-1;write("Cilësia automatike u aktivizua.");}});
+ $("fullscreen").addEventListener("click",async()=>{try{if(video.requestFullscreen)await video.requestFullscreen();else if(video.webkitEnterFullscreen)video.webkitEnterFullscreen();else throw new Error("Fullscreen nuk mbështetet nga kjo pajisje.");}catch(error){write(error.message,true);}});
+ video.addEventListener("playing",()=>write("Video po luhet."));
+ video.addEventListener("waiting",()=>write("Buffering…"));
+ video.addEventListener("canplay",()=>write("Video gati për playback."));
+ video.addEventListener("timeupdate",()=>{if(video.duration&&Number.isFinite(video.duration))status.textContent="Po luhet · "+Math.floor(video.currentTime)+"s / "+Math.floor(video.duration)+"s";});
+ window.addEventListener("beforeunload",()=>player&&player.destroy());
+})();
+</script>
+</body></html>
