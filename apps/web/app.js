@@ -901,8 +901,7 @@ const SPORTS_MANIFEST_KEY="flxtv:sports-manifest:v1";
 let sportsManifest=null,sportsCatalogs=[],sportsActiveCatalog=null;
 function sportsUrl(){try{return localStorage.getItem(SPORTS_MANIFEST_KEY)||""}catch(_){return""}}
 async function sportsRequest(path){
- const manifest=sportsUrl();if(!manifest)throw new Error("Konfiguro fillimisht Sports Streams.");
- const response=await fetch("/api/sports.js",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({manifest,path})});
+ const response=await fetch("/api/sports.js",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path,manifest:sportsUrl()})});
  const data=await response.json().catch(()=>({}));
  if(!response.ok)throw new Error(data.error||"Sports Streams nuk u ngarkua.");
  return data;
@@ -978,7 +977,7 @@ function playSportsStream(stream){
   const frame=document.createElement("iframe");frame.src=url;frame.allow="autoplay; fullscreen; encrypted-media; picture-in-picture";frame.allowFullscreen=true;frame.referrerPolicy="no-referrer";stage.append(frame);
  }
  modal.classList.add("open");modal.setAttribute("aria-hidden","false");
- $("sports-player-close").onclick=()=>{modal.classList.remove("open");modal.setAttribute("aria-hidden","true");card.innerHTML='<button class="close-btn" data-close="sports-settings" aria-label="Mbyll">×</button><span class="catalog-overline">SPORTS STREAMS</span><h2>Konfiguro Sport</h2><p class="muted tiny">Vendos manifest URL personal nga Sports Streams. Ruhet vetëm në këtë shfletues, jo në GitHub.</p><form id="sports-settings-form"><label for="sports-manifest-input">Manifest URL</label><input id="sports-manifest-input" type="url" placeholder="https://sports.highfly.to/…/manifest.json" required autocomplete="off"><button class="primary-btn" type="submit">Ruaj dhe lidhu</button><button class="secondary-btn" id="sports-clear" type="button">Hiq konfigurimin</button></form>';bindSportsSettings()};
+ $("sports-player-close").onclick=()=>{modal.classList.remove("open");modal.setAttribute("aria-hidden","true");card.innerHTML='<button class="close-btn" data-close="sports-settings" aria-label="Mbyll">×</button><span class="catalog-overline">SPORTS STREAMS</span><h2>Konfiguro Sport</h2><p class="muted tiny">Manifesti kryesor konfigurohet në server. URL lokale përdoret vetëm për zhvillim.</p><form id="sports-settings-form"><label for="sports-manifest-input">Manifest URL</label><input id="sports-manifest-input" type="url" placeholder="https://sports.highfly.to/…/manifest.json" required autocomplete="off"><button class="primary-btn" type="submit">Ruaj dhe lidhu</button><button class="secondary-btn" id="sports-clear" type="button">Hiq konfigurimin</button></form>';bindSportsSettings()};
 }
 function bindSportsSettings(){
  const form=$("sports-settings-form");if(!form)return;
@@ -988,7 +987,6 @@ function bindSportsSettings(){
 }
 async function loadSports(){
  const grid=$("sports-grid");grid.replaceChildren();
- if(!sportsUrl()){$("sports-status").textContent="Nuk është konfiguruar";$("sports-empty").hidden=false;$("sports-empty").textContent="Shto manifest URL te Konfigurimi për të parë ndeshjet live.";return}
  $("sports-status").textContent="Po lidhet me Sports Streams…";
  try{
   sportsManifest=await sportsRequest("manifest.json");
