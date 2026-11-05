@@ -3,7 +3,7 @@ module.exports = async function handler(req, res) {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
-  const manifest = String(req.body?.manifest || "");
+  const manifest = String(process.env.SPORTS_STREAMS_MANIFEST_URL || req.body?.manifest || "");
   const route = String(req.body?.path || "manifest.json").replace(/^\/+/, "");
   let base;
   try { base = new URL(manifest); } catch (_) { return res.status(400).json({ error: "Manifest URL e pavlefshme" }); }
