@@ -636,7 +636,6 @@ async function playResolvedStream(item,season,episode){
  frame.hidden=true;
  video.hidden=false;
  video.controls=true;
- video.crossOrigin="anonymous";
  const type=kind(item)==="tv"?"tv":"movie";
  const params=new URLSearchParams({type,tmdbId:String(item.id)});
  if(type==="tv"){params.set("season",String(Number(season||1)));params.set("episode",String(Number(episode||1)))}
@@ -665,6 +664,8 @@ async function playResolvedStream(item,season,episode){
   }
   video.src=streamUrl;
  }else if(window.Hls&&window.Hls.isSupported()){
+  if(blockedHeaderNames.length){throw new Error("Burimi kërkon headers të rezervuara nga shfletuesi ("+blockedHeaderNames.join(", ")+"). Player-i nuk mund t’i vendosë drejtpërdrejt.");}
+  video.crossOrigin="anonymous";
   activeHlsInstance=new window.Hls({
    enableWorker:true,
    lowLatencyMode:false,
