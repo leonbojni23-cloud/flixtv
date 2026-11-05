@@ -1685,3 +1685,11 @@ html.deep-route-loading::after{
 .sports-player-placeholder span{font-size:40px;color:#ff496a}.sports-player-placeholder strong{letter-spacing:3px}.sports-player-placeholder small{color:#aab4c4}
 .sports-source-list{display:flex;gap:10px;flex-wrap:wrap}.sports-source{min-width:140px}.sports-source.active{border-color:var(--accent);background:#29202a}
 @media(max-width:760px){.sports-player-panel{padding:12px}.sports-inline-stage{aspect-ratio:16/9}.sports-source-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.sports-source{min-width:0;padding:12px}}
+
+.sports-team-pair{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0;color:#e9edf5}
+.sports-team-pair[hidden],.sports-countdown[hidden]{display:none}
+.sports-team-pair>span{display:flex;align-items:center;gap:5px;min-width:0;font-size:11px;font-weight:700}
+.sports-team-pair img{width:25px;height:25px;object-fit:contain}
+.sports-team-pair b{overflow:hidden;text-overflow:ellipsis}
+.sports-team-pair i{font-size:10px;color:var(--muted);font-style:normal}
+.sports-countdown{font-size:11px!important;color:#ffb64d!important;font-weight:700}
