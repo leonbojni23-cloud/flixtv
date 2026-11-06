@@ -3,6 +3,35 @@
 const RESOLVE_TIMEOUT_MS = 20000;
 const NAVIGATION_TIMEOUT_MS = 45000;
 const CINESRC_ORIGIN = "https://cinesrc.st";
+const RATE_WINDOW_MS = 60_000;
+const RATE_LIMIT = 5;
+const requestCounts = new Map();
+
+function allowedOrigin(req) {
+  const origin = String(req.headers.origin || "");
+  const referer = String(req.headers.referer || "");
+  const host = String(req.headers.host || "").toLowerCase();
+  if (!origin && !referer) return true;
+  try {
+    const candidate = origin ? new URL(origin) : new URL(referer);
+    return candidate.protocol === "https:" && candidate.host.toLowerCase() === host;
+  } catch (_) {
+    return false;
+  }
+}
+
+function rateLimited(req) {
+  const forwarded = String(req.headers["x-forwarded-for"] || "");
+  const ip = forwarded.split(",")[0].trim() || String(req.socket && req.socket.remoteAddress || "unknown");
+  const now = Date.now();
+  const current = requestCounts.get(ip);
+  if (!current || now - current.startedAt >= RATE_WINDOW_MS) {
+    requestCounts.set(ip, { startedAt: now, count: 1 });
+    return false;
+  }
+  current.count += 1;
+  return current.count > RATE_LIMIT;
+}
 
 function sendError(res, status, error) {
   return res.status(status).json({ ok: false, error });
@@ -60,11 +89,8 @@ module.exports = async function handler(req, res) {
     return sendError(res, 405, "Method not allowed");
   }
 
-  const expectedKey = String(process.env.CINESRC_RESOLVER_KEY || "");
-  const suppliedKey = String(req.headers["x-cinesrc-resolver-key"] || "");
-  if (!expectedKey || suppliedKey !== expectedKey) {
-    return sendError(res, expectedKey ? 401 : 503, expectedKey ? "Unauthorized" : "CineSRC resolver is not configured");
-  }
+  if (!allowedOrigin(req)) return sendError(res, 403, "Cross-origin requests are not allowed");
+  if (rateLimited(req)) return sendError(res, 429, "Too many resolution requests. Try again shortly.");
 
   const type = String(req.query.type || "movie").toLowerCase();
   const id = String(req.query.tmdbId || "");
@@ -111,13 +137,18 @@ module.exports = async function handler(req, res) {
     let resolveHls;
     const hlsPromise = new Promise(resolve => { resolveHls = resolve; });
 
-    page.on("response", response => {
+    page.on("response", async response => {
       if (capturedUrl || !isHlsResponse(response)) return;
       const status = response.status();
       if (status < 200 || status >= 300) return;
-
-      capturedUrl = response.url();
-      resolveHls(capturedUrl);
+      try {
+        const body = await response.text();
+        if (!/^\\s*#EXTM3U/m.test(body)) return;
+        capturedUrl = response.url();
+        resolveHls(capturedUrl);
+      } catch (_) {
+        // Ignore inaccessible or non-playlist responses and keep listening.
+      }
     });
 
     const embedUrl = buildEmbedUrl(type, id, season, episode);
