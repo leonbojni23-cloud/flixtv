@@ -37,6 +37,10 @@
     {
       "src": "api/streams.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/resolve.js",
+      "use": "@vercel/node"
     }
   ],
   "rewrites": [

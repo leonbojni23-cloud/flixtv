@@ -637,12 +637,12 @@ async function playResolvedStream(item,season,episode){
  video.hidden=false;
  video.controls=true;
  const type=kind(item)==="tv"?"tv":"movie";
- const resolverId=item.external_ids&&item.external_ids.imdb_id?item.external_ids.imdb_id:item.id;
- const params=new URLSearchParams({type,tmdbId:String(resolverId)});
+ const params=new URLSearchParams({type,tmdbId:String(item.id)});
  if(type==="tv"){params.set("season",String(Number(season||1)));params.set("episode",String(Number(episode||1)))}
- const response=await fetch("/api/streams.js?"+params.toString(),{headers:{Accept:"application/json"},cache:"no-store"});
- const payload=await response.json().catch(()=>null);
- if(!response.ok||!payload||!payload.ok||!payload.stream||!payload.stream.url)throw new Error(payload&&payload.error||"Nuk u gjet stream");
+ const response=await fetch("/api/resolve.js?"+params.toString(),{headers:{Accept:"application/json"},cache:"no-store"});
+ const resolved=await response.json().catch(()=>null);
+ if(!response.ok||!resolved||!resolved.ok||!resolved.m3u8)throw new Error(resolved&&resolved.error||"CineSRC nuk arriti të gjejë transmetimin");
+ const payload={provider:resolved.provider||"CineSRC",stream:{url:resolved.m3u8,format:"hls",headers:{}}};
  const streamUrl=payload.stream.url;
  if(!/^https:\/\//i.test(streamUrl))throw new Error("Invalid HLS URL");
  let streamHost="";
