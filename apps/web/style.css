@@ -1768,3 +1768,7 @@ html.deep-route-loading::after{
 .player-modal .content-intro{pointer-events:none!important}
 .player-modal .content-intro.show{pointer-events:auto!important}
 .player-modal #cinesrc-frame{z-index:2!important;pointer-events:auto!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+
+/* Shared selector for the CineSRC and Videasy iframe sources. */
+#player-provider-switch{pointer-events:auto}
