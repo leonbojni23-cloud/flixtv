@@ -575,7 +575,7 @@ function startTitlePlayback(season,episode,resumeTime=null){
  playbackReturnToTitlePage=!$("title-page").hidden;
  $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterVidZeeFullscreen();
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
- startPlaybackWithFallback(titlePageItem,season,episode).then(()=>{if(startAt>5){latestPlaybackTime=startAt}});
+ startPlaybackWithFallback(titlePageItem,season,episode);
  startProgressPolling();
 }
 function slugSimilarity(a,b){
@@ -630,7 +630,7 @@ function buildPlayerUrl(item,season,episode){
  }
  return "https://player.vidzee.wtf/embed/movie/"+id;
 }
-function startPlaybackWithFallback(item,season,episode){
+async function startPlaybackWithFallback(item,season,episode){
  const frame=$("vidzee-frame"),video=$("resolved-video");
  if(!frame)throw new Error("VidZee iframe mungon në faqen e FLIXTV.");
  stopResolvedVideo();
@@ -670,6 +670,45 @@ function play(item,season,episode){
  startProgressPolling();
  clearTimeout(controlsTimer);
 }
+function closePlayer(){
+ savePlaybackProgress(true);
+ if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}
+ try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}
+ $("player-modal").classList.remove("css-fullscreen");
+ clearInterval(progressPollTimer);progressPollTimer=null;
+ clearTimeout(controlsTimer);clearTimeout(introTimer);
+ const frame=$("vidzee-frame");
+ if(frame){frame.onload=null;frame.onerror=null;frame.src="about:blank";frame.hidden=false}
+ stopResolvedVideo();
+ currentPlayback=null;
+ if(playbackReturnToTitlePage){
+  $("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;
+  playbackReturnToTitlePage=false;
+ }
+ $("content-intro").classList.remove("show");
+ $("content-intro").setAttribute("aria-hidden","true");
+ $("player-modal").classList.remove("attention-active","open");
+ $("player-modal").setAttribute("aria-hidden","true");
+ document.body.classList.remove("no-scroll");
+}
+window.addEventListener("message",event=>{
+ const frame=$("vidzee-frame");
+ if(!frame||event.origin!=="https://player.vidzee.wtf"||event.source!==frame.contentWindow)return;
+ let data=event.data;
+ if(typeof data==="string"){try{data=JSON.parse(data)}catch(_){return}}
+ if(!data||typeof data!=="object")return;
+ const payload=data.data&&typeof data.data==="object"?data.data:data;
+ const eventName=String(data.type||data.event||payload.event||"").toLowerCase();
+ const currentTime=Number(payload.currentTime??payload.time??payload.seconds);
+ const duration=Number(payload.duration);
+ if(Number.isFinite(currentTime)&&currentTime>=0){
+  latestPlaybackTime=currentTime;
+  if(duration>0)latestPlaybackDuration=duration;
+  savePlaybackProgress(false);
+ }
+ if(eventName.includes("ended")&&currentPlayback)clearPlaybackProgress(currentPlayback.item);
+ if(eventName.includes("error"))console.warn("[FLIXTV][VidZee] Player error event:",payload);
+});
 window.addEventListener("pagehide",()=>savePlaybackProgress(true));
 window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
 renderContinueWatching();
