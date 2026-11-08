@@ -1760,3 +1760,11 @@ html.deep-route-loading::after{
 @supports(padding:env(safe-area-inset-top)){.player-modal.css-fullscreen{padding:0!important;padding-top:env(safe-area-inset-top)!important;padding-bottom:env(safe-area-inset-bottom)!important;}}
 
 #resolved-video{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;z-index:1}#resolved-video[hidden]{display:none!important}#cinesrc-frame[hidden]{display:none!important}
+
+
+/* Keep all player input routed to the CineSRC iframe without parent overlays intercepting taps. */
+.player-modal .player-actions{pointer-events:none!important}
+.player-modal .player-actions>*{pointer-events:auto!important}
+.player-modal .content-intro{pointer-events:none!important}
+.player-modal .content-intro.show{pointer-events:auto!important}
+.player-modal #cinesrc-frame{z-index:2!important;pointer-events:auto!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
