@@ -7,7 +7,7 @@ FLIXTV is a lightweight movie and TV catalogue for LG webOS, desktop browsers, a
 - `apps/webos/application`: LG webOS TV app.
 - `apps/web`: responsive web app for desktop and mobile, deployed through GitHub Pages.
 - The catalogue and title metadata are powered by TMDB.
-- Playback uses the VidZee embed player for movies and TV episodes. FLIXTV does not host video files.
+- Playback opens the title's YapGrid embed. FLIXTV does not host video files.
 
 ## Mobile / web
 
@@ -36,6 +36,6 @@ Open `http://localhost:3000`.
 
 ## LG webOS
 
-The TV app uses the same TMDB catalogue and VidZee embed player. Configure your TMDB key in the local, gitignored `apps/webos/application/keys.js` file. Never commit private API keys.
+The TV app uses the same TMDB catalogue and YapGrid embed player. Configure your TMDB key in the local, gitignored `apps/webos/application/keys.js` file. Never commit private API keys.
 
 For webOS packaging, use the webOS CLI tools documented in `apps/webos/application/README.md`.
