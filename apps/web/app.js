@@ -4,7 +4,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
 (()=>{
- const allowedFrameHosts=["cinesrc.st"];
+ const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws"];
  const isAllowedPlayerUrl=url=>{
   try{const host=new URL(url,location.href).hostname.toLowerCase();return allowedFrameHosts.some(allowed=>host===allowed||host.endsWith("."+allowed))}
   catch(_){return false}
@@ -626,21 +626,50 @@ function stopResolvedVideo(){
  const video=$("resolved-video");
  if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
 }
-async function startPlaybackWithFallback(item,season,episode){
+async function startPlaybackWithFallback(item,season,episode,provider=activePlayerProvider){
  const frame=$("cinesrc-frame");
  const video=$("resolved-video");
- if(!frame)throw new Error("CineSRC iframe is missing");
+ if(!frame)throw new Error("Player iframe is missing");
  if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
- const url=buildPlayerUrl(item,season,episode,latestPlaybackTime);
- activePlayerProvider="CineSRC";
+ activePlayerProvider=provider==="videasy"?"videasy":"cinesrc";
+ const url=activePlayerProvider==="videasy"
+  ?buildVideasyUrl(item,season,episode,latestPlaybackTime)
+  :buildPlayerUrl(item,season,episode,latestPlaybackTime);
+ renderPlayerProviderSwitch();
  frame.hidden=false;
  frame.src=url;
- console.info("[FLIXTV] Opening original CineSRC embed:",url);
+ $("player-modal").dataset.playerState="loading";
+ console.info("[FLIXTV] Opening "+(activePlayerProvider==="videasy"?"Videasy":"CineSRC")+" embed:",url);
 }
 
 let activePlayerProvider="cinesrc";
 let currentPlayback=null;
 let playbackReturnToTitlePage=false;
+function renderPlayerProviderSwitch(){
+ const host=$("player-provider-switch");
+ if(!host)return;
+ host.replaceChildren();
+ [["cinesrc","CineSRC"],["videasy","Videasy"]].forEach(([provider,label])=>{
+  const button=document.createElement("button");
+  button.type="button";button.className="player-provider"+(activePlayerProvider===provider?" active":"");
+  button.textContent=label;button.setAttribute("aria-pressed",String(activePlayerProvider===provider));
+  button.addEventListener("click",()=>{
+   if(provider===activePlayerProvider||!currentPlayback)return;
+   startPlaybackWithFallback(currentPlayback.item,currentPlayback.season,currentPlayback.episode,provider);
+  });
+  host.append(button);
+ });
+}
+function buildVideasyUrl(item,season,episode,resumeTime=0){
+ const id=encodeURIComponent(String(item.id));
+ const params=new URLSearchParams({autoplay:"1"});
+ if(kind(item)==="tv")params.set("autonext","1");
+ if(Number(resumeTime)>5)params.set("startAt",String(Math.floor(Number(resumeTime))));
+ if(kind(item)==="tv"){
+  return "https://player.videasy.ws/embed/tv/"+id+"/"+Number(season||1)+"/"+Number(episode||1)+"?"+params.toString();
+ }
+ return "https://player.videasy.ws/embed/movie/"+id+"?"+params.toString();
+}
 function buildPlayerUrl(item,season,episode,resumeTime=0){
  const id=encodeURIComponent(String(item.id));
  const params=new URLSearchParams({
@@ -679,8 +708,25 @@ function play(item,season,episode){
 }
 function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 window.addEventListener("message",event=>{
- if(event.origin!=="https://cinesrc.st"||event.source!==$("cinesrc-frame").contentWindow)return;
- if(!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
+ const frame=$("cinesrc-frame");
+ if(!frame||event.source!==frame.contentWindow||!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
+ if(event.origin==="https://player.videasy.ws"&&activePlayerProvider==="videasy"){
+  if(event.data.type!=="PLAYER_EVENT")return;
+  const payload=event.data.data&&typeof event.data.data==="object"?event.data.data:event.data;
+  const progress=Number(payload.player_progress),duration=Number(payload.player_duration);
+  if(Number.isFinite(progress)&&progress>=0)latestPlaybackTime=progress;
+  if(Number.isFinite(duration)&&duration>0)latestPlaybackDuration=duration;
+  const info=payload.player_info||{};
+  if(currentPlayback&&kind(currentPlayback.item)==="tv"){
+   if(Number.isInteger(Number(info.season)))currentPlayback.season=Number(info.season);
+   if(Number.isInteger(Number(info.episode)))currentPlayback.episode=Number(info.episode);
+  }
+  if(payload.player_status==="completed"){
+   if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
+  }else if(latestPlaybackTime>0)savePlaybackProgress(payload.player_status==="paused");
+  return;
+ }
+ if(event.origin!=="https://cinesrc.st"||activePlayerProvider!=="cinesrc")return;
  const data=event.data;
  switch(data.type){
   case "cinesrc:ready":
