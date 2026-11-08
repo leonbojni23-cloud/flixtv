@@ -614,10 +614,11 @@ function buildVideasyUrl(item,season,episode,resumeTime=0){
  const params=new URLSearchParams({autoplay:"1"});
  if(kind(item)==="tv")params.set("autonext","1");
  if(Number(resumeTime)>5)params.set("startAt",String(Math.floor(Number(resumeTime))));
+ const proxy="https://flixtv-api.vercel.app/videasy/player.videasy.ws/embed/";
  if(kind(item)==="tv"){
-  return "https://player.videasy.ws/embed/tv/"+id+"/"+Number(season||1)+"/"+Number(episode||1)+"?"+params.toString();
+  return proxy+"tv/"+id+"/"+Number(season||1)+"/"+Number(episode||1)+"?"+params.toString();
  }
- return "https://player.videasy.ws/embed/movie/"+id+"?"+params.toString();
+ return proxy+"movie/"+id+"?"+params.toString();
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
