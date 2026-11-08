@@ -726,6 +726,17 @@ async function playResolvedStream(item,season,episode,options={}){
    backBufferLength:90,
    maxBufferLength:30,
    maxMaxBufferLength:60,
+   // CDN segments can occasionally return a transient 502. Retry individual
+   // manifests, levels and fragments before declaring playback fatal.
+   manifestLoadingMaxRetry:4,
+   manifestLoadingRetryDelay:1000,
+   manifestLoadingMaxRetryTimeout:30000,
+   levelLoadingMaxRetry:4,
+   levelLoadingRetryDelay:1000,
+   levelLoadingMaxRetryTimeout:30000,
+   fragLoadingMaxRetry:6,
+   fragLoadingRetryDelay:1000,
+   fragLoadingMaxRetryTimeout:64000,
    xhrSetup:(xhr)=>{xhr.withCredentials=true;},
    fetchSetup:(context,init)=>new Request(context.url,{...init,credentials:"include"})
   });
