@@ -8,7 +8,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  const AD_HOSTS=[/(^|\\.)doubleclick\\.net$/i,/(^|\\.)googlesyndication\\.com$/i,/(^|\\.)googleadservices\\.com$/i,/(^|\\.)adservice\\./i,/(^|\\.)popads\\./i,/(^|\\.)popcash\\./i,/(^|\\.)adsterra\\./i,/(^|\\.)exoclick\\./i,/(^|\\.)propellerads\\./i,/(^|\\.)taboola\\./i,/(^|\\.)outbrain\\./i,/(^|\\.)onclick\\./i];
  const hostOf=value=>{try{return new URL(value,location.href).hostname.toLowerCase()}catch(_){return ""}};
  const isPlayer=value=>{const host=hostOf(value);return PLAYER_HOSTS.some(x=>host===x||host.endsWith("."+x))};
- const isAd=value=>{const host=hostOf(value);return !host||AD_HOSTS.some(re=>re.test(host))||/[?&](?:utm_source=ad|ad_id|clickid|affiliate_id)=/i.test(String(value))};
+ const isAd=value=>{const host=hostOf(value);return !host||host.startsWith("adservice.")||AD_HOSTS.some(domain=>host===domain||host.endsWith("."+domain))||/[?&](?:utm_source=ad|ad_id|clickid|affiliate_id)=/i.test(String(value))};
  const log=(type,value)=>console.debug("[FLIXTV] "+type+" blocked",value||"");
  window.open=function(url){log("popup",url);return null};
  const blockEscapingNavigation=event=>{
