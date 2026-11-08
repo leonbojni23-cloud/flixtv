@@ -3,7 +3,7 @@
 
   var tv = window.TV;
   if (!tv) {
-    console.error("[CineSRC] TV API is not available. Load app.js first.");
+    console.error("[VidZee] TV API is not available. Load app.js first.");
     return;
   }
 
@@ -16,7 +16,7 @@
   var controlsTimer = null;
   var openedAt = 0;
   var readyAt = 0;
-  var LAST_SERVER_KEY = "flixtv.cinesrc.lastserver";
+  var LAST_SERVER_KEY = "flixtv.vidzee.lastserver";
 
   function getLastServer() {
     try { return localStorage.getItem(LAST_SERVER_KEY) || ""; }
@@ -24,32 +24,32 @@
   }
 
   function onCineSrcMessage(event) {
-    if (event.origin !== "https://cinesrc.st") return;
+    if (event.origin !== "https://player.vidzee.wtf") return;
     var data = event.data;
     if (!data || typeof data !== "object" || typeof data.type !== "string") return;
 
-    if (data.type === "cinesrc:sourceused" && data.sourceId != null) {
+    if (data.type === "vidzee:sourceused" && data.sourceId != null) {
       try { localStorage.setItem(LAST_SERVER_KEY, String(data.sourceId)); } catch (error) {}
-      console.info("[CineSRC] Server selected:", String(data.sourceId), "after", openedAt ? Date.now() - openedAt : 0, "ms");
+      console.info("[VidZee] Server selected:", String(data.sourceId), "after", openedAt ? Date.now() - openedAt : 0, "ms");
       return;
     }
 
-    if (data.type === "cinesrc:ready") {
+    if (data.type === "vidzee:ready") {
       readyAt = Date.now();
-      console.info("[CineSRC] Ready after", openedAt ? readyAt - openedAt : 0, "ms");
-    } else if (data.type === "cinesrc:play") {
-      console.info("[CineSRC] Playback started after", openedAt ? Date.now() - openedAt : 0, "ms");
-    } else if (data.type === "cinesrc:loadedmetadata") {
-      console.info("[CineSRC] Media metadata loaded after", openedAt ? Date.now() - openedAt : 0, "ms");
-    } else if (data.type === "cinesrc:error") {
-      console.warn("[CineSRC] Player error:", data.error || data);
+      console.info("[VidZee] Ready after", openedAt ? readyAt - openedAt : 0, "ms");
+    } else if (data.type === "vidzee:play") {
+      console.info("[VidZee] Playback started after", openedAt ? Date.now() - openedAt : 0, "ms");
+    } else if (data.type === "vidzee:loadedmetadata") {
+      console.info("[VidZee] Media metadata loaded after", openedAt ? Date.now() - openedAt : 0, "ms");
+    } else if (data.type === "vidzee:error") {
+      console.warn("[VidZee] Player error:", data.error || data);
     }
   }
 
   window.addEventListener("message", onCineSrcMessage, false);
 
   if (!view || !frame) {
-    console.error("[CineSRC] Player elements are missing from index.html.");
+    console.error("[VidZee] Player elements are missing from index.html.");
     return;
   }
 
@@ -58,7 +58,7 @@
     return Number.isInteger(number) && number >= minimum;
   }
 
-  // Keep the same CineSRC endpoint and playback parameters as the web app.
+  // Keep the same VidZee endpoint and playback parameters as the web app.
   function buildUrl(item, request) {
     item = item || {};
     request = request || {};
@@ -71,39 +71,18 @@
       throw new Error("Missing or invalid TMDB ID.");
     }
 
-    var params = new URLSearchParams();
-    params.set("autoplay", "true");
-    params.set("muted", "false");
-    params.set("controls", "true");
-    params.set("autonext", "true");
-    params.set("autoskip", "false");
-    params.set("color", "#34cfeb");
-    params.set("back", "close");
-
-    // Prefer the last server that successfully started a stream on this TV.
-    var lastServer = getLastServer();
-    if (lastServer) {
-      params.set("lastserver", lastServer);
-      params.set("prioritize", "true");
-    }
-
-    var resumeTime = Number(request.resumeTime || item.resumeTime || 0);
-    if (resumeTime > 5) {
-      params.set("t", String(Math.floor(resumeTime)));
-      params.set("continueprompt", "false");
-    }
-
     if (type === "tv" || type === "series") {
       var season = request.season !== undefined ? request.season : item.season;
       var episode = request.episode !== undefined ? request.episode : item.episode;
       if (!validInteger(season, 0)) throw new Error("Invalid season number.");
       if (!validInteger(episode, 1)) throw new Error("Invalid episode number.");
-      params.set("s", String(Number(season)));
-      params.set("e", String(Number(episode)));
-      return "https://cinesrc.st/embed/tv/" + encodeURIComponent(String(id)) + "?" + params.toString();
+      return "https://player.vidzee.wtf/embed/tv/" +
+        encodeURIComponent(String(id)) + "/" +
+        encodeURIComponent(String(Number(season))) + "/" +
+        encodeURIComponent(String(Number(episode)));
     }
 
-    return "https://cinesrc.st/embed/movie/" + encodeURIComponent(String(id)) + "?" + params.toString();
+    return "https://player.vidzee.wtf/embed/movie/" + encodeURIComponent(String(id));
   }
 
   function setLoading(show, message) {
@@ -129,8 +108,8 @@
 
   function openPlayer(payload) {
     var url = payload && payload.url;
-    if (typeof url !== "string" || url.indexOf("https://cinesrc.st/embed/") !== 0) {
-      tv.toast("Invalid CineSRC player URL.");
+    if (typeof url !== "string" || url.indexOf("https://player.vidzee.wtf/embed/") !== 0) {
+      tv.toast("Invalid VidZee player URL.");
       return false;
     }
 
@@ -141,7 +120,7 @@
     document.body.classList.add("player-open");
     view.classList.remove("player-controls-hidden");
     view.classList.add("player-controls-visible");
-    setLoading(true, "Loading CineSRC player...");
+    setLoading(true, "Loading VidZee player...");
     showControls();
 
     if (frame.src !== url) frame.src = url;
@@ -151,7 +130,7 @@
       setLoading(false);
     }, 20000);
 
-    console.info("[CineSRC] Opening:", url);
+    console.info("[VidZee] Opening:", url);
     return true;
   }
 
@@ -174,7 +153,7 @@
       if (loadTimer !== null) window.clearTimeout(loadTimer);
       loadTimer = null;
       setLoading(false);
-      console.info("[CineSRC] iframe document loaded after", openedAt ? Date.now() - openedAt : 0, "ms");
+      console.info("[VidZee] iframe document loaded after", openedAt ? Date.now() - openedAt : 0, "ms");
     }
   });
 
@@ -203,8 +182,8 @@
       try {
         url = buildUrl(item, request);
       } catch (error) {
-        console.error("[CineSRC] URL error:", error);
-        tv.toast(error.message || "Could not open CineSRC.");
+        console.error("[VidZee] URL error:", error);
+        tv.toast(error.message || "Could not open VidZee.");
         return false;
       }
 
@@ -223,5 +202,5 @@
     getCurrentUrl: function() { return currentUrl; }
   };
 
-  console.log("[CineSRC] Player initialized.");
+  console.log("[VidZee] Player initialized.");
 }();
