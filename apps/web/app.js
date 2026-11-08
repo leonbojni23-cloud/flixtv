@@ -621,7 +621,7 @@ function stopResolvedVideo(){
  if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
 }
 function buildPlayerUrl(item,season,episode){
- if(!item||!/^\\d+$/.test(String(item.id||""))||Number(item.id)<1)throw new Error("ID TMDB i filmit mungon ose është i pavlefshëm.");
+ if(!item||!/^[0-9]+$/.test(String(item.id||""))||Number(item.id)<1)throw new Error("ID TMDB i filmit mungon ose është i pavlefshëm.");
  const id=encodeURIComponent(String(item.id));
  if(kind(item)==="tv"){
   const s=Number(season||1),e=Number(episode||1);
