@@ -58,7 +58,7 @@
     return Number.isInteger(number) && number >= minimum;
   }
 
-  // Keep the same VidZee endpoint and playback parameters as the web app.
+  // Build the VidZee embed URL from the selected TMDB movie or episode.
   function buildUrl(item, request) {
     item = item || {};
     request = request || {};
