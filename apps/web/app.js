@@ -4,7 +4,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
 (()=>{
- const allowedFrameHosts=["cinesrc.st"];
+ const allowedFrameHosts=["player.vidzee.wtf"];
  const isAllowedPlayerUrl=url=>{
   try{const host=new URL(url,location.href).hostname.toLowerCase();return allowedFrameHosts.some(allowed=>host===allowed||host.endsWith("."+allowed))}
   catch(_){return false}
@@ -60,7 +60,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  const removeInjectedAdElements=root=>{
   if(!root||!root.querySelectorAll)return;
   root.querySelectorAll('script[src],iframe[src],a[target="_blank"],[id*="ad-" i],[class*="advert" i],[class*="popup" i],[class*="popunder" i]').forEach(node=>{
-   if(node===document.querySelector("#cinesrc-frame"))return;
+   if(node===document.querySelector("#vidzee-frame"))return;
    const src=node.getAttribute("src")||node.href||"";
    if(node.tagName==="SCRIPT"||isAdUrl(src)||/advert|popunder|ad-container|ad-overlay/i.test((node.id||"")+" "+(node.className||""))){
     if(node.tagName!=="SCRIPT"||isAdUrl(src)){node.remove();console.warn("[FLIXTV] Ad element removed:",src)}
@@ -328,12 +328,6 @@ function startProgressPolling(){
   }
  },4000);
 }
-function sendCineSrcCommand(command,args=[]){
- const frame=$("cinesrc-frame");
- if(!frame||!frame.contentWindow)return;
- try{frame.contentWindow.postMessage({type:"cinesrc:command",command,args},"https://cinesrc.st")}catch(_){}
-}
-
 async function home(){
  renderContinueWatching();
  $("catalog").hidden=false;
@@ -552,10 +546,10 @@ async function loadTitleEpisodes(){
   })();
  }catch(e){if(isCurrent())notice("Episodet nuk u ngarkuan: "+e.message)}
 }
-function enterCineSrcFullscreen(){
+function enterVidZeeFullscreen(){
  const modal=$("player-modal");
  // Use an in-page CSS fullscreen on iOS Safari. Native video fullscreen can
- // detach the iframe player UI and hide CineSRC-rendered subtitles.
+ // detach the iframe player UI and hide VidZee-rendered subtitles.
  modal.classList.add("open","css-fullscreen");
  document.body.classList.add("no-scroll");
 }
@@ -579,9 +573,9 @@ function startTitlePlayback(season,episode,resumeTime=null){
  const startAt=Number(resumeTime)>0?Number(resumeTime):(saved&&kind(titlePageItem)==="tv"&&Number(saved.season)===Number(season||1)&&Number(saved.episode)===Number(episode||1)?Number(saved.currentTime):kind(titlePageItem)==="movie"&&saved?Number(saved.currentTime):0);
  latestPlaybackTime=startAt;latestPlaybackDuration=saved&&startAt===Number(saved.currentTime)?Number(saved.duration)||0:0;lastProgressWrite=0;
  playbackReturnToTitlePage=!$("title-page").hidden;
- $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterCineSrcFullscreen();
+ $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterVidZeeFullscreen();
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
- startPlaybackWithFallback(titlePageItem,season,episode).then(()=>{if(startAt>5){latestPlaybackTime=startAt}});
+ startPlaybackWithFallback(titlePageItem,season,episode);
  startProgressPolling();
 }
 function slugSimilarity(a,b){
@@ -622,244 +616,43 @@ const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",9
 function ageLabel(cert){const c=String(cert||"").trim().toUpperCase();const map={"G":"Për të gjitha moshat","TV-G":"Për të gjitha moshat","TV-Y":"Për fëmijë","TV-Y7":"Për fëmijë mbi 7 vjeç","PG":"Nën mbikëqyrjen e prindërve","TV-PG":"Nën mbikëqyrjen e prindërve","PG-13":"13+","TV-14":"14+","R":"17+","TV-MA":"18+","NC-17":"18+","18":"18+","16":"16+","15":"15+","12":"12+","U":"Për të gjitha moshat"};return map[c]||c||"Pa klasifikim moshe";}
 async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+(k==="tv"?"/content_ratings":"/release_dates"));if(k==="tv"){const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");return (rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0]||{}).rating||""}const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");const country=rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0];return country&&country.release_dates&&((country.release_dates.find(x=>x.certification)||{}).certification)||""}catch(_){return""}}
 
-let activeHlsInstance=null;
-let resolvedStreamUrl="";
 function stopResolvedVideo(){
  const video=$("resolved-video");
- if(activeHlsInstance){try{activeHlsInstance.destroy()}catch(_){}activeHlsInstance=null}
  if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
 }
-function proxyDiagnostic(event,details){
- console.info("[FLIXTV][CineSRC Proxy] "+event,details||"");
-}
-function diagnosticResource(value){
- try{
-  const url=new URL(value,location.href),parts=url.pathname.split("/");
-  const playlistIndex=parts.indexOf("playlist");
-  if(playlistIndex>=0&&parts[playlistIndex+1])parts[playlistIndex+1]="[redacted]";
-  const path=parts.map(part=>part.length>48?"[redacted]":part).join("/");
-  return {host:url.hostname,path};
- }catch(_){return null}
-}
-function attachNativePlaybackDiagnostics(video,streamUrl){
- const events=["loadstart","loadedmetadata","loadeddata","canplay","playing","waiting","stalled","suspend","abort","emptied","ended","error"];
- events.forEach(name=>{
-  video.addEventListener(name,()=>{
-   const state={
-    currentTime:Number(video.currentTime)||0,
-    duration:Number.isFinite(video.duration)?video.duration:null,
-    readyState:video.readyState,
-    networkState:video.networkState,
-    videoError:video.error?{code:video.error.code,message:video.error.message}:null,
-    sourceHost:(()=>{try{return new URL(streamUrl).hostname}catch(_){return "invalid"}})()
-   };
-   proxyDiagnostic("Native video "+name,state);
-  });
- });
-}
-async function playResolvedStream(item,season,episode,options={}){
- const video=$("resolved-video"),frame=$("cinesrc-frame");
- if(!video||!frame)throw new Error("Player elements missing");
- stopResolvedVideo();
- frame.hidden=true;
- video.hidden=false;
- video.controls=true;
- video.preload="auto";
-
- const type=kind(item)==="tv"?"tv":"movie";
- const resolverUrl=new URL("/api/stream","https://flixtv-api.vercel.app");
- resolverUrl.searchParams.set("id",String(item.id));
- resolverUrl.searchParams.set("type",type);
- if(type==="tv"){
-  resolverUrl.searchParams.set("season",String(Number(season||1)));
-  resolverUrl.searchParams.set("episode",String(Number(episode||1)));
+function buildPlayerUrl(item,season,episode){
+ if(!item||!/^[0-9]+$/.test(String(item.id||""))||Number(item.id)<1)throw new Error("ID TMDB i filmit mungon ose është i pavlefshëm.");
+ const id=encodeURIComponent(String(item.id));
+ if(kind(item)==="tv"){
+  const s=Number(season||1),e=Number(episode||1);
+  if(!Number.isInteger(s)||s<0||!Number.isInteger(e)||e<1)throw new Error("Sezoni ose episodi është i pavlefshëm.");
+  return "https://player.vidzee.wtf/embed/tv/"+id+"/"+s+"/"+e;
  }
-
- proxyDiagnostic("Resolving stream",{type,id:item.id,season:season||null,episode:episode||null});
- const response=await fetch(resolverUrl.href,{headers:{Accept:"application/json"},cache:"no-store"});
- const payload=await response.json().catch(()=>null);
- proxyDiagnostic("Resolver response",{status:response.status,ok:response.ok,payload:payload?{
-  success:payload.success,source:payload.source,format:payload.format,
-  streamUrl:payload.streamUrl?new URL(payload.streamUrl,"https://flixtv-api.vercel.app").pathname:"missing",
-  detected:payload.detected||null,error:payload.error||null
- }:null});
-
- if(!response.ok||!payload||!payload.success||!payload.streamUrl){
-  throw new Error(payload&&payload.error||"CineSRC resolver nuk ktheu një stream të vlefshëm ("+response.status+").");
- }
-
- const streamUrl=new URL(payload.streamUrl,"https://flixtv-api.vercel.app").href;
- if(!/^https:\/\//i.test(streamUrl)||new URL(streamUrl).hostname!=="flixtv-api.vercel.app"){
-  throw new Error("Resolver-i ktheu një adresë proxy-je të pavlefshme.");
- }
- resolvedStreamUrl=streamUrl;
- activePlayerProvider="CineSRC Proxy";
- proxyDiagnostic("Loading proxied HLS manifest",{host:new URL(streamUrl).hostname,path:new URL(streamUrl).pathname});
-
- video.onerror=()=>{
-  const error=video.error;
-  proxyDiagnostic("Native video error",{
-   code:error&&error.code,message:error&&error.message,
-   currentTime:video.currentTime,readyState:video.readyState,
-   networkState:video.networkState
-  });
-  notice("Videoja ndaloi. Kontrollo regjistrimet [CineSRC Proxy] në Console.");
- };
- video.ontimeupdate=()=>{
-  latestPlaybackTime=Number(video.currentTime)||0;
-  latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
-  savePlaybackProgress(false);
- };
- video.onplay=()=>{latestPlaybackTime=Number(video.currentTime)||0;savePlaybackProgress(true)};
- video.onpause=()=>{latestPlaybackTime=Number(video.currentTime)||0;savePlaybackProgress(true)};
- video.onended=()=>{if(currentPlayback)clearPlaybackProgress(currentPlayback.item)};
-
- const refreshAttempts=Number(options.streamRefreshAttempts||0);
- // The proxy session cookie is scoped to the API origin. HLS requests must send credentials.
- video.crossOrigin="use-credentials";
- const nativeHls=!!video.canPlayType("application/vnd.apple.mpegurl");
- if(window.Hls&&window.Hls.isSupported()){
-  let networkRecoveryAttempts=0,mediaRecoveryAttempts=0;
-  const hls=new window.Hls({
-   enableWorker:true,
-   lowLatencyMode:false,
-   backBufferLength:90,
-   maxBufferLength:30,
-   maxMaxBufferLength:60,
-   // CDN segments can occasionally return a transient 502. Retry individual
-   // manifests, levels and fragments before declaring playback fatal.
-   manifestLoadingMaxRetry:4,
-   manifestLoadingRetryDelay:1000,
-   manifestLoadingMaxRetryTimeout:30000,
-   levelLoadingMaxRetry:4,
-   levelLoadingRetryDelay:1000,
-   levelLoadingMaxRetryTimeout:30000,
-   fragLoadingMaxRetry:6,
-   fragLoadingRetryDelay:1000,
-   fragLoadingMaxRetryTimeout:64000,
-   xhrSetup:(xhr)=>{xhr.withCredentials=true;},
-   fetchSetup:(context,init)=>new Request(context.url,{...init,credentials:"include"})
-  });
-  activeHlsInstance=hls;
-
-  hls.on(window.Hls.Events.MEDIA_ATTACHED,()=>proxyDiagnostic("HLS media attached"));
-  hls.on(window.Hls.Events.MANIFEST_LOADING,(_,data)=>proxyDiagnostic("HLS manifest loading",{resource:data&&data.url?diagnosticResource(data.url):null}));
-  hls.on(window.Hls.Events.MANIFEST_LOADED,(_,data)=>proxyDiagnostic("HLS manifest loaded",{
-   url:data&&data.url,levels:data&&data.levels?data.levels.length:0
-  }));
-  hls.on(window.Hls.Events.MANIFEST_PARSED,(_,data)=>{
-   proxyDiagnostic("HLS manifest parsed",{
-    levels:data&&data.levels?data.levels.length:0,
-    audioTracks:data&&data.audioTracks?data.audioTracks.length:0,
-    subtitles:data&&data.subtitleTracks?data.subtitleTracks.length:0
-   });
-   video.play().catch(error=>proxyDiagnostic("Autoplay rejected",{name:error.name,message:error.message}));
-  });
-  hls.on(window.Hls.Events.LEVEL_LOADED,(_,data)=>proxyDiagnostic("HLS level loaded",{
-   level:data&&data.level,details:data&&data.details?{
-    live:data.details.live,totalDuration:data.details.totalduration,
-    fragments:data.details.fragments?data.details.fragments.length:0,
-    targetDuration:data.details.targetduration
-   }:null
-  }));
-  hls.on(window.Hls.Events.FRAG_LOADING,(_,data)=>proxyDiagnostic("HLS fragment loading",{
-   type:data&&data.frag&&data.frag.type,sn:data&&data.frag&&data.frag.sn,
-   resource:data&&data.frag&&data.frag.url?diagnosticResource(data.frag.url):null
-  }));
-  hls.on(window.Hls.Events.FRAG_LOADED,(_,data)=>proxyDiagnostic("HLS fragment loaded",{
-   type:data&&data.frag&&data.frag.type,sn:data&&data.frag&&data.frag.sn,
-   bytes:data&&data.stats?data.stats.loaded:0,
-   loadingMs:data&&data.stats&&data.stats.loading?data.stats.loading.end-data.stats.loading.start:null
-  }));
-  hls.on(window.Hls.Events.ERROR,async(_,data)=>{
-   if(!data)return;
-   const responseData=data.response||{};
-   const frag=data.frag||null;
-   proxyDiagnostic("HLS ERROR",{
-    type:data.type,details:data.details,fatal:data.fatal,
-    status:responseData.code||null,
-    responseText:String(responseData.text||"").slice(0,240),
-    resource:diagnosticResource(data.url||responseData.url||(frag&&frag.url)||""),
-    fragment:frag?{type:frag.type,sn:frag.sn,level:frag.level}:null,
-    buffer:video.buffered.length?{
-     start:video.buffered.start(0),end:video.buffered.end(video.buffered.length-1)
-    }:null
-   });
-   if(!data.fatal)return;
-   const upstreamStatus=Number(responseData.code||0);
-   const looksLikeExpiredProxyStream=
-    data.type===window.Hls.ErrorTypes.NETWORK_ERROR&&
-    (upstreamStatus===403||upstreamStatus===502||upstreamStatus===503||upstreamStatus===504);
-   if(looksLikeExpiredProxyStream&&refreshAttempts<1){
-    proxyDiagnostic("Proxy rejected the HLS resource; requesting one fresh CineSRC stream",{
-     status:upstreamStatus,attempt:refreshAttempts+1
-    });
-    hls.destroy();
-    if(activeHlsInstance===hls)activeHlsInstance=null;
-    try{
-     await playResolvedStream(item,season,episode,{streamRefreshAttempts:refreshAttempts+1});
-    }catch(refreshError){
-     proxyDiagnostic("Fresh stream retry failed",{message:refreshError&&refreshError.message?refreshError.message:String(refreshError)});
-     notice("CineSRC Proxy: stream-i i ri nuk u hap. "+(refreshError&&refreshError.message?refreshError.message:"Gabim i panjohur."));
-    }
-   }else if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR&&networkRecoveryAttempts<1){
-    networkRecoveryAttempts++;
-    proxyDiagnostic("Attempting one HLS network recovery");
-    try{hls.startLoad()}catch(error){proxyDiagnostic("Network recovery failed",{message:error.message})}
-   }else if(data.type===window.Hls.ErrorTypes.MEDIA_ERROR&&mediaRecoveryAttempts<2){
-    mediaRecoveryAttempts++;
-    proxyDiagnostic("Attempting HLS media recovery",{attempt:mediaRecoveryAttempts});
-    try{hls.recoverMediaError()}catch(error){proxyDiagnostic("Media recovery failed",{message:error.message})}
-   }else{
-    notice("Gabim HLS: "+(data.details||"stream error")+". Shiko Console për detajet.");
-   }
-  });
-  hls.attachMedia(video);
-  hls.loadSource(streamUrl);
- }else if(nativeHls){
-  attachNativePlaybackDiagnostics(video,streamUrl);
-  video.src=streamUrl;
-  video.load();
-  video.play().catch(error=>proxyDiagnostic("Native HLS autoplay rejected",{name:error.name,message:error.message}));
- }else{
-  throw new Error("Ky shfletues nuk mbështet HLS.");
- }
+ return "https://player.vidzee.wtf/embed/movie/"+id;
 }
 async function startPlaybackWithFallback(item,season,episode){
+ const frame=$("vidzee-frame"),video=$("resolved-video");
+ if(!frame)throw new Error("VidZee iframe mungon në faqen e FLIXTV.");
+ stopResolvedVideo();
+ if(video)video.hidden=true;
+ frame.hidden=false;
+ frame.onload=()=>{$("player-modal").dataset.playerState="loaded"};
+ frame.onerror=()=>{ $("player-modal").dataset.playerState="error";notice("VidZee nuk u ngarkua. Kontrollo lidhjen ose provo përsëri.") };
  try{
-  const frame=$("cinesrc-frame");
-  if(frame){frame.hidden=true;frame.removeAttribute("src")}
-  await playResolvedStream(item,season,episode);
+  const url=buildPlayerUrl(item,season,episode);
+  resolvedStreamUrl=url;
+  activePlayerProvider="VidZee";
+  $("player-modal").dataset.playerState="loading";
+  frame.src=url;
+  console.info("[FLIXTV][VidZee] Opening player:",url);
  }catch(error){
-  console.warn("[FLIXTV] Direct stream playback unavailable:",error);
-  stopResolvedVideo();
-  const frame=$("cinesrc-frame");
-  if(frame){frame.hidden=true;frame.removeAttribute("src")}
-  proxyDiagnostic("Playback setup failed",{message:error&&error.message?error.message:String(error)});notice("CineSRC Proxy: "+(error&&error.message?error.message:"Transmetimi nuk u hap."));
+  $("player-modal").dataset.playerState="error";
+  notice(error.message||"Nuk u hap VidZee.");
  }
 }
-
-let activePlayerProvider="cinesrc";
+let activePlayerProvider="VidZee";
 let currentPlayback=null;
 let playbackReturnToTitlePage=false;
-function buildPlayerUrl(item,season,episode,resumeTime=0){
- const id=encodeURIComponent(String(item.id));
- const params=new URLSearchParams({
-  autoplay:"true",muted:"false",controls:"true",autonext:"true",autoskip:"false",color:"#34cfeb",back:"close"
- });
- if(Number(resumeTime)>5){params.set("t",String(Math.floor(Number(resumeTime))));params.set("continueprompt","false")}
- if(kind(item)==="tv"){
-  params.set("s",String(Number(season||1)));params.set("e",String(Number(episode||1)));
-  return "https://cinesrc.st/embed/tv/"+id+"?"+params.toString();
- }
- return "https://cinesrc.st/embed/movie/"+id+"?"+params.toString();
-}
-function startPlayback(item,season,episode){
- currentPlayback={item,season,episode};
- startPlaybackWithFallback(item,season,episode);
- $("content-intro").classList.remove("show");
-}
-// Direct HLS playback only. CineSRC iframe fallback is disabled.
 function play(item,season,episode){
  if(!item||!item.id)return;
  clearTimeout(introTimer);
@@ -867,69 +660,54 @@ function play(item,season,episode){
  $("content-intro").setAttribute("aria-hidden","true");
  $("player-modal").classList.remove("attention-active");
  $("player-modal").classList.add("open","controls-visible");
- enterCineSrcFullscreen();
+ enterVidZeeFullscreen();
  $("player-modal").setAttribute("aria-hidden","false");
  $("details-modal").classList.remove("open");
  document.body.classList.add("no-scroll");
  currentPlayback={item,season,episode};
  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
- const frame=$("cinesrc-frame");if(frame){frame.hidden=true;frame.removeAttribute("src")}
  startPlaybackWithFallback(item,season,episode);
  startProgressPolling();
  clearTimeout(controlsTimer);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
-window.addEventListener("message",event=>{
- if(event.origin!=="https://cinesrc.st"||event.source!==$("cinesrc-frame").contentWindow)return;
- if(!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
- const data=event.data;
- switch(data.type){
-  case "cinesrc:ready":
-   $("player-modal").dataset.playerState="ready";
-   if(latestPlaybackTime>5)sendCineSrcCommand("seek",[latestPlaybackTime]);
-   sendCineSrcCommand("getCurrentTime");
-   sendCineSrcCommand("getDuration");
-   break;
-  case "cinesrc:play":
-  case "cinesrc:pause":
-   if(Number.isFinite(Number(data.currentTime)))latestPlaybackTime=Math.max(0,Number(data.currentTime));
-   if(Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
-   if(latestPlaybackTime>0)savePlaybackProgress(true);
-   break;
-  case "cinesrc:timeupdate":
-  case "cinesrc:seeked":
-   if(Number.isFinite(Number(data.currentTime)))latestPlaybackTime=Math.max(0,Number(data.currentTime));
-   if(Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
-   savePlaybackProgress(false);
-   break;
-  case "cinesrc:loadedmetadata":
-   latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;break;case "cinesrc:nextepisode":
-   if(currentPlayback&&kind(currentPlayback.item)==="tv"){
-    const nextSeason=Number(data.season),nextEpisode=Number(data.episode);
-    if(Number.isInteger(nextSeason)&&nextSeason>=0)currentPlayback.season=nextSeason;
-    if(Number.isInteger(nextEpisode)&&nextEpisode>0)currentPlayback.episode=nextEpisode;
-    latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
-    savePlaybackProgress(true);
-    setTimeout(()=>{
-     if(!$("player-modal").classList.contains("open")||!currentPlayback)return;
-     sendCineSrcCommand("getCurrentTime");
-     sendCineSrcCommand("getDuration");
-    },900);
-   }
-   break;
-  case "cinesrc:ended":
-   if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
-  case "cinesrc:response":
-   if(data.command==="getCurrentTime"&&Number.isFinite(Number(data.result))){latestPlaybackTime=Math.max(0,Number(data.result));if(latestPlaybackTime>0)savePlaybackProgress(true)}else if(data.command==="getDuration"&&Number(data.result)>0){latestPlaybackDuration=Number(data.result);savePlaybackProgress(true)}
-   break;
-  case "cinesrc:close":
-   savePlaybackProgress(true);
-   leavePlayer();
-   break;
-  case "cinesrc:error":
-   $("player-modal").dataset.playerState="error";
-   notice("CineSRC: "+String(data.error||"Videoja nuk u ngarkua. Provo përsëri."));break;
+function closePlayer(){
+ savePlaybackProgress(true);
+ if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}
+ try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}
+ $("player-modal").classList.remove("css-fullscreen");
+ clearInterval(progressPollTimer);progressPollTimer=null;
+ clearTimeout(controlsTimer);clearTimeout(introTimer);
+ const frame=$("vidzee-frame");
+ if(frame){frame.onload=null;frame.onerror=null;frame.src="about:blank";frame.hidden=false}
+ stopResolvedVideo();
+ currentPlayback=null;
+ if(playbackReturnToTitlePage){
+  $("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;
+  playbackReturnToTitlePage=false;
  }
+ $("content-intro").classList.remove("show");
+ $("content-intro").setAttribute("aria-hidden","true");
+ $("player-modal").classList.remove("attention-active","open");
+ $("player-modal").setAttribute("aria-hidden","true");
+ document.body.classList.remove("no-scroll");
+}
+window.addEventListener("message",event=>{
+ const frame=$("vidzee-frame");
+ if(!frame||event.origin!=="https://player.vidzee.wtf"||event.source!==frame.contentWindow)return;
+ let data=event.data;
+ if(typeof data==="string"){try{data=JSON.parse(data)}catch(_){return}}
+ if(!data||typeof data!=="object")return;
+ const payload=data.data&&typeof data.data==="object"?data.data:data;
+ const eventName=String(data.type||data.event||payload.event||"").toLowerCase();
+ const currentTime=Number(payload.currentTime??payload.time??payload.seconds);
+ const duration=Number(payload.duration);
+ if(Number.isFinite(currentTime)&&currentTime>=0){
+  latestPlaybackTime=currentTime;
+  if(duration>0)latestPlaybackDuration=duration;
+  savePlaybackProgress(false);
+ }
+ if(eventName.includes("ended")&&currentPlayback)clearPlaybackProgress(currentPlayback.item);
+ if(eventName.includes("error"))console.warn("[FLIXTV][VidZee] Player error event:",payload);
 });
 window.addEventListener("pagehide",()=>savePlaybackProgress(true));
 window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
