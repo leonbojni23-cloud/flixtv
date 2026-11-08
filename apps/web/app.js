@@ -756,7 +756,7 @@ async function playResolvedStream(item,season,episode,options={}){
    bytes:data&&data.stats?data.stats.loaded:0,
    loadingMs:data&&data.stats&&data.stats.loading?data.stats.loading.end-data.stats.loading.start:null
   }));
-  hls.on(window.Hls.Events.ERROR,(_,data)=>{
+  hls.on(window.Hls.Events.ERROR,async(_,data)=>{
    if(!data)return;
    const responseData=data.response||{};
    const frag=data.frag||null;
