@@ -794,7 +794,7 @@ async function startPlaybackWithFallback(item,season,episode){
   stopResolvedVideo();
   const frame=$("cinesrc-frame");
   if(frame){frame.hidden=true;frame.removeAttribute("src")}
-  notice("Transmetimi direkt nuk është i disponueshëm. CineSRC është çaktivizuar përkohësisht.");
+  proxyDiagnostic("Playback setup failed",{message:error&&error.message?error.message:String(error)});notice("CineSRC Proxy: "+(error&&error.message?error.message:"Transmetimi nuk u hap."));
  }
 }
 
