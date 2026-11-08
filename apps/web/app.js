@@ -4,7 +4,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
 (()=>{
- const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws"];
+ const allowedFrameHosts=["player.videasy.ws","videasy.ws"];
  const isAllowedPlayerUrl=url=>{
   try{const host=new URL(url,location.href).hostname.toLowerCase();return allowedFrameHosts.some(allowed=>host===allowed||host.endsWith("."+allowed))}
   catch(_){return false}
@@ -60,7 +60,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  const removeInjectedAdElements=root=>{
   if(!root||!root.querySelectorAll)return;
   root.querySelectorAll('script[src],iframe[src],a[target="_blank"],[id*="ad-" i],[class*="advert" i],[class*="popup" i],[class*="popunder" i]').forEach(node=>{
-   if(node===document.querySelector("#cinesrc-frame"))return;
+   if(node===document.querySelector("#videasy-frame"))return;
    const src=node.getAttribute("src")||node.href||"";
    if(node.tagName==="SCRIPT"||isAdUrl(src)||/advert|popunder|ad-container|ad-overlay/i.test((node.id||"")+" "+(node.className||""))){
     if(node.tagName!=="SCRIPT"||isAdUrl(src)){node.remove();console.warn("[FLIXTV] Ad element removed:",src)}
@@ -328,11 +328,6 @@ function startProgressPolling(){
   }
  },4000);
 }
-function sendCineSrcCommand(command,args=[]){
- const frame=$("cinesrc-frame");
- if(!frame||!frame.contentWindow)return;
- try{frame.contentWindow.postMessage({type:"cinesrc:command",command,args},"https://cinesrc.st")}catch(_){}
-}
 
 async function home(){
  renderContinueWatching();
@@ -552,10 +547,10 @@ async function loadTitleEpisodes(){
   })();
  }catch(e){if(isCurrent())notice("Episodet nuk u ngarkuan: "+e.message)}
 }
-function enterCineSrcFullscreen(){
+function enterPlayerFullscreen(){
  const modal=$("player-modal");
  // Use an in-page CSS fullscreen on iOS Safari. Native video fullscreen can
- // detach the iframe player UI and hide CineSRC-rendered subtitles.
+ // detach the iframe player UI and hide provider-rendered subtitles.
  modal.classList.add("open","css-fullscreen");
  document.body.classList.add("no-scroll");
 }
@@ -579,7 +574,7 @@ function startTitlePlayback(season,episode,resumeTime=null){
  const startAt=Number(resumeTime)>0?Number(resumeTime):(saved&&kind(titlePageItem)==="tv"&&Number(saved.season)===Number(season||1)&&Number(saved.episode)===Number(episode||1)?Number(saved.currentTime):kind(titlePageItem)==="movie"&&saved?Number(saved.currentTime):0);
  latestPlaybackTime=startAt;latestPlaybackDuration=saved&&startAt===Number(saved.currentTime)?Number(saved.duration)||0:0;lastProgressWrite=0;
  playbackReturnToTitlePage=!$("title-page").hidden;
- $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterCineSrcFullscreen();
+ $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterPlayerFullscreen();
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
  startPlaybackWithFallback(titlePageItem,season,episode).then(()=>{if(startAt>5){latestPlaybackTime=startAt}});
  startProgressPolling();
@@ -626,40 +621,20 @@ function stopResolvedVideo(){
  const video=$("resolved-video");
  if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
 }
-async function startPlaybackWithFallback(item,season,episode,provider=activePlayerProvider){
- const frame=$("cinesrc-frame");
+async function startPlaybackWithFallback(item,season,episode){
+ const frame=$("videasy-frame");
  const video=$("resolved-video");
  if(!frame)throw new Error("Player iframe is missing");
  if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
- activePlayerProvider=provider==="videasy"?"videasy":"cinesrc";
- const url=activePlayerProvider==="videasy"
-  ?buildVideasyUrl(item,season,episode,latestPlaybackTime)
-  :buildPlayerUrl(item,season,episode,latestPlaybackTime);
- renderPlayerProviderSwitch();
+ const url=buildVideasyUrl(item,season,episode,latestPlaybackTime);
  frame.hidden=false;
  frame.src=url;
  $("player-modal").dataset.playerState="loading";
- console.info("[FLIXTV] Opening "+(activePlayerProvider==="videasy"?"Videasy":"CineSRC")+" embed:",url);
+ console.info("[FLIXTV] Opening Videasy embed:",url);
 }
 
-let activePlayerProvider="cinesrc";
 let currentPlayback=null;
 let playbackReturnToTitlePage=false;
-function renderPlayerProviderSwitch(){
- const host=$("player-provider-switch");
- if(!host)return;
- host.replaceChildren();
- [["cinesrc","CineSRC"],["videasy","Videasy"]].forEach(([provider,label])=>{
-  const button=document.createElement("button");
-  button.type="button";button.className="player-provider"+(activePlayerProvider===provider?" active":"");
-  button.textContent=label;button.setAttribute("aria-pressed",String(activePlayerProvider===provider));
-  button.addEventListener("click",()=>{
-   if(provider===activePlayerProvider||!currentPlayback)return;
-   startPlaybackWithFallback(currentPlayback.item,currentPlayback.season,currentPlayback.episode,provider);
-  });
-  host.append(button);
- });
-}
 function buildVideasyUrl(item,season,episode,resumeTime=0){
  const id=encodeURIComponent(String(item.id));
  const params=new URLSearchParams({autoplay:"1"});
@@ -670,24 +645,12 @@ function buildVideasyUrl(item,season,episode,resumeTime=0){
  }
  return "https://player.videasy.ws/embed/movie/"+id+"?"+params.toString();
 }
-function buildPlayerUrl(item,season,episode,resumeTime=0){
- const id=encodeURIComponent(String(item.id));
- const params=new URLSearchParams({
-  autoplay:"true",muted:"false",controls:"true",autonext:"true",autoskip:"false",color:"#34cfeb",back:"close"
- });
- if(Number(resumeTime)>5){params.set("t",String(Math.floor(Number(resumeTime))));params.set("continueprompt","false")}
- if(kind(item)==="tv"){
-  params.set("s",String(Number(season||1)));params.set("e",String(Number(episode||1)));
-  return "https://cinesrc.st/embed/tv/"+id+"?"+params.toString();
- }
- return "https://cinesrc.st/embed/movie/"+id+"?"+params.toString();
-}
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
  startPlaybackWithFallback(item,season,episode);
  $("content-intro").classList.remove("show");
 }
-// Playback uses CineSRC's original embed directly, without a scraper or HLS proxy.
+// Playback uses Videasy directly, without a scraper or HLS proxy.
 function play(item,season,episode){
  if(!item||!item.id)return;
  clearTimeout(introTimer);
@@ -695,22 +658,22 @@ function play(item,season,episode){
  $("content-intro").setAttribute("aria-hidden","true");
  $("player-modal").classList.remove("attention-active");
  $("player-modal").classList.add("open","controls-visible");
- enterCineSrcFullscreen();
+ enterPlayerFullscreen();
  $("player-modal").setAttribute("aria-hidden","false");
  $("details-modal").classList.remove("open");
  document.body.classList.add("no-scroll");
  currentPlayback={item,season,episode};
  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
- const frame=$("cinesrc-frame");if(frame){frame.hidden=true;frame.removeAttribute("src")}
+ const frame=$("videasy-frame");if(frame){frame.hidden=true;frame.removeAttribute("src")}
  startPlaybackWithFallback(item,season,episode);
  startProgressPolling();
  clearTimeout(controlsTimer);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("videasy-frame").src="about:blank";stopResolvedVideo();$("videasy-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 window.addEventListener("message",event=>{
- const frame=$("cinesrc-frame");
+ const frame=$("videasy-frame");
  if(!frame||event.source!==frame.contentWindow||!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
- if(event.origin==="https://player.videasy.ws"&&activePlayerProvider==="videasy"){
+ if(event.origin==="https://player.videasy.ws"){
   if(event.data.type!=="PLAYER_EVENT")return;
   const payload=event.data.data&&typeof event.data.data==="object"?event.data.data:event.data;
   const progress=Number(payload.player_progress),duration=Number(payload.player_duration);
@@ -726,236 +689,8 @@ window.addEventListener("message",event=>{
   }else if(latestPlaybackTime>0)savePlaybackProgress(payload.player_status==="paused");
   return;
  }
- if(event.origin!=="https://cinesrc.st"||activePlayerProvider!=="cinesrc")return;
- const data=event.data;
- switch(data.type){
-  case "cinesrc:ready":
-   $("player-modal").dataset.playerState="ready";
-   if(latestPlaybackTime>5)sendCineSrcCommand("seek",[latestPlaybackTime]);
-   sendCineSrcCommand("getCurrentTime");
-   sendCineSrcCommand("getDuration");
-   break;
-  case "cinesrc:play":
-  case "cinesrc:pause":
-   if(Number.isFinite(Number(data.currentTime)))latestPlaybackTime=Math.max(0,Number(data.currentTime));
-   if(Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
-   if(latestPlaybackTime>0)savePlaybackProgress(true);
-   break;
-  case "cinesrc:timeupdate":
-  case "cinesrc:seeked":
-   if(Number.isFinite(Number(data.currentTime)))latestPlaybackTime=Math.max(0,Number(data.currentTime));
-   if(Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
-   savePlaybackProgress(false);
-   break;
-  case "cinesrc:loadedmetadata":
-   latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;break;case "cinesrc:nextepisode":
-   if(currentPlayback&&kind(currentPlayback.item)==="tv"){
-    const nextSeason=Number(data.season),nextEpisode=Number(data.episode);
-    if(Number.isInteger(nextSeason)&&nextSeason>=0)currentPlayback.season=nextSeason;
-    if(Number.isInteger(nextEpisode)&&nextEpisode>0)currentPlayback.episode=nextEpisode;
-    latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
-    savePlaybackProgress(true);
-    setTimeout(()=>{
-     if(!$("player-modal").classList.contains("open")||!currentPlayback)return;
-     sendCineSrcCommand("getCurrentTime");
-     sendCineSrcCommand("getDuration");
-    },900);
-   }
-   break;
-  case "cinesrc:ended":
-   if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
-  case "cinesrc:response":
-   if(data.command==="getCurrentTime"&&Number.isFinite(Number(data.result))){latestPlaybackTime=Math.max(0,Number(data.result));if(latestPlaybackTime>0)savePlaybackProgress(true)}else if(data.command==="getDuration"&&Number(data.result)>0){latestPlaybackDuration=Number(data.result);savePlaybackProgress(true)}
-   break;
-  case "cinesrc:close":
-   savePlaybackProgress(true);
-   leavePlayer();
-   break;
-  case "cinesrc:error":
-   $("player-modal").dataset.playerState="error";
-   notice("CineSRC: "+String(data.error||"Videoja nuk u ngarkua. Provo përsëri."));break;
- }
-});
-window.addEventListener("pagehide",()=>savePlaybackProgress(true));
-window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
-renderContinueWatching();
-$("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);const playerCloseButton=$("player-close");if(playerCloseButton)playerCloseButton.onclick=closePlayer;
-document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
-let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
-function showSearchPage(){
- searchPageActive=true;
- $("hero").hidden=true;$("catalog").hidden=true;
- $("search-page").hidden=false;
- document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));
- $("search").blur();
- $("search-page-input").value=$("search").value||$("search-page-input").value;
- $("search-page-input").focus({preventScroll:true});
- if(!$("search-page-input").value.trim())loadPopularSearch();
- else runAdvancedSearch();
- window.scrollTo({top:0,behavior:"instant"});
-}
-function closeSearchPage(){
- searchPageActive=false;$("search-page").hidden=true;
- $("hero").hidden=false;$("catalog").hidden=false;
- openPage("home");
-}
-function renderSearchCards(items){
- $("search-grid").replaceChildren(...items.filter(x=>x.poster_path).map(card));
- $("search-count").textContent=items.length+" titles";
- $("search-empty").hidden=items.length>0;
-}
-async function loadPopularSearch(){
- const request=++advancedRequest;
- $("search-heading").textContent="Të njohura tani";
- $("search-count").textContent="Po ngarkohet…";
- try{
-  const d=await tmdb("/trending/all/week");
-  if(request!==advancedRequest)return;
-  renderSearchCards((d.results||[]).filter(x=>x.media_type==="movie"||x.media_type==="tv"));
- }catch(e){if(request===advancedRequest)notice(e.message)}
-}
-async function showSuggestions(query){
- const request=++suggestionRequest,box=$("search-suggestions");
- if(query.length<2){box.hidden=true;box.replaceChildren();return}
- try{
-  const d=await tmdb("/search/multi?query="+encodeURIComponent(query)+"&include_adult=false");
-  if(request!==suggestionRequest)return;
-  const items=(d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv")&&x.poster_path).slice(0,6);
-  box.replaceChildren();
-  items.forEach(item=>{
-   const button=document.createElement("button");button.type="button";button.className="search-suggestion";
-   const img=document.createElement("img");img.loading="lazy";img.src=poster(item);img.alt="";
-   const copy=document.createElement("span");copy.className="suggestion-copy";
-   const name=document.createElement("strong");name.textContent=title(item);
-   const meta=document.createElement("small");meta.textContent=(kind(item)==="tv"?"Serial":"Film")+" · "+(year(item)||"—");
-   copy.append(name,meta);button.append(img,copy);
-   button.addEventListener("click",()=>{ $("search-page-input").value=title(item);$("search").value=title(item);box.hidden=true;window.location.assign(pageUrl(item))});
-   box.append(button);
-  });
-  box.hidden=!items.length;
- }catch(_){if(request===suggestionRequest)box.hidden=true}
-}
-async function runAdvancedSearch(){
- const request=++advancedRequest,q=$("search-page-input").value.trim();
- $("search-suggestions").hidden=true;
- $("search-heading").textContent=q?'Results for “'+q+'”':"Popular right now";
- $("search-count").textContent="Loading…";
- const path=q?"/search/multi?query="+encodeURIComponent(q)+"&include_adult=false":"/trending/all/week";
- try{
-  const d=await tmdb(path);
-  if(request!==advancedRequest)return;
-  renderSearchCards((d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv")&&x.poster_path));
- }catch(e){if(request===advancedRequest)notice(e.message)}
-}
-function scheduleSearch(){
- clearTimeout(searchDebounce);clearTimeout(suggestionDebounce);
- const q=$("search-page-input").value.trim();
- $("search").value=q;
- suggestionDebounce=setTimeout(()=>showSuggestions(q),160);
- $("search-grid").replaceChildren();
- $("search-count").textContent="";
- $("search-heading").textContent=q?"Suggestions":"Popular right now";
- if(!q)searchDebounce=setTimeout(runAdvancedSearch,280);
-}
-$("search-page-input").addEventListener("input",scheduleSearch);
-$("search-clear").onclick=()=>{$("search-page-input").value="";$("search").value="";$("search-suggestions").hidden=true;runAdvancedSearch()};
-$("search-page-input").addEventListener("keydown",e=>{if(e.key==="Escape")$("search-suggestions").hidden=true;if(e.key==="Enter"){e.preventDefault();$("search-suggestions").hidden=true;runAdvancedSearch()}});
-$("search").onfocus=()=>showSearchPage();
-$("search-trigger").onclick=showSearchPage;
-$("mobile-search").onclick=showSearchPage;
-const movieGenreSelect=$("movie-genre-select");
-const genreCollections=$("movie-genre-collections");
-const movieCatalogSections=[...document.querySelectorAll("#movies-page > .catalog-row-section")];
-const moviePageTitle=document.querySelector("#movies-page .page-catalog-head h1");
-const movieJumpNav=document.querySelector("#movies-page .catalog-jump-nav");
-const genreNames={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",99:"Dokumentar",18:"Dramë",10751:"Familjar",14:"Fantazi",36:"Histori",27:"Horror",10402:"Muzikë",9648:"Mister",10749:"Romancë",878:"Fantashkencë",53:"Thriller",10752:"Luftë",37:"Western"};
-const genreMixes={
-  28:[12,878,53,80,18,14],12:[28,14,878,10751,16,37],16:[10751,12,14,35,878,10402],35:[10749,28,80,18,10751,14,16],80:[53,18,28,9648,35,12],99:[36,10402,18,10752,10751],18:[10749,80,53,36,10752,35],10751:[16,35,12,14,10749,28],14:[12,28,10751,10749,878,16],36:[18,10752,10749,99,28],27:[53,9648,80,878,18,14],10402:[18,10749,35,16,99],9648:[53,80,18,27,878,80],10749:[35,18,14,10402,10751,36],878:[28,12,53,18,14,27],53:[28,80,9648,27,18,878],10752:[28,18,36,80,12],37:[28,12,18,36,80,10752]
-};
-let genreRequest=0;
-function makeGenreRow(label,idList,index){
- const section=document.createElement("section");
- section.className="content-section catalog-row-section genre-results-section";
- const heading=document.createElement("div");heading.className="section-heading";
- const h2=document.createElement("h2");h2.textContent=label;
- heading.append(h2);
- const posters=document.createElement("div");posters.className="poster-row";posters.id="genre-row-"+index;
- posters.innerHTML='<div class="genre-loading">Loading '+label.toLowerCase()+'…</div>';
- section.append(heading,posters);genreCollections.append(section);
- return {id:posters.id,path:"/discover/movie?with_genres="+idList.join(",")+"&sort_by=popularity.desc",page:0,totalPages:10,loading:false,done:false,seen:new Set(),observer:null};
-}
-async function loadMoreGenreMovies(item,request){
- if(item.loading||item.done||request!==genreRequest)return;
- item.loading=true;
- const nextPage=item.page+1;
- try{
-  const separator=item.path.includes("?")?"&":"?";
-  const data=await tmdb(item.path+separator+"page="+nextPage);
-  if(request!==genreRequest)return;
-  const results=(data.results||[]).filter(movie=>movie.poster_path&&!item.seen.has(movie.id));
-  results.forEach(movie=>item.seen.add(movie.id));
-  const container=$(item.id);
-  const loadingMessage=container.querySelector(".genre-loading");
-  if(loadingMessage)loadingMessage.remove();
-  if(results.length)container.append(...results.map(card));
-  item.page=nextPage;
-  item.totalPages=Math.min(Number(data.total_pages)||10,10);
-  item.done=item.page>=item.totalPages||results.length===0;
-  if(!container.children.length)container.innerHTML='<div class="genre-loading">No movies found in this collection.</div>';
-  else if(!item.done){
-   let hint=container.querySelector(".genre-more-hint");
-   if(!hint){
-    hint=document.createElement("div");
-    hint.className="genre-more-hint";
-    hint.textContent="Po ngarkohen më shumë filma...";
-    hint.style.cssText="flex:0 0 150px;align-self:center;color:#929bab;font-size:12px;text-align:center;padding:12px";
-    container.append(hint);
-    if("IntersectionObserver" in window){
-     item.observer=new IntersectionObserver(entries=>{
-      if(entries.some(entry=>entry.isIntersecting))loadMoreGenreMovies(item,request);
-     },{root:container,rootMargin:"0px 420px 0px 0px",threshold:0});
-     item.observer.observe(hint);
-    }
-   }
-  }else{
-   if(item.observer){item.observer.disconnect();item.observer=null}
-   const hint=container.querySelector(".genre-more-hint");if(hint)hint.remove();
-  }
- }catch(error){
-  if(request===genreRequest){notice(error.message);item.done=true}
- }finally{
-  item.loading=false;
- }
-}
-async function loadGenreCollections(genreId){
- const request=++genreRequest;
- const primary=genreNames[genreId];
- if(!genreId){
-  genreCollections.hidden=true;
-  movieCatalogSections.forEach(section=>section.hidden=false);
-  moviePageTitle.textContent="Movies";
-  movieJumpNav.hidden=false;
-  return;
- }
- movieCatalogSections.forEach(section=>section.hidden=true);
- moviePageTitle.textContent=primary+" filma";
- movieJumpNav.hidden=true;
- genreCollections.hidden=false;
- genreCollections.replaceChildren();
- const rows=[
-  makeGenreRow(primary+" Movies",[genreId],0),
-  ...[...new Set(genreMixes[genreId]||[])].map((secondary,index)=>makeGenreRow(primary+" + "+genreNames[secondary], [genreId,secondary],index+1))
- ];
- rows.forEach(item=>{
-  const container=$(item.id);
-  let scrollTimer;
-  container.addEventListener("scroll",()=>{
-   clearTimeout(scrollTimer);
-   scrollTimer=setTimeout(()=>{
-    if(container.scrollLeft+container.clientWidth>=container.scrollWidth-260)loadMoreGenreMovies(item,request);
-   },90);
-  },{passive:true});
-  loadMoreGenreMovies(item,request);
+ // Videasy is the sole enabled playback provider.
+
  });
  genreCollections.scrollIntoView({behavior:"smooth",block:"start"});
 }
