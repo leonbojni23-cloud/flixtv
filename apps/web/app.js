@@ -657,7 +657,7 @@ function attachNativePlaybackDiagnostics(video,streamUrl){
   });
  });
 }
-async function playResolvedStream(item,season,episode){
+async function playResolvedStream(item,season,episode,options={}){
  const video=$("resolved-video"),frame=$("cinesrc-frame");
  if(!video||!frame)throw new Error("Player elements missing");
  stopResolvedVideo();
@@ -714,6 +714,7 @@ async function playResolvedStream(item,season,episode){
  video.onpause=()=>{latestPlaybackTime=Number(video.currentTime)||0;savePlaybackProgress(true)};
  video.onended=()=>{if(currentPlayback)clearPlaybackProgress(currentPlayback.item)};
 
+ const refreshAttempts=Number(options.streamRefreshAttempts||0);
  const nativeHls=!!video.canPlayType("application/vnd.apple.mpegurl");
  if(window.Hls&&window.Hls.isSupported()){
   let networkRecoveryAttempts=0,mediaRecoveryAttempts=0;
@@ -770,7 +771,23 @@ async function playResolvedStream(item,season,episode){
     }:null
    });
    if(!data.fatal)return;
-   if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR&&networkRecoveryAttempts<1){
+   const upstreamStatus=Number(responseData.code||0);
+   const looksLikeExpiredProxyStream=
+    data.type===window.Hls.ErrorTypes.NETWORK_ERROR&&
+    (upstreamStatus===403||upstreamStatus===502||upstreamStatus===503||upstreamStatus===504);
+   if(looksLikeExpiredProxyStream&&refreshAttempts<1){
+    proxyDiagnostic("Proxy rejected the HLS resource; requesting one fresh CineSRC stream",{
+     status:upstreamStatus,attempt:refreshAttempts+1
+    });
+    hls.destroy();
+    if(activeHlsInstance===hls)activeHlsInstance=null;
+    try{
+     await playResolvedStream(item,season,episode,{streamRefreshAttempts:refreshAttempts+1});
+    }catch(refreshError){
+     proxyDiagnostic("Fresh stream retry failed",{message:refreshError&&refreshError.message?refreshError.message:String(refreshError)});
+     notice("CineSRC Proxy: stream-i i ri nuk u hap. "+(refreshError&&refreshError.message?refreshError.message:"Gabim i panjohur."));
+    }
+   }else if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR&&networkRecoveryAttempts<1){
     networkRecoveryAttempts++;
     proxyDiagnostic("Attempting one HLS network recovery");
     try{hls.startLoad()}catch(error){proxyDiagnostic("Network recovery failed",{message:error.message})}
