@@ -715,6 +715,8 @@ async function playResolvedStream(item,season,episode,options={}){
  video.onended=()=>{if(currentPlayback)clearPlaybackProgress(currentPlayback.item)};
 
  const refreshAttempts=Number(options.streamRefreshAttempts||0);
+ // The proxy session cookie is scoped to the API origin. HLS requests must send credentials.
+ video.crossOrigin="use-credentials";
  const nativeHls=!!video.canPlayType("application/vnd.apple.mpegurl");
  if(window.Hls&&window.Hls.isSupported()){
   let networkRecoveryAttempts=0,mediaRecoveryAttempts=0;
@@ -723,7 +725,9 @@ async function playResolvedStream(item,season,episode,options={}){
    lowLatencyMode:false,
    backBufferLength:90,
    maxBufferLength:30,
-   maxMaxBufferLength:60
+   maxMaxBufferLength:60,
+   xhrSetup:(xhr)=>{xhr.withCredentials=true;},
+   fetchSetup:(context,init)=>new Request(context.url,{...init,credentials:"include"})
   });
   activeHlsInstance=hls;
 
