@@ -546,10 +546,10 @@ async function loadTitleEpisodes(){
   })();
  }catch(e){if(isCurrent())notice("Episodet nuk u ngarkuan: "+e.message)}
 }
-function enterCineSrcFullscreen(){
+function enterPlayerFullscreen(){
  const modal=$("player-modal");
  // Use an in-page CSS fullscreen on iOS Safari. Native video fullscreen can
- // detach the iframe player UI and hide CineSRC-rendered subtitles.
+ // detach the iframe player UI and hide player-rendered subtitles.
  modal.classList.add("open","css-fullscreen");
  document.body.classList.add("no-scroll");
 }
@@ -573,7 +573,7 @@ function startTitlePlayback(season,episode,resumeTime=null){
  const startAt=Number(resumeTime)>0?Number(resumeTime):(saved&&kind(titlePageItem)==="tv"&&Number(saved.season)===Number(season||1)&&Number(saved.episode)===Number(episode||1)?Number(saved.currentTime):kind(titlePageItem)==="movie"&&saved?Number(saved.currentTime):0);
  latestPlaybackTime=startAt;latestPlaybackDuration=saved&&startAt===Number(saved.currentTime)?Number(saved.duration)||0:0;lastProgressWrite=0;
  playbackReturnToTitlePage=!$("title-page").hidden;
- $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterCineSrcFullscreen();
+ $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterPlayerFullscreen();
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
  startPlaybackWithFallback(titlePageItem,season,episode).then(()=>{if(startAt>5){latestPlaybackTime=startAt}});
  startProgressPolling();
@@ -661,7 +661,7 @@ function startPlayback(item,season,episode){
  startPlaybackWithFallback(item,season,episode);
  $("content-intro").classList.remove("show");
 }
-// Playback uses CineSRC's original embed directly, without a scraper or HLS proxy.
+// Playback uses the Videasy embed directly.
 function play(item,season,episode){
  if(!item||!item.id)return;
  clearTimeout(introTimer);
@@ -669,7 +669,7 @@ function play(item,season,episode){
  $("content-intro").setAttribute("aria-hidden","true");
  $("player-modal").classList.remove("attention-active");
  $("player-modal").classList.add("open","controls-visible");
- enterCineSrcFullscreen();
+ enterPlayerFullscreen();
  $("player-modal").setAttribute("aria-hidden","false");
  $("details-modal").classList.remove("open");
  document.body.classList.add("no-scroll");
@@ -697,7 +697,6 @@ window.addEventListener("message",event=>{
   if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
  }else if(latestPlaybackTime>0)savePlaybackProgress(payload.player_status==="paused");
 });
-;
  genreCollections.scrollIntoView({behavior:"smooth",block:"start"});
 }
 if(movieGenreSelect)movieGenreSelect.addEventListener("change",()=>loadGenreCollections(movieGenreSelect.value));
