@@ -210,15 +210,15 @@ body.player-open > #home {
 <!-- Series and episodes -->
 <main id="series-view" hidden></main>
 
-<!-- VidZee player -->
+<!-- CineSRC player -->
 <main id="player-view" hidden>
 
   <div id="player-loading">
     Loading player...
   </div>
 
-  <iframe id="cinesrc-frame" title="VidZee video player" src="about:blank"
-     sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock allow-popups"
+  <iframe id="cinesrc-frame" title="CineSRC video player" src="about:blank"
+     sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
     allow="autoplay; fullscreen; encrypted-media; picture-in-picture; orientation-lock"
     allowfullscreen referrerpolicy="no-referrer"></iframe>
 
@@ -381,7 +381,7 @@ body.player-open > #home {
 <script src="features/profiles.js"></script>
 <script src="app.js"></script>
 
-<!-- VidZee player: load after app.js and before details.js -->
+<!-- CineSRC player: load after app.js and before details.js -->
 <script src="features/superembed-player.js"></script>
 
 <script src="features/details.js"></script>
