@@ -1,77 +1,52 @@
 (() => {
 "use strict";
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
-/* FLIXTV anti-popup and anti-ad protections.
-   These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
+/* FLIXTV popup/ad protection for the top-level app.
+   Cross-origin Videasy content is isolated by the browser and cannot be inspected here. */
 (()=>{
- const allowedFrameHosts=["player.videasy.ws","videasy.ws"];
- const isAllowedPlayerUrl=url=>{
-  try{const host=new URL(url,location.href).hostname.toLowerCase();return allowedFrameHosts.some(allowed=>host===allowed||host.endsWith("."+allowed))}
-  catch(_){return false}
- };
- const blockedPatterns=[
-  /(^|\\.)doubleclick\\.net$/i,/(^|\\.)googlesyndication\\.com$/i,
-  /(^|\\.)googleadservices\\.com$/i,/(^|\\.)adservice\\./i,
-  /(^|\\.)popads\\./i,/(^|\\.)popcash\\./i,
-  /(^|\\.)adsterra\\./i,/(^|\\.)exoclick\\./i,
-  /(^|\\.)propellerads\\./i,/(^|\\.)taboola\\./i,
-  /(^|\\.)outbrain\\./i,/(^|\\.)onclick\\./i
- ];
- const isAdUrl=url=>{
-  try{const u=new URL(url,location.href);return blockedPatterns.some(re=>re.test(u.hostname))||/[?&](?:utm_source=ad|ad_id|clickid)=/i.test(u.search)}
-  catch(_){return true}
- };
- let trustedPlayerClick=false;
- document.addEventListener("click",event=>{
-  trustedPlayerClick=!!(event.isTrusted&&event.target&&event.target.closest&&event.target.closest("#player-modal"));
-  queueMicrotask(()=>{trustedPlayerClick=false});
- },true);
- const nativeOpen=window.open.bind(window);
- window.open=function(url,target,features){
-  if(!trustedPlayerClick||!isAllowedPlayerUrl(url)){
-   console.warn("[FLIXTV] Popup blocked:",url);return null;
-  }
-  return nativeOpen(url,"_blank","noopener,noreferrer");
- };
- const blockExternalTargets=event=>{
-  const link=event.target&&event.target.closest?event.target.closest("a[target]"):null;
-  if(!link)return;
-  const target=(link.getAttribute("target")||"").toLowerCase();
-  if(target==="_blank"&&!isAllowedPlayerUrl(link.href)){
-   event.preventDefault();event.stopImmediatePropagation();
-   console.warn("[FLIXTV] External tab blocked:",link.href);
+ const PLAYER_HOSTS=["player.videasy.ws","videasy.ws"];
+ const AD_HOSTS=[/(^|\\.)doubleclick\\.net$/i,/(^|\\.)googlesyndication\\.com$/i,/(^|\\.)googleadservices\\.com$/i,/(^|\\.)adservice\\./i,/(^|\\.)popads\\./i,/(^|\\.)popcash\\./i,/(^|\\.)adsterra\\./i,/(^|\\.)exoclick\\./i,/(^|\\.)propellerads\\./i,/(^|\\.)taboola\\./i,/(^|\\.)outbrain\\./i,/(^|\\.)onclick\\./i];
+ const hostOf=value=>{try{return new URL(value,location.href).hostname.toLowerCase()}catch(_){return ""}};
+ const isPlayer=value=>{const host=hostOf(value);return PLAYER_HOSTS.some(x=>host===x||host.endsWith("."+x))};
+ const isAd=value=>{const host=hostOf(value);return !host||host.startsWith("adservice.")||AD_HOSTS.some(domain=>host===domain||host.endsWith("."+domain))||/[?&](?:utm_source=ad|ad_id|clickid|affiliate_id)=/i.test(String(value))};
+ const log=(type,value)=>console.debug("[FLIXTV] "+type+" blocked",value||"");
+ window.open=function(url){log("popup",url);return null};
+ const blockEscapingNavigation=event=>{
+  const target=event.target,link=target&&target.closest?target.closest("a[href],area[href]"):null;
+  if(link&&["_blank","_top","_parent"].includes((link.getAttribute("target")||"").toLowerCase())){
+   event.preventDefault();event.stopImmediatePropagation();log("new browsing context",link.href);
   }
  };
- document.addEventListener("click",blockExternalTargets,true);
- document.addEventListener("auxclick",blockExternalTargets,true);
+ document.addEventListener("click",blockEscapingNavigation,true);
+ document.addEventListener("auxclick",blockEscapingNavigation,true);
  document.addEventListener("submit",event=>{
   const form=event.target;
-  if(form&&form.tagName==="FORM"&&(form.getAttribute("target")||"").toLowerCase()==="_blank"){
-   event.preventDefault();event.stopImmediatePropagation();
+  if(form&&form.tagName==="FORM"&&["_blank","_top","_parent"].includes((form.getAttribute("target")||"").toLowerCase())){
+   event.preventDefault();event.stopImmediatePropagation();log("form popup",form.action);
   }
  },true);
  const nativeAnchorClick=HTMLAnchorElement.prototype.click;
  HTMLAnchorElement.prototype.click=function(){
-  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!isAllowedPlayerUrl(this.href)){
-   console.warn("[FLIXTV] Scripted tab blocked:",this.href);return;
-  }
+  if(["_blank","_top","_parent"].includes((this.getAttribute("target")||"").toLowerCase())){log("scripted tab",this.href);return}
   return nativeAnchorClick.call(this);
  };
- const removeInjectedAdElements=root=>{
-  if(!root||!root.querySelectorAll)return;
-  root.querySelectorAll('script[src],iframe[src],a[target="_blank"],[id*="ad-" i],[class*="advert" i],[class*="popup" i],[class*="popunder" i]').forEach(node=>{
-   if(node===document.querySelector("#videasy-frame"))return;
-   const src=node.getAttribute("src")||node.href||"";
-   if(node.tagName==="SCRIPT"||isAdUrl(src)||/advert|popunder|ad-container|ad-overlay/i.test((node.id||"")+" "+(node.className||""))){
-    if(node.tagName!=="SCRIPT"||isAdUrl(src)){node.remove();console.warn("[FLIXTV] Ad element removed:",src)}
-   }
-  });
+ const selector='iframe[src],script[src],a[target="_blank"],[id*="popunder" i],[class*="popunder" i],[id*="popup-ad" i],[class*="popup-ad" i],[class*="ad-overlay" i],[id*="ad-overlay" i],[class*="advertisement" i]';
+ const inspect=root=>{
+  if(!root||root.nodeType!==1)return;
+  const nodes=[];
+  if(root.matches&&root.matches(selector))nodes.push(root);
+  if(root.querySelectorAll)nodes.push(...root.querySelectorAll(selector));
+  for(const node of nodes){
+   if(node.id==="videasy-frame"||(node.closest&&node.closest("#videasy-frame")))continue;
+   const src=node.getAttribute("src")||node.href||"",label=((node.id||"")+" "+(typeof node.className==="string"?node.className:"")).toLowerCase();
+   const remove=(node.tagName==="IFRAME"&&!isPlayer(src))||(node.tagName==="SCRIPT"&&isAd(src))||(node.tagName==="A"&&(node.target==="_blank"||isAd(src)))||/popunder|popup-ad|ad-overlay|advertisement/.test(label);
+   if(remove){log("injected ad element",src||label);node.remove()}
+  }
  };
- const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{
-  if(node.nodeType===1){removeInjectedAdElements(node);if(node.matches&&node.matches('a[target="_blank"]')&&!isAllowedPlayerUrl(node.href))node.remove()}
- })));
+ const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(inspect)));
  observer.observe(document.documentElement,{childList:true,subtree:true});
- document.addEventListener("DOMContentLoaded",()=>removeInjectedAdElements(document));
+ const scan=()=>inspect(document.documentElement);
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",scan,{once:true});else scan();
 })();
 let selected=null,searchTimer=null,searchRequest=0,introTimer=null,controlsTimer=null,heroItems=[],heroIndex=0,heroTimer=null,heroLayer=0,heroBusy=false;
 function notice(m){const e=$("notice");e.textContent=m;e.hidden=false;clearTimeout(notice.timer);notice.timer=setTimeout(()=>e.hidden=true,3600)}
