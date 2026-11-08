@@ -4,7 +4,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
 (()=>{
- const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws"];
+ const allowedFrameHosts=["player.videasy.ws","videasy.ws"];
  const isAllowedPlayerUrl=url=>{
   try{const host=new URL(url,location.href).hostname.toLowerCase();return allowedFrameHosts.some(allowed=>host===allowed||host.endsWith("."+allowed))}
   catch(_){return false}
@@ -60,7 +60,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  const removeInjectedAdElements=root=>{
   if(!root||!root.querySelectorAll)return;
   root.querySelectorAll('script[src],iframe[src],a[target="_blank"],[id*="ad-" i],[class*="advert" i],[class*="popup" i],[class*="popunder" i]').forEach(node=>{
-   if(node===document.querySelector("#cinesrc-frame"))return;
+   if(node===document.querySelector("#videasy-frame"))return;
    const src=node.getAttribute("src")||node.href||"";
    if(node.tagName==="SCRIPT"||isAdUrl(src)||/advert|popunder|ad-container|ad-overlay/i.test((node.id||"")+" "+(node.className||""))){
     if(node.tagName!=="SCRIPT"||isAdUrl(src)){node.remove();console.warn("[FLIXTV] Ad element removed:",src)}
@@ -328,11 +328,6 @@ function startProgressPolling(){
   }
  },4000);
 }
-function sendCineSrcCommand(command,args=[]){
- const frame=$("cinesrc-frame");
- if(!frame||!frame.contentWindow)return;
- try{frame.contentWindow.postMessage({type:"cinesrc:command",command,args},"https://cinesrc.st")}catch(_){}
-}
 
 async function home(){
  renderContinueWatching();
@@ -552,10 +547,10 @@ async function loadTitleEpisodes(){
   })();
  }catch(e){if(isCurrent())notice("Episodet nuk u ngarkuan: "+e.message)}
 }
-function enterCineSrcFullscreen(){
+function enterPlayerFullscreen(){
  const modal=$("player-modal");
  // Use an in-page CSS fullscreen on iOS Safari. Native video fullscreen can
- // detach the iframe player UI and hide CineSRC-rendered subtitles.
+ // detach the iframe player UI and hide provider-rendered subtitles.
  modal.classList.add("open","css-fullscreen");
  document.body.classList.add("no-scroll");
 }
@@ -579,7 +574,7 @@ function startTitlePlayback(season,episode,resumeTime=null){
  const startAt=Number(resumeTime)>0?Number(resumeTime):(saved&&kind(titlePageItem)==="tv"&&Number(saved.season)===Number(season||1)&&Number(saved.episode)===Number(episode||1)?Number(saved.currentTime):kind(titlePageItem)==="movie"&&saved?Number(saved.currentTime):0);
  latestPlaybackTime=startAt;latestPlaybackDuration=saved&&startAt===Number(saved.currentTime)?Number(saved.duration)||0:0;lastProgressWrite=0;
  playbackReturnToTitlePage=!$("title-page").hidden;
- $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterCineSrcFullscreen();
+ $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterPlayerFullscreen();
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
  startPlaybackWithFallback(titlePageItem,season,episode).then(()=>{if(startAt>5){latestPlaybackTime=startAt}});
  startProgressPolling();
@@ -626,40 +621,20 @@ function stopResolvedVideo(){
  const video=$("resolved-video");
  if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
 }
-async function startPlaybackWithFallback(item,season,episode,provider=activePlayerProvider){
- const frame=$("cinesrc-frame");
+async function startPlaybackWithFallback(item,season,episode){
+ const frame=$("videasy-frame");
  const video=$("resolved-video");
  if(!frame)throw new Error("Player iframe is missing");
  if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
- activePlayerProvider=provider==="videasy"?"videasy":"cinesrc";
- const url=activePlayerProvider==="videasy"
-  ?buildVideasyUrl(item,season,episode,latestPlaybackTime)
-  :buildPlayerUrl(item,season,episode,latestPlaybackTime);
- renderPlayerProviderSwitch();
+ const url=buildVideasyUrl(item,season,episode,latestPlaybackTime);
  frame.hidden=false;
  frame.src=url;
  $("player-modal").dataset.playerState="loading";
- console.info("[FLIXTV] Opening "+(activePlayerProvider==="videasy"?"Videasy":"CineSRC")+" embed:",url);
+ console.info("[FLIXTV] Opening Videasy embed:",url);
 }
 
-let activePlayerProvider="cinesrc";
 let currentPlayback=null;
 let playbackReturnToTitlePage=false;
-function renderPlayerProviderSwitch(){
- const host=$("player-provider-switch");
- if(!host)return;
- host.replaceChildren();
- [["cinesrc","CineSRC"],["videasy","Videasy"]].forEach(([provider,label])=>{
-  const button=document.createElement("button");
-  button.type="button";button.className="player-provider"+(activePlayerProvider===provider?" active":"");
-  button.textContent=label;button.setAttribute("aria-pressed",String(activePlayerProvider===provider));
-  button.addEventListener("click",()=>{
-   if(provider===activePlayerProvider||!currentPlayback)return;
-   startPlaybackWithFallback(currentPlayback.item,currentPlayback.season,currentPlayback.episode,provider);
-  });
-  host.append(button);
- });
-}
 function buildVideasyUrl(item,season,episode,resumeTime=0){
  const id=encodeURIComponent(String(item.id));
  const params=new URLSearchParams({autoplay:"1"});
@@ -669,18 +644,6 @@ function buildVideasyUrl(item,season,episode,resumeTime=0){
   return "https://player.videasy.ws/embed/tv/"+id+"/"+Number(season||1)+"/"+Number(episode||1)+"?"+params.toString();
  }
  return "https://player.videasy.ws/embed/movie/"+id+"?"+params.toString();
-}
-function buildPlayerUrl(item,season,episode,resumeTime=0){
- const id=encodeURIComponent(String(item.id));
- const params=new URLSearchParams({
-  autoplay:"true",muted:"false",controls:"true",autonext:"true",autoskip:"false",color:"#34cfeb",back:"close"
- });
- if(Number(resumeTime)>5){params.set("t",String(Math.floor(Number(resumeTime))));params.set("continueprompt","false")}
- if(kind(item)==="tv"){
-  params.set("s",String(Number(season||1)));params.set("e",String(Number(episode||1)));
-  return "https://cinesrc.st/embed/tv/"+id+"?"+params.toString();
- }
- return "https://cinesrc.st/embed/movie/"+id+"?"+params.toString();
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
@@ -695,20 +658,20 @@ function play(item,season,episode){
  $("content-intro").setAttribute("aria-hidden","true");
  $("player-modal").classList.remove("attention-active");
  $("player-modal").classList.add("open","controls-visible");
- enterCineSrcFullscreen();
+ enterPlayerFullscreen();
  $("player-modal").setAttribute("aria-hidden","false");
  $("details-modal").classList.remove("open");
  document.body.classList.add("no-scroll");
  currentPlayback={item,season,episode};
  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
- const frame=$("cinesrc-frame");if(frame){frame.hidden=true;frame.removeAttribute("src")}
+ const frame=$("videasy-frame");if(frame){frame.hidden=true;frame.removeAttribute("src")}
  startPlaybackWithFallback(item,season,episode);
  startProgressPolling();
  clearTimeout(controlsTimer);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("videasy-frame").src="about:blank";stopResolvedVideo();$("videasy-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 window.addEventListener("message",event=>{
- const frame=$("cinesrc-frame");
+ const frame=$("videasy-frame");
  if(!frame||event.source!==frame.contentWindow||!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
  if(event.origin==="https://player.videasy.ws"&&activePlayerProvider==="videasy"){
   if(event.data.type!=="PLAYER_EVENT")return;
