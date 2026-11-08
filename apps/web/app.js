@@ -632,6 +632,15 @@ function stopResolvedVideo(){
 function proxyDiagnostic(event,details){
  console.info("[FLIXTV][CineSRC Proxy] "+event,details||"");
 }
+function diagnosticResource(value){
+ try{
+  const url=new URL(value,location.href),parts=url.pathname.split("/");
+  const playlistIndex=parts.indexOf("playlist");
+  if(playlistIndex>=0&&parts[playlistIndex+1])parts[playlistIndex+1]="[redacted]";
+  const path=parts.map(part=>part.length>48?"[redacted]":part).join("/");
+  return {host:url.hostname,path};
+ }catch(_){return null}
+}
 function attachNativePlaybackDiagnostics(video,streamUrl){
  const events=["loadstart","loadedmetadata","loadeddata","canplay","playing","waiting","stalled","suspend","abort","emptied","ended","error"];
  events.forEach(name=>{
@@ -718,7 +727,7 @@ async function playResolvedStream(item,season,episode){
   activeHlsInstance=hls;
 
   hls.on(window.Hls.Events.MEDIA_ATTACHED,()=>proxyDiagnostic("HLS media attached"));
-  hls.on(window.Hls.Events.MANIFEST_LOADING,(_,data)=>proxyDiagnostic("HLS manifest loading",{url:data&&data.url}));
+  hls.on(window.Hls.Events.MANIFEST_LOADING,(_,data)=>proxyDiagnostic("HLS manifest loading",{resource:data&&data.url?diagnosticResource(data.url):null}));
   hls.on(window.Hls.Events.MANIFEST_LOADED,(_,data)=>proxyDiagnostic("HLS manifest loaded",{
    url:data&&data.url,levels:data&&data.levels?data.levels.length:0
   }));
@@ -739,7 +748,7 @@ async function playResolvedStream(item,season,episode){
   }));
   hls.on(window.Hls.Events.FRAG_LOADING,(_,data)=>proxyDiagnostic("HLS fragment loading",{
    type:data&&data.frag&&data.frag.type,sn:data&&data.frag&&data.frag.sn,
-   url:data&&data.frag&&data.frag.url?(()=>{try{return new URL(data.frag.url).pathname}catch(_){return data.frag.url}})():null
+   resource:data&&data.frag&&data.frag.url?diagnosticResource(data.frag.url):null
   }));
   hls.on(window.Hls.Events.FRAG_LOADED,(_,data)=>proxyDiagnostic("HLS fragment loaded",{
    type:data&&data.frag&&data.frag.type,sn:data&&data.frag&&data.frag.sn,
@@ -754,7 +763,7 @@ async function playResolvedStream(item,season,episode){
     type:data.type,details:data.details,fatal:data.fatal,
     status:responseData.code||null,
     responseText:String(responseData.text||"").slice(0,240),
-    url:data.url||responseData.url||(frag&&frag.url)||null,
+    resource:diagnosticResource(data.url||responseData.url||(frag&&frag.url)||""),
     fragment:frag?{type:frag.type,sn:frag.sn,level:frag.level}:null,
     buffer:video.buffered.length?{
      start:video.buffered.start(0),end:video.buffered.end(video.buffered.length-1)
