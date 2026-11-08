@@ -629,6 +629,25 @@ function stopResolvedVideo(){
  if(activeHlsInstance){try{activeHlsInstance.destroy()}catch(_){}activeHlsInstance=null}
  if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
 }
+function proxyDiagnostic(event,details){
+ console.info("[FLIXTV][CineSRC Proxy] "+event,details||"");
+}
+function attachNativePlaybackDiagnostics(video,streamUrl){
+ const events=["loadstart","loadedmetadata","loadeddata","canplay","playing","waiting","stalled","suspend","abort","emptied","ended","error"];
+ events.forEach(name=>{
+  video.addEventListener(name,()=>{
+   const state={
+    currentTime:Number(video.currentTime)||0,
+    duration:Number.isFinite(video.duration)?video.duration:null,
+    readyState:video.readyState,
+    networkState:video.networkState,
+    videoError:video.error?{code:video.error.code,message:video.error.message}:null,
+    sourceHost:(()=>{try{return new URL(streamUrl).hostname}catch(_){return "invalid"}})()
+   };
+   proxyDiagnostic("Native video "+name,state);
+  });
+ });
+}
 async function playResolvedStream(item,season,episode){
  const video=$("resolved-video"),frame=$("cinesrc-frame");
  if(!video||!frame)throw new Error("Player elements missing");
@@ -636,83 +655,134 @@ async function playResolvedStream(item,season,episode){
  frame.hidden=true;
  video.hidden=false;
  video.controls=true;
+ video.preload="auto";
+
  const type=kind(item)==="tv"?"tv":"movie";
- const resolverId=item.external_ids&&item.external_ids.imdb_id?item.external_ids.imdb_id:item.id;
- const params=new URLSearchParams({type,tmdbId:String(resolverId)});
- if(type==="tv"){params.set("season",String(Number(season||1)));params.set("episode",String(Number(episode||1)))}
- const response=await fetch("/api/streams.js?"+params.toString(),{headers:{Accept:"application/json"},cache:"no-store"});
- const payload=await response.json().catch(()=>null);
- if(!response.ok||!payload||!payload.ok||!payload.stream||!payload.stream.url)throw new Error(payload&&payload.error||"Nuk u gjet stream");
- const streamUrl=payload.stream.url;
- if(!/^https:\/\//i.test(streamUrl))throw new Error("Invalid HLS URL");
- let streamHost="";
- try{streamHost=new URL(streamUrl).hostname}catch(_){throw new Error("Adresa e stream-it nuk është e vlefshme")}
- const streamHeaders=payload.stream.headers&&typeof payload.stream.headers==="object"?payload.stream.headers:{};
- const forbiddenHeaders=new Set(["referer","referrer","origin","host","user-agent","cookie","content-length","connection","accept-encoding"]);
- const usableHeaders=Object.entries(streamHeaders).filter(([name,value])=>!forbiddenHeaders.has(String(name).toLowerCase())&&(typeof value==="string"||typeof value==="number"));
- const blockedHeaderNames=Object.keys(streamHeaders).filter(name=>forbiddenHeaders.has(String(name).toLowerCase()));
- if(blockedHeaderNames.length)console.warn("[FLIXTV] Ignoring browser-forbidden upstream headers:",blockedHeaderNames);
- activePlayerProvider=payload.provider||"StreamIMDb";
- const directMedia=/\.(?:mp4|m4v|webm|ogv)(?:$|[?#])/i.test(streamUrl)||/^(?:mp4|webm|video)$/i.test(String(payload.stream.format||""));
- const isNativeHls=!!video.canPlayType("application/vnd.apple.mpegurl");
- if(directMedia||isNativeHls){
-  video.removeAttribute("crossorigin");
-  video.src=streamUrl;
- }else if(window.Hls&&window.Hls.isSupported()){
-  video.crossOrigin="anonymous";
-  activeHlsInstance=new window.Hls({
-   enableWorker:true,
-   lowLatencyMode:false,
-   xhrSetup(xhr){
-    for(const [name,value] of usableHeaders){
-     try{xhr.setRequestHeader(name,String(value))}catch(error){console.warn("[FLIXTV] Header could not be applied:",name,error)}
-    }
-   },
-   fetchSetup(context,init){
-    const headers=new Headers(init&&init.headers||{});
-    for(const [name,value] of usableHeaders){
-     try{headers.set(name,String(value))}catch(error){console.warn("[FLIXTV] Fetch header could not be applied:",name,error)}
-    }
-    return new Request(context.url,{...(init||{}),headers,mode:"cors"});
-   }
-  });
-  activeHlsInstance.on(window.Hls.Events.ERROR,(_,data)=>{
-   if(!data)return;
-   console.warn("[FLIXTV] HLS error",{
-    type:data.type,details:data.details,fatal:data.fatal,
-    responseCode:data.response&&data.response.code,
-    responseText:data.response&&String(data.response.text||"").slice(0,180),
-    url:data.url||""
-   });
-   if(!data.fatal)return;
-   if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR){
-    notice("Stream-i nuk u shkarkua. Kontrollo CORS, statusin HTTP dhe headers e burimit.");
-    try{activeHlsInstance.startLoad()}catch(_){}
-   }else if(data.type===window.Hls.ErrorTypes.MEDIA_ERROR){
-    notice("Gabim në dekodimin e videos. Po provohet rikuperimi…");
-    try{activeHlsInstance.recoverMediaError()}catch(_){}
-   }else{
-    notice("Gabim HLS: "+(data.details||"stream error"));
-    stopResolvedVideo();
-   }
-  });
-  activeHlsInstance.attachMedia(video);
-  activeHlsInstance.loadSource(streamUrl);
- }else{
-  throw new Error("Ky shfletues nuk mbështet HLS dhe burimi nuk është format videoje direkt");
+ const resolverUrl=new URL("/api/stream","https://flixtv-api.vercel.app");
+ resolverUrl.searchParams.set("id",String(item.id));
+ resolverUrl.searchParams.set("type",type);
+ if(type==="tv"){
+  resolverUrl.searchParams.set("season",String(Number(season||1)));
+  resolverUrl.searchParams.set("episode",String(Number(episode||1)));
  }
+
+ proxyDiagnostic("Resolving stream",{type,id:item.id,season:season||null,episode:episode||null});
+ const response=await fetch(resolverUrl.href,{headers:{Accept:"application/json"},cache:"no-store"});
+ const payload=await response.json().catch(()=>null);
+ proxyDiagnostic("Resolver response",{status:response.status,ok:response.ok,payload:payload?{
+  success:payload.success,source:payload.source,format:payload.format,
+  streamUrl:payload.streamUrl?new URL(payload.streamUrl,"https://flixtv-api.vercel.app").pathname:"missing",
+  detected:payload.detected||null,error:payload.error||null
+ }:null});
+
+ if(!response.ok||!payload||!payload.success||!payload.streamUrl){
+  throw new Error(payload&&payload.error||"CineSRC resolver nuk ktheu një stream të vlefshëm ("+response.status+").");
+ }
+
+ const streamUrl=new URL(payload.streamUrl,"https://flixtv-api.vercel.app").href;
+ if(!/^https:\/\//i.test(streamUrl)||new URL(streamUrl).hostname!=="flixtv-api.vercel.app"){
+  throw new Error("Resolver-i ktheu një adresë proxy-je të pavlefshme.");
+ }
+ resolvedStreamUrl=streamUrl;
+ activePlayerProvider="CineSRC Proxy";
+ proxyDiagnostic("Loading proxied HLS manifest",{host:new URL(streamUrl).hostname,path:new URL(streamUrl).pathname});
+
  video.onerror=()=>{
-  const mediaError=video.error;
-  console.error("[FLIXTV] Native video error",mediaError&&{code:mediaError.code,message:mediaError.message,host:streamHost});
-  notice("Videoja nuk u hap. Kontrollo CORS, Referer dhe përgjigjen e playlistës te Network.");
+  const error=video.error;
+  proxyDiagnostic("Native video error",{
+   code:error&&error.code,message:error&&error.message,
+   currentTime:video.currentTime,readyState:video.readyState,
+   networkState:video.networkState
+  });
+  notice("Videoja ndaloi. Kontrollo regjistrimet [CineSRC Proxy] në Console.");
  };
- video.onloadedmetadata=()=>{if(latestPlaybackTime>5){try{video.currentTime=latestPlaybackTime}catch(_){}}};
- video.ontimeupdate=()=>{latestPlaybackTime=Number(video.currentTime)||0;latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;savePlaybackProgress(false)};
+ video.ontimeupdate=()=>{
+  latestPlaybackTime=Number(video.currentTime)||0;
+  latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
+  savePlaybackProgress(false);
+ };
  video.onplay=()=>{latestPlaybackTime=Number(video.currentTime)||0;savePlaybackProgress(true)};
  video.onpause=()=>{latestPlaybackTime=Number(video.currentTime)||0;savePlaybackProgress(true)};
  video.onended=()=>{if(currentPlayback)clearPlaybackProgress(currentPlayback.item)};
- const playResult=video.play();
- if(playResult&&typeof playResult.catch==="function")playResult.catch(()=>notice("Shtyp Play në video për të nisur transmetimin."));
+
+ const nativeHls=!!video.canPlayType("application/vnd.apple.mpegurl");
+ if(window.Hls&&window.Hls.isSupported()){
+  let networkRecoveryAttempts=0,mediaRecoveryAttempts=0;
+  const hls=new window.Hls({
+   enableWorker:true,
+   lowLatencyMode:false,
+   backBufferLength:90,
+   maxBufferLength:30,
+   maxMaxBufferLength:60
+  });
+  activeHlsInstance=hls;
+
+  hls.on(window.Hls.Events.MEDIA_ATTACHED,()=>proxyDiagnostic("HLS media attached"));
+  hls.on(window.Hls.Events.MANIFEST_LOADING,(_,data)=>proxyDiagnostic("HLS manifest loading",{url:data&&data.url}));
+  hls.on(window.Hls.Events.MANIFEST_LOADED,(_,data)=>proxyDiagnostic("HLS manifest loaded",{
+   url:data&&data.url,levels:data&&data.levels?data.levels.length:0
+  }));
+  hls.on(window.Hls.Events.MANIFEST_PARSED,(_,data)=>{
+   proxyDiagnostic("HLS manifest parsed",{
+    levels:data&&data.levels?data.levels.length:0,
+    audioTracks:data&&data.audioTracks?data.audioTracks.length:0,
+    subtitles:data&&data.subtitleTracks?data.subtitleTracks.length:0
+   });
+   video.play().catch(error=>proxyDiagnostic("Autoplay rejected",{name:error.name,message:error.message}));
+  });
+  hls.on(window.Hls.Events.LEVEL_LOADED,(_,data)=>proxyDiagnostic("HLS level loaded",{
+   level:data&&data.level,details:data&&data.details?{
+    live:data.details.live,totalDuration:data.details.totalduration,
+    fragments:data.details.fragments?data.details.fragments.length:0,
+    targetDuration:data.details.targetduration
+   }:null
+  }));
+  hls.on(window.Hls.Events.FRAG_LOADING,(_,data)=>proxyDiagnostic("HLS fragment loading",{
+   type:data&&data.frag&&data.frag.type,sn:data&&data.frag&&data.frag.sn,
+   url:data&&data.frag&&data.frag.url?(()=>{try{return new URL(data.frag.url).pathname}catch(_){return data.frag.url}})():null
+  }));
+  hls.on(window.Hls.Events.FRAG_LOADED,(_,data)=>proxyDiagnostic("HLS fragment loaded",{
+   type:data&&data.frag&&data.frag.type,sn:data&&data.frag&&data.frag.sn,
+   bytes:data&&data.stats?data.stats.loaded:0,
+   loadingMs:data&&data.stats&&data.stats.loading?data.stats.loading.end-data.stats.loading.start:null
+  }));
+  hls.on(window.Hls.Events.ERROR,(_,data)=>{
+   if(!data)return;
+   const responseData=data.response||{};
+   const frag=data.frag||null;
+   proxyDiagnostic("HLS ERROR",{
+    type:data.type,details:data.details,fatal:data.fatal,
+    status:responseData.code||null,
+    responseText:String(responseData.text||"").slice(0,240),
+    url:data.url||responseData.url||(frag&&frag.url)||null,
+    fragment:frag?{type:frag.type,sn:frag.sn,level:frag.level}:null,
+    buffer:video.buffered.length?{
+     start:video.buffered.start(0),end:video.buffered.end(video.buffered.length-1)
+    }:null
+   });
+   if(!data.fatal)return;
+   if(data.type===window.Hls.ErrorTypes.NETWORK_ERROR&&networkRecoveryAttempts<1){
+    networkRecoveryAttempts++;
+    proxyDiagnostic("Attempting one HLS network recovery");
+    try{hls.startLoad()}catch(error){proxyDiagnostic("Network recovery failed",{message:error.message})}
+   }else if(data.type===window.Hls.ErrorTypes.MEDIA_ERROR&&mediaRecoveryAttempts<2){
+    mediaRecoveryAttempts++;
+    proxyDiagnostic("Attempting HLS media recovery",{attempt:mediaRecoveryAttempts});
+    try{hls.recoverMediaError()}catch(error){proxyDiagnostic("Media recovery failed",{message:error.message})}
+   }else{
+    notice("Gabim HLS: "+(data.details||"stream error")+". Shiko Console për detajet.");
+   }
+  });
+  hls.attachMedia(video);
+  hls.loadSource(streamUrl);
+ }else if(nativeHls){
+  attachNativePlaybackDiagnostics(video,streamUrl);
+  video.src=streamUrl;
+  video.load();
+  video.play().catch(error=>proxyDiagnostic("Native HLS autoplay rejected",{name:error.name,message:error.message}));
+ }else{
+  throw new Error("Ky shfletues nuk mbështet HLS.");
+ }
 }
 async function startPlaybackWithFallback(item,season,episode){
  try{
