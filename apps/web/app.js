@@ -328,12 +328,6 @@ function startProgressPolling(){
   }
  },4000);
 }
-function sendVidZeeCommand(command,args=[]){
- const frame=$("vidzee-frame");
- if(!frame||!frame.contentWindow)return;
- try{frame.contentWindow.postMessage({type:"vidzee:command",command,args},"https://player.vidzee.wtf")}catch(_){}
-}
-
 async function home(){
  renderContinueWatching();
  $("catalog").hidden=false;
