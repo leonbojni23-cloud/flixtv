@@ -1759,7 +1759,7 @@ html.deep-route-loading::after{
 .player-modal.css-fullscreen iframe{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;height:100dvh!important;max-height:100dvh!important;border:0!important;}
 @supports(padding:env(safe-area-inset-top)){.player-modal.css-fullscreen{padding:0!important;padding-top:env(safe-area-inset-top)!important;padding-bottom:env(safe-area-inset-bottom)!important;}}
 
-#resolved-video{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;z-index:1}#resolved-video[hidden]{display:none!important}#video-player-frame[hidden]{display:none!important}
+#resolved-video{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;z-index:1}#resolved-video[hidden]{display:none!important}#cinesrc-frame[hidden]{display:none!important}
 
 
 /* Keep all player input routed to the CineSRC iframe without parent overlays intercepting taps. */
@@ -1767,12 +1767,8 @@ html.deep-route-loading::after{
 .player-modal .player-actions>*{pointer-events:auto!important}
 .player-modal .content-intro{pointer-events:none!important}
 .player-modal .content-intro.show{pointer-events:auto!important}
-.player-modal #video-player-frame{z-index:2!important;pointer-events:auto!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.player-modal #cinesrc-frame{z-index:2!important;pointer-events:auto!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
 
 /* Shared selector for the CineSRC and Videasy iframe sources. */
 #player-provider-switch{pointer-events:auto}
-
-
-/* Videasy is the sole active playback source. */
-.player-provider-switch{pointer-events:none}
