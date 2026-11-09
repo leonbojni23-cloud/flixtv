@@ -583,6 +583,7 @@ function startTitlePlayback(season,episode,resumeTime=null){
  $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterCineSrcFullscreen();
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
  startPlaybackWithFallback(titlePageItem,season,episode).then(()=>{if(startAt>5){latestPlaybackTime=startAt}});
+ autoLoadOpenSubtitles(titlePageItem,season,episode);
  startProgressPolling();
 }
 function slugSimilarity(a,b){
@@ -704,6 +705,7 @@ function buildPlayerUrl(item,season,episode,resumeTime=0){
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
  startPlaybackWithFallback(item,season,episode);
+ autoLoadOpenSubtitles(item,season,episode);
  $("content-intro").classList.remove("show");
 }
 // Playback uses CineSRC's original embed directly, without a scraper or HLS proxy.
@@ -776,6 +778,43 @@ async function loadExternalSubtitleFile(file){
   renderExternalSubtitle(latestPlaybackTime);
   notice("Titrat u ngarkuan me sukses.");
  }catch(error){notice(error.message||"Skedari i titrave nuk u lexua.")}
+}
+let subtitleLookupRequest=0;
+async function autoLoadOpenSubtitles(item,season,episode){
+ const request=++subtitleLookupRequest;
+ clearExternalSubtitles();
+ const status=$("subtitle-status");
+ if(status)status.textContent="Po kërkohen titrat automatikisht…";
+ try{
+  const params=new URLSearchParams({tmdb_id:String(item.id),type:kind(item),languages:"sq,en"});
+  if(kind(item)==="tv"){params.set("season_number",String(season||1));params.set("episode_number",String(episode||1))}
+  const response=await fetch("/api/subtitles.js?"+params.toString(),{headers:{Accept:"application/json"}});
+  const result=await response.json();
+  if(request!==subtitleLookupRequest)return;
+  if(!response.ok)throw new Error(result.error||"OpenSubtitles nuk u përgjigj.");
+  const subtitles=Array.isArray(result.data)?result.data:[];
+  if(!subtitles.length){status.textContent="Nuk u gjetën titra shqip ose anglisht";return}
+  const langRank=code=>String(code||"").toLowerCase().startsWith("sq")?0:String(code||"").toLowerCase().startsWith("en")?1:2;
+  subtitles.sort((a,b)=>langRank(a.attributes?.language)-langRank(b.attributes?.language));
+  const chosen=subtitles.find(x=>Array.isArray(x.attributes?.files)&&x.attributes.files.some(f=>f.file_id))||subtitles[0];
+  const file=(chosen.attributes?.files||[]).find(f=>f.file_id);
+  if(!file)throw new Error("OpenSubtitles nuk dha skedar të shkarkueshëm.");
+  const download=await fetch("/api/subtitles.js?action=download",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({file_id:file.file_id})});
+  const payload=await download.json();
+  if(request!==subtitleLookupRequest)return;
+  if(!download.ok||!payload.content)throw new Error(payload.error||"Shkarkimi i titrave dështoi.");
+  const cues=parseExternalSubtitles(payload.content);
+  if(!cues.length)throw new Error("Skedari i shkarkuar nuk përmban SRT/VTT të lexueshëm.");
+  externalSubtitleCues=cues;externalSubtitleOffset=0;lastSubtitleIndex=-1;externalSubtitleEnabled=true;
+  $("subtitle-offset-value").textContent="0.0s";$("subtitle-toggle").textContent="CC ON";
+  const language=String(chosen.attributes?.language||"").toLowerCase().startsWith("sq")?"Shqip":"Anglisht";
+  status.textContent="OpenSubtitles · "+language+" · "+cues.length+" rreshta";
+  renderExternalSubtitle(latestPlaybackTime);
+ }catch(error){
+  if(request!==subtitleLookupRequest)return;
+  console.warn("[FLIXTV] Automatic subtitle lookup failed:",error);
+  if(status)status.textContent=error.message||"Titrat automatikë nuk u ngarkuan";
+ }
 }
 function updateSubtitleOffset(delta){
  externalSubtitleOffset=Math.max(-30,Math.min(30,externalSubtitleOffset+delta));
