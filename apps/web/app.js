@@ -725,6 +725,62 @@ function play(item,season,episode){
  clearTimeout(controlsTimer);
 }
 function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+
+/* FLIXTV external subtitle engine.
+   Captions are rendered in the parent document and synchronized to CineSRC
+   using its documented timeupdate/seeked postMessage events. */
+let externalSubtitleCues=[],externalSubtitleOffset=0,externalSubtitleEnabled=true,lastSubtitleIndex=-1;
+function parseSubtitleTimestamp(value){
+ const m=String(value||"").trim().replace(",",".").match(/(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\.(\d{1,3})/);
+ if(!m)return NaN;
+ return (Number(m[1]||0)*3600+Number(m[2])*60+Number(m[3])+Number(("0."+String(m[4]).padEnd(3,"0"))));
+}
+function parseExternalSubtitles(raw){
+ const text=String(raw||"").replace(/^\uFEFF/,"").replace(/\r/g,"");
+ const blocks=text.split(/\n{2,}/),cues=[];
+ for(const block of blocks){
+  const lines=block.split("\n").map(x=>x.trimEnd());
+  const timingIndex=lines.findIndex(line=>line.includes("-->"));
+  if(timingIndex<0)continue;
+  const timing=lines[timingIndex].split("-->");
+  const start=parseSubtitleTimestamp(timing[0]),end=parseSubtitleTimestamp(timing[1].trim().split(/\s+/)[0]);
+  const body=lines.slice(timingIndex+1).filter(Boolean).join("\n").replace(/<\/?(?:i|b|u|font|c|ruby|rt)[^>]*>/gi,"").replace(/<[^>]+>/g,"");
+  if(Number.isFinite(start)&&Number.isFinite(end)&&end>start&&body)cues.push({start,end,text:body});
+ }
+ return cues.sort((x,y)=>x.start-y.start);
+}
+function renderExternalSubtitle(time){
+ const host=$("external-subtitle-overlay");if(!host||!externalSubtitleEnabled||!externalSubtitleCues.length){if(host)host.textContent="";return}
+ const t=Math.max(0,Number(time)||0)+externalSubtitleOffset;
+ let lo=0,hi=externalSubtitleCues.length-1,found=-1;
+ while(lo<=hi){const mid=(lo+hi)>>1,cue=externalSubtitleCues[mid];if(t<cue.start)hi=mid-1;else if(t>=cue.end)lo=mid+1;else{found=mid;break}}
+ if(found===lastSubtitleIndex)return;
+ lastSubtitleIndex=found;host.textContent=found>=0?externalSubtitleCues[found].text:"";
+}
+function clearExternalSubtitles(){
+ externalSubtitleCues=[];lastSubtitleIndex=-1;externalSubtitleOffset=0;
+ const host=$("external-subtitle-overlay");if(host)host.textContent="";
+ const status=$("subtitle-status");if(status)status.textContent="Pa titra të ngarkuar";
+}
+async function loadExternalSubtitleFile(file){
+ if(!file)return;
+ if(file.size>5*1024*1024){notice("Skedari i titrave është shumë i madh (maksimumi 5 MB).");return}
+ try{
+  const raw=await file.text(),cues=parseExternalSubtitles(raw);
+  if(!cues.length)throw new Error("Nuk u gjetën titra të vlefshëm. Përdor formatin SRT ose VTT.");
+  externalSubtitleCues=cues;externalSubtitleOffset=0;lastSubtitleIndex=-1;externalSubtitleEnabled=true;
+  $("subtitle-status").textContent="Titra aktivë · "+cues.length+" rreshta";
+  $("subtitle-toggle").textContent="CC ON";
+  renderExternalSubtitle(latestPlaybackTime);
+  notice("Titrat u ngarkuan me sukses.");
+ }catch(error){notice(error.message||"Skedari i titrave nuk u lexua.")}
+}
+function updateSubtitleOffset(delta){
+ externalSubtitleOffset=Math.max(-30,Math.min(30,externalSubtitleOffset+delta));
+ $("subtitle-offset-value").textContent=(externalSubtitleOffset>0?"+":"")+externalSubtitleOffset.toFixed(1)+"s";
+ lastSubtitleIndex=-1;renderExternalSubtitle(latestPlaybackTime);
+}
+
 window.addEventListener("message",event=>{
  const frame=$("cinesrc-frame");
  if(!frame||event.source!==frame.contentWindow||!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
@@ -762,6 +818,7 @@ window.addEventListener("message",event=>{
   case "cinesrc:timeupdate":
   case "cinesrc:seeked":
    if(Number.isFinite(Number(data.currentTime)))latestPlaybackTime=Math.max(0,Number(data.currentTime));
+   renderExternalSubtitle(latestPlaybackTime);
    if(Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
    savePlaybackProgress(false);
    break;
@@ -794,6 +851,15 @@ window.addEventListener("message",event=>{
    notice("CineSRC: "+String(data.error||"Videoja nuk u ngarkua. Provo përsëri."));break;
  }
 });
+const subtitleFileInput=$("subtitle-file-input");
+if(subtitleFileInput)subtitleFileInput.addEventListener("change",event=>{loadExternalSubtitleFile(event.target.files&&event.target.files[0]);event.target.value="";});
+const subtitleLoadButton=$("subtitle-load-button");
+if(subtitleLoadButton)subtitleLoadButton.addEventListener("click",()=>subtitleFileInput&&subtitleFileInput.click());
+const subtitleToggle=$("subtitle-toggle");
+if(subtitleToggle)subtitleToggle.addEventListener("click",()=>{externalSubtitleEnabled=!externalSubtitleEnabled;subtitleToggle.textContent=externalSubtitleEnabled?"CC ON":"CC OFF";lastSubtitleIndex=-1;renderExternalSubtitle(latestPlaybackTime)});
+const subtitleMinus=$("subtitle-offset-minus"),subtitlePlus=$("subtitle-offset-plus");
+if(subtitleMinus)subtitleMinus.addEventListener("click",()=>updateSubtitleOffset(-0.5));
+if(subtitlePlus)subtitlePlus.addEventListener("click",()=>updateSubtitleOffset(0.5));
 window.addEventListener("pagehide",()=>savePlaybackProgress(true));
 window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
 renderContinueWatching();
