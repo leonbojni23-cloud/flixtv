@@ -1,52 +1,77 @@
 (() => {
 "use strict";
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
-/* FLIXTV popup/ad protection for the top-level app.
-   Cross-origin Videasy content is isolated by the browser and cannot be inspected here. */
+/* FLIXTV anti-popup and anti-ad protections.
+   These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
 (()=>{
- const PLAYER_HOSTS=["player.videasy.ws","videasy.ws"];
- const AD_HOSTS=[/(^|\\.)doubleclick\\.net$/i,/(^|\\.)googlesyndication\\.com$/i,/(^|\\.)googleadservices\\.com$/i,/(^|\\.)adservice\\./i,/(^|\\.)popads\\./i,/(^|\\.)popcash\\./i,/(^|\\.)adsterra\\./i,/(^|\\.)exoclick\\./i,/(^|\\.)propellerads\\./i,/(^|\\.)taboola\\./i,/(^|\\.)outbrain\\./i,/(^|\\.)onclick\\./i];
- const hostOf=value=>{try{return new URL(value,location.href).hostname.toLowerCase()}catch(_){return ""}};
- const isPlayer=value=>{const host=hostOf(value);return PLAYER_HOSTS.some(x=>host===x||host.endsWith("."+x))};
- const isAd=value=>{const host=hostOf(value);return !host||host.startsWith("adservice.")||AD_HOSTS.some(domain=>host===domain||host.endsWith("."+domain))||/[?&](?:utm_source=ad|ad_id|clickid|affiliate_id)=/i.test(String(value))};
- const log=(type,value)=>console.debug("[FLIXTV] "+type+" blocked",value||"");
- window.open=function(url){log("popup",url);return null};
- const blockEscapingNavigation=event=>{
-  const target=event.target,link=target&&target.closest?target.closest("a[href],area[href]"):null;
-  if(link&&["_blank","_top","_parent"].includes((link.getAttribute("target")||"").toLowerCase())){
-   event.preventDefault();event.stopImmediatePropagation();log("new browsing context",link.href);
+ const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws"];
+ const isAllowedPlayerUrl=url=>{
+  try{const host=new URL(url,location.href).hostname.toLowerCase();return allowedFrameHosts.some(allowed=>host===allowed||host.endsWith("."+allowed))}
+  catch(_){return false}
+ };
+ const blockedPatterns=[
+  /(^|\\.)doubleclick\\.net$/i,/(^|\\.)googlesyndication\\.com$/i,
+  /(^|\\.)googleadservices\\.com$/i,/(^|\\.)adservice\\./i,
+  /(^|\\.)popads\\./i,/(^|\\.)popcash\\./i,
+  /(^|\\.)adsterra\\./i,/(^|\\.)exoclick\\./i,
+  /(^|\\.)propellerads\\./i,/(^|\\.)taboola\\./i,
+  /(^|\\.)outbrain\\./i,/(^|\\.)onclick\\./i
+ ];
+ const isAdUrl=url=>{
+  try{const u=new URL(url,location.href);return blockedPatterns.some(re=>re.test(u.hostname))||/[?&](?:utm_source=ad|ad_id|clickid)=/i.test(u.search)}
+  catch(_){return true}
+ };
+ let trustedPlayerClick=false;
+ document.addEventListener("click",event=>{
+  trustedPlayerClick=!!(event.isTrusted&&event.target&&event.target.closest&&event.target.closest("#player-modal"));
+  queueMicrotask(()=>{trustedPlayerClick=false});
+ },true);
+ const nativeOpen=window.open.bind(window);
+ window.open=function(url,target,features){
+  if(!trustedPlayerClick||!isAllowedPlayerUrl(url)){
+   console.warn("[FLIXTV] Popup blocked:",url);return null;
+  }
+  return nativeOpen(url,"_blank","noopener,noreferrer");
+ };
+ const blockExternalTargets=event=>{
+  const link=event.target&&event.target.closest?event.target.closest("a[target]"):null;
+  if(!link)return;
+  const target=(link.getAttribute("target")||"").toLowerCase();
+  if(target==="_blank"&&!isAllowedPlayerUrl(link.href)){
+   event.preventDefault();event.stopImmediatePropagation();
+   console.warn("[FLIXTV] External tab blocked:",link.href);
   }
  };
- document.addEventListener("click",blockEscapingNavigation,true);
- document.addEventListener("auxclick",blockEscapingNavigation,true);
+ document.addEventListener("click",blockExternalTargets,true);
+ document.addEventListener("auxclick",blockExternalTargets,true);
  document.addEventListener("submit",event=>{
   const form=event.target;
-  if(form&&form.tagName==="FORM"&&["_blank","_top","_parent"].includes((form.getAttribute("target")||"").toLowerCase())){
-   event.preventDefault();event.stopImmediatePropagation();log("form popup",form.action);
+  if(form&&form.tagName==="FORM"&&(form.getAttribute("target")||"").toLowerCase()==="_blank"){
+   event.preventDefault();event.stopImmediatePropagation();
   }
  },true);
  const nativeAnchorClick=HTMLAnchorElement.prototype.click;
  HTMLAnchorElement.prototype.click=function(){
-  if(["_blank","_top","_parent"].includes((this.getAttribute("target")||"").toLowerCase())){log("scripted tab",this.href);return}
+  if((this.getAttribute("target")||"").toLowerCase()==="_blank"&&!isAllowedPlayerUrl(this.href)){
+   console.warn("[FLIXTV] Scripted tab blocked:",this.href);return;
+  }
   return nativeAnchorClick.call(this);
  };
- const selector='iframe[src],script[src],a[target="_blank"],[id*="popunder" i],[class*="popunder" i],[id*="popup-ad" i],[class*="popup-ad" i],[class*="ad-overlay" i],[id*="ad-overlay" i],[class*="advertisement" i]';
- const inspect=root=>{
-  if(!root||root.nodeType!==1)return;
-  const nodes=[];
-  if(root.matches&&root.matches(selector))nodes.push(root);
-  if(root.querySelectorAll)nodes.push(...root.querySelectorAll(selector));
-  for(const node of nodes){
-   if(node.id==="videasy-frame"||(node.closest&&node.closest("#videasy-frame")))continue;
-   const src=node.getAttribute("src")||node.href||"",label=((node.id||"")+" "+(typeof node.className==="string"?node.className:"")).toLowerCase();
-   const remove=(node.tagName==="IFRAME"&&!isPlayer(src))||(node.tagName==="SCRIPT"&&isAd(src))||(node.tagName==="A"&&(node.target==="_blank"||isAd(src)))||/popunder|popup-ad|ad-overlay|advertisement/.test(label);
-   if(remove){log("injected ad element",src||label);node.remove()}
-  }
+ const removeInjectedAdElements=root=>{
+  if(!root||!root.querySelectorAll)return;
+  root.querySelectorAll('script[src],iframe[src],a[target="_blank"],[id*="ad-" i],[class*="advert" i],[class*="popup" i],[class*="popunder" i]').forEach(node=>{
+   if(node===document.querySelector("#cinesrc-frame"))return;
+   const src=node.getAttribute("src")||node.href||"";
+   if(node.tagName==="SCRIPT"||isAdUrl(src)||/advert|popunder|ad-container|ad-overlay/i.test((node.id||"")+" "+(node.className||""))){
+    if(node.tagName!=="SCRIPT"||isAdUrl(src)){node.remove();console.warn("[FLIXTV] Ad element removed:",src)}
+   }
+  });
  };
- const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(inspect)));
+ const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{
+  if(node.nodeType===1){removeInjectedAdElements(node);if(node.matches&&node.matches('a[target="_blank"]')&&!isAllowedPlayerUrl(node.href))node.remove()}
+ })));
  observer.observe(document.documentElement,{childList:true,subtree:true});
- const scan=()=>inspect(document.documentElement);
- if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",scan,{once:true});else scan();
+ document.addEventListener("DOMContentLoaded",()=>removeInjectedAdElements(document));
 })();
 let selected=null,searchTimer=null,searchRequest=0,introTimer=null,controlsTimer=null,heroItems=[],heroIndex=0,heroTimer=null,heroLayer=0,heroBusy=false;
 function notice(m){const e=$("notice");e.textContent=m;e.hidden=false;clearTimeout(notice.timer);notice.timer=setTimeout(()=>e.hidden=true,3600)}
@@ -303,6 +328,12 @@ function startProgressPolling(){
   }
  },4000);
 }
+function sendCineSrcCommand(command,args=[]){
+ const frame=$("cinesrc-frame");
+ if(!frame||!frame.contentWindow)return;
+ try{frame.contentWindow.postMessage({type:"cinesrc:command",command,args},"https://cinesrc.st")}catch(_){}
+}
+
 async function home(){
  renderContinueWatching();
  $("catalog").hidden=false;
@@ -521,10 +552,10 @@ async function loadTitleEpisodes(){
   })();
  }catch(e){if(isCurrent())notice("Episodet nuk u ngarkuan: "+e.message)}
 }
-function enterPlayerFullscreen(){
+function enterCineSrcFullscreen(){
  const modal=$("player-modal");
  // Use an in-page CSS fullscreen on iOS Safari. Native video fullscreen can
- // detach the iframe player UI and hide provider-rendered subtitles.
+ // detach the iframe player UI and hide CineSRC-rendered subtitles.
  modal.classList.add("open","css-fullscreen");
  document.body.classList.add("no-scroll");
 }
@@ -548,7 +579,7 @@ function startTitlePlayback(season,episode,resumeTime=null){
  const startAt=Number(resumeTime)>0?Number(resumeTime):(saved&&kind(titlePageItem)==="tv"&&Number(saved.season)===Number(season||1)&&Number(saved.episode)===Number(episode||1)?Number(saved.currentTime):kind(titlePageItem)==="movie"&&saved?Number(saved.currentTime):0);
  latestPlaybackTime=startAt;latestPlaybackDuration=saved&&startAt===Number(saved.currentTime)?Number(saved.duration)||0:0;lastProgressWrite=0;
  playbackReturnToTitlePage=!$("title-page").hidden;
- $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterPlayerFullscreen();
+ $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterCineSrcFullscreen();
  document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
  startPlaybackWithFallback(titlePageItem,season,episode).then(()=>{if(startAt>5){latestPlaybackTime=startAt}});
  startProgressPolling();
@@ -595,37 +626,68 @@ function stopResolvedVideo(){
  const video=$("resolved-video");
  if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
 }
-async function startPlaybackWithFallback(item,season,episode){
- const frame=$("videasy-frame");
+async function startPlaybackWithFallback(item,season,episode,provider=activePlayerProvider){
+ const frame=$("cinesrc-frame");
  const video=$("resolved-video");
  if(!frame)throw new Error("Player iframe is missing");
  if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
- const url=buildVideasyUrl(item,season,episode,latestPlaybackTime);
+ activePlayerProvider=provider==="videasy"?"videasy":"cinesrc";
+ const url=activePlayerProvider==="videasy"
+  ?buildVideasyUrl(item,season,episode,latestPlaybackTime)
+  :buildPlayerUrl(item,season,episode,latestPlaybackTime);
+ renderPlayerProviderSwitch();
  frame.hidden=false;
  frame.src=url;
  $("player-modal").dataset.playerState="loading";
- console.info("[FLIXTV] Opening Videasy embed:",url);
+ console.info("[FLIXTV] Opening "+(activePlayerProvider==="videasy"?"Videasy":"CineSRC")+" embed:",url);
 }
 
+let activePlayerProvider="cinesrc";
 let currentPlayback=null;
 let playbackReturnToTitlePage=false;
+function renderPlayerProviderSwitch(){
+ const host=$("player-provider-switch");
+ if(!host)return;
+ host.replaceChildren();
+ [["cinesrc","CineSRC"],["videasy","Videasy"]].forEach(([provider,label])=>{
+  const button=document.createElement("button");
+  button.type="button";button.className="player-provider"+(activePlayerProvider===provider?" active":"");
+  button.textContent=label;button.setAttribute("aria-pressed",String(activePlayerProvider===provider));
+  button.addEventListener("click",()=>{
+   if(provider===activePlayerProvider||!currentPlayback)return;
+   startPlaybackWithFallback(currentPlayback.item,currentPlayback.season,currentPlayback.episode,provider);
+  });
+  host.append(button);
+ });
+}
 function buildVideasyUrl(item,season,episode,resumeTime=0){
  const id=encodeURIComponent(String(item.id));
  const params=new URLSearchParams({autoplay:"1"});
  if(kind(item)==="tv")params.set("autonext","1");
  if(Number(resumeTime)>5)params.set("startAt",String(Math.floor(Number(resumeTime))));
- const proxy="https://flixtv-api.vercel.app/videasy/player.videasy.ws/embed/";
  if(kind(item)==="tv"){
-  return proxy+"tv/"+id+"/"+Number(season||1)+"/"+Number(episode||1)+"?"+params.toString();
+  return "https://player.videasy.ws/embed/tv/"+id+"/"+Number(season||1)+"/"+Number(episode||1)+"?"+params.toString();
  }
- return proxy+"movie/"+id+"?"+params.toString();
+ return "https://player.videasy.ws/embed/movie/"+id+"?"+params.toString();
+}
+function buildPlayerUrl(item,season,episode,resumeTime=0){
+ const id=encodeURIComponent(String(item.id));
+ const params=new URLSearchParams({
+  autoplay:"true",muted:"false",controls:"true",autonext:"true",autoskip:"false",color:"#34cfeb",back:"close"
+ });
+ if(Number(resumeTime)>5){params.set("t",String(Math.floor(Number(resumeTime))));params.set("continueprompt","false")}
+ if(kind(item)==="tv"){
+  params.set("s",String(Number(season||1)));params.set("e",String(Number(episode||1)));
+  return "https://cinesrc.st/embed/tv/"+id+"?"+params.toString();
+ }
+ return "https://cinesrc.st/embed/movie/"+id+"?"+params.toString();
 }
 function startPlayback(item,season,episode){
  currentPlayback={item,season,episode};
  startPlaybackWithFallback(item,season,episode);
  $("content-intro").classList.remove("show");
 }
-// Playback uses Videasy directly, without a scraper or HLS proxy.
+// Playback uses CineSRC's original embed directly, without a scraper or HLS proxy.
 function play(item,season,episode){
  if(!item||!item.id)return;
  clearTimeout(introTimer);
@@ -633,34 +695,86 @@ function play(item,season,episode){
  $("content-intro").setAttribute("aria-hidden","true");
  $("player-modal").classList.remove("attention-active");
  $("player-modal").classList.add("open","controls-visible");
- enterPlayerFullscreen();
+ enterCineSrcFullscreen();
  $("player-modal").setAttribute("aria-hidden","false");
  $("details-modal").classList.remove("open");
  document.body.classList.add("no-scroll");
  currentPlayback={item,season,episode};
  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
- const frame=$("videasy-frame");if(frame){frame.hidden=true;frame.removeAttribute("src")}
+ const frame=$("cinesrc-frame");if(frame){frame.hidden=true;frame.removeAttribute("src")}
  startPlaybackWithFallback(item,season,episode);
  startProgressPolling();
  clearTimeout(controlsTimer);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("videasy-frame").src="about:blank";stopResolvedVideo();$("videasy-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 window.addEventListener("message",event=>{
- const frame=$("videasy-frame");
+ const frame=$("cinesrc-frame");
  if(!frame||event.source!==frame.contentWindow||!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
- if(event.origin!=="https://player.videasy.ws"||event.data.type!=="PLAYER_EVENT")return;
- const payload=event.data.data&&typeof event.data.data==="object"?event.data.data:event.data;
- const progress=Number(payload.player_progress),duration=Number(payload.player_duration);
- if(Number.isFinite(progress)&&progress>=0)latestPlaybackTime=progress;
- if(Number.isFinite(duration)&&duration>0)latestPlaybackDuration=duration;
- const info=payload.player_info||{};
- if(currentPlayback&&kind(currentPlayback.item)==="tv"){
-  if(Number.isInteger(Number(info.season)))currentPlayback.season=Number(info.season);
-  if(Number.isInteger(Number(info.episode)))currentPlayback.episode=Number(info.episode);
+ if(event.origin==="https://player.videasy.ws"&&activePlayerProvider==="videasy"){
+  if(event.data.type!=="PLAYER_EVENT")return;
+  const payload=event.data.data&&typeof event.data.data==="object"?event.data.data:event.data;
+  const progress=Number(payload.player_progress),duration=Number(payload.player_duration);
+  if(Number.isFinite(progress)&&progress>=0)latestPlaybackTime=progress;
+  if(Number.isFinite(duration)&&duration>0)latestPlaybackDuration=duration;
+  const info=payload.player_info||{};
+  if(currentPlayback&&kind(currentPlayback.item)==="tv"){
+   if(Number.isInteger(Number(info.season)))currentPlayback.season=Number(info.season);
+   if(Number.isInteger(Number(info.episode)))currentPlayback.episode=Number(info.episode);
+  }
+  if(payload.player_status==="completed"){
+   if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
+  }else if(latestPlaybackTime>0)savePlaybackProgress(payload.player_status==="paused");
+  return;
  }
- if(payload.player_status==="completed"){
-  if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
- }else if(latestPlaybackTime>0)savePlaybackProgress(payload.player_status==="paused");
+ if(event.origin!=="https://cinesrc.st"||activePlayerProvider!=="cinesrc")return;
+ const data=event.data;
+ switch(data.type){
+  case "cinesrc:ready":
+   $("player-modal").dataset.playerState="ready";
+   if(latestPlaybackTime>5)sendCineSrcCommand("seek",[latestPlaybackTime]);
+   sendCineSrcCommand("getCurrentTime");
+   sendCineSrcCommand("getDuration");
+   break;
+  case "cinesrc:play":
+  case "cinesrc:pause":
+   if(Number.isFinite(Number(data.currentTime)))latestPlaybackTime=Math.max(0,Number(data.currentTime));
+   if(Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
+   if(latestPlaybackTime>0)savePlaybackProgress(true);
+   break;
+  case "cinesrc:timeupdate":
+  case "cinesrc:seeked":
+   if(Number.isFinite(Number(data.currentTime)))latestPlaybackTime=Math.max(0,Number(data.currentTime));
+   if(Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
+   savePlaybackProgress(false);
+   break;
+  case "cinesrc:loadedmetadata":
+   latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;break;case "cinesrc:nextepisode":
+   if(currentPlayback&&kind(currentPlayback.item)==="tv"){
+    const nextSeason=Number(data.season),nextEpisode=Number(data.episode);
+    if(Number.isInteger(nextSeason)&&nextSeason>=0)currentPlayback.season=nextSeason;
+    if(Number.isInteger(nextEpisode)&&nextEpisode>0)currentPlayback.episode=nextEpisode;
+    latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
+    savePlaybackProgress(true);
+    setTimeout(()=>{
+     if(!$("player-modal").classList.contains("open")||!currentPlayback)return;
+     sendCineSrcCommand("getCurrentTime");
+     sendCineSrcCommand("getDuration");
+    },900);
+   }
+   break;
+  case "cinesrc:ended":
+   if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
+  case "cinesrc:response":
+   if(data.command==="getCurrentTime"&&Number.isFinite(Number(data.result))){latestPlaybackTime=Math.max(0,Number(data.result));if(latestPlaybackTime>0)savePlaybackProgress(true)}else if(data.command==="getDuration"&&Number(data.result)>0){latestPlaybackDuration=Number(data.result);savePlaybackProgress(true)}
+   break;
+  case "cinesrc:close":
+   savePlaybackProgress(true);
+   leavePlayer();
+   break;
+  case "cinesrc:error":
+   $("player-modal").dataset.playerState="error";
+   notice("CineSRC: "+String(data.error||"Videoja nuk u ngarkua. Provo përsëri."));break;
+ }
 });
 window.addEventListener("pagehide",()=>savePlaybackProgress(true));
 window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
