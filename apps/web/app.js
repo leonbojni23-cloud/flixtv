@@ -829,7 +829,7 @@ window.addEventListener("message",event=>{
   if(event.data.type!=="PLAYER_EVENT")return;
   const payload=event.data.data&&typeof event.data.data==="object"?event.data.data:event.data;
   const progress=Number(payload.player_progress),duration=Number(payload.player_duration);
-  if(Number.isFinite(progress)&&progress>=0)latestPlaybackTime=progress;
+  if(Number.isFinite(progress)&&progress>=0){latestPlaybackTime=progress;renderExternalSubtitle(latestPlaybackTime)}
   if(Number.isFinite(duration)&&duration>0)latestPlaybackDuration=duration;
   const info=payload.player_info||{};
   if(currentPlayback&&kind(currentPlayback.item)==="tv"){
