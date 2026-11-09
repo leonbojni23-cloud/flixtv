@@ -456,13 +456,10 @@ function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":
 async function openTitlePage(item,push=false,playMode=false){
  if(!item||!item.id)return;
  try{
-  const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,credits,external_ids&include_video_language=en,null");
-  await loadTitleVideos(item,d);
-  const imdbId=d.external_ids?.imdb_id;
-  if(imdbId){
-   try{const imdbResponse=await fetch("/api/imdb-videos.js?id="+encodeURIComponent(imdbId));if(imdbResponse.ok){const imdbData=await imdbResponse.json();if(Array.isArray(imdbData.videos))d.imdbVideos=imdbData}}catch(_){/* Use the existing YouTube fallback if IMDb is unavailable. */}
-  }
-  d.overviewSq=await getAlbanianOverview(d,k);
+  const k=kind(item),d=item.__flxtvDetails?item:await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,credits,external_ids");
+  // Render the title as soon as the essential TMDB response arrives. Optional
+  // trailer, IMDb and Albanian-translation requests must never block navigation.
+  d.overviewSq=String(d.overview||item.overview||"").trim();
   titlePageItem={...item,...d,media_type:k};
   const savedForTitle=getSavedProgress(titlePageItem);
   const savedIsResumable=!!(savedForTitle&&Number(savedForTitle.currentTime)>5&&(!savedForTitle.duration||Number(savedForTitle.currentTime)<Number(savedForTitle.duration)*0.92));
@@ -477,7 +474,32 @@ async function openTitlePage(item,push=false,playMode=false){
   $("title-page").innerHTML=titlePageMarkup(titlePageItem,d,playMode);
   initTitleYoutubeControls();
   document.body.classList.remove("no-scroll");
-  if(k==="tv")await loadTitleEpisodes();
+  if(k==="tv"){
+   const episodeList=$("title-episode-list");
+   if(episodeList&&!episodeList.children.length)episodeList.textContent="Po ngarkohen episodet…";
+   loadTitleEpisodes();
+  }
+  // Optional metadata runs after first paint and never blocks the page.
+  const enrichmentItem={...titlePageItem};
+  loadTitleVideos(enrichmentItem,d).then(()=>{
+   if(titlePageItem&&Number(titlePageItem.id)===Number(enrichmentItem.id)){
+    titlePageItem.videos=d.videos;
+    const trailer=(d.videos?.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser"));
+    const trailerButton=$("title-trailer");
+    if(trailerButton)trailerButton.hidden=!trailer;
+   }
+  }).catch(error=>console.warn("Trailer enrichment failed:",error));
+  const imdbId=d.external_ids?.imdb_id;
+  if(imdbId)fetch("/api/imdb-videos.js?id="+encodeURIComponent(imdbId))
+   .then(response=>response.ok?response.json():null)
+   .then(data=>{if(data&&Array.isArray(data.videos)&&titlePageItem&&Number(titlePageItem.id)===Number(enrichmentItem.id))titlePageItem.imdbVideos=data})
+   .catch(()=>{});
+  getAlbanianOverview(enrichmentItem,k).then(overview=>{
+   if(!overview||!titlePageItem||Number(titlePageItem.id)!==Number(enrichmentItem.id))return;
+   titlePageItem.overviewSq=overview;
+   const overviewNode=$("title-overview");
+   if(overviewNode)overviewNode.textContent=overview;
+  }).catch(()=>{});
   const canResume=savedIsResumable&&(k==="movie"||(Number(savedForTitle.season)===titlePageSeason&&Number(savedForTitle.episode)===titlePageEpisode));
   const titlePlayLabel=$("title-play").querySelector("span");
   if(titlePlayLabel)titlePlayLabel.textContent=canResume?(k==="tv"?"Vazhdo S"+savedForTitle.season+":E"+savedForTitle.episode:"Vazhdo filmin"):(k==="tv"?"Luaj S"+titlePageSeason+":E"+titlePageEpisode:"Luaj filmin");
@@ -496,7 +518,7 @@ async function openTitlePage(item,push=false,playMode=false){
    episodeTab.onclick=()=>{episodeTab.classList.add("active");similarTab.classList.remove("active");episodeList.hidden=false;const similar=$("series-similar-list");if(similar)similar.hidden=true};
    similarTab.onclick=async()=>{similarTab.classList.add("active");episodeTab.classList.remove("active");episodeList.hidden=true;let similar=$("series-similar-list");if(!similar){similar=document.createElement("div");similar.id="series-similar-list";similar.className="series-similar-list";episodeList.after(similar)}if(similar.dataset.loaded==="true") {similar.hidden=false;return}similar.hidden=false;similar.textContent="Po ngarkohen sugjerimet…";try{const data=await tmdb("/tv/"+titlePageItem.id+"/similar");const items=(data.results||[]).filter(x=>x.poster_path).slice(0,12);similar.replaceChildren(...items.map(x=>{const b=document.createElement("button");b.className="series-similar-card";b.type="button";const img=document.createElement("img");img.loading="lazy";img.src=IMG+"w185"+x.poster_path;img.alt="";const label=document.createElement("span");label.textContent=title(x);b.append(img,label);b.onclick=()=>window.location.assign(pageUrl(x));return b}));similar.dataset.loaded="true";if(!items.length)similar.textContent="Nuk ka sugjerime për këtë serial."}catch(error){similar.textContent="Sugjerimet nuk u ngarkuan."}};
   }
-  if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1);await loadTitleEpisodes()}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
+  if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1);loadTitleEpisodes()}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
   window.scrollTo(0,0);
  }catch(e){notice(e.message)}
 }
@@ -599,8 +621,8 @@ async function resolveTitleRoute(){
   const typedRoute=slug.match(/--(movie|tv)-(\d+)$/);
   if(typedRoute){
    const mediaType=typedRoute[1],id=Number(typedRoute[2]);
-   const item=await tmdb("/"+mediaType+"/"+id);
-   if(item&&item.id&&item.success!==false)match={...item,media_type:mediaType};
+   const item=await tmdb("/"+mediaType+"/"+id+"?append_to_response=videos,credits,external_ids");
+   if(item&&item.id&&item.success!==false)match={...item,media_type:mediaType,__flxtvDetails:true};
   }else if(/^\d+$/.test(slug)){
    // Backward compatibility for older numeric links.
    const id=Number(slug);
