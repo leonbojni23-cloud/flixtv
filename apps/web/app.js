@@ -377,7 +377,7 @@ async function home(){
 
 function titleSlug(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"")}
 let titlePageItem=null,titlePageSeason=1,titlePageEpisode=1,titleEpisodesRequest=0;
-function pageUrl(item,play=false){const slug=titleSlug(title(item))||String(item.id);return "/"+slug+(play?"/play":"")}
+function pageUrl(item,play=false){const slug=titleSlug(title(item))||"title";const type=kind(item);return "/"+slug+"--"+type+"-"+String(item.id)+(play?"/play":"")}
 let titleYoutubePlayer=null;
 function setTitleYoutubeButton(playing){
  const button=document.querySelector(".yt-play-toggle");if(!button)return;
@@ -595,8 +595,14 @@ async function resolveTitleRoute(){
  const playMode=parts[1]==="play",slug=parts[0];
  try{
   let match=null;
-  // Support direct TMDB-ID URLs as well as readable title slugs.
-  if(/^\d+$/.test(slug)){
+  // New routes carry the exact TMDB media type and ID. Never guess from a localized title slug.
+  const typedRoute=slug.match(/--(movie|tv)-(\d+)$/);
+  if(typedRoute){
+   const mediaType=typedRoute[1],id=Number(typedRoute[2]);
+   const item=await tmdb("/"+mediaType+"/"+id);
+   if(item&&item.id&&item.success!==false)match={...item,media_type:mediaType};
+  }else if(/^\d+$/.test(slug)){
+   // Backward compatibility for older numeric links.
    const id=Number(slug);
    for(const mediaType of ["movie","tv"]){
     try{
