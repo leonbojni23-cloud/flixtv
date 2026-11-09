@@ -1124,7 +1124,7 @@ function playSportsStream(stream,stage){
   video.addEventListener("error",()=>notice("Ky burim nuk mund të luhet në këtë pajisje. Provo një burim tjetër."));
   stage.append(video);const p=video.play();if(p?.catch)p.catch(()=>{});
  }else{
-  const frame=document.createElement("iframe");frame.src=parsed.href;frame.title="Transmetim sportiv";frame.allow="autoplay; fullscreen; encrypted-media; picture-in-picture";frame.allowFullscreen=true;frame.loading="eager";frame.referrerPolicy="strict-origin-when-cross-origin";stage.append(frame);
+  const frame=document.createElement("iframe");frame.src=parsed.href;frame.title="Transmetim sportiv";frame.allow="autoplay; fullscreen; encrypted-media; picture-in-picture";frame.allowFullscreen=true;frame.loading="eager";frame.referrerPolicy="no-referrer";stage.append(frame);
  }
 }
 function showDaddyLive(){
@@ -1138,7 +1138,7 @@ function showDaddyLive(){
  const stage=document.createElement("div");stage.className="sports-inline-stage";
  const frame=document.createElement("iframe");frame.src="https://thedaddy.li/cast/stream-51.php";
  frame.title="DaddyLive";frame.width="100%";frame.height="100%";
- frame.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-presentation");
+ frame.setAttribute("sandbox","allow-scripts allow-presentation");
  frame.setAttribute("allow","autoplay; fullscreen; encrypted-media; picture-in-picture");
  frame.allowFullscreen=true;frame.loading="eager";frame.referrerPolicy="strict-origin-when-cross-origin";
  stage.append(frame);panel.append(stage);grid.append(panel);
