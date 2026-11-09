@@ -1784,3 +1784,13 @@ html.deep-route-loading::after{
 .external-subtitle-overlay{position:absolute;z-index:25;left:5%;right:5%;bottom:8.5%;min-height:1.4em;display:flex;justify-content:center;align-items:flex-end;text-align:center;white-space:pre-line;pointer-events:none;color:#fff;font-size:clamp(18px,2.4vw,32px);font-weight:600;line-height:1.35;text-shadow:0 2px 3px #000,0 3px 8px #000,1px 0 2px #000,-1px 0 2px #000;padding:0 3%;overflow-wrap:anywhere}
 @media(max-width:700px){.subtitle-toolbar{top:10px;max-width:calc(100% - 88px);gap:4px;padding:6px;font-size:10px}.subtitle-toolbar button{padding:6px}.external-subtitle-overlay{bottom:9%;font-size:clamp(17px,4.2vw,25px)}#subtitle-status{display:none}}
 @media(prefers-reduced-motion:reduce){.subtitle-toolbar{transition:none}}
+
+/* Subtitle controls must remain visible on both direct playback and title-page playback. */
+.player-modal .subtitle-toolbar{
+  z-index:2147483002!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  top:calc(env(safe-area-inset-top) + 12px)!important;
+}
+.player-modal .external-subtitle-overlay{z-index:2147483001!important}
