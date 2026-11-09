@@ -1127,13 +1127,33 @@ function playSportsStream(stream,stage){
   const frame=document.createElement("iframe");frame.src=parsed.href;frame.title="Transmetim sportiv";frame.allow="autoplay; fullscreen; encrypted-media; picture-in-picture";frame.allowFullscreen=true;frame.loading="eager";frame.referrerPolicy="strict-origin-when-cross-origin";stage.append(frame);
  }
 }
+function showDaddyLive(){
+ const grid=$("sports-grid");grid.replaceChildren();
+ const head=document.createElement("div");head.className="sports-event-head";
+ const heading=document.createElement("h2");heading.textContent="DaddyLive";
+ const back=document.createElement("button");back.className="secondary-btn";back.type="button";back.textContent="← Kthehu te kanalet sportive";
+ back.onclick=()=>{if(sportsCatalogs.length)loadSportsCatalog(sportsCatalogs[0]);else{$("sports-status").textContent="DaddyLive";grid.replaceChildren()}};
+ head.append(heading,back);grid.append(head);
+ const panel=document.createElement("section");panel.className="sports-player-panel";
+ const stage=document.createElement("div");stage.className="sports-inline-stage";
+ const frame=document.createElement("iframe");frame.src="https://thedaddy.li/cast/stream-51.php";
+ frame.title="DaddyLive";frame.width="100%";frame.height="100%";
+ frame.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-presentation");
+ frame.setAttribute("allow","autoplay; fullscreen; encrypted-media; picture-in-picture");
+ frame.allowFullscreen=true;frame.loading="eager";frame.referrerPolicy="strict-origin-when-cross-origin";
+ stage.append(frame);panel.append(stage);grid.append(panel);
+ $("sports-status").textContent="DaddyLive · LIVE";$("sports-empty").hidden=true;
+}
 async function loadSports(){
  const grid=$("sports-grid");grid.replaceChildren();
+ const cats=$("sports-categories");cats.replaceChildren();
+ const daddyButton=document.createElement("button");daddyButton.type="button";daddyButton.className="sports-category";daddyButton.textContent="DaddyLive";
+ daddyButton.onclick=()=>{cats.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===daddyButton));showDaddyLive()};
+ cats.append(daddyButton);
  $("sports-status").textContent="Po lidhet me Sports Streams…";
  try{
   sportsManifest=await sportsRequest("manifest.json");
   sportsCatalogs=(sportsManifest.catalogs||[]).filter(c=>c.type==="sport"||sportsManifest.types?.includes(c.type));
-  const cats=$("sports-categories");cats.replaceChildren();
   sportsCatalogs.forEach((catalog,index)=>{
    const button=document.createElement("button");button.type="button";button.className="sports-category"+(index===0?" active":"");button.textContent=catalog.name||sportsLabel(catalog.id);
    button.onclick=()=>{cats.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===button));loadSportsCatalog(catalog)};
@@ -1141,7 +1161,7 @@ async function loadSports(){
   });
   if(!sportsCatalogs.length)throw new Error("Manifest u hap, por nuk përmban katalogë sportivë.");
   await loadSportsCatalog(sportsCatalogs[0]);
- }catch(error){$("sports-status").textContent="Lidhja dështoi";$("sports-empty").hidden=false;$("sports-empty").textContent=error.message+" Kontrollo manifest URL te Konfigurimi."}
+ }catch(error){$("sports-status").textContent="Lidhja dështoi";$("sports-empty").hidden=false;$("sports-empty").textContent=error.message+" DaddyLive mbetet i disponueshëm te kategoritë më sipër."}
 }
 
 const loadedPages=new Set();
