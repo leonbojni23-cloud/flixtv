@@ -456,7 +456,7 @@ function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":
 async function openTitlePage(item,push=false,playMode=false){
  if(!item||!item.id)return;
  try{
-  const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,external_ids");
+  const k=kind(item),d=item.__flxtvDetails?item:await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,credits,external_ids");
   // Render the title as soon as the essential TMDB response arrives. Optional
   // trailer, IMDb and Albanian-translation requests must never block navigation.
   d.overviewSq=String(d.overview||item.overview||"").trim();
@@ -621,8 +621,8 @@ async function resolveTitleRoute(){
   const typedRoute=slug.match(/--(movie|tv)-(\d+)$/);
   if(typedRoute){
    const mediaType=typedRoute[1],id=Number(typedRoute[2]);
-   const item=await tmdb("/"+mediaType+"/"+id);
-   if(item&&item.id&&item.success!==false)match={...item,media_type:mediaType};
+   const item=await tmdb("/"+mediaType+"/"+id+"?append_to_response=videos,credits,external_ids");
+   if(item&&item.id&&item.success!==false)match={...item,media_type:mediaType,__flxtvDetails:true};
   }else if(/^\d+$/.test(slug)){
    // Backward compatibility for older numeric links.
    const id=Number(slug);
