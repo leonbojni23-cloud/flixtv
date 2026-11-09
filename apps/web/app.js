@@ -577,6 +577,7 @@ function startTitlePlayback(season,episode,resumeTime=null){
  stopTitlePagePreview();
  const saved=getSavedProgress(titlePageItem);
  const startAt=Number(resumeTime)>0?Number(resumeTime):(saved&&kind(titlePageItem)==="tv"&&Number(saved.season)===Number(season||1)&&Number(saved.episode)===Number(episode||1)?Number(saved.currentTime):kind(titlePageItem)==="movie"&&saved?Number(saved.currentTime):0);
+ clearExternalSubtitles();
  latestPlaybackTime=startAt;latestPlaybackDuration=saved&&startAt===Number(saved.currentTime)?Number(saved.duration)||0:0;lastProgressWrite=0;
  playbackReturnToTitlePage=!$("title-page").hidden;
  $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterCineSrcFullscreen();
@@ -718,6 +719,7 @@ function play(item,season,episode){
  $("details-modal").classList.remove("open");
  document.body.classList.add("no-scroll");
  currentPlayback={item,season,episode};
+ clearExternalSubtitles();
  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
  const frame=$("cinesrc-frame");if(frame){frame.hidden=true;frame.removeAttribute("src")}
  startPlaybackWithFallback(item,season,episode);
