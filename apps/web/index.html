@@ -126,8 +126,18 @@
   <section class="player-modal" id="player-modal" aria-hidden="true">
     <div class="player-actions"><div class="player-provider-switch" aria-label="Serveri aktiv"></div></div>
     <div class="content-intro" id="content-intro" aria-hidden="true"><div class="intro-copy"><div class="intro-kicker">FLIXTV · INFORMACION I PËRMBAJTJES</div><div class="intro-rating" id="intro-rating"></div><div class="intro-title" id="intro-title"></div><div class="intro-details" id="intro-details"></div><div class="intro-progress"><span></span></div><button type="button" id="intro-skip">KALO</button></div></div>
+    <div class="subtitle-toolbar" id="subtitle-toolbar" aria-label="Kontrollet e titrave">
+      <button type="button" id="subtitle-load-button">Ngarko titra (.srt/.vtt)</button>
+      <button type="button" id="subtitle-toggle">CC ON</button>
+      <button type="button" id="subtitle-offset-minus" aria-label="Vono titrat">−0.5s</button>
+      <span id="subtitle-offset-value">0.0s</span>
+      <button type="button" id="subtitle-offset-plus" aria-label="Përshpejto titrat">+0.5s</button>
+      <span id="subtitle-status" role="status">Pa titra të ngarkuar</span>
+      <input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip" hidden>
+    </div>
+    <div id="external-subtitle-overlay" class="external-subtitle-overlay" aria-live="off"></div>
     <iframe id="cinesrc-frame" title="CineSRC player" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock" allow="autoplay; fullscreen; encrypted-media; picture-in-picture; orientation-lock" allowfullscreen tabindex="0" referrerpolicy="no-referrer"></iframe></section>
 
-  <script src="/app.js?v=20261105-streams"></script>
+  <script src="/app.js?v=20261109-external-subs"></script>
 </body>
 </html>
