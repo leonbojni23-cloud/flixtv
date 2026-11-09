@@ -1127,23 +1127,8 @@ function playSportsStream(stream,stage){
   const frame=document.createElement("iframe");frame.src=parsed.href;frame.title="Transmetim sportiv";frame.allow="autoplay; fullscreen; encrypted-media; picture-in-picture";frame.allowFullscreen=true;frame.loading="eager";frame.referrerPolicy="strict-origin-when-cross-origin";stage.append(frame);
  }
 }
-function showDaddyLive(){
- const grid=$("sports-grid");grid.replaceChildren();
- const head=document.createElement("div");head.className="sports-event-head";
- const heading=document.createElement("h2");heading.textContent="DaddyLive";
- const back=document.createElement("button");back.className="secondary-btn";back.type="button";back.textContent="← Kthehu te kanalet sportive";
- back.onclick=()=>{if(sportsCatalogs.length)loadSportsCatalog(sportsCatalogs[0]);else{$("sports-status").textContent="DaddyLive";grid.replaceChildren()}};
- head.append(heading,back);grid.append(head);
- const panel=document.createElement("section");panel.className="sports-player-panel";
- const stage=document.createElement("div");stage.className="sports-inline-stage";
- const frame=document.createElement("iframe");frame.src="https://thedaddy.li/cast/stream-51.php";
- frame.title="DaddyLive";frame.width="100%";frame.height="100%";
- frame.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-presentation");
- frame.setAttribute("allow","autoplay; fullscreen; encrypted-media; picture-in-picture");
- frame.allowFullscreen=true;frame.loading="eager";frame.referrerPolicy="strict-origin-when-cross-origin";
- stage.append(frame);panel.append(stage);grid.append(panel);
- $("sports-status").textContent="DaddyLive · LIVE";$("sports-empty").hidden=true;
-}
+function showDaddyLive(){window.location.assign("/daddylive")}
+
 async function loadSports(){
  const grid=$("sports-grid");grid.replaceChildren();
  const cats=$("sports-categories");cats.replaceChildren();

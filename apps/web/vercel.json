@@ -41,6 +41,10 @@
   ],
   "rewrites": [
     {
+      "source": "/daddylive",
+      "destination": "/daddylive.html"
+    },
+    {
       "source": "/:slug/:action(play)",
       "destination": "/index.html"
     },
