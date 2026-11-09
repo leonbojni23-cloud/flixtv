@@ -593,11 +593,23 @@ async function resolveTitleRoute(){
  const parts=decodeURIComponent(location.pathname).split("/").filter(Boolean);
  if(!parts.length){document.documentElement.classList.remove("deep-route-loading");$("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;home();return}
  const playMode=parts[1]==="play",slug=parts[0];
- const query=slug.replace(/-/g," ");
  try{
-  const data=await tmdb("/search/multi?query="+encodeURIComponent(query)+"&include_adult=false");
-  const candidates=(data.results||[]).filter(x=>x.media_type==="movie"||x.media_type==="tv");
-  const match=candidates.find(x=>titleSlug(title(x))===slug||titleSlug(x.original_title||x.original_name||"")===slug)||candidates.find(x=>slugSimilarity(titleSlug(title(x)),slug)>=0.68);
+  let match=null;
+  // Support direct TMDB-ID URLs as well as readable title slugs.
+  if(/^\d+$/.test(slug)){
+   const id=Number(slug);
+   for(const mediaType of ["movie","tv"]){
+    try{
+     const item=await tmdb("/"+mediaType+"/"+id);
+     if(item&&item.id&&item.success!==false){match={...item,media_type:mediaType};break}
+    }catch(_){}
+   }
+  }else{
+   const query=slug.replace(/-/g," ");
+   const data=await tmdb("/search/multi?query="+encodeURIComponent(query)+"&include_adult=false");
+   const candidates=(data.results||[]).filter(x=>x.media_type==="movie"||x.media_type==="tv");
+   match=candidates.find(x=>titleSlug(title(x))===slug||titleSlug(x.original_title||x.original_name||"")===slug)||candidates.find(x=>slugSimilarity(titleSlug(title(x)),slug)>=0.68);
+  }
   if(!match){$("title-page").hidden=true;$("catalog").hidden=true;$("hero").hidden=true;$("title-page").innerHTML='<div class="title-page-not-found"><span>404</span><h1>Titulli nuk u gjet</h1><p>Kontrollo adresën ose kërko titullin në FLIXTV.</p><a class="primary-btn" href="/">Kthehu në FLIXTV</a></div>'; $("title-page").hidden=false;return}
   titlePageSeason=1;titlePageEpisode=1;
   await openTitlePage(match,false,playMode);document.documentElement.classList.remove("deep-route-loading");
