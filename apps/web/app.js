@@ -828,6 +828,7 @@ async function playResolvedHls(masterUrl,resumeTime=0,fallbackUrl=null,isFallbac
   const video=$("resolved-video");
   if(!video)throw new Error("Elementi video mungon në FLIXTV.");
   if(!/^https:\/\//i.test(String(masterUrl||"")))throw new Error("URL e videos nuk është HTTPS.");
+
   video.hidden=false;
   video.controls=true;
   video.autoplay=true;
@@ -836,88 +837,92 @@ async function playResolvedHls(masterUrl,resumeTime=0,fallbackUrl=null,isFallbac
   video.preload="auto";
   video.poster=currentPlayback?.item?.backdrop_path
     ?IMG+"w1280"+currentPlayback.item.backdrop_path:"";
+
   const frame=$("cinesrc-frame");
   if(frame){frame.hidden=true;frame.src="about:blank"}
 
-  let fallbackStarted=false;
-  const startProxyFallback=(reason)=>{
-    if(isFallback||!fallbackUrl||fallbackStarted)return false;
-    fallbackStarted=true;
-    console.warn("[FLIXTV] Direct M3U8 rejected; retrying through the captured CineSRC session.",reason||"network error");
-    setPlayerStatus("Burimi direkt u refuzua. Po provohet lidhja rezervë…");
-    if(activeHlsPlayer){
-      try{activeHlsPlayer.destroy()}catch(_){}
-      activeHlsPlayer=null;
-    }
-    try{
-      video.pause();
-      video.removeAttribute("src");
-      video.load();
-    }catch(_){}
-    void playResolvedHls(fallbackUrl,resumeTime,null,true).catch(error=>{
-      console.error("[FLIXTV] Session fallback playback failed:",error);
-      setPlayerStatus(error.message||"Edhe lidhja rezervë dështoi.",true);
-    });
-    return true;
-  };
-
   video.addEventListener("playing",clearPlayerStatus,{once:true});
-  const onNativeError=()=>{
-    if(video.error&&startProxyFallback("native media error"))return;
-    if(video.error){
-      setPlayerStatus("Safari nuk mundi të lexojë manifestin ose segmentet e videos.",true);
-    }
-  };
-  video.addEventListener("error",onNativeError,{once:true});
 
+  // Prefer Media Source Extensions (HLS.js) on Chrome/Edge/Firefox.
+  // Recent Chromium versions may return "maybe" from canPlayType() for HLS
+  // without reliably playing this provider's manifests through native HLS.
+  let Hls=null;
+  try{
+    Hls=await ensureHlsLibrary();
+  }catch(error){
+    console.warn("[FLIXTV] HLS.js failed to load; checking native HLS fallback.",error);
+  }
+
+  if(Hls&&Hls.isSupported()){
+    setPlayerStatus("Po ngarkohet videoja…");
+    const hls=new Hls({
+      enableWorker:true,
+      lowLatencyMode:false,
+      backBufferLength:30,
+      maxBufferLength:20,
+      maxMaxBufferLength:30,
+      capLevelToPlayerSize:true,
+      startLevel:-1,
+      startFragPrefetch:true
+    });
+    activeHlsPlayer=hls;
+
+    hls.on(Hls.Events.MANIFEST_PARSED,(_event,data)=>{
+      if(activeHlsPlayer!==hls)return;
+      setPlayerQualityOptions(data.levels||hls.levels);
+      playVideoElement(video,resumeTime);
+    });
+
+    hls.on(Hls.Events.ERROR,(_event,data)=>{
+      if(activeHlsPlayer!==hls||!data)return;
+      console.warn("[FLIXTV] HLS request diagnostic",{
+        type:data.type,
+        details:data.details,
+        fatal:!!data.fatal,
+        url:data.url||data.context?.url||"",
+        status:data.response?.code||data.networkDetails?.status||0,
+        reason:data.reason||""
+      });
+      if(!data.fatal)return;
+
+      if(data.type===Hls.ErrorTypes.NETWORK_ERROR){
+        const status=Number(data.response?.code||data.networkDetails?.status||0);
+        const detail=String(data.details||"networkError");
+        const suffix=status?" (HTTP "+status+")":"";
+        setPlayerStatus("HLS nuk lexoi manifestin ose segmentin: "+detail+suffix+". Kontrollo kërkesën për CORS ose refuzim nga burimi.",true);
+        return;
+      }
+      if(data.type===Hls.ErrorTypes.MEDIA_ERROR){
+        try{hls.recoverMediaError();return}catch(_){}
+      }
+      setPlayerStatus("HLS dështoi: "+String(data.details||data.type||"gabim i panjohur"),true);
+    });
+
+    hls.attachMedia(video);
+    hls.loadSource(masterUrl);
+    return true;
+  }
+
+  // Native HLS is reserved for browsers without MSE, such as iOS Safari.
   if(video.canPlayType("application/vnd.apple.mpegurl")){
-    setPlayerStatus(isFallback?"Po provohet burimi rezervë…":"Po hapet videoja…");
+    setPlayerStatus("Po hapet videoja…");
+    const onNativeError=()=>{
+      const mediaError=video.error;
+      console.error("[FLIXTV] Native HLS playback failed",{
+        code:mediaError?.code||0,
+        message:mediaError?.message||"",
+        source:video.currentSrc||masterUrl
+      });
+      setPlayerStatus("Shfletuesi nuk mundi të lexojë manifestin ose segmentet HLS.",true);
+    };
+    video.addEventListener("error",onNativeError,{once:true});
     video.src=masterUrl;
     video.load();
     playVideoElement(video,resumeTime);
     return true;
   }
 
-  const Hls=await ensureHlsLibrary();
-  if(!Hls.isSupported()){
-    throw new Error("Kjo pajisje nuk mbështet HLS përmes videos HTML5.");
-  }
-
-  setPlayerStatus(isFallback?"Po provohet burimi rezervë…":"Po ngarkohet videoja…");
-  const hls=new Hls({
-    enableWorker:true,
-    lowLatencyMode:false,
-    backBufferLength:30,
-    maxBufferLength:20,
-    maxMaxBufferLength:30,
-    capLevelToPlayerSize:true,
-    startLevel:-1,
-    startFragPrefetch:true
-  });
-  activeHlsPlayer=hls;
-
-  hls.on(Hls.Events.MANIFEST_PARSED,(_event,data)=>{
-    if(activeHlsPlayer!==hls)return;
-    setPlayerQualityOptions(data.levels||hls.levels);
-    playVideoElement(video,resumeTime);
-  });
-  hls.on(Hls.Events.ERROR,(_event,data)=>{
-    if(activeHlsPlayer!==hls||!data?.fatal)return;
-    if(data.type===Hls.ErrorTypes.NETWORK_ERROR){
-      if(startProxyFallback(data.details||data.type))return;
-      setPlayerStatus(isFallback
-        ?"Burimi rezervë refuzoi manifestin ose segmentet. Kontrollo sesionin e burimit."
-        :"HLS nuk mundi të lexojë manifestin ose segmentet e videos.",true);
-      return;
-    }
-    if(data.type===Hls.ErrorTypes.MEDIA_ERROR){
-      try{hls.recoverMediaError();return}catch(_){}
-    }
-    setPlayerStatus("HLS dështoi: "+String(data.details||data.type||"gabim i panjohur"),true);
-  });
-  hls.loadSource(masterUrl);
-  hls.attachMedia(video);
-  return true;
+  throw new Error("Kjo pajisje nuk mbështet HLS përmes HLS.js ose videos HTML5.");
 }
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
   if(!item||!item.id)return null;
