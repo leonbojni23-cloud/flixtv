@@ -616,7 +616,6 @@ async function requestCineSrcM3U8(item,season,episode,button=null){
     const resolved={
       ...result,
       masterUrl:result.masterUrl,
-      proxyUrl:result.streamUrl?new URL(result.streamUrl,RESOLVER_API).href:null,
       apiBase:RESOLVER_API,
       requestedAt:new Date().toISOString()
     };
@@ -631,7 +630,6 @@ async function requestCineSrcM3U8(item,season,episode,button=null){
       playlistType:resolved.playlistType||"unknown",
       qualities:qualities.length?qualities:["HLS"],
       masterUrlAvailable:!!resolved.masterUrl,
-      sessionFallbackAvailable:!!resolved.proxyUrl,
       qualityCount:resolved.qualities?.length||0
     });
     return resolved;
@@ -829,13 +827,12 @@ function playVideoElement(video,resumeTime=0){
   if(video.readyState>=1)start();
   else video.addEventListener("loadedmetadata",start,{once:true});
 }
-async function playResolvedHls(masterUrl,resumeTime=0,proxyUrl=null,forceProxy=false,expectedPlaybackId=playbackOpenId){
+async function playResolvedHls(masterUrl,resumeTime=0,expectedPlaybackId=playbackOpenId){
   const video=$("resolved-video");
   if(!video)throw new Error("Elementi video mungon në FLIXTV.");
   if(!/^https:\/\//i.test(String(masterUrl||"")))throw new Error("URL e videos nuk është HTTPS.");
 
-  const usingProxy=!!(forceProxy&&proxyUrl);
-  const sourceUrl=usingProxy?proxyUrl:masterUrl;
+  const sourceUrl=masterUrl;
   video.hidden=false;
   video.controls=true;
   video.autoplay=true;
@@ -858,9 +855,9 @@ async function playResolvedHls(masterUrl,resumeTime=0,proxyUrl=null,forceProxy=f
   if(expectedPlaybackId!==playbackOpenId)return false;
 
   if(Hls&&Hls.isSupported()){
-    setPlayerStatus(usingProxy?"Po provohet lidhja rezervë e videos…":"Po lidhet direkt me M3U8…");
+    setPlayerStatus("Po lidhet direkt me M3U8…");
     console.info("[FLIXTV] HLS.js source selected",{
-      route:usingProxy?"same-origin fallback proxy":"direct M3U8",
+      route:"direct M3U8",
       sourceHost:(()=>{try{return new URL(sourceUrl).host}catch(_){return "invalid"}})()
     });
     const hls=new Hls({
@@ -898,26 +895,11 @@ async function playResolvedHls(masterUrl,resumeTime=0,proxyUrl=null,forceProxy=f
         const detail=String(data.details||"networkError");
         const suffix=status?" (HTTP "+status+")":"";
 
-        // Start with the resolver's exact M3U8 URL. Use the same-origin proxy
-        // only if cross-origin playlist/fragment requests are blocked by CORS.
-        if(!usingProxy&&proxyUrl){
-          console.warn("[FLIXTV] Direct M3U8 request failed; retrying through the session-aware proxy.",{
-            detail,status,url:data.url||data.context?.url||""
-          });
-          setPlayerStatus("CDN bllokoi lidhjen direkte. Po provohet lidhja rezervë…");
-          hls.destroy();
-          if(activeHlsPlayer===hls)activeHlsPlayer=null;
-          try{video.pause();video.removeAttribute("src");video.load()}catch(_){}
-          void playResolvedHls(masterUrl,resumeTime,proxyUrl,true,expectedPlaybackId).catch(error=>{
-            if(expectedPlaybackId===playbackOpenId){
-              console.error("[FLIXTV] Proxy fallback failed:",error);
-              setPlayerStatus(error.message||"Lidhja rezervë e videos dështoi.",true);
-            }
-          });
-          return;
-        }
-
-        setPlayerStatus("HLS nuk lexoi manifestin ose segmentin: "+detail+suffix+".",true);
+        setPlayerStatus(
+          "Lidhja direkte M3U8 dështoi: "+detail+suffix+
+          ". CDN duhet të lejojë CORS për playlist-in dhe segmentet.",
+          true
+        );
         return;
       }
       if(data.type===Hls.ErrorTypes.MEDIA_ERROR){
@@ -1013,14 +995,11 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
       mediaType:kind(item),
       playlistType:resolved.playlistType||"unknown",
       masterUrl:resolved.masterUrl,
-      proxyFallbackAvailable:!!resolved.proxyUrl
     });
 
     await playResolvedHls(
       resolved.masterUrl,
       resumeTime,
-      resolved.proxyUrl,
-      false,
       playbackId
     );
     if(playbackId!==playbackOpenId)return null;
@@ -1028,7 +1007,6 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
       provider:"cinesrc",
       format:"hls",
       masterUrl:resolved.masterUrl,
-      proxyFallbackAvailable:!!resolved.proxyUrl
     };
   }catch(error){
     if(playbackId===playbackOpenId){
