@@ -896,7 +896,8 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   playbackReturnToTitlePage=!$("title-page").hidden;
   $("title-page").hidden=true;
   $("player-modal").classList.remove("attention-active");
-  $("player-modal").classList.add("open","controls-visible");
+  enterCineSrcFullscreen();
+  $("player-modal").classList.add("controls-visible");
   $("player-modal").setAttribute("aria-hidden","false");
   document.body.classList.add("no-scroll");
   currentPlayback={item,season,episode};
