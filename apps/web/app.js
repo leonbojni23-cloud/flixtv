@@ -955,19 +955,22 @@ async function playResolvedHls(masterUrl,resumeTime=0,expectedPlaybackId=playbac
 
     hls.on(Hls.Events.ERROR,(_event,data)=>{
       if(activeHlsPlayer!==hls||!data||expectedPlaybackId!==playbackOpenId)return;
+      const diagnosticUrl=String(data.url||data.context?.url||data.frag?.url||data.frag?.relurl||data.part?.url||data.networkDetails?.responseURL||"");
       console.warn("[FLIXTV] HLS request diagnostic",{
         type:data.type,
         details:data.details,
         fatal:!!data.fatal,
-        url:data.url||data.context?.url||"",
+        url:diagnosticUrl,
         status:data.response?.code||data.networkDetails?.status||0,
-        reason:data.reason||""
+        reason:data.reason||"",
+        fragment:data.frag?{relurl:data.frag.relurl||"",baseurl:data.frag.baseurl||"",level:data.frag.level,sn:data.frag.sn}:null,
+        response:data.response?{code:data.response.code,text:data.response.text||""}:null
       });
       if(!data.fatal)return;
 
       if(data.type===Hls.ErrorTypes.NETWORK_ERROR){
         const status=Number(data.response?.code||data.networkDetails?.status||0);
-        const failedUrl=String(data.url||data.context?.url||data.networkDetails?.responseURL||"");
+        const failedUrl=String(data.url||data.context?.url||data.frag?.url||data.frag?.relurl||data.part?.url||data.networkDetails?.responseURL||"");
         const diagnostic={
           status,
           url:failedUrl,
@@ -1050,13 +1053,20 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   startProgressPolling();
   void autoLoadOpenSubtitles(item,season,episode);
 
-  let refreshedAfter404=false;
+  let refreshedAfterNetworkFailure=false;
   const handleFatalNetworkError=async diagnostic=>{
     if(playbackId!==playbackOpenId)return;
 
-    if(Number(diagnostic.status)===404&&!refreshedAfter404){
-      refreshedAfter404=true;
-      setPlayerStatus("Burimi i ruajtur ktheu 404. Po kërkohet automatikisht një URL e re…");
+    const status=Number(diagnostic.status)||0;
+    const details=String(diagnostic.details||"");
+    const looksLikeUnavailableResource=
+      status===404||status===0||
+      /fragLoadError|manifestLoadError|levelLoadError/i.test(details);
+
+    if(looksLikeUnavailableResource&&!refreshedAfterNetworkFailure){
+      refreshedAfterNetworkFailure=true;
+      setPlayerStatus("CDN nuk dha segmentin (HTTP "+(status||"i fshehur")+
+        "). Po kërkohet automatikisht një burim i ri…");
       try{
         localStorage.removeItem(cinesrcM3U8CacheKey(item,season,episode));
       }catch(_){}
@@ -1076,12 +1086,13 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
       return;
     }
 
-    const status=Number(diagnostic.status)||0;
     const reason=status===404
       ?"CDN vazhdon të kthejë HTTP 404 edhe pas marrjes së një M3U8 të ri."
       :status===403
         ?"CDN kthen HTTP 403 për burimin e videos."
-        :"Kërkesa HLS dështoi pas provës automatike.";
+        :status===0
+          ?"Chrome nuk ekspozoi statusin për shkak të CORS ose dështimit të rrjetit; burimi i ri dështoi gjithashtu."
+          :"Kërkesa HLS dështoi pas provës automatike.";
     const resource=diagnostic.url?" URL: "+diagnostic.url:"";
     console.error("[FLIXTV] Final HLS network failure:",diagnostic);
     setPlayerStatus(reason+" "+diagnostic.details+resource,true);
@@ -1104,7 +1115,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
       playlistType:resolved.playlistType||"unknown",
       sourceHost:directUrl.hostname,
       cached:!!resolved.cached,
-      refreshedAfter404
+      refreshedAfterNetworkFailure
     });
     $("player-modal").dataset.playerState="loading";
     return playResolvedHls(directUrl.href,latestPlaybackTime,playbackId,handleFatalNetworkError);
