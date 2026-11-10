@@ -824,7 +824,7 @@ function playVideoElement(video,resumeTime=0){
   if(video.readyState>=1)start();
   else video.addEventListener("loadedmetadata",start,{once:true});
 }
-async function playResolvedHls(masterUrl,resumeTime=0,fallbackUrl=null,isFallback=false){
+async function playResolvedHls(masterUrl,resumeTime=0,proxyUrl=null){
   const video=$("resolved-video");
   if(!video)throw new Error("Elementi video mungon në FLIXTV.");
   if(!/^https:\/\//i.test(String(masterUrl||"")))throw new Error("URL e videos nuk është HTTPS.");
@@ -854,7 +854,15 @@ async function playResolvedHls(masterUrl,resumeTime=0,fallbackUrl=null,isFallbac
   }
 
   if(Hls&&Hls.isSupported()){
-    setPlayerStatus("Po ngarkohet videoja…");
+    // HLS.js uses XHR/fetch for every fragment. Route those requests through
+    // the same-origin-aware CineSRC proxy because the CDN does not grant CORS
+    // access to FLIXTV. Native iOS HLS keeps the original URL below.
+    const hlsSource=proxyUrl||masterUrl;
+    setPlayerStatus(proxyUrl?"Po hapet burimi i videos…":"Po ngarkohet videoja…");
+    console.info("[FLIXTV] HLS.js source selected",{
+      route:proxyUrl?"CineSRC proxy":"direct",
+      sourceHost:(()=>{try{return new URL(hlsSource).host}catch(_){return "invalid"}})()
+    });
     const hls=new Hls({
       enableWorker:true,
       lowLatencyMode:false,
@@ -899,7 +907,7 @@ async function playResolvedHls(masterUrl,resumeTime=0,fallbackUrl=null,isFallbac
     });
 
     hls.attachMedia(video);
-    hls.loadSource(masterUrl);
+    hls.loadSource(hlsSource);
     return true;
   }
 
@@ -963,10 +971,13 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
 
   try{
     // Keep the original CineSRC HLS URLs. Proxy rewriting was breaking init.mp4 in Chromium.
-    await playResolvedHls(result.masterUrl,resumeTime,null);
-    console.info("[FLIXTV] Direct M3U8 playback started",{
+    const proxyUrl=result.streamUrl
+      ?new URL(result.streamUrl,RESOLVER_API).href:null;
+    await playResolvedHls(result.masterUrl,resumeTime,proxyUrl);
+    console.info("[FLIXTV] CineSRC HLS playback initialized",{
       title:title(item),
       playlistType:result.playlistType,
+      route:proxyUrl?"proxy for HLS.js; direct for native HLS":"direct",
       qualities:(result.qualities||[]).map(level=>level.label)
     });
     return result;
