@@ -642,14 +642,15 @@ function showCineSrcResolutionStatus(payload,errorMessage=""){
   const labels=(payload?.qualities||[]).map(item=>item.label||((item.height||"")+"p")).filter(Boolean);
   status.textContent="Burimi M3U8 u gjet"+(labels.length?" · "+labels.join(" · "):" · HLS");
 }
-async function requestCineSrcM3U8(item,season,episode,button=null){
+async function requestCineSrcM3U8(item,season,episode,button=null,forceRefresh=false){
   if(!item||!item.id)return null;
   const requestId=++cinesrcResolveRequestId;
 
   // Reuse the exact generated playlist URL for four hours. The key includes
   // movie ID, or series ID + season + episode, so a different title/episode
   // cannot accidentally inherit another stream URL.
-  const cached=readCineSrcM3U8Cache(item,season,episode);
+  const cached=forceRefresh?null:readCineSrcM3U8Cache(item,season,episode);
+  if(forceRefresh)console.warn("[FLIXTV] Forcing a fresh CineSRC resolver request after a failed HLS resource.");
   if(cached){
     lastCineSrcResolveError="";
     window.__FLIXTV_LAST_RESOLVED_STREAM__=cached;
@@ -668,6 +669,8 @@ async function requestCineSrcM3U8(item,season,episode,button=null){
   if(label)label.textContent="Po kërkohet M3U8…";
   try{
     const params=new URLSearchParams({id:String(item.id),type:kind(item)});
+    // Use a unique cache key when retrying a broken cached stream URL.
+    if(forceRefresh)params.set("_fresh",String(Date.now()));
     if(kind(item)==="tv"){
       params.set("season",String(Number(season||1)));
       params.set("episode",String(Number(episode||1)));
@@ -899,7 +902,7 @@ function playVideoElement(video,resumeTime=0){
   if(video.readyState>=1)start();
   else video.addEventListener("loadedmetadata",start,{once:true});
 }
-async function playResolvedHls(masterUrl,resumeTime=0,expectedPlaybackId=playbackOpenId){
+async function playResolvedHls(masterUrl,resumeTime=0,expectedPlaybackId=playbackOpenId,onFatalNetworkError=null){
   const video=$("resolved-video");
   if(!video)throw new Error("Elementi video mungon në FLIXTV.");
   if(!/^https:\/\//i.test(String(masterUrl||"")))throw new Error("URL e videos nuk është HTTPS.");
@@ -964,14 +967,25 @@ async function playResolvedHls(masterUrl,resumeTime=0,expectedPlaybackId=playbac
 
       if(data.type===Hls.ErrorTypes.NETWORK_ERROR){
         const status=Number(data.response?.code||data.networkDetails?.status||0);
-        const detail=String(data.details||"networkError");
-        const suffix=status?" (HTTP "+status+")":"";
+        const failedUrl=String(data.url||data.context?.url||data.networkDetails?.responseURL||"");
+        const diagnostic={
+          status,
+          url:failedUrl,
+          details:String(data.details||"networkError"),
+          reason:String(data.reason||"")
+        };
+        if(typeof onFatalNetworkError==="function"){
+          onFatalNetworkError(diagnostic);
+          return;
+        }
 
-        setPlayerStatus(
-          "Lidhja direkte M3U8 dështoi: "+detail+suffix+
-          ". CDN duhet të lejojë CORS për playlist-in dhe segmentet.",
-          true
-        );
+        const detail=status===404
+          ?"CDN kthen HTTP 404: segmenti nuk u gjet."
+          :status===403
+            ?"CDN kthen HTTP 403: burimi nuk u lejua."
+            :"Kërkesa HLS dështoi. Mund të jetë problem rrjeti, CORS ose burimi.";
+        const resource=failedUrl?(" Burimi: "+failedUrl):"";
+        setPlayerStatus(detail+" "+String(data.details||"")+resource,true);
         return;
       }
       if(data.type===Hls.ErrorTypes.MEDIA_ERROR){
@@ -1015,15 +1029,66 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   $("content-intro").setAttribute("aria-hidden","true");
   $("details-modal").classList.remove("open");
 
-  // Resolve the provider URL, then navigate this tab to the exact M3U8 URL.
-  // There is intentionally no embedded player, HLS.js, iframe or proxy path.
-  try{
-    const resolved=await requestCineSrcM3U8(item,season,episode,button);
-    if(playbackId!==playbackOpenId)return null;
-    if(!resolved||!resolved.masterUrl){
-      throw new Error(lastCineSrcResolveError||"Resolver-i nuk ktheu URL-në M3U8.");
+  playbackReturnToTitlePage=!$("title-page").hidden;
+  currentPlayback={
+    item,
+    season:kind(item)==="tv"?Number(season||1):null,
+    episode:kind(item)==="tv"?Number(episode||1):null
+  };
+  activePlayerProvider="cinesrc-m3u8";
+  latestPlaybackTime=Math.max(0,Number(resumeTime)||0);
+  latestPlaybackDuration=0;
+  lastProgressWrite=0;
+
+  stopResolvedVideo();
+  clearExternalSubtitles();
+  const frame=$("cinesrc-frame");
+  if(frame){frame.hidden=true;frame.src="about:blank"}
+  modal("player-modal",true);
+  $("player-modal").dataset.playerState="resolving";
+  setPlayerStatus("Po kërkohet burimi direkt M3U8…");
+  startProgressPolling();
+  void autoLoadOpenSubtitles(item,season,episode);
+
+  let refreshedAfter404=false;
+  const handleFatalNetworkError=async diagnostic=>{
+    if(playbackId!==playbackOpenId)return;
+
+    if(Number(diagnostic.status)===404&&!refreshedAfter404){
+      refreshedAfter404=true;
+      setPlayerStatus("Burimi i ruajtur ktheu 404. Po kërkohet automatikisht një URL e re…");
+      try{
+        localStorage.removeItem(cinesrcM3U8CacheKey(item,season,episode));
+      }catch(_){}
+      stopResolvedVideo();
+
+      try{
+        const fresh=await requestCineSrcM3U8(item,season,episode,null,true);
+        if(playbackId!==playbackOpenId)return;
+        if(!fresh||!fresh.masterUrl)throw new Error(lastCineSrcResolveError||"Resolver-i nuk dha një burim të ri.");
+        await startResolvedStream(fresh);
+      }catch(error){
+        if(playbackId===playbackOpenId){
+          console.error("[FLIXTV] Fresh M3U8 retry failed:",error);
+          setPlayerStatus("Edhe burimi i ri dështoi: "+(error.message||"gabim i panjohur"),true);
+        }
+      }
+      return;
     }
 
+    const status=Number(diagnostic.status)||0;
+    const reason=status===404
+      ?"CDN vazhdon të kthejë HTTP 404 edhe pas marrjes së një M3U8 të ri."
+      :status===403
+        ?"CDN kthen HTTP 403 për burimin e videos."
+        :"Kërkesa HLS dështoi pas provës automatike.";
+    const resource=diagnostic.url?" URL: "+diagnostic.url:"";
+    console.error("[FLIXTV] Final HLS network failure:",diagnostic);
+    setPlayerStatus(reason+" "+diagnostic.details+resource,true);
+  };
+
+  const startResolvedStream=async resolved=>{
+    if(playbackId!==playbackOpenId)return false;
     const directUrl=new URL(resolved.masterUrl);
     const allowedHost=directUrl.hostname==="bright67.online"||
       directUrl.hostname.endsWith(".bright67.online")||
@@ -1033,20 +1098,31 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
       throw new Error("Resolver-i ktheu një adresë M3U8 që nuk lejohet.");
     }
 
-    console.info("[FLIXTV] Navigating directly to resolved M3U8",{
+    console.info("[FLIXTV] Starting in-app HLS playback",{
       title:title(item),
       mediaType:kind(item),
       playlistType:resolved.playlistType||"unknown",
-      destination:directUrl.href
+      sourceHost:directUrl.hostname,
+      cached:!!resolved.cached,
+      refreshedAfter404
     });
+    $("player-modal").dataset.playerState="loading";
+    return playResolvedHls(directUrl.href,latestPlaybackTime,playbackId,handleFatalNetworkError);
+  };
 
-    window.location.assign(directUrl.href);
-    return {provider:"cinesrc",format:"hls",masterUrl:directUrl.href};
+  try{
+    const resolved=await requestCineSrcM3U8(item,season,episode,button);
+    if(playbackId!==playbackOpenId)return null;
+    if(!resolved||!resolved.masterUrl){
+      throw new Error(lastCineSrcResolveError||"Resolver-i nuk ktheu URL-në M3U8.");
+    }
+    await startResolvedStream(resolved);
+    return {provider:"cinesrc",format:"hls",masterUrl:resolved.masterUrl};
   }catch(error){
     if(playbackId===playbackOpenId){
-      console.error("[FLIXTV] Direct M3U8 navigation failed:",error);
+      console.error("[FLIXTV] In-app direct HLS playback failed:",error);
+      setPlayerStatus(error.message||"Nuk u gjet adresa M3U8.",true);
       showCineSrcResolutionStatus(null,error.message||"Nuk u gjet adresa M3U8.");
-      notice(error.message||"Nuk u gjet adresa M3U8.");
     }
     return null;
   }
