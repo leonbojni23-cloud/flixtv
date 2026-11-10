@@ -1859,3 +1859,62 @@ html.deep-route-loading::after{
   .player-quality-select{min-width:70px;padding:8px 25px 8px 10px;font-size:11px}
   .player-loading-status{font-size:13px;padding:11px 14px}
 }
+
+
+/* Minimal mobile player chrome */
+.player-modal .subtitle-toolbar{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+.player-modal .player-actions{
+  top:calc(env(safe-area-inset-top) + 18px)!important;
+  left:18px!important;
+  gap:10px!important;
+}
+.player-modal .player-close{
+  position:static!important;
+  display:grid!important;
+  place-items:center!important;
+  width:44px!important;
+  height:44px!important;
+  min-width:44px!important;
+  padding:0!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  border-radius:50%!important;
+  background:rgba(12,15,22,.52)!important;
+  box-shadow:0 4px 18px rgba(0,0,0,.22)!important;
+  color:#fff!important;
+  backdrop-filter:blur(16px)!important;
+  -webkit-backdrop-filter:blur(16px)!important;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease!important;
+}
+.player-modal .player-close::before{
+  content:""!important;
+  width:23px!important;
+  height:23px!important;
+  flex:0 0 23px!important;
+  background:currentColor!important;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 12H5m7 7-7-7 7-7' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat!important;
+}
+.player-modal .player-close:hover{
+  background:rgba(35,40,52,.76)!important;
+  border-color:rgba(255,255,255,.28)!important;
+}
+.player-modal .player-close:active{transform:scale(.94)!important}
+@media(max-width:760px){
+  .player-modal .player-actions{
+    top:calc(env(safe-area-inset-top) + 16px)!important;
+    left:16px!important;
+  }
+  .player-modal .player-close{
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+  }
+  .player-modal .player-close::before{
+    width:22px!important;
+    height:22px!important;
+    flex-basis:22px!important;
+  }
+}
