@@ -1,5 +1,6 @@
 (() => {
 "use strict";
+const RESOLVER_API="https://flixtv-api.vercel.app";
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
@@ -572,19 +573,84 @@ function stopTitlePagePreview(){
   youtubeHost.getYTPlayer().then(stopYoutube).catch(()=>{});
  }
 }
-function startTitlePlayback(season,episode,resumeTime=null){
- if(!titlePageItem)return;
- stopTitlePagePreview();
- const saved=getSavedProgress(titlePageItem);
- const startAt=Number(resumeTime)>0?Number(resumeTime):(saved&&kind(titlePageItem)==="tv"&&Number(saved.season)===Number(season||1)&&Number(saved.episode)===Number(episode||1)?Number(saved.currentTime):kind(titlePageItem)==="movie"&&saved?Number(saved.currentTime):0);
- clearExternalSubtitles();
- latestPlaybackTime=startAt;latestPlaybackDuration=saved&&startAt===Number(saved.currentTime)?Number(saved.duration)||0:0;lastProgressWrite=0;
- playbackReturnToTitlePage=!$("title-page").hidden;
- $("title-page").hidden=true;$("player-modal").classList.add("open");$("player-modal").setAttribute("aria-hidden","false");enterCineSrcFullscreen();
- document.body.classList.add("no-scroll");currentPlayback={item:titlePageItem,season,episode};
- startPlaybackWithFallback(titlePageItem,season,episode).then(()=>{if(startAt>5){latestPlaybackTime=startAt}});
- autoLoadOpenSubtitles(titlePageItem,season,episode);
- startProgressPolling();
+let cinesrcResolveRequestId=0;
+function showCineSrcResolutionStatus(payload,errorMessage=""){
+  const actions=$("title-page-actions");
+  if(!actions)return;
+  let status=$("cinesrc-resolver-status");
+  if(!status){
+    status=document.createElement("div");
+    status.id="cinesrc-resolver-status";
+    status.style.cssText="margin-top:12px;color:#b8c6d8;font-size:13px;line-height:1.5;max-width:640px;overflow-wrap:anywhere";
+    actions.after(status);
+  }
+  if(errorMessage){status.textContent=errorMessage;return}
+  const labels=(payload?.qualities||[]).map(item=>item.label||((item.height||"")+"p")).filter(Boolean);
+  status.textContent="Burimi M3U8 u gjet"+(labels.length?" · "+labels.join(" · "):" · HLS");
+}
+async function requestCineSrcM3U8(item,season,episode,button=null){
+  if(!item||!item.id)return null;
+  const requestId=++cinesrcResolveRequestId;
+  const label=button?.querySelector("span");
+  const previousLabel=label?.textContent;
+  if(button){button.disabled=true;button.setAttribute("aria-busy","true")}
+  if(label)label.textContent="Po kërkohet M3U8…";
+  try{
+    const params=new URLSearchParams({id:String(item.id),type:kind(item)});
+    if(kind(item)==="tv"){
+      params.set("season",String(Number(season||1)));
+      params.set("episode",String(Number(episode||1)));
+    }
+    const response=await fetch(RESOLVER_API+"/api/stream?"+params.toString(),{
+      method:"GET",
+      headers:{Accept:"application/json"},
+      cache:"no-store"
+    });
+    const result=await response.json().catch(()=>null);
+    if(!response.ok||!result||!result.success){
+      throw new Error(result?.error||"Resolver-i në Vercel nuk arriti të gjejë M3U8.");
+    }
+    if(!result.masterUrl)throw new Error("Resolver-i nuk ktheu adresën M3U8.");
+    const resolved={
+      ...result,
+      masterUrl:result.masterUrl,
+      proxyUrl:result.streamUrl?new URL(result.streamUrl,RESOLVER_API).href:null,
+      apiBase:RESOLVER_API,
+      requestedAt:new Date().toISOString()
+    };
+    if(requestId!==cinesrcResolveRequestId)return resolved;
+    window.__FLIXTV_LAST_RESOLVED_STREAM__=resolved;
+    showCineSrcResolutionStatus(resolved);
+    const qualities=(resolved.qualities||[]).map(item=>item.label||((item.height||"")+"p")).filter(Boolean);
+    notice("M3U8 u gjet"+(qualities.length?": "+qualities.join(" / "):"."));
+    console.info("[FLIXTV] CineSRC resolver completed",{
+      title:title(item),
+      type:kind(item),
+      playlistType:resolved.playlistType||"unknown",
+      qualities:qualities.length?qualities:["HLS"],
+      masterUrlAvailable:!!resolved.masterUrl,
+      proxyUrlAvailable:!!resolved.proxyUrl
+    });
+    return resolved;
+  }catch(error){
+    if(requestId===cinesrcResolveRequestId){
+      showCineSrcResolutionStatus(null,error.message||"Kërkesa për M3U8 dështoi.");
+      notice(error.message||"Resolver-i nuk u përgjigj.");
+      console.error("[FLIXTV] CineSRC resolver failed:",error);
+    }
+    return null;
+  }finally{
+    if(button){
+      button.disabled=false;
+      button.removeAttribute("aria-busy");
+      if(label&&previousLabel)label.textContent=previousLabel;
+    }
+  }
+}
+function startTitlePlayback(season,episode){
+  if(!titlePageItem)return;
+  stopTitlePagePreview();
+  return requestCineSrcM3U8(titlePageItem,season,episode,$("title-play"));
 }
 function slugSimilarity(a,b){
  const rows=Array.from({length:b.length+1},(_,i)=>i);
@@ -710,23 +776,8 @@ function startPlayback(item,season,episode){
 }
 // Playback uses CineSRC's original embed directly, without a scraper or HLS proxy.
 function play(item,season,episode){
- if(!item||!item.id)return;
- clearTimeout(introTimer);
- $("content-intro").classList.remove("show");
- $("content-intro").setAttribute("aria-hidden","true");
- $("player-modal").classList.remove("attention-active");
- $("player-modal").classList.add("open","controls-visible");
- enterCineSrcFullscreen();
- $("player-modal").setAttribute("aria-hidden","false");
- $("details-modal").classList.remove("open");
- document.body.classList.add("no-scroll");
- currentPlayback={item,season,episode};
- clearExternalSubtitles();
- latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
- const frame=$("cinesrc-frame");if(frame){frame.hidden=true;frame.removeAttribute("src")}
- startPlaybackWithFallback(item,season,episode);
- startProgressPolling();
- clearTimeout(controlsTimer);
+  if(!item||!item.id)return;
+  return requestCineSrcM3U8(item,season,episode,null);
 }
 function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 
