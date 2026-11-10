@@ -19,6 +19,8 @@
   <meta name="description" content="FLIXTV movies and TV shows">
   <title>FLIXTV</title>
   <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
   <script>if(location.pathname!=="/"&&location.pathname!=="/index.html")document.documentElement.classList.add("deep-route-loading");</script>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.css">
@@ -124,7 +126,13 @@
   </section>
 
   <section class="player-modal" id="player-modal" aria-hidden="true">
-    <div class="player-actions"><div class="player-provider-switch" aria-label="Serveri aktiv"></div></div>
+    <div class="player-actions">
+      <button type="button" class="player-close" id="player-close" aria-label="Mbyll videon">Mbyll</button>
+      <select id="player-quality-select" class="player-quality-select" aria-label="Cilësia e videos" hidden>
+        <option value="-1">Auto</option>
+      </select>
+    </div>
+    <div class="player-loading-status" id="player-loading-status" role="status" aria-live="polite" hidden>Po kërkohet burimi i videos…</div>
     <div class="content-intro" id="content-intro" aria-hidden="true"><div class="intro-copy"><div class="intro-kicker">FLIXTV · INFORMACION I PËRMBAJTJES</div><div class="intro-rating" id="intro-rating"></div><div class="intro-title" id="intro-title"></div><div class="intro-details" id="intro-details"></div><div class="intro-progress"><span></span></div><button type="button" id="intro-skip">KALO</button></div></div>
     <div class="subtitle-toolbar" id="subtitle-toolbar" aria-label="Kontrollet e titrave">
       <button type="button" id="subtitle-load-button">Ngarko titra (.srt/.vtt)</button>
@@ -136,8 +144,10 @@
       <input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip" hidden>
     </div>
     <div id="external-subtitle-overlay" class="external-subtitle-overlay" aria-live="off"></div>
-    <iframe id="cinesrc-frame" title="CineSRC player" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock" allow="autoplay; fullscreen; encrypted-media; picture-in-picture; orientation-lock" allowfullscreen tabindex="0" referrerpolicy="no-referrer"></iframe></section>
+    <video id="resolved-video" controls playsinline webkit-playsinline preload="none" hidden></video>
+    <iframe id="cinesrc-frame" title="CineSRC player" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock" allow="autoplay; fullscreen; encrypted-media; picture-in-picture; orientation-lock" allowfullscreen tabindex="0" referrerpolicy="no-referrer" hidden></iframe>
+  </section>
 
-  <script src="/app.js?v=20261109-external-subs"></script>
+  <script src="/app.js?v=20261110-direct-master-hls"></script>
 </body>
 </html>
