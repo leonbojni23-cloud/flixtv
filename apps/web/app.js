@@ -714,6 +714,7 @@ async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"
 let activePlayerProvider="cinesrc";
 let currentPlayback=null;
 let playbackReturnToTitlePage=false;
+let playbackOpenId=0;
 let activeHlsPlayer=null;
 let activeSubtitleTrack=null;
 let activeSubtitleTrackUrl=null;
@@ -887,6 +888,7 @@ async function playResolvedHls(masterUrl,resumeTime=0){
 }
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
   if(!item||!item.id)return null;
+  const playbackId=++playbackOpenId;
   clearTimeout(introTimer);
   $("content-intro").classList.remove("show");
   $("content-intro").setAttribute("aria-hidden","true");
@@ -914,6 +916,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   void autoLoadOpenSubtitles(item,season,episode);
 
   const result=await requestCineSrcM3U8(item,season,episode,button);
+  if(playbackId!==playbackOpenId||!$("player-modal").classList.contains("open"))return null;
   if(!result||!result.masterUrl){
     setPlayerStatus("Nuk u gjet burimi i videos. Provo përsëri.",true);
     return null;
@@ -942,7 +945,7 @@ function play(item,season,episode){
   const resume=sameEpisode?Number(saved?.currentTime)||0:0;
   return openResolvedPlayback(item,season,episode,null,resume);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 
 /* FLIXTV external subtitle engine.
    Captions are rendered in the parent document and synchronized to CineSRC
