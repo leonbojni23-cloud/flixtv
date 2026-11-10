@@ -957,7 +957,8 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   }
 
   try{
-    await playResolvedHls(result.masterUrl,resumeTime,result.proxyUrl||null);
+    // Keep the original CineSRC HLS URLs. Proxy rewriting was breaking init.mp4 in Chromium.
+    await playResolvedHls(result.masterUrl,resumeTime,null);
     console.info("[FLIXTV] Direct M3U8 playback started",{
       title:title(item),
       playlistType:result.playlistType,
