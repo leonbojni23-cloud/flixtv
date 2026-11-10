@@ -970,15 +970,71 @@ function parseExternalSubtitles(raw){
  return cues.sort((x,y)=>x.start-y.start);
 }
 function renderExternalSubtitle(time){
- const host=$("external-subtitle-overlay");if(!host||!externalSubtitleEnabled||!externalSubtitleCues.length){if(host)host.textContent="";return}
+ const host=$("external-subtitle-overlay");
+ if(activeSubtitleTrack){if(host)host.textContent="";return}
+ if(!host||!externalSubtitleEnabled||!externalSubtitleCues.length){if(host)host.textContent="";return}
  const t=Math.max(0,Number(time)||0)+externalSubtitleOffset;
  let lo=0,hi=externalSubtitleCues.length-1,found=-1;
  while(lo<=hi){const mid=(lo+hi)>>1,cue=externalSubtitleCues[mid];if(t<cue.start)hi=mid-1;else if(t>=cue.end)lo=mid+1;else{found=mid;break}}
  if(found===lastSubtitleIndex)return;
  lastSubtitleIndex=found;host.textContent=found>=0?externalSubtitleCues[found].text:"";
 }
+function removeNativeSubtitleTrack(){
+ if(activeSubtitleTrack){
+  try{activeSubtitleTrack.remove()}catch(_){}
+  activeSubtitleTrack=null;
+ }
+ if(activeSubtitleTrackUrl){
+  try{URL.revokeObjectURL(activeSubtitleTrackUrl)}catch(_){}
+  activeSubtitleTrackUrl=null;
+ }
+}
+function formatVttTimestamp(seconds){
+ const ms=Math.max(0,Math.round(Number(seconds||0)*1000));
+ const hours=Math.floor(ms/3600000);
+ const minutes=Math.floor((ms%3600000)/60000);
+ const wholeSeconds=Math.floor((ms%60000)/1000);
+ const milli=ms%1000;
+ return String(hours).padStart(2,"0")+":"+
+  String(minutes).padStart(2,"0")+":"+
+  String(wholeSeconds).padStart(2,"0")+"."+
+  String(milli).padStart(3,"0");
+}
+function cuesToWebVtt(cues){
+ const blocks=(cues||[]).map((cue,index)=>{
+  const start=Math.max(0,Number(cue.start)+externalSubtitleOffset);
+  const end=Math.max(start+0.05,Number(cue.end)+externalSubtitleOffset);
+  return (index+1)+"\n"+formatVttTimestamp(start)+" --> "+
+   formatVttTimestamp(end)+"\n"+String(cue.text||"").replace(/\r/g,"");
+ });
+ return "WEBVTT\n\n"+blocks.join("\n\n")+"\n";
+}
+function attachNativeSubtitleTrack(cues,label="Titra",language="sq"){
+ const video=$("resolved-video");
+ if(!video||!Array.isArray(cues)||!cues.length)return false;
+ removeNativeSubtitleTrack();
+ const blob=new Blob([cuesToWebVtt(cues)],{type:"text/vtt;charset=utf-8"});
+ activeSubtitleTrackUrl=URL.createObjectURL(blob);
+ const track=document.createElement("track");
+ track.kind="subtitles";
+ track.label=label;
+ track.srclang=language||"sq";
+ track.default=true;
+ track.dataset.flxtvSubtitle="true";
+ track.src=activeSubtitleTrackUrl;
+ activeSubtitleTrack=track;
+ const activate=()=>{
+  try{if(track.track)track.track.mode=externalSubtitleEnabled?"showing":"disabled"}catch(_){}
+ };
+ track.addEventListener("load",activate,{once:true});
+ video.addEventListener("loadedmetadata",activate,{once:true});
+ video.append(track);
+ activate();
+ return true;
+}
 function clearExternalSubtitles(){
  externalSubtitleCues=[];lastSubtitleIndex=-1;externalSubtitleOffset=0;
+ removeNativeSubtitleTrack();
  const host=$("external-subtitle-overlay");if(host)host.textContent="";
  const status=$("subtitle-status");if(status)status.textContent="Pa titra të ngarkuar";
 }
@@ -989,6 +1045,9 @@ async function loadExternalSubtitleFile(file){
   const raw=await file.text(),cues=parseExternalSubtitles(raw);
   if(!cues.length)throw new Error("Nuk u gjetën titra të vlefshëm. Përdor formatin SRT ose VTT.");
   externalSubtitleCues=cues;externalSubtitleOffset=0;lastSubtitleIndex=-1;externalSubtitleEnabled=true;
+  activeSubtitleLabel=file.name||"Titra";
+  activeSubtitleLanguage="sq";
+  attachNativeSubtitleTrack(cues,activeSubtitleLabel,activeSubtitleLanguage);
   $("subtitle-status").textContent="Titra aktivë · "+cues.length+" rreshta";
   $("subtitle-toggle").textContent="CC ON";
   renderExternalSubtitle(latestPlaybackTime);
@@ -1023,7 +1082,11 @@ async function autoLoadOpenSubtitles(item,season,episode){
   if(!cues.length)throw new Error("Skedari i shkarkuar nuk përmban SRT/VTT të lexueshëm.");
   externalSubtitleCues=cues;externalSubtitleOffset=0;lastSubtitleIndex=-1;externalSubtitleEnabled=true;
   $("subtitle-offset-value").textContent="0.0s";$("subtitle-toggle").textContent="CC ON";
-  const language=String(chosen.attributes?.language||"").toLowerCase().startsWith("sq")?"Shqip":"Anglisht";
+  const languageCode=String(chosen.attributes?.language||"en").toLowerCase().startsWith("sq")?"sq":"en";
+  const language=languageCode==="sq"?"Shqip":"Anglisht";
+  activeSubtitleLabel="OpenSubtitles · "+language;
+  activeSubtitleLanguage=languageCode;
+  attachNativeSubtitleTrack(cues,activeSubtitleLabel,activeSubtitleLanguage);
   status.textContent="OpenSubtitles · "+language+" · "+cues.length+" rreshta";
   renderExternalSubtitle(latestPlaybackTime);
  }catch(error){
@@ -1035,6 +1098,7 @@ async function autoLoadOpenSubtitles(item,season,episode){
 function updateSubtitleOffset(delta){
  externalSubtitleOffset=Math.max(-30,Math.min(30,externalSubtitleOffset+delta));
  $("subtitle-offset-value").textContent=(externalSubtitleOffset>0?"+":"")+externalSubtitleOffset.toFixed(1)+"s";
+ if(activeSubtitleTrack)attachNativeSubtitleTrack(externalSubtitleCues,activeSubtitleLabel,activeSubtitleLanguage);
  lastSubtitleIndex=-1;renderExternalSubtitle(latestPlaybackTime);
 }
 
@@ -1113,7 +1177,14 @@ if(subtitleFileInput)subtitleFileInput.addEventListener("change",event=>{loadExt
 const subtitleLoadButton=$("subtitle-load-button");
 if(subtitleLoadButton)subtitleLoadButton.addEventListener("click",()=>subtitleFileInput&&subtitleFileInput.click());
 const subtitleToggle=$("subtitle-toggle");
-if(subtitleToggle)subtitleToggle.addEventListener("click",()=>{externalSubtitleEnabled=!externalSubtitleEnabled;subtitleToggle.textContent=externalSubtitleEnabled?"CC ON":"CC OFF";lastSubtitleIndex=-1;renderExternalSubtitle(latestPlaybackTime)});
+if(subtitleToggle)subtitleToggle.addEventListener("click",()=>{
+ externalSubtitleEnabled=!externalSubtitleEnabled;
+ subtitleToggle.textContent=externalSubtitleEnabled?"CC ON":"CC OFF";
+ if(activeSubtitleTrack&&activeSubtitleTrack.track){
+  try{activeSubtitleTrack.track.mode=externalSubtitleEnabled?"showing":"disabled"}catch(_){}
+ }
+ lastSubtitleIndex=-1;renderExternalSubtitle(latestPlaybackTime);
+});
 const subtitleMinus=$("subtitle-offset-minus"),subtitlePlus=$("subtitle-offset-plus");
 if(subtitleMinus)subtitleMinus.addEventListener("click",()=>updateSubtitleOffset(-0.5));
 if(subtitlePlus)subtitlePlus.addEventListener("click",()=>updateSubtitleOffset(0.5));
