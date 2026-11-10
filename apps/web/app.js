@@ -330,12 +330,6 @@ function startProgressPolling(){
   }
  },4000);
 }
-function sendCineSrcCommand(command,args=[]){
- const frame=$("cinesrc-frame");
- if(!frame||!frame.contentWindow)return;
- try{frame.contentWindow.postMessage({type:"cinesrc:command",command,args},"https://cinesrc.st")}catch(_){}
-}
-
 async function home(){
  renderContinueWatching();
  $("catalog").hidden=false;
@@ -791,7 +785,6 @@ const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",9
 function ageLabel(cert){const c=String(cert||"").trim().toUpperCase();const map={"G":"Për të gjitha moshat","TV-G":"Për të gjitha moshat","TV-Y":"Për fëmijë","TV-Y7":"Për fëmijë mbi 7 vjeç","PG":"Nën mbikëqyrjen e prindërve","TV-PG":"Nën mbikëqyrjen e prindërve","PG-13":"13+","TV-14":"14+","R":"17+","TV-MA":"18+","NC-17":"18+","18":"18+","16":"16+","15":"15+","12":"12+","U":"Për të gjitha moshat"};return map[c]||c||"Pa klasifikim moshe";}
 async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+(k==="tv"?"/content_ratings":"/release_dates"));if(k==="tv"){const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");return (rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0]||{}).rating||""}const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");const country=rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0];return country&&country.release_dates&&((country.release_dates.find(x=>x.certification)||{}).certification)||""}catch(_){return""}}
 
-let activePlayerProvider="cinesrc";
 let currentPlayback=null;
 let playbackReturnToTitlePage=false;
 let playbackOpenId=0;
@@ -917,8 +910,6 @@ async function playResolvedHls(masterUrl,resumeTime=0,expectedPlaybackId=playbac
   video.poster=currentPlayback?.item?.backdrop_path
     ?IMG+"w1280"+currentPlayback.item.backdrop_path:"";
 
-  const frame=$("cinesrc-frame");
-  if(frame){frame.hidden=true;frame.src="about:blank"}
   video.addEventListener("playing",clearPlayerStatus,{once:true});
 
   let Hls=null;
@@ -943,7 +934,13 @@ async function playResolvedHls(masterUrl,resumeTime=0,expectedPlaybackId=playbac
       maxMaxBufferLength:30,
       capLevelToPlayerSize:true,
       startLevel:-1,
-      startFragPrefetch:true
+      startFragPrefetch:true,
+      manifestLoadingMaxRetry:1,
+      levelLoadingMaxRetry:1,
+      fragLoadingMaxRetry:1,
+      manifestLoadingRetryDelay:500,
+      levelLoadingRetryDelay:500,
+      fragLoadingRetryDelay:500
     });
     activeHlsPlayer=hls;
 
@@ -1038,15 +1035,12 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
     season:kind(item)==="tv"?Number(season||1):null,
     episode:kind(item)==="tv"?Number(episode||1):null
   };
-  activePlayerProvider="cinesrc-m3u8";
   latestPlaybackTime=Math.max(0,Number(resumeTime)||0);
   latestPlaybackDuration=0;
   lastProgressWrite=0;
 
   stopResolvedVideo();
   clearExternalSubtitles();
-  const frame=$("cinesrc-frame");
-  if(frame){frame.hidden=true;frame.src="about:blank"}
   modal("player-modal",true);
   $("player-modal").dataset.playerState="resolving";
   setPlayerStatus("Po kërkohet burimi direkt M3U8…");
@@ -1146,7 +1140,7 @@ function play(item,season,episode){
   const resume=sameEpisode?Number(saved?.currentTime)||0:0;
   return openResolvedPlayback(item,season,episode,null,resume);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);stopResolvedVideo();currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 
 /* FLIXTV external subtitle engine.
    Captions are rendered in the parent document and synchronized to CineSRC
@@ -1304,76 +1298,6 @@ function updateSubtitleOffset(delta){
  lastSubtitleIndex=-1;renderExternalSubtitle(latestPlaybackTime);
 }
 
-window.addEventListener("message",event=>{
- const frame=$("cinesrc-frame");
- if(!frame||event.source!==frame.contentWindow||!event.data||typeof event.data!=="object"||typeof event.data.type!=="string")return;
- if(event.origin==="https://player.videasy.ws"&&activePlayerProvider==="videasy"){
-  if(event.data.type!=="PLAYER_EVENT")return;
-  const payload=event.data.data&&typeof event.data.data==="object"?event.data.data:event.data;
-  const progress=Number(payload.player_progress),duration=Number(payload.player_duration);
-  if(Number.isFinite(progress)&&progress>=0){latestPlaybackTime=progress;renderExternalSubtitle(latestPlaybackTime)}
-  if(Number.isFinite(duration)&&duration>0)latestPlaybackDuration=duration;
-  const info=payload.player_info||{};
-  if(currentPlayback&&kind(currentPlayback.item)==="tv"){
-   if(Number.isInteger(Number(info.season)))currentPlayback.season=Number(info.season);
-   if(Number.isInteger(Number(info.episode)))currentPlayback.episode=Number(info.episode);
-  }
-  if(payload.player_status==="completed"){
-   if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
-  }else if(latestPlaybackTime>0)savePlaybackProgress(payload.player_status==="paused");
-  return;
- }
- if(event.origin!=="https://cinesrc.st"||activePlayerProvider!=="cinesrc")return;
- const data=event.data;
- switch(data.type){
-  case "cinesrc:ready":
-   $("player-modal").dataset.playerState="ready";
-   if(latestPlaybackTime>5)sendCineSrcCommand("seek",[latestPlaybackTime]);
-   sendCineSrcCommand("getCurrentTime");
-   sendCineSrcCommand("getDuration");
-   break;
-  case "cinesrc:play":
-  case "cinesrc:pause":
-   if(Number.isFinite(Number(data.currentTime)))latestPlaybackTime=Math.max(0,Number(data.currentTime));
-   if(Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
-   if(latestPlaybackTime>0)savePlaybackProgress(true);
-   break;
-  case "cinesrc:timeupdate":
-  case "cinesrc:seeked":
-   if(Number.isFinite(Number(data.currentTime)))latestPlaybackTime=Math.max(0,Number(data.currentTime));
-   renderExternalSubtitle(latestPlaybackTime);
-   if(Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
-   savePlaybackProgress(false);
-   break;
-  case "cinesrc:loadedmetadata":
-   latestPlaybackDuration=Number(data.duration)||latestPlaybackDuration;break;case "cinesrc:nextepisode":
-   if(currentPlayback&&kind(currentPlayback.item)==="tv"){
-    const nextSeason=Number(data.season),nextEpisode=Number(data.episode);
-    if(Number.isInteger(nextSeason)&&nextSeason>=0)currentPlayback.season=nextSeason;
-    if(Number.isInteger(nextEpisode)&&nextEpisode>0)currentPlayback.episode=nextEpisode;
-    latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
-    savePlaybackProgress(true);
-    setTimeout(()=>{
-     if(!$("player-modal").classList.contains("open")||!currentPlayback)return;
-     sendCineSrcCommand("getCurrentTime");
-     sendCineSrcCommand("getDuration");
-    },900);
-   }
-   break;
-  case "cinesrc:ended":
-   if(currentPlayback)clearPlaybackProgress(currentPlayback.item);
-  case "cinesrc:response":
-   if(data.command==="getCurrentTime"&&Number.isFinite(Number(data.result))){latestPlaybackTime=Math.max(0,Number(data.result));if(latestPlaybackTime>0)savePlaybackProgress(true)}else if(data.command==="getDuration"&&Number(data.result)>0){latestPlaybackDuration=Number(data.result);savePlaybackProgress(true)}
-   break;
-  case "cinesrc:close":
-   savePlaybackProgress(true);
-   leavePlayer();
-   break;
-  case "cinesrc:error":
-   $("player-modal").dataset.playerState="error";
-   notice("CineSRC: "+String(data.error||"Videoja nuk u ngarkua. Provo përsëri."));break;
- }
-});
 const subtitleFileInput=$("subtitle-file-input");
 if(subtitleFileInput)subtitleFileInput.addEventListener("change",event=>{loadExternalSubtitleFile(event.target.files&&event.target.files[0]);event.target.value="";});
 const subtitleLoadButton=$("subtitle-load-button");
