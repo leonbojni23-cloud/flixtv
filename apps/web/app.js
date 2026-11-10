@@ -652,7 +652,9 @@ function startTitlePlayback(season,episode){
   const saved=getSavedProgress(titlePageItem);
   const sameEpisode=kind(titlePageItem)!=="tv"||
     (Number(saved?.season||0)===Number(season||1)&&Number(saved?.episode||0)===Number(episode||1));
-  const resume=sameEpisode?Number(saved?.currentTime)||0:0;
+  const routeResume=Number(new URLSearchParams(location.search).get("t"))||0;
+  const savedResume=sameEpisode?Number(saved?.currentTime)||0:0;
+  const resume=routeResume>0?routeResume:savedResume;
   return openResolvedPlayback(titlePageItem,season,episode,$("title-play"),resume);
 }
 function slugSimilarity(a,b){
