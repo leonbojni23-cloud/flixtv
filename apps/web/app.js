@@ -325,6 +325,7 @@ function startProgressPolling(){
   if(video&&!video.hidden&&Number.isFinite(video.currentTime)){
    latestPlaybackTime=Number(video.currentTime)||0;
    latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
+   renderExternalSubtitle(latestPlaybackTime);
    savePlaybackProgress(false);
   }
  },4000);
@@ -790,6 +791,10 @@ function stopResolvedVideo(){
   }
   if(video){
     try{
+      video.ontimeupdate=null;
+      video.onpause=null;
+      video.onended=null;
+      video.onerror=null;
       video.pause();
       video.querySelectorAll("track[data-flxtv-subtitle]").forEach(track=>track.remove());
       video.removeAttribute("src");
@@ -824,11 +829,13 @@ function playVideoElement(video,resumeTime=0){
   if(video.readyState>=1)start();
   else video.addEventListener("loadedmetadata",start,{once:true});
 }
-async function playResolvedHls(masterUrl,resumeTime=0,proxyUrl=null){
+async function playResolvedHls(masterUrl,resumeTime=0,proxyUrl=null,forceProxy=false,expectedPlaybackId=playbackOpenId){
   const video=$("resolved-video");
   if(!video)throw new Error("Elementi video mungon në FLIXTV.");
   if(!/^https:\/\//i.test(String(masterUrl||"")))throw new Error("URL e videos nuk është HTTPS.");
 
+  const usingProxy=!!(forceProxy&&proxyUrl);
+  const sourceUrl=usingProxy?proxyUrl:masterUrl;
   video.hidden=false;
   video.controls=true;
   video.autoplay=true;
@@ -840,28 +847,21 @@ async function playResolvedHls(masterUrl,resumeTime=0,proxyUrl=null){
 
   const frame=$("cinesrc-frame");
   if(frame){frame.hidden=true;frame.src="about:blank"}
-
   video.addEventListener("playing",clearPlayerStatus,{once:true});
 
-  // Prefer Media Source Extensions (HLS.js) on Chrome/Edge/Firefox.
-  // Recent Chromium versions may return "maybe" from canPlayType() for HLS
-  // without reliably playing this provider's manifests through native HLS.
   let Hls=null;
   try{
     Hls=await ensureHlsLibrary();
   }catch(error){
     console.warn("[FLIXTV] HLS.js failed to load; checking native HLS fallback.",error);
   }
+  if(expectedPlaybackId!==playbackOpenId)return false;
 
   if(Hls&&Hls.isSupported()){
-    // HLS.js uses XHR/fetch for every fragment. Route those requests through
-    // the same-origin-aware CineSRC proxy because the CDN does not grant CORS
-    // access to FLIXTV. Native iOS HLS keeps the original URL below.
-    const hlsSource=proxyUrl||masterUrl;
-    setPlayerStatus(proxyUrl?"Po hapet burimi i videos…":"Po ngarkohet videoja…");
+    setPlayerStatus(usingProxy?"Po provohet lidhja rezervë e videos…":"Po lidhet direkt me M3U8…");
     console.info("[FLIXTV] HLS.js source selected",{
-      route:proxyUrl?"CineSRC proxy":"direct",
-      sourceHost:(()=>{try{return new URL(hlsSource).host}catch(_){return "invalid"}})()
+      route:usingProxy?"same-origin fallback proxy":"direct M3U8",
+      sourceHost:(()=>{try{return new URL(sourceUrl).host}catch(_){return "invalid"}})()
     });
     const hls=new Hls({
       enableWorker:true,
@@ -876,13 +876,13 @@ async function playResolvedHls(masterUrl,resumeTime=0,proxyUrl=null){
     activeHlsPlayer=hls;
 
     hls.on(Hls.Events.MANIFEST_PARSED,(_event,data)=>{
-      if(activeHlsPlayer!==hls)return;
+      if(activeHlsPlayer!==hls||expectedPlaybackId!==playbackOpenId)return;
       setPlayerQualityOptions(data.levels||hls.levels);
       playVideoElement(video,resumeTime);
     });
 
     hls.on(Hls.Events.ERROR,(_event,data)=>{
-      if(activeHlsPlayer!==hls||!data)return;
+      if(activeHlsPlayer!==hls||!data||expectedPlaybackId!==playbackOpenId)return;
       console.warn("[FLIXTV] HLS request diagnostic",{
         type:data.type,
         details:data.details,
@@ -897,7 +897,27 @@ async function playResolvedHls(masterUrl,resumeTime=0,proxyUrl=null){
         const status=Number(data.response?.code||data.networkDetails?.status||0);
         const detail=String(data.details||"networkError");
         const suffix=status?" (HTTP "+status+")":"";
-        setPlayerStatus("HLS nuk lexoi manifestin ose segmentin: "+detail+suffix+". Kontrollo kërkesën për CORS ose refuzim nga burimi.",true);
+
+        // Start with the resolver's exact M3U8 URL. Use the same-origin proxy
+        // only if cross-origin playlist/fragment requests are blocked by CORS.
+        if(!usingProxy&&proxyUrl){
+          console.warn("[FLIXTV] Direct M3U8 request failed; retrying through the session-aware proxy.",{
+            detail,status,url:data.url||data.context?.url||""
+          });
+          setPlayerStatus("CDN bllokoi lidhjen direkte. Po provohet lidhja rezervë…");
+          hls.destroy();
+          if(activeHlsPlayer===hls)activeHlsPlayer=null;
+          try{video.pause();video.removeAttribute("src");video.load()}catch(_){}
+          void playResolvedHls(masterUrl,resumeTime,proxyUrl,true,expectedPlaybackId).catch(error=>{
+            if(expectedPlaybackId===playbackOpenId){
+              console.error("[FLIXTV] Proxy fallback failed:",error);
+              setPlayerStatus(error.message||"Lidhja rezervë e videos dështoi.",true);
+            }
+          });
+          return;
+        }
+
+        setPlayerStatus("HLS nuk lexoi manifestin ose segmentin: "+detail+suffix+".",true);
         return;
       }
       if(data.type===Hls.ErrorTypes.MEDIA_ERROR){
@@ -907,14 +927,14 @@ async function playResolvedHls(masterUrl,resumeTime=0,proxyUrl=null){
     });
 
     hls.attachMedia(video);
-    hls.loadSource(hlsSource);
+    hls.loadSource(sourceUrl);
     return true;
   }
 
-  // Native HLS is reserved for browsers without MSE, such as iOS Safari.
   if(video.canPlayType("application/vnd.apple.mpegurl")){
-    setPlayerStatus("Po hapet videoja…");
+    setPlayerStatus("Po hapet M3U8 direkt në player…");
     const onNativeError=()=>{
+      if(expectedPlaybackId!==playbackOpenId)return;
       const mediaError=video.error;
       console.error("[FLIXTV] Native HLS playback failed",{
         code:mediaError?.code||0,
@@ -949,7 +969,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   document.body.classList.add("no-scroll");
 
   currentPlayback={item,season,episode};
-  activePlayerProvider="cinesrc";
+  activePlayerProvider="cinesrc-m3u8";
   latestPlaybackTime=Number(resumeTime)||0;
   latestPlaybackDuration=0;
   lastProgressWrite=0;
@@ -958,43 +978,66 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
 
   const frame=$("cinesrc-frame");
   const video=$("resolved-video");
-  if(!frame)throw new Error("CineSRC player frame mungon.");
-  if(video)video.hidden=true;
+  if(frame){frame.hidden=true;frame.src="about:blank"}
+  if(!video){
+    setPlayerStatus("Elementi video mungon në FLIXTV.",true);
+    return null;
+  }
+  video.ontimeupdate=()=>{
+    latestPlaybackTime=Number(video.currentTime)||0;
+    latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
+    renderExternalSubtitle(latestPlaybackTime);
+  };
+  video.onpause=()=>{
+    if(Number(video.currentTime)>0){
+      latestPlaybackTime=Number(video.currentTime)||latestPlaybackTime;
+      latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
+      savePlaybackProgress(true);
+    }
+  };
+  video.onended=()=>{if(currentPlayback)clearPlaybackProgress(currentPlayback.item)};
 
-  const mediaType=kind(item);
-  const id=encodeURIComponent(String(item.id));
-  const embedUrl=mediaType==="tv"
-    ? "https://cinesrc.st/embed/tv/"+id+"?s="+
-      encodeURIComponent(String(Number(season||1)))+"&e="+
-      encodeURIComponent(String(Number(episode||1)))
-    : "https://cinesrc.st/embed/movie/"+id;
-
-  setPlayerStatus("Po lidhet drejtpërdrejt me player-in CineSRC…");
+  setPlayerStatus("Po kërkohet M3U8 nga CineSRC…");
   startProgressPolling();
-
-  // Subtitle lookup stays independent of playback and must not delay the
-  // provider's own player or its direct CDN connection.
   void autoLoadOpenSubtitles(item,season,episode);
 
-  frame.onload=()=>{
-    if(playbackId!==playbackOpenId||!$("player-modal").classList.contains("open"))return;
-    clearPlayerStatus();
-    console.info("[FLIXTV] Direct CineSRC embed loaded",{title:title(item),mediaType});
-  };
-  frame.onerror=()=>{
-    if(playbackId!==playbackOpenId)return;
-    setPlayerStatus("CineSRC nuk mundi të hapet. Kontrollo lidhjen ose burimin.",true);
-  };
+  try{
+    const resolved=await requestCineSrcM3U8(item,season,episode,button);
+    if(playbackId!==playbackOpenId||!$("player-modal").classList.contains("open"))return null;
+    if(!resolved||!resolved.masterUrl){
+      throw new Error(lastCineSrcResolveError||"Resolver-i nuk ktheu URL-në M3U8.");
+    }
 
-  frame.hidden=false;
-  frame.src=embedUrl;
+    console.info("[FLIXTV] Resolver returned direct M3U8 URL",{
+      title:title(item),
+      mediaType:kind(item),
+      playlistType:resolved.playlistType||"unknown",
+      masterUrl:resolved.masterUrl,
+      proxyFallbackAvailable:!!resolved.proxyUrl
+    });
 
-  console.info("[FLIXTV] Connected directly to CineSRC embed",{
-    title:title(item),
-    mediaType,
-    sourceHost:"cinesrc.st"
-  });
-  return {provider:"cinesrc",embedUrl};
+    await playResolvedHls(
+      resolved.masterUrl,
+      resumeTime,
+      resolved.proxyUrl,
+      false,
+      playbackId
+    );
+    if(playbackId!==playbackOpenId)return null;
+    return {
+      provider:"cinesrc",
+      format:"hls",
+      masterUrl:resolved.masterUrl,
+      proxyFallbackAvailable:!!resolved.proxyUrl
+    };
+  }catch(error){
+    if(playbackId===playbackOpenId){
+      console.error("[FLIXTV] M3U8 playback failed:",error);
+      setPlayerStatus(error.message||"Nuk u hap dot burimi M3U8.",true);
+      notice(error.message||"Nuk u hap dot burimi M3U8.");
+    }
+    return null;
+  }
 }
 function play(item,season,episode){
   if(!item||!item.id)return;
