@@ -821,14 +821,12 @@ async function playResolvedHls(masterUrl,resumeTime=0){
   const video=$("resolved-video");
   if(!video)throw new Error("Elementi video mungon në FLIXTV.");
   if(!/^https:\/\//i.test(String(masterUrl||"")))throw new Error("Master M3U8 nuk është URL HTTPS.");
-  stopResolvedVideo();
   video.hidden=false;
   video.controls=true;
   video.autoplay=true;
   video.muted=false;
   video.playsInline=true;
   video.preload="auto";
-  video.crossOrigin="anonymous";
   video.poster=currentPlayback?.item?.backdrop_path
     ?IMG+"w1280"+currentPlayback.item.backdrop_path:"";
   const frame=$("cinesrc-frame");
