@@ -614,7 +614,6 @@ async function requestCineSrcM3U8(item,season,episode,button=null){
     const resolved={
       ...result,
       masterUrl:result.masterUrl,
-      proxyUrl:result.streamUrl?new URL(result.streamUrl,RESOLVER_API).href:null,
       apiBase:RESOLVER_API,
       requestedAt:new Date().toISOString()
     };
@@ -629,7 +628,7 @@ async function requestCineSrcM3U8(item,season,episode,button=null){
       playlistType:resolved.playlistType||"unknown",
       qualities:qualities.length?qualities:["HLS"],
       masterUrlAvailable:!!resolved.masterUrl,
-      proxyUrlAvailable:!!resolved.proxyUrl
+      qualityCount:resolved.qualities?.length||0
     });
     return resolved;
   }catch(error){
@@ -650,7 +649,11 @@ async function requestCineSrcM3U8(item,season,episode,button=null){
 function startTitlePlayback(season,episode){
   if(!titlePageItem)return;
   stopTitlePagePreview();
-  return requestCineSrcM3U8(titlePageItem,season,episode,$("title-play"));
+  const saved=getSavedProgress(titlePageItem);
+  const sameEpisode=kind(titlePageItem)!=="tv"||
+    (Number(saved?.season||0)===Number(season||1)&&Number(saved?.episode||0)===Number(episode||1));
+  const resume=sameEpisode?Number(saved?.currentTime)||0:0;
+  return openResolvedPlayback(titlePageItem,season,episode,$("title-play"),resume);
 }
 function slugSimilarity(a,b){
  const rows=Array.from({length:b.length+1},(_,i)=>i);
@@ -708,76 +711,238 @@ const genreSq={28:"Aksion",12:"Aventurë",16:"Animacion",35:"Komedi",80:"Krim",9
 function ageLabel(cert){const c=String(cert||"").trim().toUpperCase();const map={"G":"Për të gjitha moshat","TV-G":"Për të gjitha moshat","TV-Y":"Për fëmijë","TV-Y7":"Për fëmijë mbi 7 vjeç","PG":"Nën mbikëqyrjen e prindërve","TV-PG":"Nën mbikëqyrjen e prindërve","PG-13":"13+","TV-14":"14+","R":"17+","TV-MA":"18+","NC-17":"18+","18":"18+","16":"16+","15":"15+","12":"12+","U":"Për të gjitha moshat"};return map[c]||c||"Pa klasifikim moshe";}
 async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+(k==="tv"?"/content_ratings":"/release_dates"));if(k==="tv"){const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");return (rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0]||{}).rating||""}const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");const country=rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0];return country&&country.release_dates&&((country.release_dates.find(x=>x.certification)||{}).certification)||""}catch(_){return""}}
 
-function stopResolvedVideo(){
- const video=$("resolved-video");
- if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
-}
-async function startPlaybackWithFallback(item,season,episode,provider=activePlayerProvider){
- const frame=$("cinesrc-frame");
- const video=$("resolved-video");
- if(!frame)throw new Error("Player iframe is missing");
- if(video){try{video.pause();video.removeAttribute("src");video.load()}catch(_){}video.hidden=true}
- activePlayerProvider=provider==="videasy"?"videasy":"cinesrc";
- const url=activePlayerProvider==="videasy"
-  ?buildVideasyUrl(item,season,episode,latestPlaybackTime)
-  :buildPlayerUrl(item,season,episode,latestPlaybackTime);
- renderPlayerProviderSwitch();
- frame.hidden=false;
- frame.src=url;
- $("player-modal").dataset.playerState="loading";
- console.info("[FLIXTV] Opening "+(activePlayerProvider==="videasy"?"Videasy":"CineSRC")+" embed:",url);
-}
-
 let activePlayerProvider="cinesrc";
 let currentPlayback=null;
 let playbackReturnToTitlePage=false;
-function renderPlayerProviderSwitch(){
- const host=$("player-provider-switch");
- if(!host)return;
- host.replaceChildren();
- [["cinesrc","CineSRC"],["videasy","Videasy"]].forEach(([provider,label])=>{
-  const button=document.createElement("button");
-  button.type="button";button.className="player-provider"+(activePlayerProvider===provider?" active":"");
-  button.textContent=label;button.setAttribute("aria-pressed",String(activePlayerProvider===provider));
-  button.addEventListener("click",()=>{
-   if(provider===activePlayerProvider||!currentPlayback)return;
-   startPlaybackWithFallback(currentPlayback.item,currentPlayback.season,currentPlayback.episode,provider);
+let activeHlsPlayer=null;
+let activeSubtitleTrack=null;
+let activeSubtitleTrackUrl=null;
+let activeSubtitleLabel="";
+let activeSubtitleLanguage="sq";
+let hlsLibraryPromise=null;
+
+function setPlayerStatus(message,error=false){
+  const status=$("player-loading-status");
+  if(!status)return;
+  status.textContent=message||"";
+  status.hidden=!message;
+  status.classList.toggle("error",!!error);
+}
+function clearPlayerStatus(){setPlayerStatus("")}
+function setPlayerQualityOptions(levels){
+  const select=$("player-quality-select");
+  if(!select)return;
+  select.replaceChildren();
+  const automatic=document.createElement("option");
+  automatic.value="-1";automatic.textContent="Auto";
+  select.append(automatic);
+  (levels||[]).forEach((level,index)=>{
+    const option=document.createElement("option");
+    option.value=String(index);
+    option.textContent=(level.height?String(level.height)+"p":("Cilësia "+(index+1)));
+    select.append(option);
   });
-  host.append(button);
- });
+  select.hidden=!(levels&&levels.length>1);
+  select.value="-1";
+  select.onchange=()=>{
+    if(activeHlsPlayer)activeHlsPlayer.currentLevel=Number(select.value);
+  };
 }
-function buildVideasyUrl(item,season,episode,resumeTime=0){
- const id=encodeURIComponent(String(item.id));
- const params=new URLSearchParams({autoplay:"1"});
- if(kind(item)==="tv")params.set("autonext","1");
- if(Number(resumeTime)>5)params.set("startAt",String(Math.floor(Number(resumeTime))));
- if(kind(item)==="tv"){
-  return "https://player.videasy.ws/embed/tv/"+id+"/"+Number(season||1)+"/"+Number(episode||1)+"?"+params.toString();
- }
- return "https://player.videasy.ws/embed/movie/"+id+"?"+params.toString();
+function ensureHlsLibrary(){
+  if(window.Hls)return Promise.resolve(window.Hls);
+  if(hlsLibraryPromise)return hlsLibraryPromise;
+  hlsLibraryPromise=new Promise((resolve,reject)=>{
+    let script=document.querySelector('script[data-flxtv-hls]');
+    const onLoad=()=>window.Hls?resolve(window.Hls):reject(new Error("HLS.js nuk u inicializua."));
+    const onError=()=>reject(new Error("HLS.js nuk u shkarkua nga CDN."));
+    if(script){
+      script.addEventListener("load",onLoad,{once:true});
+      script.addEventListener("error",onError,{once:true});
+      if(window.Hls)resolve(window.Hls);
+      return;
+    }
+    script=document.createElement("script");
+    script.src="https://cdn.jsdelivr.net/npm/hls.js@1.7.4/dist/hls.min.js";
+    script.async=true;
+    script.crossOrigin="anonymous";
+    script.dataset.flxtvHls="true";
+    script.onload=onLoad;
+    script.onerror=onError;
+    document.head.append(script);
+  }).catch(error=>{
+    hlsLibraryPromise=null;
+    throw error;
+  });
+  return hlsLibraryPromise;
 }
-function buildPlayerUrl(item,season,episode,resumeTime=0){
- const id=encodeURIComponent(String(item.id));
- const params=new URLSearchParams({
-  autoplay:"true",muted:"false",controls:"true",autonext:"true",autoskip:"false",color:"#34cfeb",back:"close"
- });
- if(Number(resumeTime)>5){params.set("t",String(Math.floor(Number(resumeTime))));params.set("continueprompt","false")}
- if(kind(item)==="tv"){
-  params.set("s",String(Number(season||1)));params.set("e",String(Number(episode||1)));
-  return "https://cinesrc.st/embed/tv/"+id+"?"+params.toString();
- }
- return "https://cinesrc.st/embed/movie/"+id+"?"+params.toString();
+function stopResolvedVideo(){
+  const video=$("resolved-video");
+  if(activeHlsPlayer){
+    try{activeHlsPlayer.destroy()}catch(_){}
+    activeHlsPlayer=null;
+  }
+  if(video){
+    try{
+      video.pause();
+      video.querySelectorAll("track[data-flxtv-subtitle]").forEach(track=>track.remove());
+      video.removeAttribute("src");
+      video.load();
+    }catch(_){}
+    video.hidden=true;
+  }
+  activeSubtitleTrack=null;
+  if(activeSubtitleTrackUrl){
+    try{URL.revokeObjectURL(activeSubtitleTrackUrl)}catch(_){}
+    activeSubtitleTrackUrl=null;
+  }
+  setPlayerQualityOptions([]);
 }
-function startPlayback(item,season,episode){
- currentPlayback={item,season,episode};
- startPlaybackWithFallback(item,season,episode);
- autoLoadOpenSubtitles(item,season,episode);
- $("content-intro").classList.remove("show");
+function playVideoElement(video,resumeTime=0){
+  const resume=Number(resumeTime)||0;
+  const start=()=>{
+    if(resume>0&&Number.isFinite(video.duration)&&video.duration>resume+2){
+      try{video.currentTime=resume}catch(_){}
+    }
+    const playback=video.play();
+    if(playback&&typeof playback.catch==="function"){
+      playback.catch(error=>{
+        if(error?.name==="NotAllowedError"){
+          setPlayerStatus("Videoja është gati. Shtyp PLAY në kontrollet e videos.");
+        }else{
+          setPlayerStatus("Videoja nuk mundi të niste. Kontrollo burimin ose rrjetin.",true);
+        }
+      });
+    }
+  };
+  if(video.readyState>=1)start();
+  else video.addEventListener("loadedmetadata",start,{once:true});
 }
-// Playback uses CineSRC's original embed directly, without a scraper or HLS proxy.
+async function playResolvedHls(masterUrl,resumeTime=0){
+  const video=$("resolved-video");
+  if(!video)throw new Error("Elementi video mungon në FLIXTV.");
+  if(!/^https:\/\//i.test(String(masterUrl||"")))throw new Error("Master M3U8 nuk është URL HTTPS.");
+  stopResolvedVideo();
+  video.hidden=false;
+  video.controls=true;
+  video.autoplay=true;
+  video.muted=false;
+  video.playsInline=true;
+  video.preload="auto";
+  video.crossOrigin="anonymous";
+  video.poster=currentPlayback?.item?.backdrop_path
+    ?IMG+"w1280"+currentPlayback.item.backdrop_path:"";
+  const frame=$("cinesrc-frame");
+  if(frame){frame.hidden=true;frame.src="about:blank"}
+
+  video.addEventListener("playing",clearPlayerStatus,{once:true});
+  video.addEventListener("error",()=>{
+    if(!activeHlsPlayer&&video.error){
+      setPlayerStatus("Gabim gjatë leximit të videos. Mund të jetë kufizim i burimit.",true);
+    }
+  },{once:true});
+
+  if(video.canPlayType("application/vnd.apple.mpegurl")){
+    setPlayerStatus("Po hapet videoja…");
+    video.src=masterUrl;
+    video.load();
+    playVideoElement(video,resumeTime);
+    return true;
+  }
+
+  const Hls=await ensureHlsLibrary();
+  if(!Hls.isSupported()){
+    throw new Error("Kjo pajisje nuk mbështet HLS përmes videos HTML5.");
+  }
+
+  setPlayerStatus("Po ngarkohet videoja…");
+  const hls=new Hls({
+    enableWorker:true,
+    lowLatencyMode:false,
+    backBufferLength:30,
+    maxBufferLength:20,
+    maxMaxBufferLength:30,
+    capLevelToPlayerSize:true,
+    startLevel:-1,
+    startFragPrefetch:true
+  });
+  activeHlsPlayer=hls;
+
+  hls.on(Hls.Events.MANIFEST_PARSED,(_event,data)=>{
+    if(activeHlsPlayer!==hls)return;
+    setPlayerQualityOptions(data.levels||hls.levels);
+    playVideoElement(video,resumeTime);
+  });
+  hls.on(Hls.Events.ERROR,(_event,data)=>{
+    if(activeHlsPlayer!==hls||!data?.fatal)return;
+    if(data.type===Hls.ErrorTypes.NETWORK_ERROR){
+      setPlayerStatus("Rrjeti refuzoi manifestin ose segmentet. Mund të jetë kufizim CORS i CineSRC.",true);
+      return;
+    }
+    if(data.type===Hls.ErrorTypes.MEDIA_ERROR){
+      try{hls.recoverMediaError();return}catch(_){}
+    }
+    setPlayerStatus("HLS dështoi: "+String(data.details||data.type||"gabim i panjohur"),true);
+  });
+  hls.loadSource(masterUrl);
+  hls.attachMedia(video);
+  return true;
+}
+async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
+  if(!item||!item.id)return null;
+  clearTimeout(introTimer);
+  $("content-intro").classList.remove("show");
+  $("content-intro").setAttribute("aria-hidden","true");
+  $("details-modal").classList.remove("open");
+  playbackReturnToTitlePage=!$("title-page").hidden;
+  $("title-page").hidden=true;
+  $("player-modal").classList.remove("attention-active");
+  $("player-modal").classList.add("open","controls-visible");
+  $("player-modal").setAttribute("aria-hidden","false");
+  document.body.classList.add("no-scroll");
+  currentPlayback={item,season,episode};
+  latestPlaybackTime=Number(resumeTime)||0;
+  latestPlaybackDuration=0;
+  lastProgressWrite=0;
+  clearExternalSubtitles();
+  stopResolvedVideo();
+  const frame=$("cinesrc-frame");
+  if(frame){frame.hidden=true;frame.src="about:blank"}
+  const video=$("resolved-video");
+  if(video)video.hidden=false;
+  setPlayerStatus("Po kërkohet burimi i videos…");
+  startProgressPolling();
+
+  // Subtitle lookup runs in parallel; it must not delay the first video frame.
+  void autoLoadOpenSubtitles(item,season,episode);
+
+  const result=await requestCineSrcM3U8(item,season,episode,button);
+  if(!result||!result.masterUrl){
+    setPlayerStatus("Nuk u gjet burimi i videos. Provo përsëri.",true);
+    return null;
+  }
+
+  try{
+    await playResolvedHls(result.masterUrl,resumeTime);
+    console.info("[FLIXTV] Direct M3U8 playback started",{
+      title:title(item),
+      playlistType:result.playlistType,
+      qualities:(result.qualities||[]).map(level=>level.label)
+    });
+    return result;
+  }catch(error){
+    console.error("[FLIXTV] Direct HLS playback failed:",error);
+    setPlayerStatus(error.message||"Player-i nuk mundi të hapë M3U8.",true);
+    notice(error.message||"Videoja nuk u hap.");
+    return null;
+  }
+}
 function play(item,season,episode){
   if(!item||!item.id)return;
-  return requestCineSrcM3U8(item,season,episode,null);
+  const saved=getSavedProgress(item);
+  const sameEpisode=kind(item)!=="tv"||
+    (Number(saved?.season||0)===Number(season||1)&&Number(saved?.episode||0)===Number(episode||1));
+  const resume=sameEpisode?Number(saved?.currentTime)||0:0;
+  return openResolvedPlayback(item,season,episode,null,resume);
 }
 function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);$("cinesrc-frame").src="about:blank";stopResolvedVideo();$("cinesrc-frame").hidden=false;currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 
