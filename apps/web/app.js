@@ -942,77 +942,39 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   $("content-intro").classList.remove("show");
   $("content-intro").setAttribute("aria-hidden","true");
   $("details-modal").classList.remove("open");
-  playbackReturnToTitlePage=!$("title-page").hidden;
-  $("title-page").hidden=true;
-  $("player-modal").classList.remove("attention-active");
-  enterCineSrcFullscreen();
-  $("player-modal").classList.add("controls-visible");
-  $("player-modal").setAttribute("aria-hidden","false");
-  document.body.classList.add("no-scroll");
 
-  currentPlayback={item,season,episode};
-  activePlayerProvider="cinesrc-m3u8";
-  latestPlaybackTime=Number(resumeTime)||0;
-  latestPlaybackDuration=0;
-  lastProgressWrite=0;
-  clearExternalSubtitles();
-  stopResolvedVideo();
-
-  const frame=$("cinesrc-frame");
-  const video=$("resolved-video");
-  if(frame){frame.hidden=true;frame.src="about:blank"}
-  if(!video){
-    setPlayerStatus("Elementi video mungon në FLIXTV.",true);
-    return null;
-  }
-  video.ontimeupdate=()=>{
-    latestPlaybackTime=Number(video.currentTime)||0;
-    latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
-    renderExternalSubtitle(latestPlaybackTime);
-  };
-  video.onpause=()=>{
-    if(Number(video.currentTime)>0){
-      latestPlaybackTime=Number(video.currentTime)||latestPlaybackTime;
-      latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
-      savePlaybackProgress(true);
-    }
-  };
-  video.onended=()=>{if(currentPlayback)clearPlaybackProgress(currentPlayback.item)};
-
-  setPlayerStatus("Po kërkohet M3U8 nga CineSRC…");
-  startProgressPolling();
-  void autoLoadOpenSubtitles(item,season,episode);
-
+  // Resolve the provider URL, then navigate this tab to the exact M3U8 URL.
+  // There is intentionally no embedded player, HLS.js, iframe or proxy path.
   try{
     const resolved=await requestCineSrcM3U8(item,season,episode,button);
-    if(playbackId!==playbackOpenId||!$("player-modal").classList.contains("open"))return null;
+    if(playbackId!==playbackOpenId)return null;
     if(!resolved||!resolved.masterUrl){
       throw new Error(lastCineSrcResolveError||"Resolver-i nuk ktheu URL-në M3U8.");
     }
 
-    console.info("[FLIXTV] Resolver returned direct M3U8 URL",{
+    const directUrl=new URL(resolved.masterUrl);
+    const allowedHost=directUrl.hostname==="bright67.online"||
+      directUrl.hostname.endsWith(".bright67.online")||
+      directUrl.hostname==="cinesrc.st"||
+      directUrl.hostname.endsWith(".cinesrc.st");
+    if(directUrl.protocol!=="https:"||!allowedHost){
+      throw new Error("Resolver-i ktheu një adresë M3U8 që nuk lejohet.");
+    }
+
+    console.info("[FLIXTV] Navigating directly to resolved M3U8",{
       title:title(item),
       mediaType:kind(item),
       playlistType:resolved.playlistType||"unknown",
-      masterUrl:resolved.masterUrl,
+      destination:directUrl.href
     });
 
-    await playResolvedHls(
-      resolved.masterUrl,
-      resumeTime,
-      playbackId
-    );
-    if(playbackId!==playbackOpenId)return null;
-    return {
-      provider:"cinesrc",
-      format:"hls",
-      masterUrl:resolved.masterUrl,
-    };
+    window.location.assign(directUrl.href);
+    return {provider:"cinesrc",format:"hls",masterUrl:directUrl.href};
   }catch(error){
     if(playbackId===playbackOpenId){
-      console.error("[FLIXTV] M3U8 playback failed:",error);
-      setPlayerStatus(error.message||"Nuk u hap dot burimi M3U8.",true);
-      notice(error.message||"Nuk u hap dot burimi M3U8.");
+      console.error("[FLIXTV] Direct M3U8 navigation failed:",error);
+      showCineSrcResolutionStatus(null,error.message||"Nuk u gjet adresa M3U8.");
+      notice(error.message||"Nuk u gjet adresa M3U8.");
     }
     return null;
   }
