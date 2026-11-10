@@ -934,6 +934,7 @@ async function playResolvedHls(masterUrl,resumeTime=0,proxyUrl=null){
 }
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
   if(!item||!item.id)return null;
+
   const playbackId=++playbackOpenId;
   clearTimeout(introTimer);
   $("content-intro").classList.remove("show");
@@ -946,47 +947,54 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   $("player-modal").classList.add("controls-visible");
   $("player-modal").setAttribute("aria-hidden","false");
   document.body.classList.add("no-scroll");
+
   currentPlayback={item,season,episode};
+  activePlayerProvider="cinesrc";
   latestPlaybackTime=Number(resumeTime)||0;
   latestPlaybackDuration=0;
   lastProgressWrite=0;
   clearExternalSubtitles();
   stopResolvedVideo();
+
   const frame=$("cinesrc-frame");
-  if(frame){frame.hidden=true;frame.src="about:blank"}
   const video=$("resolved-video");
-  if(video)video.hidden=false;
-  setPlayerStatus("Po kërkohet burimi i videos…");
+  if(!frame)throw new Error("CineSRC player frame mungon.");
+  if(video)video.hidden=true;
+
+  const mediaType=kind(item);
+  const id=encodeURIComponent(String(item.id));
+  const embedUrl=mediaType==="tv"
+    ? "https://cinesrc.st/embed/tv/"+id+"?s="+
+      encodeURIComponent(String(Number(season||1)))+"&e="+
+      encodeURIComponent(String(Number(episode||1)))
+    : "https://cinesrc.st/embed/movie/"+id;
+
+  setPlayerStatus("Po lidhet drejtpërdrejt me player-in CineSRC…");
   startProgressPolling();
 
-  // Subtitle lookup runs in parallel; it must not delay the first video frame.
+  // Subtitle lookup stays independent of playback and must not delay the
+  // provider's own player or its direct CDN connection.
   void autoLoadOpenSubtitles(item,season,episode);
 
-  const result=await requestCineSrcM3U8(item,season,episode,button);
-  if(playbackId!==playbackOpenId||!$("player-modal").classList.contains("open"))return null;
-  if(!result||!result.masterUrl){
-    setPlayerStatus(lastCineSrcResolveError||"Nuk u gjet burimi i videos. Provo përsëri.",true);
-    return null;
-  }
+  frame.onload=()=>{
+    if(playbackId!==playbackOpenId||!$("player-modal").classList.contains("open"))return;
+    clearPlayerStatus();
+    console.info("[FLIXTV] Direct CineSRC embed loaded",{title:title(item),mediaType});
+  };
+  frame.onerror=()=>{
+    if(playbackId!==playbackOpenId)return;
+    setPlayerStatus("CineSRC nuk mundi të hapet. Kontrollo lidhjen ose burimin.",true);
+  };
 
-  try{
-    // Keep the original CineSRC HLS URLs. Proxy rewriting was breaking init.mp4 in Chromium.
-    const proxyUrl=result.streamUrl
-      ?new URL(result.streamUrl,RESOLVER_API).href:null;
-    await playResolvedHls(result.masterUrl,resumeTime,proxyUrl);
-    console.info("[FLIXTV] CineSRC HLS playback initialized",{
-      title:title(item),
-      playlistType:result.playlistType,
-      route:proxyUrl?"proxy for HLS.js; direct for native HLS":"direct",
-      qualities:(result.qualities||[]).map(level=>level.label)
-    });
-    return result;
-  }catch(error){
-    console.error("[FLIXTV] Direct HLS playback failed:",error);
-    setPlayerStatus(error.message||"Player-i nuk mundi të hapë M3U8.",true);
-    notice(error.message||"Videoja nuk u hap.");
-    return null;
-  }
+  frame.hidden=false;
+  frame.src=embedUrl;
+
+  console.info("[FLIXTV] Connected directly to CineSRC embed",{
+    title:title(item),
+    mediaType,
+    sourceHost:"cinesrc.st"
+  });
+  return {provider:"cinesrc",embedUrl};
 }
 function play(item,season,episode){
   if(!item||!item.id)return;
