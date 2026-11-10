@@ -575,6 +575,59 @@ function stopTitlePagePreview(){
  }
 }
 let cinesrcResolveRequestId=0,lastCineSrcResolveError="";
+const CINESRC_M3U8_CACHE_TTL_MS=4*60*60*1000;
+function cinesrcM3U8CacheKey(item,season,episode){
+  const mediaType=kind(item);
+  const parts=["flixtv","cinesrc","m3u8","v1",mediaType,String(item.id)];
+  if(mediaType==="tv")parts.push(String(Number(season||1)),String(Number(episode||1)));
+  return parts.join(":");
+}
+function readCineSrcM3U8Cache(item,season,episode){
+  try{
+    const key=cinesrcM3U8CacheKey(item,season,episode);
+    const cached=JSON.parse(localStorage.getItem(key)||"null");
+    if(!cached||typeof cached.masterUrl!=="string"||
+       !Number.isFinite(Number(cached.expiresAt))||
+       Date.now()>=Number(cached.expiresAt)){
+      localStorage.removeItem(key);
+      return null;
+    }
+    const url=new URL(cached.masterUrl);
+    const allowed=url.hostname==="cinesrc.st"||url.hostname.endsWith(".cinesrc.st")||
+      url.hostname==="bright67.online"||url.hostname.endsWith(".bright67.online");
+    if(url.protocol!=="https:"||!allowed){
+      localStorage.removeItem(key);
+      return null;
+    }
+    return {
+      success:true,
+      source:"cinesrc",
+      format:"hls",
+      masterUrl:url.href,
+      playlistType:cached.playlistType||"unknown",
+      qualities:Array.isArray(cached.qualities)?cached.qualities:[],
+      cached:true,
+      expiresAt:Number(cached.expiresAt)
+    };
+  }catch(_){return null}
+}
+function saveCineSrcM3U8Cache(item,season,episode,resolved){
+  try{
+    if(!resolved||!resolved.masterUrl)return;
+    const key=cinesrcM3U8CacheKey(item,season,episode);
+    const now=Date.now();
+    localStorage.setItem(key,JSON.stringify({
+      masterUrl:resolved.masterUrl,
+      playlistType:resolved.playlistType||"unknown",
+      qualities:Array.isArray(resolved.qualities)?resolved.qualities:[],
+      createdAt:now,
+      expiresAt:now+CINESRC_M3U8_CACHE_TTL_MS
+    }));
+  }catch(error){
+    console.warn("[FLIXTV] Could not persist M3U8 cache in this browser:",error);
+  }
+}
+
 function showCineSrcResolutionStatus(payload,errorMessage=""){
   const actions=$("title-page-actions");
   if(!actions)return;
@@ -592,6 +645,23 @@ function showCineSrcResolutionStatus(payload,errorMessage=""){
 async function requestCineSrcM3U8(item,season,episode,button=null){
   if(!item||!item.id)return null;
   const requestId=++cinesrcResolveRequestId;
+
+  // Reuse the exact generated playlist URL for four hours. The key includes
+  // movie ID, or series ID + season + episode, so a different title/episode
+  // cannot accidentally inherit another stream URL.
+  const cached=readCineSrcM3U8Cache(item,season,episode);
+  if(cached){
+    lastCineSrcResolveError="";
+    window.__FLIXTV_LAST_RESOLVED_STREAM__=cached;
+    showCineSrcResolutionStatus(cached);
+    console.info("[FLIXTV] Reusing cached CineSRC M3U8",{
+      title:title(item),
+      type:kind(item),
+      expiresAt:new Date(cached.expiresAt).toISOString()
+    });
+    return cached;
+  }
+
   const label=button?.querySelector("span");
   const previousLabel=label?.textContent;
   if(button){button.disabled=true;button.setAttribute("aria-busy","true")}
@@ -604,8 +674,7 @@ async function requestCineSrcM3U8(item,season,episode,button=null){
     }
     const response=await fetch(RESOLVER_API+"/api/stream?"+params.toString(),{
       method:"GET",
-      headers:{Accept:"application/json"},
-      cache:"no-store"
+      headers:{Accept:"application/json"}
     });
     const result=await response.json().catch(()=>null);
     if(!response.ok||!result||!result.success){
@@ -617,20 +686,23 @@ async function requestCineSrcM3U8(item,season,episode,button=null){
       ...result,
       masterUrl:result.masterUrl,
       apiBase:RESOLVER_API,
-      requestedAt:new Date().toISOString()
+      requestedAt:new Date().toISOString(),
+      cached:false,
+      expiresAt:Date.now()+CINESRC_M3U8_CACHE_TTL_MS
     };
     if(requestId!==cinesrcResolveRequestId)return resolved;
+    saveCineSrcM3U8Cache(item,season,episode,resolved);
     window.__FLIXTV_LAST_RESOLVED_STREAM__=resolved;
     showCineSrcResolutionStatus(resolved);
     const qualities=(resolved.qualities||[]).map(item=>item.label||((item.height||"")+"p")).filter(Boolean);
-    notice("M3U8 u gjet"+(qualities.length?": "+qualities.join(" / "):"."));
-    console.info("[FLIXTV] CineSRC resolver completed",{
+    notice("M3U8 u gjenerua dhe u ruajt për 4 orë"+(qualities.length?": "+qualities.join(" / "):"."));
+    console.info("[FLIXTV] CineSRC resolver completed and cached",{
       title:title(item),
       type:kind(item),
       playlistType:resolved.playlistType||"unknown",
       qualities:qualities.length?qualities:["HLS"],
       masterUrlAvailable:!!resolved.masterUrl,
-      qualityCount:resolved.qualities?.length||0
+      cacheExpiresAt:new Date(resolved.expiresAt).toISOString()
     });
     return resolved;
   }catch(error){
