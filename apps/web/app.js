@@ -573,7 +573,7 @@ function stopTitlePagePreview(){
   youtubeHost.getYTPlayer().then(stopYoutube).catch(()=>{});
  }
 }
-let cinesrcResolveRequestId=0;
+let cinesrcResolveRequestId=0,lastCineSrcResolveError="";
 function showCineSrcResolutionStatus(payload,errorMessage=""){
   const actions=$("title-page-actions");
   if(!actions)return;
@@ -611,9 +611,11 @@ async function requestCineSrcM3U8(item,season,episode,button=null){
       throw new Error(result?.error||"Resolver-i në Vercel nuk arriti të gjejë M3U8.");
     }
     if(!result.masterUrl)throw new Error("Resolver-i nuk ktheu adresën M3U8.");
+    lastCineSrcResolveError="";
     const resolved={
       ...result,
       masterUrl:result.masterUrl,
+      proxyUrl:result.streamUrl?new URL(result.streamUrl,RESOLVER_API).href:null,
       apiBase:RESOLVER_API,
       requestedAt:new Date().toISOString()
     };
@@ -628,13 +630,15 @@ async function requestCineSrcM3U8(item,season,episode,button=null){
       playlistType:resolved.playlistType||"unknown",
       qualities:qualities.length?qualities:["HLS"],
       masterUrlAvailable:!!resolved.masterUrl,
+      sessionFallbackAvailable:!!resolved.proxyUrl,
       qualityCount:resolved.qualities?.length||0
     });
     return resolved;
   }catch(error){
     if(requestId===cinesrcResolveRequestId){
-      showCineSrcResolutionStatus(null,error.message||"Kërkesa për M3U8 dështoi.");
-      notice(error.message||"Resolver-i nuk u përgjigj.");
+      lastCineSrcResolveError=error.message||"Kërkesa për M3U8 dështoi.";
+      showCineSrcResolutionStatus(null,lastCineSrcResolveError);
+      notice(lastCineSrcResolveError);
       console.error("[FLIXTV] CineSRC resolver failed:",error);
     }
     return null;
@@ -820,10 +824,10 @@ function playVideoElement(video,resumeTime=0){
   if(video.readyState>=1)start();
   else video.addEventListener("loadedmetadata",start,{once:true});
 }
-async function playResolvedHls(masterUrl,resumeTime=0){
+async function playResolvedHls(masterUrl,resumeTime=0,fallbackUrl=null,isFallback=false){
   const video=$("resolved-video");
   if(!video)throw new Error("Elementi video mungon në FLIXTV.");
-  if(!/^https:\/\//i.test(String(masterUrl||"")))throw new Error("Master M3U8 nuk është URL HTTPS.");
+  if(!/^https:\/\//i.test(String(masterUrl||"")))throw new Error("URL e videos nuk është HTTPS.");
   video.hidden=false;
   video.controls=true;
   video.autoplay=true;
@@ -835,15 +839,39 @@ async function playResolvedHls(masterUrl,resumeTime=0){
   const frame=$("cinesrc-frame");
   if(frame){frame.hidden=true;frame.src="about:blank"}
 
-  video.addEventListener("playing",clearPlayerStatus,{once:true});
-  video.addEventListener("error",()=>{
-    if(!activeHlsPlayer&&video.error){
-      setPlayerStatus("Gabim gjatë leximit të videos. Mund të jetë kufizim i burimit.",true);
+  let fallbackStarted=false;
+  const startProxyFallback=(reason)=>{
+    if(isFallback||!fallbackUrl||fallbackStarted)return false;
+    fallbackStarted=true;
+    console.warn("[FLIXTV] Direct M3U8 rejected; retrying through the captured CineSRC session.",reason||"network error");
+    setPlayerStatus("Burimi direkt u refuzua. Po provohet lidhja rezervë…");
+    if(activeHlsPlayer){
+      try{activeHlsPlayer.destroy()}catch(_){}
+      activeHlsPlayer=null;
     }
-  },{once:true});
+    try{
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+    }catch(_){}
+    void playResolvedHls(fallbackUrl,resumeTime,null,true).catch(error=>{
+      console.error("[FLIXTV] Session fallback playback failed:",error);
+      setPlayerStatus(error.message||"Edhe lidhja rezervë dështoi.",true);
+    });
+    return true;
+  };
+
+  video.addEventListener("playing",clearPlayerStatus,{once:true});
+  const onNativeError=()=>{
+    if(video.error&&startProxyFallback("native media error"))return;
+    if(video.error){
+      setPlayerStatus("Safari nuk mundi të lexojë manifestin ose segmentet e videos.",true);
+    }
+  };
+  video.addEventListener("error",onNativeError,{once:true});
 
   if(video.canPlayType("application/vnd.apple.mpegurl")){
-    setPlayerStatus("Po hapet videoja…");
+    setPlayerStatus(isFallback?"Po provohet burimi rezervë…":"Po hapet videoja…");
     video.src=masterUrl;
     video.load();
     playVideoElement(video,resumeTime);
@@ -855,7 +883,7 @@ async function playResolvedHls(masterUrl,resumeTime=0){
     throw new Error("Kjo pajisje nuk mbështet HLS përmes videos HTML5.");
   }
 
-  setPlayerStatus("Po ngarkohet videoja…");
+  setPlayerStatus(isFallback?"Po provohet burimi rezervë…":"Po ngarkohet videoja…");
   const hls=new Hls({
     enableWorker:true,
     lowLatencyMode:false,
@@ -876,7 +904,10 @@ async function playResolvedHls(masterUrl,resumeTime=0){
   hls.on(Hls.Events.ERROR,(_event,data)=>{
     if(activeHlsPlayer!==hls||!data?.fatal)return;
     if(data.type===Hls.ErrorTypes.NETWORK_ERROR){
-      setPlayerStatus("Rrjeti refuzoi manifestin ose segmentet. Mund të jetë kufizim CORS i CineSRC.",true);
+      if(startProxyFallback(data.details||data.type))return;
+      setPlayerStatus(isFallback
+        ?"Burimi rezervë refuzoi manifestin ose segmentet. Kontrollo sesionin e burimit."
+        :"HLS nuk mundi të lexojë manifestin ose segmentet e videos.",true);
       return;
     }
     if(data.type===Hls.ErrorTypes.MEDIA_ERROR){
@@ -921,12 +952,12 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   const result=await requestCineSrcM3U8(item,season,episode,button);
   if(playbackId!==playbackOpenId||!$("player-modal").classList.contains("open"))return null;
   if(!result||!result.masterUrl){
-    setPlayerStatus("Nuk u gjet burimi i videos. Provo përsëri.",true);
+    setPlayerStatus(lastCineSrcResolveError||"Nuk u gjet burimi i videos. Provo përsëri.",true);
     return null;
   }
 
   try{
-    await playResolvedHls(result.masterUrl,resumeTime);
+    await playResolvedHls(result.masterUrl,resumeTime,result.proxyUrl||null);
     console.info("[FLIXTV] Direct M3U8 playback started",{
       title:title(item),
       playlistType:result.playlistType,
