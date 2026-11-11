@@ -1920,8 +1920,8 @@ html.deep-route-loading::after{
 }
 
 
-/* APIPlayer movie embed in the isolated sandbox player. */
-#apiplayer-frame{
+/* AnyPlay movie embed in the isolated sandbox player. */
+#anyplay-frame{
   position:absolute!important;
   inset:0!important;
   z-index:3!important;
@@ -1932,8 +1932,8 @@ html.deep-route-loading::after{
   border:0!important;
   background:#000!important;
 }
-#apiplayer-frame[hidden]{display:none!important}
-.player-modal[data-player-provider="apiplayer"] .subtitle-toolbar,
-.player-modal[data-player-provider="apiplayer"] #external-subtitle-overlay{
+#anyplay-frame[hidden]{display:none!important}
+.player-modal[data-player-provider="anyplay"] .subtitle-toolbar,
+.player-modal[data-player-provider="anyplay"] #external-subtitle-overlay{
   display:none!important;
 }
