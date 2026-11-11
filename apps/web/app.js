@@ -5,7 +5,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
 (()=>{
- const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws","primesrc.me"];
+ const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws","apiplayer.ru"];
  const isAllowedPlayerUrl=url=>{
   try{const host=new URL(url,location.href).hostname.toLowerCase();return allowedFrameHosts.some(allowed=>host===allowed||host.endsWith("."+allowed))}
   catch(_){return false}
@@ -850,12 +850,12 @@ function ensureHlsLibrary(){
   return hlsLibraryPromise;
 }
 function stopResolvedVideo(){
-  const primeFrame=$("primesrc-frame");
-  if(primeFrame){
-    primeFrame.onload=null;
-    primeFrame.onerror=null;
-    primeFrame.removeAttribute("src");
-    primeFrame.hidden=true;
+  const apiPlayerFrame=$("apiplayer-frame");
+  if(apiPlayerFrame){
+    apiPlayerFrame.onload=null;
+    apiPlayerFrame.onerror=null;
+    apiPlayerFrame.removeAttribute("src");
+    apiPlayerFrame.hidden=true;
   }
   const video=$("resolved-video");
   if(activeHlsPlayer){
@@ -1052,22 +1052,29 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   $("player-modal").dataset.playerState="resolving";
   setPlayerStatus("Po kërkohet burimi direkt M3U8…");
   if(kind(item)==="movie"){
-    const frame=$("primesrc-frame");
-    if(!frame)throw new Error("PrimeSrc player mungon në FLIXTV.");
+    const frame=$("apiplayer-frame");
+    if(!frame)throw new Error("APIPlayer iframe mungon në FLIXTV.");
     $("resolved-video").hidden=true;
     setPlayerQualityOptions([]);
     frame.hidden=false;
-    const embedUrl=new URL("https://primesrc.me/embed/movie");
-    embedUrl.searchParams.set("tmdb",String(item.id));
-    embedUrl.searchParams.set("fallback","true");
-    if(Number(resumeTime)>0)embedUrl.searchParams.set("startAt",String(Math.floor(Number(resumeTime))));
-    frame.onload=()=>{if(playbackId===playbackOpenId){clearPlayerStatus();$("player-modal").dataset.playerState="playing"}};
-    frame.onerror=()=>{if(playbackId===playbackOpenId)setPlayerStatus("PrimeSrc nuk mundi të ngarkohej. Kontrollo lidhjen ose burimin.",true)};
+    const embedUrl=new URL("https://apiplayer.ru/embed/movie/"+encodeURIComponent(String(item.id)));
+    embedUrl.searchParams.set("autoplay","1");
+    embedUrl.searchParams.set("lang","en");
+    embedUrl.searchParams.set("color","e50936");
+    if(Number(resumeTime)>0){
+      embedUrl.searchParams.set("resume","0");
+      embedUrl.searchParams.set("start",String(Math.floor(Number(resumeTime))));
+    }else{
+      embedUrl.searchParams.set("resume","auto");
+    }
+    $("player-modal").dataset.playerProvider="apiplayer";
+    frame.onload=()=>{if(playbackId===playbackOpenId){clearPlayerStatus();$("player-modal").dataset.playerState="loaded"}};
+    frame.onerror=()=>{if(playbackId===playbackOpenId)setPlayerStatus("APIPlayer nuk mundi të ngarkohej. Kontrollo lidhjen ose burimin.",true)};
     $("player-modal").dataset.playerState="loading";
-    setPlayerStatus("Po hapet filmi në PrimeSrc…");
+    setPlayerStatus("Po hapet filmi në APIPlayer…");
     frame.src=embedUrl.href;
-    console.info("[FLIXTV] PrimeSrc movie embed selected",{title:title(item),tmdbId:item.id,resumeAt:Number(resumeTime)||0});
-    return {provider:"primesrc",format:"embed",url:embedUrl.href};
+    console.info("[FLIXTV] APIPlayer movie embed selected",{title:title(item),tmdbId:item.id,resumeAt:Number(resumeTime)||0});
+    return {provider:"apiplayer",format:"embed",url:embedUrl.href};
   }
 
   startProgressPolling();
@@ -1166,7 +1173,7 @@ function play(item,season,episode){
   const resume=sameEpisode?Number(saved?.currentTime)||0:0;
   return openResolvedPlayback(item,season,episode,null,resume);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);stopResolvedVideo();currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){$("player-modal").dataset.playerProvider="";savePlaybackProgress(true);playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);stopResolvedVideo();currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 
 /* FLIXTV external subtitle engine.
    Captions are rendered in the parent document and synchronized to CineSRC
