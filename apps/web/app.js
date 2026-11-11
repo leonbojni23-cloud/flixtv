@@ -5,7 +5,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
 (()=>{
- const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws","anyplay.stream"];
+ const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws","111movies.net"];
  const isAllowedPlayerUrl=url=>{
   try{const host=new URL(url,location.href).hostname.toLowerCase();return allowedFrameHosts.some(allowed=>host===allowed||host.endsWith("."+allowed))}
   catch(_){return false}
@@ -1057,15 +1057,15 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
     $("resolved-video").hidden=true;
     setPlayerQualityOptions([]);
     frame.hidden=false;
-    const embedUrl=new URL("https://anyplay.stream/play/movie/"+encodeURIComponent(String(item.id)));
-    $("player-modal").dataset.playerProvider="anyplay";
+    const embedUrl=new URL("https://111movies.net/movie/"+encodeURIComponent(String(item.id)));
+    $("player-modal").dataset.playerProvider="111movies";
     frame.onload=()=>{if(playbackId===playbackOpenId){clearPlayerStatus();$("player-modal").dataset.playerState="loaded"}};
-    frame.onerror=()=>{if(playbackId===playbackOpenId)setPlayerStatus("AnyPlay nuk mundi të ngarkohej. Kontrollo lidhjen ose burimin.",true)};
+    frame.onerror=()=>{if(playbackId===playbackOpenId)setPlayerStatus("111Movies nuk mundi të ngarkohej. Kontrollo lidhjen ose burimin.",true)};
     $("player-modal").dataset.playerState="loading";
-    setPlayerStatus("Po hapet filmi në AnyPlay…");
+    setPlayerStatus("Po hapet filmi…");
     frame.src=embedUrl.href;
-    console.info("[FLIXTV] AnyPlay movie embed selected",{title:title(item),tmdbId:item.id,resumeAt:Number(resumeTime)||0});
-    return {provider:"anyplay",format:"embed",url:embedUrl.href};
+    console.info("[FLIXTV] 111Movies movie embed selected",{title:title(item),tmdbId:item.id,resumeAt:Number(resumeTime)||0});
+    return {provider:"111movies",format:"embed",url:embedUrl.href};
   }
 
   startProgressPolling();
