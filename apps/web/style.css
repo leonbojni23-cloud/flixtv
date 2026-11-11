@@ -1921,7 +1921,7 @@ html.deep-route-loading::after{
 
 
 /* AnyPlay movie embed in the isolated sandbox player. */
-#anyplay-frame{
+#movie-source-frame{
   position:absolute!important;
   inset:0!important;
   z-index:3!important;
@@ -1932,7 +1932,7 @@ html.deep-route-loading::after{
   border:0!important;
   background:#000!important;
 }
-#anyplay-frame[hidden]{display:none!important}
+#movie-source-frame[hidden]{display:none!important}
 .player-modal[data-player-provider="anyplay"] .subtitle-toolbar,
 .player-modal[data-player-provider="anyplay"] #external-subtitle-overlay{
   display:none!important;
