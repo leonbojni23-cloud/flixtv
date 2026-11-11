@@ -1918,3 +1918,18 @@ html.deep-route-loading::after{
     flex-basis:22px!important;
   }
 }
+
+
+/* PrimeSrc movie embed: isolated sandbox-branch player surface. */
+#primesrc-frame{
+  position:absolute!important;
+  inset:0!important;
+  z-index:3!important;
+  display:block;
+  width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  border:0!important;
+  background:#000!important;
+}
+#primesrc-frame[hidden]{display:none!important}
