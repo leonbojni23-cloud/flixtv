@@ -1920,8 +1920,8 @@ html.deep-route-loading::after{
 }
 
 
-/* PrimeSrc movie embed: isolated sandbox-branch player surface. */
-#primesrc-frame{
+/* APIPlayer movie embed in the isolated sandbox player. */
+#apiplayer-frame{
   position:absolute!important;
   inset:0!important;
   z-index:3!important;
@@ -1932,4 +1932,8 @@ html.deep-route-loading::after{
   border:0!important;
   background:#000!important;
 }
-#primesrc-frame[hidden]{display:none!important}
+#apiplayer-frame[hidden]{display:none!important}
+.player-modal[data-player-provider="apiplayer"] .subtitle-toolbar,
+.player-modal[data-player-provider="apiplayer"] #external-subtitle-overlay{
+  display:none!important;
+}
