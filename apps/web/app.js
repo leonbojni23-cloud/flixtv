@@ -5,7 +5,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
 (()=>{
- const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws","apiplayer.ru"];
+ const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws","anyplay.ru"];
  const isAllowedPlayerUrl=url=>{
   try{const host=new URL(url,location.href).hostname.toLowerCase();return allowedFrameHosts.some(allowed=>host===allowed||host.endsWith("."+allowed))}
   catch(_){return false}
@@ -850,12 +850,12 @@ function ensureHlsLibrary(){
   return hlsLibraryPromise;
 }
 function stopResolvedVideo(){
-  const apiPlayerFrame=$("apiplayer-frame");
-  if(apiPlayerFrame){
-    apiPlayerFrame.onload=null;
-    apiPlayerFrame.onerror=null;
-    apiPlayerFrame.removeAttribute("src");
-    apiPlayerFrame.hidden=true;
+  const anyPlayFrame=$("anyplay-frame");
+  if(anyPlayFrame){
+    anyPlayFrame.onload=null;
+    anyPlayFrame.onerror=null;
+    anyPlayFrame.removeAttribute("src");
+    anyPlayFrame.hidden=true;
   }
   const video=$("resolved-video");
   if(activeHlsPlayer){
@@ -1052,29 +1052,20 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   $("player-modal").dataset.playerState="resolving";
   setPlayerStatus("Po kërkohet burimi direkt M3U8…");
   if(kind(item)==="movie"){
-    const frame=$("apiplayer-frame");
-    if(!frame)throw new Error("APIPlayer iframe mungon në FLIXTV.");
+    const frame=$("anyplay-frame");
+    if(!frame)throw new Error("AnyPlay iframe mungon në FLIXTV.");
     $("resolved-video").hidden=true;
     setPlayerQualityOptions([]);
     frame.hidden=false;
-    const embedUrl=new URL("https://apiplayer.ru/embed/movie/"+encodeURIComponent(String(item.id)));
-    embedUrl.searchParams.set("autoplay","1");
-    embedUrl.searchParams.set("lang","en");
-    embedUrl.searchParams.set("color","e50936");
-    if(Number(resumeTime)>0){
-      embedUrl.searchParams.set("resume","0");
-      embedUrl.searchParams.set("start",String(Math.floor(Number(resumeTime))));
-    }else{
-      embedUrl.searchParams.set("resume","auto");
-    }
-    $("player-modal").dataset.playerProvider="apiplayer";
+    const embedUrl=new URL("https://anyplay.ru/embed/movie/"+encodeURIComponent(String(item.id)));
+    $("player-modal").dataset.playerProvider="anyplay";
     frame.onload=()=>{if(playbackId===playbackOpenId){clearPlayerStatus();$("player-modal").dataset.playerState="loaded"}};
-    frame.onerror=()=>{if(playbackId===playbackOpenId)setPlayerStatus("APIPlayer nuk mundi të ngarkohej. Kontrollo lidhjen ose burimin.",true)};
+    frame.onerror=()=>{if(playbackId===playbackOpenId)setPlayerStatus("AnyPlay nuk mundi të ngarkohej. Kontrollo lidhjen ose burimin.",true)};
     $("player-modal").dataset.playerState="loading";
-    setPlayerStatus("Po hapet filmi në APIPlayer…");
+    setPlayerStatus("Po hapet filmi në AnyPlay…");
     frame.src=embedUrl.href;
-    console.info("[FLIXTV] APIPlayer movie embed selected",{title:title(item),tmdbId:item.id,resumeAt:Number(resumeTime)||0});
-    return {provider:"apiplayer",format:"embed",url:embedUrl.href};
+    console.info("[FLIXTV] AnyPlay movie embed selected",{title:title(item),tmdbId:item.id,resumeAt:Number(resumeTime)||0});
+    return {provider:"anyplay",format:"embed",url:embedUrl.href};
   }
 
   startProgressPolling();
