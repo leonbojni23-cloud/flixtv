@@ -850,7 +850,7 @@ function ensureHlsLibrary(){
   return hlsLibraryPromise;
 }
 function stopResolvedVideo(){
-  const anyPlayFrame=$("anyplay-frame");
+  const anyPlayFrame=$("movie-source-frame");
   if(anyPlayFrame){
     anyPlayFrame.onload=null;
     anyPlayFrame.onerror=null;
@@ -1052,7 +1052,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   $("player-modal").dataset.playerState="resolving";
   setPlayerStatus("Po kërkohet burimi direkt M3U8…");
   if(kind(item)==="movie"){
-    const frame=$("anyplay-frame");
+    const frame=$("movie-source-frame");
     if(!frame)throw new Error("AnyPlay iframe mungon në FLIXTV.");
     $("resolved-video").hidden=true;
     setPlayerQualityOptions([]);
