@@ -2030,3 +2030,37 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
  }
 }
 
+
+
+/* iOS Safari: do not rotate a cross-origin iframe with CSS.
+   A transform rotates CineSRC's entire interface (title, buttons and controls),
+   not just its video surface. Keep the iframe aligned to the real viewport.
+   When the user physically rotates the iPhone, Safari supplies a landscape
+   viewport and this same full-screen frame naturally becomes landscape. */
+@media(max-width:900px){
+ .player-modal.open.ios-landscape-layout{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  bottom:0!important;
+  transform:none!important;
+  overflow:hidden!important;
+  background:#000!important;
+ }
+ .player-modal.open.ios-landscape-layout #cinesrc-frame{
+  position:absolute!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  max-width:none!important;
+  max-height:none!important;
+  transform:none!important;
+  transform-origin:center center!important;
+  border:0!important;
+  background:#000!important;
+ }
+}
