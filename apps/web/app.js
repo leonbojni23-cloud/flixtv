@@ -1022,18 +1022,15 @@ async function playResolvedHls(masterUrl,resumeTime=0,expectedPlaybackId=playbac
 
   throw new Error("Kjo pajisje nuk mbështet HLS përmes HLS.js ose videos HTML5.");
 }
-function requestLandscapeOrientation(){
-  try{
-    const orientation=screen.orientation;
-    if(orientation&&typeof orientation.lock==="function"){
-      const lockResult=orientation.lock("landscape");
-      if(lockResult&&typeof lockResult.catch==="function"){
-        lockResult.catch(error=>console.info("[FLIXTV] Landscape lock is not available in this browser:",error?.name||error));
-      }
-    }
-  }catch(error){
-    console.info("[FLIXTV] Landscape orientation request was rejected:",error?.name||error);
-  }
+function isIOSDevice(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)||
+    (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+}
+function syncPlayerOrientation(){
+  const player=$("player-modal");
+  if(!player)return;
+  const portrait=window.matchMedia&&window.matchMedia("(orientation: portrait)").matches;
+  player.classList.toggle("ios-landscape-layout",isIOSDevice()&&portrait);
 }
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
   if(!item||!item.id)return null;
@@ -1060,7 +1057,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   $("resolved-video").hidden=true;
   $("player-quality-select").hidden=true;
   modal("player-modal",true);
-  requestLandscapeOrientation();
+  syncPlayerOrientation();
   $("player-modal").dataset.playerState="embedded";
   setPlayerStatus("Po hapet CineSRC brenda FLIXTV…");
   frame.onload=()=>{if(playbackId===playbackOpenId)setPlayerStatus("")};
@@ -1077,7 +1074,10 @@ function play(item,season,episode){
   const resume=sameEpisode?Number(saved?.currentTime)||0:0;
   return openResolvedPlayback(item,season,episode,null,resume);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);stopResolvedVideo();currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}window.addEventListener("resize",syncPlayerOrientation,{passive:true});
+window.addEventListener("orientationchange",()=>setTimeout(syncPlayerOrientation,80),{passive:true});
+if(window.visualViewport)window.visualViewport.addEventListener("resize",syncPlayerOrientation,{passive:true});
+$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);$("player-modal").classList.remove("ios-landscape-layout");playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);stopResolvedVideo();currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");document.body.classList.remove("no-scroll")}
 
 /* FLIXTV external subtitle engine.
    Captions are rendered in the parent document and synchronized to CineSRC
