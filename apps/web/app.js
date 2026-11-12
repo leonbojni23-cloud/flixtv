@@ -5,7 +5,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
 (()=>{
- const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws"];
+ const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws","streamimdb.ru"];
  const isAllowedPlayerUrl=url=>{
   try{const host=new URL(url,location.href).hostname.toLowerCase();return allowedFrameHosts.some(allowed=>host===allowed||host.endsWith("."+allowed))}
   catch(_){return false}
@@ -850,6 +850,8 @@ function ensureHlsLibrary(){
   return hlsLibraryPromise;
 }
 function stopResolvedVideo(){
+  const streamFrame=$("streamimdb-frame");
+  if(streamFrame){streamFrame.onload=null;streamFrame.onerror=null;streamFrame.src="about:blank";streamFrame.hidden=true;}
   const video=$("resolved-video");
   if(activeHlsPlayer){
     try{activeHlsPlayer.destroy()}catch(_){}
@@ -1022,6 +1024,43 @@ async function playResolvedHls(masterUrl,resumeTime=0,expectedPlaybackId=playbac
 }
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
   if(!item||!item.id)return null;
+  // StreamIMDb is used as an embedded provider in the main FLIXTV playback modal.
+  // This keeps playback inside FLIXTV instead of sending the user to a separate tab.
+  const imdbId=String(item.external_ids?.imdb_id||item.imdb_id||"").trim();
+  if(!imdbId){
+    notice("Nuk u gjet IMDb ID për këtë titull. StreamIMDb nuk mund të ndërtohet pa të.");
+    return null;
+  }
+  const embedType=kind(item)==="tv"?"tv":"movie";
+  const embedUrl=new URL("https://streamimdb.ru/embed/"+embedType+"/"+encodeURIComponent(imdbId));
+  if(embedType==="tv"){
+    embedUrl.searchParams.set("s",String(Number(season||1)));
+    embedUrl.searchParams.set("e",String(Number(episode||1)));
+  }
+  const embedPlaybackId=++playbackOpenId;
+  clearTimeout(introTimer);
+  $("content-intro").classList.remove("show");
+  $("content-intro").setAttribute("aria-hidden","true");
+  $("details-modal").classList.remove("open");
+  playbackReturnToTitlePage=!$("title-page").hidden;
+  currentPlayback={item,season:embedType==="tv"?Number(season||1):null,episode:embedType==="tv"?Number(episode||1):null};
+  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
+  stopResolvedVideo();
+  clearExternalSubtitles();
+  const frame=$("streamimdb-frame");
+  if(!frame)throw new Error("StreamIMDb iframe mungon në player-in FLIXTV.");
+  frame.hidden=false;
+  frame.src=embedUrl.href;
+  $("resolved-video").hidden=true;
+  $("player-quality-select").hidden=true;
+  modal("player-modal",true);
+  $("player-modal").dataset.playerState="embedded";
+  setPlayerStatus("Po hapet StreamIMDb brenda FLIXTV…");
+  frame.onload=()=>{if(embedPlaybackId===playbackOpenId)setPlayerStatus("")};
+  frame.onerror=()=>{if(embedPlaybackId===playbackOpenId)setPlayerStatus("StreamIMDb nuk u ngarkua. Kontrollo nëse burimi lejon iframe.",true)};
+  startProgressPolling();
+  console.info("[FLIXTV] StreamIMDb embedded playback opened",{title:title(item),imdbId,embedUrl:embedUrl.href});
+  return {provider:"streamimdb",format:"embed",embedUrl:embedUrl.href};
 
   const playbackId=++playbackOpenId;
   clearTimeout(introTimer);
