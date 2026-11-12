@@ -1932,11 +1932,11 @@ html.deep-route-loading::after{
   height:100dvw!important;
   min-height:0!important;
   max-height:none!important;
+  inset:auto!important;
   top:50%!important;
   left:50%!important;
   right:auto!important;
   bottom:auto!important;
-  inset:auto!important;
   transform:translate(-50%,-50%) rotate(90deg)!important;
   transform-origin:center center!important;
   overflow:hidden!important;
