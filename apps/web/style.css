@@ -1985,3 +1985,48 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
 }
 #cinesrc-fullscreen-blocker[hidden]{display:none!important}
 .player-modal #cinesrc-fullscreen-blocker{display:block!important}
+
+/* iPhone portrait fallback: keep the modal as a full-screen black layer.
+   Rotate only the landscape iframe, never the modal itself. This avoids the
+   portrait-sized rotated stacking box that clipped CineSRC into a corner. */
+@media(max-width:900px){
+ .player-modal.open.ios-landscape-layout{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  bottom:0!important;
+  margin:0!important;
+  padding:0!important;
+  transform:none!important;
+  overflow:hidden!important;
+  background:#000!important;
+ }
+ .player-modal.open.ios-landscape-layout #cinesrc-frame{
+  position:absolute!important;
+  width:var(--flxtv-vv-height,100dvh)!important;
+  height:var(--flxtv-vv-width,100vw)!important;
+  max-width:none!important;
+  max-height:none!important;
+  min-width:0!important;
+  min-height:0!important;
+  top:calc(var(--flxtv-vv-top,0px) + var(--flxtv-vv-height,100dvh)/2)!important;
+  left:calc(var(--flxtv-vv-left,0px) + var(--flxtv-vv-width,100vw)/2)!important;
+  right:auto!important;
+  bottom:auto!important;
+  inset:auto!important;
+  transform:translate(-50%,-50%) rotate(90deg)!important;
+  transform-origin:center center!important;
+  border:0!important;
+  background:#000!important;
+ }
+ .player-modal.open.ios-landscape-layout #resolved-video{
+  width:var(--flxtv-vv-width,100vw)!important;
+  height:var(--flxtv-vv-height,100dvh)!important;
+  inset:0!important;
+ }
+}
+
