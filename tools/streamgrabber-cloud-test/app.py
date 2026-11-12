@@ -53,6 +53,15 @@ async def health():
     return {"status": "ok", "service": "streamgrabber-cloud-test"}
 
 
+@app.get("/self-test")
+async def self_test():
+    target = os.getenv("TEST_PAGE_URL", "https://streamimdb.ru/embed/tv/tt3032476")
+    return await capture(
+        CaptureRequest(url=target, wait_seconds=15, click_play=True),
+        x_api_key=os.getenv("API_TOKEN"),
+    )
+
+
 @app.post("/capture")
 async def capture(payload: CaptureRequest, x_api_key: str | None = Header(default=None)):
     expected = os.getenv("API_TOKEN")
