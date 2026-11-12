@@ -850,7 +850,7 @@ function ensureHlsLibrary(){
   return hlsLibraryPromise;
 }
 function stopResolvedVideo(){
-  const streamFrame=$("streamimdb-frame");
+  const streamFrame=$("cinesrc-frame");
   if(streamFrame){streamFrame.onload=null;streamFrame.onerror=null;streamFrame.src="about:blank";streamFrame.hidden=true;}
   const video=$("resolved-video");
   if(activeHlsPlayer){
@@ -1024,114 +1024,36 @@ async function playResolvedHls(masterUrl,resumeTime=0,expectedPlaybackId=playbac
 }
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
   if(!item||!item.id)return null;
+  const mediaType=kind(item)==="tv"?"tv":"movie";
+  const embedUrl=new URL("https://cinesrc.st/embed/"+mediaType+"/"+encodeURIComponent(String(item.id)));
+  if(mediaType==="tv"){
+    embedUrl.searchParams.set("season",String(Number(season||1)));
+    embedUrl.searchParams.set("episode",String(Number(episode||1)));
+  }
   const playbackId=++playbackOpenId;
   clearTimeout(introTimer);
   $("content-intro").classList.remove("show");
   $("content-intro").setAttribute("aria-hidden","true");
   $("details-modal").classList.remove("open");
-
   playbackReturnToTitlePage=!$("title-page").hidden;
-  currentPlayback={
-    item,
-    season:kind(item)==="tv"?Number(season||1):null,
-    episode:kind(item)==="tv"?Number(episode||1):null
-  };
-  latestPlaybackTime=Math.max(0,Number(resumeTime)||0);
-  latestPlaybackDuration=0;
-  lastProgressWrite=0;
-
+  currentPlayback={item,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null};
+  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
   stopResolvedVideo();
   clearExternalSubtitles();
+  const frame=$("cinesrc-frame");
+  if(!frame)throw new Error("CineSRC iframe mungon në player-in FLIXTV.");
+  frame.hidden=false;
+  frame.src=embedUrl.href;
+  $("resolved-video").hidden=true;
+  $("player-quality-select").hidden=true;
   modal("player-modal",true);
-  $("player-modal").dataset.playerState="resolving";
-  setPlayerStatus("Po kërkohet burimi direkt M3U8…");
+  $("player-modal").dataset.playerState="embedded";
+  setPlayerStatus("Po hapet CineSRC brenda FLIXTV…");
+  frame.onload=()=>{if(playbackId===playbackOpenId)setPlayerStatus("")};
+  frame.onerror=()=>{if(playbackId===playbackOpenId)setPlayerStatus("CineSRC nuk u ngarkua. Kontrollo nëse burimi lejon iframe.",true)};
   startProgressPolling();
-  void autoLoadOpenSubtitles(item,season,episode);
-
-  let refreshedAfterNetworkFailure=false;
-  const handleFatalNetworkError=async diagnostic=>{
-    if(playbackId!==playbackOpenId)return;
-
-    const status=Number(diagnostic.status)||0;
-    const details=String(diagnostic.details||"");
-    const looksLikeUnavailableResource=
-      status===404||status===0||
-      /fragLoadError|manifestLoadError|levelLoadError/i.test(details);
-
-    if(looksLikeUnavailableResource&&!refreshedAfterNetworkFailure){
-      refreshedAfterNetworkFailure=true;
-      setPlayerStatus("CDN nuk dha segmentin (HTTP "+(status||"i fshehur")+
-        "). Po kërkohet automatikisht një burim i ri…");
-      try{
-        localStorage.removeItem(cinesrcM3U8CacheKey(item,season,episode));
-      }catch(_){}
-      stopResolvedVideo();
-
-      try{
-        const fresh=await requestCineSrcM3U8(item,season,episode,null,true);
-        if(playbackId!==playbackOpenId)return;
-        if(!fresh||!fresh.masterUrl)throw new Error(lastCineSrcResolveError||"Resolver-i nuk dha një burim të ri.");
-        await startResolvedStream(fresh);
-      }catch(error){
-        if(playbackId===playbackOpenId){
-          console.error("[FLIXTV] Fresh M3U8 retry failed:",error);
-          setPlayerStatus("Edhe burimi i ri dështoi: "+(error.message||"gabim i panjohur"),true);
-        }
-      }
-      return;
-    }
-
-    const reason=status===404
-      ?"CDN vazhdon të kthejë HTTP 404 edhe pas marrjes së një M3U8 të ri."
-      :status===403
-        ?"CDN kthen HTTP 403 për burimin e videos."
-        :status===0
-          ?"Chrome nuk ekspozoi statusin për shkak të CORS ose dështimit të rrjetit; burimi i ri dështoi gjithashtu."
-          :"Kërkesa HLS dështoi pas provës automatike.";
-    const resource=diagnostic.url?" URL: "+diagnostic.url:"";
-    console.error("[FLIXTV] Final HLS network failure:",diagnostic);
-    setPlayerStatus(reason+" "+diagnostic.details+resource,true);
-  };
-
-  const startResolvedStream=async resolved=>{
-    if(playbackId!==playbackOpenId)return false;
-    const directUrl=new URL(resolved.masterUrl);
-    const allowedHost=directUrl.hostname==="bright67.online"||
-      directUrl.hostname.endsWith(".bright67.online")||
-      directUrl.hostname==="cinesrc.st"||
-      directUrl.hostname.endsWith(".cinesrc.st");
-    if(directUrl.protocol!=="https:"||!allowedHost){
-      throw new Error("Resolver-i ktheu një adresë M3U8 që nuk lejohet.");
-    }
-
-    console.info("[FLIXTV] Starting in-app HLS playback",{
-      title:title(item),
-      mediaType:kind(item),
-      playlistType:resolved.playlistType||"unknown",
-      sourceHost:directUrl.hostname,
-      cached:!!resolved.cached,
-      refreshedAfterNetworkFailure
-    });
-    $("player-modal").dataset.playerState="loading";
-    return playResolvedHls(directUrl.href,latestPlaybackTime,playbackId,handleFatalNetworkError);
-  };
-
-  try{
-    const resolved=await requestCineSrcM3U8(item,season,episode,button);
-    if(playbackId!==playbackOpenId)return null;
-    if(!resolved||!resolved.masterUrl){
-      throw new Error(lastCineSrcResolveError||"Resolver-i nuk ktheu URL-në M3U8.");
-    }
-    await startResolvedStream(resolved);
-    return {provider:"cinesrc",format:"hls",masterUrl:resolved.masterUrl};
-  }catch(error){
-    if(playbackId===playbackOpenId){
-      console.error("[FLIXTV] In-app direct HLS playback failed:",error);
-      setPlayerStatus(error.message||"Nuk u gjet adresa M3U8.",true);
-      showCineSrcResolutionStatus(null,error.message||"Nuk u gjet adresa M3U8.");
-    }
-    return null;
-  }
+  console.info("[FLIXTV] CineSRC iframe playback opened",{title:title(item),mediaType,tmdbId:item.id,embedUrl:embedUrl.href});
+  return {provider:"cinesrc",format:"iframe",embedUrl:embedUrl.href};
 }
 function play(item,season,episode){
   if(!item||!item.id)return;
