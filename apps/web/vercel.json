@@ -15,6 +15,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "streamimdb-sandbox.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "app.js",
       "use": "@vercel/static"
     },
@@ -44,6 +48,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/streamimdb-sandbox",
+      "destination": "/streamimdb-sandbox.html"
+    },
     {
       "source": "/daddylive",
       "destination": "/daddylive.html"
