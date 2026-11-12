@@ -1037,7 +1037,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
     embedUrl.searchParams.set("s",String(Number(season||1)));
     embedUrl.searchParams.set("e",String(Number(episode||1)));
   }
-  const playbackId=++playbackOpenId;
+  const embedPlaybackId=++playbackOpenId;
   clearTimeout(introTimer);
   $("content-intro").classList.remove("show");
   $("content-intro").setAttribute("aria-hidden","true");
@@ -1056,8 +1056,8 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   modal("player-modal",true);
   $("player-modal").dataset.playerState="embedded";
   setPlayerStatus("Po hapet StreamIMDb brenda FLIXTV…");
-  frame.onload=()=>{if(playbackId===playbackOpenId)setPlayerStatus("")};
-  frame.onerror=()=>{if(playbackId===playbackOpenId)setPlayerStatus("StreamIMDb nuk u ngarkua. Kontrollo nëse burimi lejon iframe.",true)};
+  frame.onload=()=>{if(embedPlaybackId===playbackOpenId)setPlayerStatus("")};
+  frame.onerror=()=>{if(embedPlaybackId===playbackOpenId)setPlayerStatus("StreamIMDb nuk u ngarkua. Kontrollo nëse burimi lejon iframe.",true)};
   startProgressPolling();
   console.info("[FLIXTV] StreamIMDb embedded playback opened",{title:title(item),imdbId,embedUrl:embedUrl.href});
   return {provider:"streamimdb",format:"embed",embedUrl:embedUrl.href};
