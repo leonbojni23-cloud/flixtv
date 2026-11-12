@@ -46,7 +46,7 @@ const $=id=>document.getElementById(id);
 function updateFields(){const tv=$("kind").value==="tv";$("season-label").hidden=!tv;$("episode-label").hidden=!tv}
 function load(){
  const kind=$("kind").value,id=$("imdb").value.trim();
- if(!/^(tt\\d{7,10}|\\d{1,12})$/i.test(id)){alert("Vendos një IMDb ID të vlefshëm, p.sh. tt3032476.");return}
+ if(!/^(tt\d{7,10}|\d{1,12})$/i.test(id)){alert("Vendos një IMDb ID të vlefshëm, p.sh. tt3032476.");return}
  let url="https://streamimdb.ru/embed/"+kind+"/"+encodeURIComponent(id);
  if(kind==="tv"){
   const season=Number($("season").value),episode=Number($("episode").value);
