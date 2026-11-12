@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090d14">
+<title>FLIXTV · StreamIMDb Sandbox</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#090d14;color:#f4f7fb}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -20%,#1c3045 0,transparent 55%),#090d14}
+header{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4vw,48px);border-bottom:1px solid #ffffff16}
+.brand{font-weight:900;letter-spacing:.12em;color:#fff}.brand span{color:#36c9e8}
+main{width:min(1180px,94vw);margin:28px auto 48px}
+h1{font-size:clamp(22px,4vw,34px);margin:0 0 8px}.sub{color:#aab6c6;margin:0 0 22px;line-height:1.5}
+.panel{display:flex;gap:10px;flex-wrap:wrap;align-items:end;padding:16px;background:#121a26;border:1px solid #ffffff14;border-radius:14px;margin-bottom:16px}
+label{display:grid;gap:6px;color:#aab6c6;font-size:12px;flex:1 1 160px}
+select,input{width:100%;height:42px;border:1px solid #344255;border-radius:8px;background:#0b111b;color:#fff;padding:0 11px;font:inherit}
+button,.test-link{height:42px;border:0;border-radius:8px;padding:0 16px;background:#35c8e6;color:#07121b;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.test-link{background:#253447;color:#eaf4ff}
+.frame-wrap{background:#000;border:1px solid #ffffff20;border-radius:14px;overflow:hidden;aspect-ratio:16/9;min-height:240px}
+iframe{width:100%;height:100%;border:0;display:block;background:#000}
+.note{font-size:12px;color:#8290a3;line-height:1.5;margin-top:12px}
+@media(max-width:600px){.frame-wrap{aspect-ratio:4/3;min-height:260px}.panel>*{flex:1 1 100%}}
+</style>
+</head>
+<body>
+<header><div class="brand">FLIX<span>TV</span></div><div style="color:#91a0b4;font-size:12px">SANDBOX · STREAMIMDb</div></header>
+<main>
+<h1>StreamIMDb player test</h1>
+<p class="sub">Testo formatin e embed-it brenda faqes FLIXTV. Ky sandbox nuk ndryshon player-in kryesor dhe nuk prek production.</p>
+<section class="panel" aria-label="Embed controls">
+<label>Tipi<select id="kind"><option value="tv">Serial</option><option value="movie">Film</option></select></label>
+<label>IMDb ID<input id="imdb" value="tt3032476" autocomplete="off" spellcheck="false"></label>
+<label id="season-label">Sezoni<input id="season" type="number" min="1" max="100" value="1"></label>
+<label id="episode-label">Episodi<input id="episode" type="number" min="1" max="500" value="1"></label>
+<button id="load" type="button">Ngarko player-in</button>
+<a class="test-link" href="https://streamgrabber-cloud-test-production.up.railway.app/self-test" target="_blank" rel="noopener noreferrer">Testo Streamgrabber</a>
+</section>
+<div class="frame-wrap"><iframe id="player" title="StreamIMDb sandbox player" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen referrerpolicy="origin" src="https://streamimdb.ru/embed/tv/tt3032476"></iframe></div>
+<p class="note">Streamgrabber test hap rezultatin e kapjes në Railway në një skedë të re. Nëse nuk gjendet stream, kjo nuk do të thotë se embed-i nuk luan: janë dy prova të ndara. Përdor vetëm përmbajtje që ke të drejtë ta shikosh.</p>
+</main>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+function updateFields(){const tv=$("kind").value==="tv";$("season-label").hidden=!tv;$("episode-label").hidden=!tv}
+function load(){
+ const kind=$("kind").value,id=$("imdb").value.trim();
+ if(!/^(tt\\d{7,10}|\\d{1,12})$/i.test(id)){alert("Vendos një IMDb ID të vlefshëm, p.sh. tt3032476.");return}
+ let url="https://streamimdb.ru/embed/"+kind+"/"+encodeURIComponent(id);
+ if(kind==="tv"){
+  const season=Number($("season").value),episode=Number($("episode").value);
+  if(!Number.isInteger(season)||season<1||!Number.isInteger(episode)||episode<1){alert("Sezoni dhe episodi duhet të jenë numra pozitivë.");return}
+  url+="?s="+season+"&e="+episode;
+ }
+ $("player").src=url;
+}
+$("kind").addEventListener("change",updateFields);
+$("load").addEventListener("click",load);
+$("imdb").addEventListener("keydown",e=>{if(e.key==="Enter")load()});
+updateFields();
+})();
+</script>
+</body>
+</html>
