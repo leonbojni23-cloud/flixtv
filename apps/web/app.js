@@ -1022,6 +1022,19 @@ async function playResolvedHls(masterUrl,resumeTime=0,expectedPlaybackId=playbac
 
   throw new Error("Kjo pajisje nuk mbështet HLS përmes HLS.js ose videos HTML5.");
 }
+function requestLandscapeOrientation(){
+  try{
+    const orientation=screen.orientation;
+    if(orientation&&typeof orientation.lock==="function"){
+      const lockResult=orientation.lock("landscape");
+      if(lockResult&&typeof lockResult.catch==="function"){
+        lockResult.catch(error=>console.info("[FLIXTV] Landscape lock is not available in this browser:",error?.name||error));
+      }
+    }
+  }catch(error){
+    console.info("[FLIXTV] Landscape orientation request was rejected:",error?.name||error);
+  }
+}
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
   if(!item||!item.id)return null;
   const mediaType=kind(item)==="tv"?"tv":"movie";
@@ -1047,6 +1060,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   $("resolved-video").hidden=true;
   $("player-quality-select").hidden=true;
   modal("player-modal",true);
+  requestLandscapeOrientation();
   $("player-modal").dataset.playerState="embedded";
   setPlayerStatus("Po hapet CineSRC brenda FLIXTV…");
   frame.onload=()=>{if(playbackId===playbackOpenId)setPlayerStatus("")};
