@@ -7,7 +7,7 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/api/pwa-icon",
+      "src": "/apple-touch-icon.png?v=20261115-icon3",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
