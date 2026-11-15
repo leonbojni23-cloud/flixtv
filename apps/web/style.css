@@ -2413,3 +2413,8 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
 }
 
 /* Applies to Safari and Home Screen, in portrait fallback and real landscape. */
+
+/* Keep the installed iOS PWA content below the system status bar. */
+html.ios-home-app body {
+  padding-top: env(safe-area-inset-top, 0px);
+}
