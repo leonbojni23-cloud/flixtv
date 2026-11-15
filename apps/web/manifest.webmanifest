@@ -7,16 +7,10 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/pwa-icon.svg?v=20261115-1",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/api/pwa-icon",
+      "sizes": "180x180",
+      "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "/pwa-icon.svg?v=20261115-1",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
     }
   ],
   "scope": "/",
