@@ -2233,3 +2233,51 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
     -webkit-transform-origin: center center !important;
   }
 }
+
+
+/* Authoritative iPhone player layout. The modal is the full viewport; flexbox
+   centres the landscape-sized iframe before its visual 90deg rotation. Keep
+   the video edge-to-edge; safe-area insets belong on controls, not the video. */
+@media (max-width: 900px) and (orientation: portrait) {
+  .player-modal.open.ios-landscape-layout {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-flow: row nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    background: #000 !important;
+  }
+
+  .player-modal.open.ios-landscape-layout #cinesrc-frame {
+    position: relative !important;
+    inset: auto !important;
+    display: block !important;
+    flex: 0 0 auto !important;
+    width: 100dvh !important;
+    height: 100vw !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: #000 !important;
+    transform: rotate(90deg) !important;
+    -webkit-transform: rotate(90deg) !important;
+    transform-origin: center center !important;
+    -webkit-transform-origin: center center !important;
+  }
+}
