@@ -2393,19 +2393,5 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
 /* Home Screen no longer rotates a portrait iframe. The player uses the
    actual device orientation; the normal full-viewport wrapper fills landscape. */
 
-/* Home Screen landscape: slightly reduce the provider viewport and centre it,
-   leaving a narrow, even black border around the picture. Safari Web is untouched. */
-@media (max-width: 900px) and (orientation: landscape) {
-  html.ios-home-app .player-modal.open .cinesrc-video-wrapper {
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  html.ios-home-app .player-modal.open .cinesrc-video-wrapper #cinesrc-frame {
-    width: 95% !important;
-    height: 95% !important;
-    flex: 0 0 95% !important;
-    transform: none !important;
-    -webkit-transform: none !important;
-  }
-}
+/* Home Screen landscape: keep the provider iframe at its native full size.
+   Scaling the cross-origin iframe element can distort the rendered player. */
