@@ -2140,3 +2140,52 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
     background: transparent !important;
   }
 }
+
+
+/* iPhone Safari: size the rotated CineSRC frame from the SAME dynamic viewport
+   as the fixed player modal. Do not use visualViewport.height here: Safari
+   reports the reduced visible height while its fixed containing block can use
+   a different viewport, which makes the rotated iframe much too small. */
+@media (max-width: 900px) and (orientation: portrait) {
+  .player-modal.open.ios-landscape-layout {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    transform: none !important;
+    background: #000 !important;
+  }
+
+  .player-modal.open.ios-landscape-layout #cinesrc-frame {
+    position: absolute !important;
+    display: block !important;
+    width: 100dvh !important;
+    height: 100vw !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    left: 50% !important;
+    top: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    inset: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #000 !important;
+    transform: translate(-50%, -50%) rotate(90deg) !important;
+    -webkit-transform: translate(-50%, -50%) rotate(90deg) !important;
+    transform-origin: center center !important;
+    -webkit-transform-origin: center center !important;
+  }
+}
