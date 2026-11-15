@@ -2416,5 +2416,5 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
 
 /* Keep the installed iOS PWA content below the system status bar. */
 html.ios-home-app body {
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: max(0px, calc(env(safe-area-inset-top, 0px) - 6px));
 }
