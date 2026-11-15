@@ -2388,3 +2388,46 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
     -webkit-transform: none !important;
   }
 }
+
+
+/* FINAL iPhone portrait geometry:
+   after a 90deg rotation the wrapper's WIDTH becomes its vertical screen span.
+   Set that span to viewport-height minus a deliberate bottom black band, then
+   position its centre at half that span so the rotated top edge is exactly y=0. */
+@media (max-width: 900px) and (orientation: portrait) {
+  .player-modal.open .cinesrc-video-wrapper.force-landscape {
+    position: fixed !important;
+    inset: auto !important;
+    width: calc(100dvh - 12dvh) !important;
+    height: 100vw !important;
+    top: calc((100dvh - 12dvh) / 2) !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    overflow: hidden !important;
+    background: #000 !important;
+    transform: translate(-50%, -50%) rotate(90deg) !important;
+    -webkit-transform: translate(-50%, -50%) rotate(90deg) !important;
+    transform-origin: center center !important;
+    -webkit-transform-origin: center center !important;
+  }
+
+  .player-modal.open .cinesrc-video-wrapper.force-landscape #cinesrc-frame {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    flex: 0 0 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+  }
+}
