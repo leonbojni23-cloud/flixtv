@@ -39,6 +39,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/pwa-icon.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "api/streams.js",
       "use": "@vercel/node"
     },
