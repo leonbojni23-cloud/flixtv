@@ -53,6 +53,10 @@
   ],
   "rewrites": [
     {
+      "source": "/apple-touch-icon.png",
+      "destination": "/api/pwa-icon"
+    },
+    {
       "source": "/streamimdb-sandbox",
       "destination": "/streamimdb-sandbox.html"
     },
