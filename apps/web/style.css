@@ -2365,3 +2365,26 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
     -webkit-transform-origin: center center !important;
   }
 }
+
+
+/* iOS Home Screen: extend the rotated CineSRC viewport upward into the
+   translucent status-bar region. iOS does not let web apps hide the clock,
+   cellular/Wi-Fi or battery indicators; they remain system overlays. */
+@media (max-width: 900px) and (orientation: portrait) {
+  html.ios-home-app .player-modal.open .cinesrc-video-wrapper.force-landscape {
+    width: calc(100dvh + env(safe-area-inset-top, 0px)) !important;
+    height: 100vw !important;
+    top: calc(50% - env(safe-area-inset-top, 0px) / 2) !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(90deg) !important;
+    -webkit-transform: translate(-50%, -50%) rotate(90deg) !important;
+    overflow: hidden !important;
+  }
+
+  html.ios-home-app .player-modal.open .cinesrc-video-wrapper.force-landscape #cinesrc-frame {
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+  }
+}
