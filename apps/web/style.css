@@ -2340,3 +2340,28 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
     -webkit-transform: none !important;
   }
 }
+
+
+/* Final override: legacy modal-level iframe rotation rules must never win over
+   the dedicated wrapper. The wrapper alone rotates; the iframe stays native. */
+@media (max-width: 900px) and (orientation: portrait) {
+  .player-modal.open.ios-landscape-layout .cinesrc-video-wrapper.force-landscape #cinesrc-frame {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    flex: 0 0 100% !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+    transform-origin: center center !important;
+    -webkit-transform-origin: center center !important;
+  }
+}
