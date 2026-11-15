@@ -1028,17 +1028,14 @@ function isIOSDevice(){
 }
 function syncPlayerOrientation(){
   const player=$("player-modal");
-  if(!player)return;
-  // Use the actual visible Safari viewport, not the larger layout viewport.
-  // Keep the iframe centred with CSS 50%/50%; visualViewport offsets are
-  // deliberately excluded because they are in a different coordinate space
-  // from the fixed modal on iOS Safari.
-  const viewport=window.visualViewport;
-  const width=Math.max(1,viewport?viewport.width:window.innerWidth);
-  const height=Math.max(1,viewport?viewport.height:window.innerHeight);
-  player.style.setProperty("--flxtv-vv-width",width+"px");
-  player.style.setProperty("--flxtv-vv-height",height+"px");
-  player.classList.toggle("ios-landscape-layout",isIOSDevice()&&height>width);
+  const wrapper=$("cinesrc-video-wrapper");
+  if(!player||!wrapper)return;
+  // Rotate a dedicated wrapper, not the iframe's internal viewport and not
+  // the whole modal (which also contains FLIXTV controls and subtitles).
+  const portrait=window.matchMedia("(orientation: portrait)").matches;
+  const forceLandscape=isIOSDevice()&&portrait;
+  player.classList.toggle("ios-landscape-layout",forceLandscape);
+  wrapper.classList.toggle("force-landscape",forceLandscape);
 }
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
   if(!item||!item.id)return null;
