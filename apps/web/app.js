@@ -1078,7 +1078,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   embedUrl.searchParams.set("autoplay","1");
   embedUrl.searchParams.set("playsinline","1");
   frame.hidden=false;
-  frame.setAttribute("allow","autoplay *; picture-in-picture; encrypted-media");
+  frame.setAttribute("allow","fullscreen *; autoplay *; picture-in-picture; encrypted-media");
   frame.src=embedUrl.href;
   $("resolved-video").hidden=true;
   $("player-quality-select").hidden=true;
