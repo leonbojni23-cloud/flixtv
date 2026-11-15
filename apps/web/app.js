@@ -1029,17 +1029,15 @@ function isIOSDevice(){
 function syncPlayerOrientation(){
   const player=$("player-modal");
   if(!player)return;
-  const viewport=window.visualViewport;
-  const width=Math.max(1,viewport?viewport.width:window.innerWidth);
-  const height=Math.max(1,viewport?viewport.height:window.innerHeight);
-  const offsetLeft=viewport?viewport.offsetLeft:0;
-  const offsetTop=viewport?viewport.offsetTop:0;
+  // The modal is fixed to the layout viewport. Do not mix visualViewport
+  // offsets with fixed-position coordinates: Safari's visual viewport can
+  // move independently and that was shifting the rotated iframe off-centre.
+  const root=document.documentElement;
+  const width=Math.max(1,root.clientWidth||window.innerWidth);
+  const height=Math.max(1,root.clientHeight||window.innerHeight);
   player.style.setProperty("--flxtv-vv-width",width+"px");
   player.style.setProperty("--flxtv-vv-height",height+"px");
-  player.style.setProperty("--flxtv-vv-left",offsetLeft+"px");
-  player.style.setProperty("--flxtv-vv-top",offsetTop+"px");
-  const portrait=height>width;
-  player.classList.toggle("ios-landscape-layout",isIOSDevice()&&portrait);
+  player.classList.toggle("ios-landscape-layout",isIOSDevice()&&height>width);
 }
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
   if(!item||!item.id)return null;
