@@ -53,6 +53,10 @@
   ],
   "rewrites": [
     {
+      "source": "/flixtv-home-icon-v4.png",
+      "destination": "/api/pwa-icon"
+    },
+    {
       "source": "/apple-touch-icon.png",
       "destination": "/api/pwa-icon"
     },
