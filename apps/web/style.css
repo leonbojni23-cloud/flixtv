@@ -2281,3 +2281,62 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
     -webkit-transform-origin: center center !important;
   }
 }
+
+
+/* CineSRC wrapper rotation: rotate only the provider viewport, leaving FLIXTV
+   controls, subtitles and the close button in the phone's native orientation. */
+.cinesrc-video-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+  z-index: 2;
+}
+.cinesrc-video-wrapper #cinesrc-frame {
+  position: relative !important;
+  inset: auto !important;
+  display: block !important;
+  flex: 0 0 100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  border: 0 !important;
+  background: #000 !important;
+  transform: none !important;
+  -webkit-transform: none !important;
+}
+@media (max-width: 900px) and (orientation: portrait) {
+  .player-modal.open .cinesrc-video-wrapper.force-landscape {
+    position: absolute !important;
+    inset: auto !important;
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100dvh !important;
+    height: 100vw !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #000 !important;
+    transform: translate(-50%, -50%) rotate(90deg) !important;
+    -webkit-transform: translate(-50%, -50%) rotate(90deg) !important;
+    transform-origin: center center !important;
+    -webkit-transform-origin: center center !important;
+  }
+  .player-modal.open .cinesrc-video-wrapper.force-landscape #cinesrc-frame {
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+  }
+}
