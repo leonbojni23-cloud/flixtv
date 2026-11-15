@@ -1029,12 +1029,13 @@ function isIOSDevice(){
 function syncPlayerOrientation(){
   const player=$("player-modal");
   if(!player)return;
-  // The modal is fixed to the layout viewport. Do not mix visualViewport
-  // offsets with fixed-position coordinates: Safari's visual viewport can
-  // move independently and that was shifting the rotated iframe off-centre.
-  const root=document.documentElement;
-  const width=Math.max(1,root.clientWidth||window.innerWidth);
-  const height=Math.max(1,root.clientHeight||window.innerHeight);
+  // Use the actual visible Safari viewport, not the larger layout viewport.
+  // Keep the iframe centred with CSS 50%/50%; visualViewport offsets are
+  // deliberately excluded because they are in a different coordinate space
+  // from the fixed modal on iOS Safari.
+  const viewport=window.visualViewport;
+  const width=Math.max(1,viewport?viewport.width:window.innerWidth);
+  const height=Math.max(1,viewport?viewport.height:window.innerHeight);
   player.style.setProperty("--flxtv-vv-width",width+"px");
   player.style.setProperty("--flxtv-vv-height",height+"px");
   player.classList.toggle("ios-landscape-layout",isIOSDevice()&&height>width);
