@@ -1037,6 +1037,24 @@ function syncPlayerOrientation(){
   player.classList.toggle("ios-landscape-layout",forceLandscape);
   wrapper.classList.toggle("force-landscape",forceLandscape);
 }
+function requestPlayerFullscreen(){
+  const player=$("player-modal");
+  if(!player)return;
+  // Native element fullscreen is not available for a normal container in iPhone Safari.
+  // Use it only where the browser actually exposes the standard API.
+  if(typeof player.requestFullscreen==="function"){
+    try{
+      const request=player.requestFullscreen({navigationUI:"hide"});
+      if(request&&typeof request.then==="function"){
+        request.then(()=>{
+          if(screen.orientation&&typeof screen.orientation.lock==="function"){
+            screen.orientation.lock("landscape").catch(()=>{});
+          }
+        }).catch(error=>console.info("[FLIXTV] Native fullscreen unavailable:",error));
+      }
+    }catch(error){console.info("[FLIXTV] Native fullscreen unavailable:",error)}
+  }
+}
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
   if(!item||!item.id)return null;
   const mediaType=kind(item)==="tv"?"tv":"movie";
@@ -1065,6 +1083,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   $("resolved-video").hidden=true;
   $("player-quality-select").hidden=true;
   modal("player-modal",true);
+  requestPlayerFullscreen();
   document.documentElement.classList.add("flxtv-player-active");
   document.body.classList.add("flxtv-player-active");
   syncPlayerOrientation();
