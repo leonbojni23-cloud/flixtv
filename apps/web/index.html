@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
   <script>if(location.pathname!=="/"&&location.pathname!=="/index.html")document.documentElement.classList.add("deep-route-loading");</script>
-  <link rel="stylesheet" href="/style.css?v=20261115-ios-landscape-safearea-1">
+  <link rel="stylesheet" href="/style.css?v=20261115-ios-wrapper-1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.css">
   <script src="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.js" defer></script>
 </head>
@@ -144,11 +144,11 @@
       <input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip" hidden>
     </div>
     <div id="external-subtitle-overlay" class="external-subtitle-overlay" aria-live="off"></div>
-    <iframe id="cinesrc-frame" title="CineSRC player" sandbox="allow-scripts allow-same-origin allow-forms" allow="autoplay; picture-in-picture; encrypted-media" referrerpolicy="origin" loading="eager" hidden></iframe>
+    <div id="cinesrc-video-wrapper" class="cinesrc-video-wrapper"><iframe id="cinesrc-frame" title="CineSRC player" sandbox="allow-scripts allow-same-origin allow-forms" allow="fullscreen; autoplay; encrypted-media; picture-in-picture; orientation-lock" allowfullscreen referrerpolicy="no-referrer" loading="eager" hidden></iframe></div>
     <div id="cinesrc-fullscreen-blocker" aria-hidden="true"></div>
     <video id="resolved-video" controls playsinline webkit-playsinline preload="none" hidden></video>
   </section>
 
-  <script src="/app.js?v=20261115-ios-landscape-safearea-1"></script>
+  <script src="/app.js?v=20261115-ios-wrapper-1"></script>
 </body>
 </html>
