@@ -1030,8 +1030,18 @@ function syncPlayerOrientation(){
   const player=$("player-modal");
   const wrapper=$("cinesrc-video-wrapper");
   if(!player||!wrapper)return;
-  // Rotate a dedicated wrapper, not the iframe's internal viewport and not
-  // the whole modal (which also contains FLIXTV controls and subtitles).
+
+  // Home Screen follows the device's real orientation, like 111movies.
+  // Never fake landscape by rotating the iframe while the phone is portrait.
+  const isHomeScreen=window.navigator.standalone===true||
+    (window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches);
+  if(isHomeScreen){
+    player.classList.remove("ios-landscape-layout");
+    wrapper.classList.remove("force-landscape");
+    return;
+  }
+
+  // Preserve the existing Safari web-player behavior unchanged.
   const portrait=window.matchMedia("(orientation: portrait)").matches;
   const forceLandscape=isIOSDevice()&&portrait;
   player.classList.toggle("ios-landscape-layout",forceLandscape);
