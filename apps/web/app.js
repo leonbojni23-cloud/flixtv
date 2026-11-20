@@ -965,15 +965,18 @@ window.addEventListener("popstate",event=>{
  if($("player-modal").classList.contains("open"))closePlayer();
  const view=event.state?.flixView;
  if(view){
+  // Restore exactly one application view. Search and Sports live outside the catalog.
+  const isSearch=!!view.search,isSports=!!view.sports,page=view.page||"home";
   $("title-page").hidden=true;
-  $("catalog").hidden=false;
-  $("sports-page").hidden=!!view.sports;
-  $("hero").hidden=view.page!=="home";
-  $("home-page").hidden=view.page!=="home";
-  $("movies-page").hidden=view.page!=="movies";
-  $("shows-page").hidden=view.page!=="shows";
-  $("search-page").hidden=!view.search;
-  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===view.page));
+  $("search-page").hidden=!isSearch;
+  $("sports-page").hidden=!isSports;
+  $("catalog").hidden=isSearch||isSports;
+  $("hero").hidden=isSearch||isSports||page!=="home";
+  $("home-page").hidden=page!=="home"||isSearch||isSports;
+  $("movies-page").hidden=page!=="movies"||isSearch||isSports;
+  $("shows-page").hidden=page!=="shows"||isSearch||isSports;
+  searchPageActive=isSearch;
+  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",!isSearch&&x.dataset.page===page));
   requestAnimationFrame(()=>window.scrollTo({top:view.scrollY||0,left:0,behavior:"instant"}));
   return;
  }
