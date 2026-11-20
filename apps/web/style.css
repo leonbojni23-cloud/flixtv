@@ -2543,3 +2543,26 @@ html.ios-home-app body {
  aspect-ratio:auto!important;
  background:#05070b!important;
 }
+
+
+/* Native shared-element poster expansion. Only the selected poster participates. */
+html::view-transition-group(flxtv-poster){
+ animation-duration:680ms;
+ animation-timing-function:cubic-bezier(.2,.75,.2,1);
+}
+html::view-transition-image-pair(flxtv-poster){
+ overflow:visible;
+ isolation:isolate;
+}
+html::view-transition-old(flxtv-poster),
+html::view-transition-new(flxtv-poster){
+ width:100%;
+ height:100%;
+ object-fit:contain;
+ mix-blend-mode:normal;
+}
+@media(prefers-reduced-motion:reduce){
+ html::view-transition-group(flxtv-poster),
+ html::view-transition-old(flxtv-poster),
+ html::view-transition-new(flxtv-poster){animation:none!important}
+}
