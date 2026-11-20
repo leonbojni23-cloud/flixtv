@@ -963,29 +963,21 @@ document.addEventListener("click",event=>{
 });
 window.addEventListener("popstate",event=>{
  if($("player-modal").classList.contains("open"))closePlayer();
-const view=event.state?.flixView;
+ const view=event.state?.flixView;
  if(view){
-  // Restore exactly one application view. Search and Sports live outside the catalog.
-  const isSearch=!!view.search,isSports=!!view.sports,page=view.page||"home";
   $("title-page").hidden=true;
-  $("search-page").hidden=!isSearch;
-  $("sports-page").hidden=!isSports;
-  $("catalog").hidden=isSearch||isSports;
-  $("hero").hidden=isSearch||isSports||page!=="home";
-  $("home-page").hidden=page!=="home"||isSearch||isSports;
-  $("movies-page").hidden=page!=="movies"||isSearch||isSports;
-  $("shows-page").hidden=page!=="shows"||isSearch||isSports;
-  searchPageActive=isSearch;
-  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",!isSearch&&x.dataset.page===page));
+  $("catalog").hidden=false;
+  $("sports-page").hidden=!view.sports;
+  $("hero").hidden=view.page!=="home";
+  $("home-page").hidden=view.page!=="home";
+  $("movies-page").hidden=view.page!=="movies";
+  $("shows-page").hidden=view.page!=="shows";
+  $("search-page").hidden=!view.search;
+  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===view.page));
   requestAnimationFrame(()=>window.scrollTo({top:view.scrollY||0,left:0,behavior:"instant"}));
   return;
  }
- const pageState=event.state?.page;
- if(pageState&&["home","movies","shows","sports"].includes(pageState)){
-  void openPage(pageState,false);
-  return;
- }
-  if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);
+ if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);
  else if(location.pathname==="/"){
   $("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;openPage("home",false);
  }else resolveTitleRoute();
@@ -1518,15 +1510,8 @@ renderContinueWatching();
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);const playerCloseButton=$("player-close");if(playerCloseButton)playerCloseButton.onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
 let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
-let searchReturnPage="home",searchReturnScroll=0;
 function showSearchPage(){
- if(!searchPageActive){
-  searchReturnPage=document.querySelector("[data-page].active")?.dataset.page||(!$("sports-page").hidden?"sports":"home");
-  searchReturnScroll=window.scrollY||0;
- }
  searchPageActive=true;
- $("title-page").hidden=true;
- $("sports-page").hidden=true;
  $("hero").hidden=true;$("catalog").hidden=true;
  $("search-page").hidden=false;
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));
@@ -1538,10 +1523,9 @@ function showSearchPage(){
  window.scrollTo({top:0,behavior:"instant"});
 }
 function closeSearchPage(){
- searchPageActive=false;
- $("search-page").hidden=true;
- void openPage(searchReturnPage,false);
- requestAnimationFrame(()=>window.scrollTo({top:searchReturnScroll,left:0,behavior:"instant"}));
+ searchPageActive=false;$("search-page").hidden=true;
+ $("hero").hidden=false;$("catalog").hidden=false;
+ openPage("home");
 }
 function renderSearchCards(items){
  $("search-grid").replaceChildren(...items.filter(x=>x.poster_path).map(card));
@@ -1877,39 +1861,7 @@ async function loadSports(){
 
 const loadedPages=new Set();
 async function openPage(page,updateHistory=true){
- if(!["home","movies","shows","sports"].includes(page))page="home";
- if(updateHistory){
-  const currentPage=document.querySelector("[data-page].active")?.dataset.page||"home";
-  history.replaceState({...history.state,page:currentPage},"",location.href);
-  const target=page==="sports"?"/sports":"/";
-  history.pushState({page},"",target);
- }
- document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
- $("title-page").hidden=true;
- $("search-page").hidden=true;
- $("sports-page").hidden=page!=="sports";
- $("catalog").hidden=page==="sports";
- searchPageActive=false;
- $("hero").hidden=page!=="home";
- $("home-page").hidden=page!=="home";
- $("movies-page").hidden=page!=="movies";
- $("shows-page").hidden=page!=="shows";
- if(page==="home"){renderContinueWatching();await home();return}
- if(page==="sports"){await loadSports();return}
- if(loadedPages.has(page))return;
- const jobs=page==="movies"?[
-  ["movie-trending","/trending/movie/week"],["movie-popular","/movie/popular"],["movie-top","/movie/top_rated"],["movie-now","/movie/now_playing"],["movie-upcoming","/movie/upcoming"]
- ]:[
-  ["show-trending","/trending/tv/week"],["show-popular","/tv/popular"],["show-top","/tv/top_rated"],["show-airing","/tv/on_the_air"],["show-today","/tv/airing_today"],
-  ["show-action-adventure","/discover/tv?with_genres=10759&sort_by=popularity.desc"],
-  ["show-scifi-fantasy","/discover/tv?with_genres=10765&sort_by=popularity.desc"],
-  ["show-crime-drama","/discover/tv?with_genres=80,18&sort_by=popularity.desc"],
-  ["show-comedy-romance","/discover/tv?with_genres=35,10749&sort_by=popularity.desc"],
-  ["show-mystery-thriller","/discover/tv?with_genres=9648,53&sort_by=popularity.desc"]
- ];
- await Promise.all(jobs.map(([id,path])=>row(id,path)));
- loadedPages.add(page);
-}
+  if(updateHistory){const target=page==="sports"?"/sports":page==="home"?"/":location.pathname;if(target!==location.pathname)history.pushState({page},"",target)}
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
  $("search-page").hidden=true;
  $("sports-page").hidden=page!=="sports";
