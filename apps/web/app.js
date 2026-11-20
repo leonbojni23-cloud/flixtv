@@ -75,6 +75,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  document.addEventListener("DOMContentLoaded",()=>removeInjectedAdElements(document));
 })();
 let selected=null,searchTimer=null,searchRequest=0,introTimer=null,controlsTimer=null,heroItems=[],heroIndex=0,heroTimer=null,heroLayer=0,heroBusy=false;
+let homeDataPromise=null,homeDataLoadedAt=0,serviceBrowseRequest=0;
 function notice(m){const e=$("notice");e.textContent=m;e.hidden=false;clearTimeout(notice.timer);notice.timer=setTimeout(()=>e.hidden=true,3600)}
 function modal(id,on){$(id).classList.toggle("open",on);$(id).setAttribute("aria-hidden",String(!on));document.body.classList.toggle("no-scroll",on||$("player-modal").classList.contains("open"))}
 function title(x){return x.title||x.name||x.original_title||x.original_name||"Pa titull"}
@@ -144,14 +145,15 @@ async function loadTitleVideos(item,details){
 }
 const pagedRows=new Map();
 async function appendRowPage(state){
- if(!state||state.loading||state.done)return;
+ if(!state||!state.active||state.loading||state.done)return;
  state.loading=true;
  const nextPage=state.page+1;
  try{
   const separator=state.path.includes("?")?"&":"?";
   const data=await tmdb(state.path+separator+"page="+nextPage);
   const container=$(state.id);
-  if(!container)return;
+  if(!container||!state.active||pagedRows.get(state.id)!==state)return;
+  if(state.observer){state.observer.disconnect();state.observer=null}
   const results=(data.results||[]).filter(item=>item.poster_path&&!state.seen.has(item.id));
   results.forEach(item=>state.seen.add(item.id));
   const hint=container.querySelector(".row-more-hint");
@@ -163,7 +165,8 @@ async function appendRowPage(state){
   if(!state.done){
    const sentinel=document.createElement("div");
    sentinel.className="row-more-hint";
-   sentinel.textContent="Po ngarkohen titujt...";
+   sentinel.textContent="Po ngarkohen titujt…";
+   sentinel.setAttribute("aria-live","polite");
    sentinel.style.cssText="flex:0 0 125px;min-height:70px;display:grid;place-items:center;color:#929bab;font-size:11px;text-align:center;padding:10px";
    container.append(sentinel);
    if("IntersectionObserver" in window){
@@ -172,26 +175,46 @@ async function appendRowPage(state){
     },{root:container,rootMargin:"0px 420px 0px 0px",threshold:0});
     state.observer.observe(sentinel);
    }
-  }else if(state.observer){state.observer.disconnect();state.observer=null}
+  }
  }catch(error){
-  notice(error.message);
-  state.done=true;
+  if(state.active&&pagedRows.get(state.id)===state){
+   const container=$(state.id),hint=container&&container.querySelector(".row-more-hint");
+   if(hint){hint.textContent="Nuk u ngarkuan titujt e tjerë.";hint.classList.add("row-more-error")}
+   console.warn("[FLIXTV] Row pagination failed:",state.id,error);
+  }
  }finally{state.loading=false}
 }
 async function row(id,path,renderCard=card){
+ const container=$(id);
+ if(!container)return [];
+ const request=(Number(container.__flixRowRequest)||0)+1;
+ container.__flixRowRequest=request;
+ const previousState=pagedRows.get(id);
+ if(previousState){
+  previousState.active=false;
+  if(previousState.observer){previousState.observer.disconnect();previousState.observer=null}
+ }
+ if(container.__flixRowScrollHandler){
+  container.removeEventListener("scroll",container.__flixRowScrollHandler);
+  container.__flixRowScrollHandler=null;
+ }
  try{
   const data=await tmdb(path);
-  const container=$(id);
-  if(!container)return data.results||[];
+  if(container.__flixRowRequest!==request)return data.results||[];
   const results=(data.results||[]).filter(item=>item.poster_path);
   container.replaceChildren(...results.map(renderCard));
-  const state={id,path,renderCard,page:1,totalPages:Math.min(Number(data.total_pages)||10,10),loading:false,done:false,seen:new Set(results.map(item=>item.id)),observer:null};
+  const state={
+   id,path,renderCard,page:1,totalPages:Math.min(Number(data.total_pages)||10,10),
+   loading:false,done:false,active:true,seen:new Set(results.map(item=>item.id)),
+   observer:null,scrollTimer:null
+  };
   state.done=state.page>=state.totalPages||results.length===0;
   pagedRows.set(id,state);
   if(!state.done){
    const sentinel=document.createElement("div");
    sentinel.className="row-more-hint";
-   sentinel.textContent="Loading as you browse";
+   sentinel.textContent="Shfleto për më shumë";
+   sentinel.setAttribute("aria-live","polite");
    sentinel.style.cssText="flex:0 0 125px;min-height:70px;display:grid;place-items:center;color:#929bab;font-size:11px;text-align:center;padding:10px";
    container.append(sentinel);
    if("IntersectionObserver" in window){
@@ -200,16 +223,22 @@ async function row(id,path,renderCard=card){
     },{root:container,rootMargin:"0px 420px 0px 0px",threshold:0});
     state.observer.observe(sentinel);
    }
-   let scrollTimer;
-   container.addEventListener("scroll",()=>{
-    clearTimeout(scrollTimer);
-    scrollTimer=setTimeout(()=>{
-     if(container.scrollLeft+container.clientWidth>=container.scrollWidth-260)appendRowPage(state);
-    },90);
-   },{passive:true});
+   const onScroll=()=>{
+    clearTimeout(state.scrollTimer);
+    state.scrollTimer=setTimeout(()=>{
+     if(state.active&&pagedRows.get(id)===state&&container.scrollLeft+container.clientWidth>=container.scrollWidth-260){
+      appendRowPage(state);
+     }
+    },100);
+   };
+   container.__flixRowScrollHandler=onScroll;
+   container.addEventListener("scroll",onScroll,{passive:true});
   }
   return data.results||[];
- }catch(error){notice(error.message);return []}
+ }catch(error){
+  if(container.__flixRowRequest===request)notice(error.message);
+  return [];
+ }
 }
 const HERO_SAVED_KEY="flxtv:my-list:v1";
 const heroLogoCache=new Map();
@@ -456,7 +485,6 @@ function savePlaybackProgress(force=false){
   updatedAt:now
  };
  writeWatchProgress(data);lastProgressWrite=now;
- renderContinueWatching();
 }
 function clearPlaybackProgress(item){
  if(!item)return;
@@ -472,7 +500,7 @@ function continueWatchUrl(item,entry){
  params.set("t",String(Math.floor(entry.currentTime||0)));
  return pageUrl(item,true)+"?"+params.toString();
 }
-let continueEditMode=false;
+let continueEditMode=false,continueLibraryReturnFocus=null;
 function continueEntryItem(entry){
  return {id:entry.id,media_type:entry.mediaType,title:entry.title,name:entry.title,poster_path:entry.poster_path||"",backdrop_path:entry.backdrop_path||""};
 }
@@ -537,11 +565,18 @@ function toggleContinueEdit(){
  renderContinueWatching();
 }
 function openContinueLibrary(){
+ continueLibraryReturnFocus=document.activeElement;
  renderContinueWatching();
  modal("continue-library-modal",true);
+ requestAnimationFrame(()=>$("continue-library-close")?.focus());
 }
 function closeContinueLibrary(){
+ if(!$("continue-library-modal").classList.contains("open"))return;
  modal("continue-library-modal",false);
+ continueEditMode=false;
+ renderContinueWatching();
+ if(continueLibraryReturnFocus&&typeof continueLibraryReturnFocus.focus==="function")continueLibraryReturnFocus.focus();
+ continueLibraryReturnFocus=null;
 }
 function renderContinueWatching(){
  const row=$("continue-watching"),section=$("continue-watching-section");
@@ -717,11 +752,17 @@ window.addEventListener("message",handleCineSrcMessage);
 
  
 const homeServiceProviders=new Map();
+const preferredServiceProviderIds=["8","1899","337","119"];
+function serviceDisplayName(provider){
+ const names={"Amazon Prime Video":"Prime Video","Disney Plus":"Disney+"};
+ return names[provider&&provider.provider_name]||provider&&provider.provider_name||"Shërbim";
+}
 function createServiceCard(provider){
  const button=document.createElement("button");
  button.type="button";
  button.className="service-card";
- button.setAttribute("aria-label","Shfleto në "+provider.provider_name);
+ const displayName=serviceDisplayName(provider);
+ button.setAttribute("aria-label","Shfleto në "+displayName);
  const tile=document.createElement("span");
  tile.className="service-logo-tile";
  if(provider.logo_path){
@@ -734,12 +775,12 @@ function createServiceCard(provider){
  }else{
   const fallback=document.createElement("span");
   fallback.className="service-logo-fallback";
-  fallback.textContent=String(provider.provider_name||"S").trim().slice(0,2).toUpperCase();
+  fallback.textContent=displayName.trim().slice(0,2).toUpperCase();
   tile.append(fallback);
  }
  const label=document.createElement("span");
  label.className="service-card-label";
- label.textContent=provider.provider_name||"Shërbim";
+ label.textContent=displayName;
  button.append(tile,label);
  button.onclick=()=>browseServiceProvider(provider);
  return button;
@@ -766,8 +807,20 @@ async function loadBrowseServices(){
   };
   (movies.results||[]).forEach(provider=>add(provider,"movie"));
   (tv.results||[]).forEach(provider=>add(provider,"tv"));
+  const preferred=new Map(preferredServiceProviderIds.map((id,index)=>[id,index]));
   const providers=[...merged.values()]
-   .sort((a,b)=>a.display_priority-b.display_priority||a.provider_name.localeCompare(b.provider_name))
+   .filter(provider=>!/^justwatch(?:\\s|$)/i.test(String(provider.provider_name||"")))
+   .sort((a,b)=>{
+    const aPreferred=preferred.has(String(a.provider_id))?preferred.get(String(a.provider_id)):-1;
+    const bPreferred=preferred.has(String(b.provider_id))?preferred.get(String(b.provider_id)):-1;
+    if(aPreferred>=0||bPreferred>=0){
+     if(aPreferred<0)return 1;
+     if(bPreferred<0)return -1;
+     return aPreferred-bPreferred;
+    }
+    return (Number(a.display_priority)||999)-(Number(b.display_priority)||999)||
+      String(a.provider_name||"").localeCompare(String(b.provider_name||""));
+   })
    .slice(0,20);
   homeServiceProviders.clear();
   providers.forEach(provider=>homeServiceProviders.set(String(provider.provider_id),provider));
@@ -788,6 +841,7 @@ async function loadBrowseServices(){
 }
 async function browseServiceProvider(provider){
  if(!provider||!provider.provider_id)return;
+ const request=++serviceBrowseRequest;
  const section=$("service-results-section"),rowNode=$("service-results-row");
  const titleNode=$("service-results-title"),note=$("service-results-note");
  if(!section||!rowNode)return;
@@ -813,6 +867,7 @@ async function browseServiceProvider(provider){
    return (data.results||[]).map(item=>({...item,media_type:type}));
   });
   const groups=await Promise.all(requests);
+  if(request!==serviceBrowseRequest)return;
   const combined=groups.flat().filter(item=>item.poster_path);
   const unique=[...new Map(combined.map(item=>[kind(item)+":"+item.id,item])).values()]
    .sort((a,b)=>(Number(b.popularity)||0)-(Number(a.popularity)||0))
@@ -825,8 +880,9 @@ async function browseServiceProvider(provider){
   note.textContent=unique.length+" tituj të gjetur · Disponueshmëria mund të ndryshojë sipas planit dhe vendit.";
   rowNode.replaceChildren(...unique.map(createTrendingMovieCard));
  }catch(error){
+  if(request!==serviceBrowseRequest)return;
   rowNode.replaceChildren();
-  note.textContent="Katalogu i këtij shërbimi nuk u ngarkua.";
+  note.textContent="Katalogu i këtij shërbimi nuk u ngarkua."
   console.warn("[FLIXTV] Provider catalogue failed",provider,error);
  }
 }
@@ -889,7 +945,13 @@ async function home(){
  $("catalog").hidden=false;
  $("search-page").hidden=true;
  $("hero").hidden=false;
- await Promise.all([
+ if(homeDataPromise)return homeDataPromise;
+ if(homeDataLoadedAt&&Date.now()-homeDataLoadedAt<5*60*1000){
+  if(heroItems.length>1)startHeroTimer();
+  return;
+ }
+ const load=(async()=>{
+  await Promise.all([
    row("trending-movies","/trending/movie/week",createTrendingMovieCard),
    loadHomeTop10(),
    loadBrowseServices(),
@@ -902,28 +964,36 @@ async function home(){
    row("home-scifi-fantasy","/discover/movie?with_genres=878,14&sort_by=popularity.desc"),
    row("home-trending-shows","/trending/tv/week"),
    row("home-action-fantasy-shows","/discover/tv?with_genres=10759,10765&sort_by=popularity.desc")
- ]);
- try{
-   let d=await tmdb("/trending/all/week");
-   let candidates=(d&&d.results)||[];
-   heroItems=candidates.filter(x=>(x.media_type==="movie"||x.media_type==="tv"||x.title||x.name)&&(x.backdrop_path||x.poster_path)).slice(0,8);
+  ]);
+  try{
+   let data=await tmdb("/trending/all/week");
+   let candidates=(data&&data.results)||[];
+   heroItems=candidates.filter(item=>(item.media_type==="movie"||item.media_type==="tv"||item.title||item.name)&&(item.backdrop_path||item.poster_path)).slice(0,8);
    if(!heroItems.length){
-     d=await tmdb("/movie/popular");
-     candidates=(d&&d.results)||[];
-     heroItems=candidates.filter(x=>x.backdrop_path||x.poster_path).slice(0,8);
+    data=await tmdb("/movie/popular");
+    candidates=(data&&data.results)||[];
+    heroItems=candidates.filter(item=>item.backdrop_path||item.poster_path).slice(0,8);
    }
    if(heroItems.length){
-     showHero(0);
-     startHeroTimer();
+    showHero(0);
+    startHeroTimer();
    }else{
-     $("hero").style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";
-     $("hero-title").textContent="Discover something great.";
-     $("hero-overview").textContent="Movies and series, all in one place.";
-     notice("Katalogu nuk ktheu tituj të përzgjedhur.");
+    $("hero").style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";
+    $("hero-title").textContent="Discover something great.";
+    $("hero-overview").textContent="Movies and series, all in one place.";
+    notice("Katalogu nuk ktheu tituj të përzgjedhur.");
    }
- }catch(e){
+  }catch(error){
    $("hero").style.backgroundImage="linear-gradient(135deg,#202938,#090b10)";
-   notice(e.message);
+   notice(error.message);
+  }
+ })();
+ homeDataPromise=load;
+ try{
+  await load;
+  homeDataLoadedAt=Date.now();
+ }finally{
+  if(homeDataPromise===load)homeDataPromise=null;
  }
 }
 
@@ -1820,7 +1890,7 @@ if(window.visualViewport){
  window.visualViewport.addEventListener("resize",syncPlayerOrientation,{passive:true});
  window.visualViewport.addEventListener("scroll",syncPlayerOrientation,{passive:true});
 }
-$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);$("player-modal").classList.remove("ios-landscape-layout");playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);stopResolvedVideo();currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");$("player-modal").style.removeProperty("--flxtv-vv-width");$("player-modal").style.removeProperty("--flxtv-vv-height");$("player-modal").style.removeProperty("--flxtv-vv-left");$("player-modal").style.removeProperty("--flxtv-vv-top");document.documentElement.classList.remove("flxtv-player-active");document.body.classList.remove("flxtv-player-active","no-scroll")}
+$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);renderContinueWatching();$("player-modal").classList.remove("ios-landscape-layout");playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);stopResolvedVideo();currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");$("player-modal").style.removeProperty("--flxtv-vv-width");$("player-modal").style.removeProperty("--flxtv-vv-height");$("player-modal").style.removeProperty("--flxtv-vv-left");$("player-modal").style.removeProperty("--flxtv-vv-top");document.documentElement.classList.remove("flxtv-player-active");document.body.classList.remove("flxtv-player-active","no-scroll")}
 
 /* FLIXTV external subtitle engine.
    Captions are rendered in the parent document and synchronized to CineSRC
@@ -2394,10 +2464,20 @@ async function openPage(page,updateHistory=true){
 $("continue-library-open").onclick=openContinueLibrary;
 $("continue-library-close").onclick=closeContinueLibrary;
 $("continue-library-backdrop").onclick=closeContinueLibrary;
+$("continue-library-modal").addEventListener("keydown",event=>{
+ if(event.key==="Escape"){event.preventDefault();closeContinueLibrary();return}
+ if(event.key!=="Tab")return;
+ const items=[...$("continue-library-modal").querySelectorAll("button:not([disabled])")].filter(button=>button.offsetParent!==null);
+ if(!items.length)return;
+ const first=items[0],last=items[items.length-1];
+ if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+ else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+});
 $("continue-edit").onclick=toggleContinueEdit;
 $("continue-library-edit").onclick=toggleContinueEdit;
 $("trending-movies-more").onclick=()=>scrollHomeCarousel("trending-movies",1);
 $("service-results-back").onclick=()=>{
+ serviceBrowseRequest++;
  $("service-results-section").hidden=true;
  $("browse-services-section").scrollIntoView({behavior:"smooth",block:"start"});
 };
@@ -2407,5 +2487,6 @@ $("hero-prev").onclick=()=>{if(heroItems.length>1){showHero(heroIndex-1);startHe
 $("hero-next").onclick=()=>{if(heroItems.length>1){showHero(heroIndex+1);startHeroTimer()}};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
 window.addEventListener("pageshow",()=>{renderContinueWatching();if(heroItems.length>1)startHeroTimer()});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderContinueWatching()});
 if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);else if(location.pathname!=="/")resolveTitleRoute();else home();
 })();
