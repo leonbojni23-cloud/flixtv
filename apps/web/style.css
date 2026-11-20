@@ -2637,3 +2637,6 @@ body.profile-screen-open{overflow:hidden}
 .profile-tile.selected .profile-avatar-wrap{animation:none!important;border-color:#fff!important;box-shadow:none!important}
 @media(max-width:600px){.profile-stage{padding:24px 16px!important}.profile-title{font-size:2rem!important;margin-bottom:30px!important}.profiles-grid{gap:18px 14px!important}.profile-tile{width:clamp(84px,25vw,120px)!important}.profile-manage{margin-top:34px!important}}
 @media(orientation:landscape) and (max-height:520px){.profile-title{font-size:1.7rem!important;margin-bottom:16px!important}.profile-tile{width:clamp(74px,10vh,100px)!important}.profile-name{font-size:.78rem!important}.profile-manage{margin-top:18px!important;padding:6px 16px!important}}
+
+.profile-avatar-art img{display:block;width:100%;height:100%;object-fit:cover;border-radius:5px}
+.profile-add-tile .profile-avatar-art{display:grid;place-items:center}
