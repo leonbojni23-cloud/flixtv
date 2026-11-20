@@ -3091,16 +3091,7 @@ html.profile-ready #brand-intro{display:none!important;}
   .topbar .brand-name span{letter-spacing:-1.3px!important}
 }
 
-/* iOS PWA: keep the header wordmark and controls below the system status bar */
-@media(max-width:760px){
-  html.ios-home-app .topbar{
-    top:0!important;
-    box-sizing:border-box!important;
-    height:calc(58px + env(safe-area-inset-top, 0px))!important;
-    min-height:calc(58px + env(safe-area-inset-top, 0px))!important;
-    padding-top:env(safe-area-inset-top, 0px)!important;
-    padding-left:16px!important;
-    padding-right:16px!important;
-    align-items:center!important;
-  }
+/* iOS PWA: move the page content below the status bar, keep header fixed in its original position */
+html.ios-home-app body{
+  padding-top:calc(env(safe-area-inset-top, 0px) + 58px)!important;
 }
