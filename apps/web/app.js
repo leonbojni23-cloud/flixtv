@@ -469,7 +469,7 @@ window.addEventListener("message",handleCineSrcMessage);
   const heading=document.createElement("div");heading.className="profile-menu-heading";heading.textContent="Profile";menu.append(heading);
   watchProfiles.forEach(p=>{
    const item=document.createElement("button");item.type="button";item.className="profile-menu-item"+(p.id===activeWatchProfile.id?" active":"");
-   const avatar=document.createElement("span");avatar.className="profile-menu-avatar";avatar.style.background=p.color||"#333";avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase();
+   const avatar=document.createElement("span");avatar.className="profile-menu-avatar";avatar.style.background=p.color||"#333";const profileIndex=Math.max(0,watchProfiles.findIndex(x=>x.id===p.id));const portrait=document.createElement("img");portrait.src="https://raw.githubusercontent.com/HoneyTyagii/Netflix-Clone/master/public/profile-"+(profileIndex%3+1)+".png";portrait.alt="";portrait.loading="eager";portrait.onerror=()=>{portrait.remove();avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase()};avatar.append(portrait);
    const name=document.createElement("span");name.className="profile-menu-name";name.textContent=p.name;
    const check=document.createElement("span");check.className="profile-menu-check";check.textContent=p.id===activeWatchProfile.id?"✓":"";
    item.append(avatar,name,check);item.onclick=()=>{closeProfileMenu();if(p.id===activeWatchProfile.id)return;activeWatchProfile=p;saveProfiles();renderContinueWatching();restoreWatchProgress()};menu.append(item);
