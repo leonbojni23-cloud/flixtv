@@ -4103,3 +4103,12 @@ input:focus-visible{
   .top10-rank{font-size:148px}
   .home-poster-carousel{grid-auto-columns:132px!important}
 }
+
+
+/* Continue Watching cards fill their landscape shells (override legacy fixed 145px sizing). */
+#continue-watching .continue-card{
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  flex:1 1 auto!important;
+}
