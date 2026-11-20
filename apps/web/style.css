@@ -3478,7 +3478,7 @@ input:focus-visible{
 #hero.hero:before{display:none!important;content:none!important}
 #hero .hero-backdrop{
   position:absolute!important;inset:0!important;z-index:0!important;
-  background-repeat:no-repeat!important;background-size:cover!important;
+  background-repeat:no-repeat!important;background-size:cover!important;background-position:var(--hero-position,center 32%)!important;
   opacity:0;transform:scale(1.025);
   transition:opacity 1s cubic-bezier(.22,.61,.36,1),transform 8s ease!important;
 }
@@ -3561,7 +3561,6 @@ input:focus-visible{
 #hero .hero-controls>button:active{transform:scale(.95)}
 @media(max-width:760px){
   #hero.hero{min-height:0!important;height:clamp(610px,84svh,780px)!important;max-height:none!important;padding:0 22px 42px!important;margin:0!important}
-  #hero .hero-backdrop{background-position:center 28%!important}
   #hero .hero-backdrop:after{
     background:
       linear-gradient(180deg,rgba(7,9,5,.08) 0%,rgba(7,9,5,.04) 27%,rgba(7,9,5,.10) 43%,rgba(8,10,5,.60) 64%,rgba(10,12,7,.97) 100%),
