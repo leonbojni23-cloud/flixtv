@@ -963,12 +963,7 @@ document.addEventListener("click",event=>{
 });
 window.addEventListener("popstate",event=>{
  if($("player-modal").classList.contains("open"))closePlayer();
- const pageState=event.state?.page;
- if(pageState&&["home","movies","shows","sports"].includes(pageState)){
-  void openPage(pageState,false);
-  return;
- }
- const view=event.state?.flixView;
+const view=event.state?.flixView;
  if(view){
   // Restore exactly one application view. Search and Sports live outside the catalog.
   const isSearch=!!view.search,isSports=!!view.sports,page=view.page||"home";
@@ -985,7 +980,12 @@ window.addEventListener("popstate",event=>{
   requestAnimationFrame(()=>window.scrollTo({top:view.scrollY||0,left:0,behavior:"instant"}));
   return;
  }
- if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);
+ const pageState=event.state?.page;
+ if(pageState&&["home","movies","shows","sports"].includes(pageState)){
+  void openPage(pageState,false);
+  return;
+ }
+  if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);
  else if(location.pathname==="/"){
   $("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;openPage("home",false);
  }else resolveTitleRoute();
