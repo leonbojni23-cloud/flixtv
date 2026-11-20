@@ -850,10 +850,10 @@ function slugSimilarity(a,b){
  for(let i=1;i<=a.length;i++){let prev=rows[0];rows[0]=i;for(let j=1;j<=b.length;j++){const temp=rows[j];rows[j]=Math.min(rows[j]+1,rows[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=temp}}
  return 1-rows[b.length]/Math.max(a.length,b.length,1);
 }
-function animatePosterExpansion(sourceImage,targetCover){
- if(!sourceImage||!targetCover||!sourceImage.getBoundingClientRect)return;
+function animatePosterExpansion(sourceImage,targetCover,sourceRect,sourceRadius){
+ if(!sourceImage||!targetCover||!sourceRect)return;
  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
- const from=sourceImage.getBoundingClientRect(),to=targetCover.getBoundingClientRect();
+ const from=sourceRect,to=targetCover.getBoundingClientRect();
  if(from.width<2||from.height<2||to.width<2||to.height<2)return;
  const poster=targetCover.querySelector(".title-page-poster");
  const clone=document.createElement("img");
@@ -866,7 +866,7 @@ function animatePosterExpansion(sourceImage,targetCover){
   position:"fixed",left:from.left+"px",top:from.top+"px",
   width:from.width+"px",height:from.height+"px",
   objectFit:"contain",objectPosition:"center center",
-  background:"#05070b",borderRadius:getComputedStyle(sourceImage).borderRadius||"5px",
+  background:"#05070b",borderRadius:sourceRadius||"5px",
   border:"0",boxShadow:"0 12px 34px rgba(0,0,0,.28)",
   zIndex:"2147483647",pointerEvents:"none",margin:"0",
   padding:"0",maxWidth:"none",maxHeight:"none",
@@ -875,7 +875,7 @@ function animatePosterExpansion(sourceImage,targetCover){
  document.body.append(clone);
  if(poster)poster.style.opacity="0";
  const animation=clone.animate([
-  {left:from.left+"px",top:from.top+"px",width:from.width+"px",height:from.height+"px",borderRadius:getComputedStyle(sourceImage).borderRadius||"5px"},
+  {left:from.left+"px",top:from.top+"px",width:from.width+"px",height:from.height+"px",borderRadius:sourceRadius||"5px"},
   {left:to.left+"px",top:to.top+"px",width:to.width+"px",height:to.height+"px",borderRadius:getComputedStyle(targetCover).borderRadius||"10px"}
  ],{duration:560,easing:"cubic-bezier(.22,.78,.18,1)",fill:"forwards"});
  animation.onfinish=()=>{
@@ -890,6 +890,8 @@ function animatePosterExpansion(sourceImage,targetCover){
 function openTitlePage(item,push=false,playMode=false,originCard=null){
  if(!item||!item.id)return Promise.resolve();
  const sourceImage=originCard?.querySelector("img")||null;
+ const sourceRect=sourceImage?.getBoundingClientRect()||null;
+ const sourceRadius=sourceImage?getComputedStyle(sourceImage).borderRadius:"5px";
  const k=kind(item);
  titlePageItem={...item,media_type:k};
  if(push)history.pushState({titlePage:true,play:playMode},"",pageUrl(item,playMode));
@@ -897,7 +899,7 @@ function openTitlePage(item,push=false,playMode=false,originCard=null){
  $("title-page").innerHTML=titlePageMarkup(titlePageItem,titlePageItem,playMode);
  document.body.classList.remove("no-scroll");
  window.scrollTo(0,0);
- if(sourceImage)animatePosterExpansion(sourceImage,$("title-page").querySelector(".title-page-cover"));
+ if(sourceImage)animatePosterExpansion(sourceImage,$("title-page").querySelector(".title-page-cover"),sourceRect,sourceRadius);
  return hydrateTitlePage(item,false,playMode);
 }
 async function resolveTitleRoute(){
