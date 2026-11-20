@@ -74,7 +74,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  observer.observe(document.documentElement,{childList:true,subtree:true});
  document.addEventListener("DOMContentLoaded",()=>removeInjectedAdElements(document));
 })();
-let selected=null,searchTimer=null,searchRequest=0,introTimer=null,controlsTimer=null,heroItems=[],heroIndex=0,heroTimer=null,heroLayer=0,heroBusy=false;
+let selected=null,searchTimer=null,searchRequest=0,introTimer=null,controlsTimer=null,heroItems=[],heroIndex=0,heroTimer=null,heroLayer=0,ambientLayer=0,heroBusy=false;
 let homeDataPromise=null,homeDataLoadedAt=0,serviceBrowseRequest=0;
 function notice(m){const e=$("notice");e.textContent=m;e.hidden=false;clearTimeout(notice.timer);notice.timer=setTimeout(()=>e.hidden=true,3600)}
 function modal(id,on){$(id).classList.toggle("open",on);$(id).setAttribute("aria-hidden",String(!on));document.body.classList.toggle("no-scroll",on||$("player-modal").classList.contains("open"))}
@@ -374,15 +374,27 @@ function showHero(index){
  hero.dataset.mediaType=kind(item);
  hero.style.backgroundImage="none";
  document.querySelector("header.topbar").style.setProperty("--header-art",image);
- document.documentElement.style.setProperty("--flix-ambient-art",image);
  const preload=new Image();
  preload.onload=()=>{
   if(request!==showHero.requestId)return;
   next.style.backgroundImage=image;
+  const ambientNext=$(ambientLayer===0?"app-ambient-art-b":"app-ambient-art-a");
+  const ambientCurrent=$(ambientLayer===0?"app-ambient-art-a":"app-ambient-art-b");
+  ambientNext.style.backgroundImage=image;
+  ambientNext.classList.add("active");
+  ambientCurrent.classList.remove("active");
+  ambientLayer=ambientLayer===0?1:0;
  };
  preload.onerror=()=>{
   if(request!==showHero.requestId)return;
-  next.style.backgroundImage="linear-gradient(135deg,#303b27,#171b11)";
+  const fallback="linear-gradient(135deg,#303b27,#171b11)";
+  next.style.backgroundImage=fallback;
+  const ambientNext=$(ambientLayer===0?"app-ambient-art-b":"app-ambient-art-a");
+  const ambientCurrent=$(ambientLayer===0?"app-ambient-art-a":"app-ambient-art-b");
+  ambientNext.style.backgroundImage=fallback;
+  ambientNext.classList.add("active");
+  ambientCurrent.classList.remove("active");
+  ambientLayer=ambientLayer===0?1:0;
  };
  preload.src=imageUrl;
  $("hero-content").classList.add("changing");
