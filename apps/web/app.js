@@ -448,7 +448,7 @@ window.addEventListener("message",handleCineSrcMessage);
    const activate=()=>{
     if(profileManageMode){manageOneProfile(p);return}
     card.classList.add("selected");if(navigator.vibrate)navigator.vibrate(15);
-    setTimeout(()=>{activeWatchProfile=p;saveProfiles();profileManageMode=false;$("profile-picker").hidden=true;document.body.classList.remove("profile-screen-open");renderContinueWatching();restoreWatchProgress();},380);
+    setTimeout(()=>{activeWatchProfile=p;saveProfiles();profileManageMode=false;$("profile-picker").hidden=true;unlockProfileScreen();renderContinueWatching();restoreWatchProgress();},380);
    };
    card.addEventListener("click",activate);card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate()}});
    list.append(card);
@@ -483,9 +483,11 @@ window.addEventListener("message",handleCineSrcMessage);
   setTimeout(()=>document.addEventListener("pointerdown",outsideProfileMenu,{once:true}),0);
  }
  function outsideProfileMenu(event){const menu=$("profile-menu"),button=$("profile-switcher");if(!menu)return;if(menu.contains(event.target)||button?.contains(event.target)){document.addEventListener("pointerdown",outsideProfileMenu,{once:true});return}closeProfileMenu()}
- function openProfilePicker(){ensureProfileUi();profileManageMode=false;renderProfileCards();$("profile-picker").hidden=false;document.body.classList.add("profile-screen-open")}
- function closeProfilePicker(){const p=$("profile-picker");if(p)p.hidden=true;document.body.classList.remove("profile-screen-open")}
- function toggleProfileManage(){profileManageMode=!profileManageMode;renderProfileCards()}
+ function lockProfileScreen(){if(document.body.classList.contains("profile-screen-open"))return;const y=window.scrollY||window.pageYOffset||0;document.body.dataset.profileScrollY=String(y);document.body.style.top="-"+y+"px";document.body.classList.add("profile-screen-open")}
+  function unlockProfileScreen(){if(!document.body.classList.contains("profile-screen-open"))return;const y=Number(document.body.dataset.profileScrollY||0);document.body.classList.remove("profile-screen-open");document.body.style.top="";delete document.body.dataset.profileScrollY;window.scrollTo(0,y)}
+  function openProfilePicker(){ensureProfileUi();profileManageMode=false;renderProfileCards();$("profile-picker").hidden=false;lockProfileScreen()}
+  function closeProfilePicker(){const p=$("profile-picker");if(p)p.hidden=true;unlockProfileScreen()}
+  function toggleProfileManage(){profileManageMode=!profileManageMode;renderProfileCards()}
  function manageOneProfile(p){
   if(p.id==="main"&&watchProfiles.length===1){notice("Duhet të mbetet të paktën një profil.");return}
   const action=prompt("Shkruaj emrin e ri për "+p.name+". Për ta fshirë, shkruaj DELETE.",p.name);
