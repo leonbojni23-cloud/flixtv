@@ -2418,9 +2418,9 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
 
 /* Applies to Safari and Home Screen, in portrait fallback and real landscape. */
 
-/* Keep the installed iOS PWA content below the system status bar. */
+/* The iOS status bar is opaque in Home Screen mode; do not add a second top inset. */
 html.ios-home-app body {
-  padding-top: max(0px, calc(env(safe-area-inset-top, 0px) - 10px));
+  padding-top: 0!important;
 }
 
 /* Netflix-inspired poster cards: artwork first, restrained typography.
@@ -3091,16 +3091,10 @@ html.profile-ready #brand-intro{display:none!important;}
   .topbar .brand-name span{letter-spacing:-1.3px!important}
 }
 
-/* iOS Home Screen PWA: preserve the 48px header position and stop the hero
-   from being pulled underneath the iPhone status bar by the normal -58px overlap. */
+/* Opaque iOS status bar reserves its own area. Keep the app header in normal flow
+   immediately below it, and cancel the site's negative hero overlap in PWA mode. */
 @media(max-width:760px){
-  html.ios-home-app body{
-    padding-top:0!important;
-  }
-  html.ios-home-app #app{
-    padding-top:max(0px, calc(env(safe-area-inset-top, 0px) - 48px))!important;
-  }
-  html.ios-home-app #app > #hero{
-    margin-top:0!important;
-  }
+  html.ios-home-app body{padding-top:0!important}
+  html.ios-home-app #app{padding-top:0!important}
+  html.ios-home-app #app > #hero{margin-top:0!important}
 }
