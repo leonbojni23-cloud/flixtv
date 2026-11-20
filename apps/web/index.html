@@ -2,7 +2,7 @@
 <html lang="sq">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -25,7 +25,7 @@
   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
   <script>if(location.pathname!=="/"&&location.pathname!=="/index.html")document.documentElement.classList.add("deep-route-loading");</script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="/style.css?v=20261120-step3-content1">
+  <link rel="stylesheet" href="/style.css?v=20261120-step4-qa1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.css">
   <script src="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.js" defer></script>
 </head>
@@ -33,7 +33,7 @@
   <div id="app-ambient" aria-hidden="true"><div class="app-ambient-art"></div><div class="app-ambient-shade"></div></div>
   <div id="brand-intro" class="brand-intro" aria-label="FLIXTV"><div class="brand-intro-lockup"><span class="brand-intro-f">F</span><span class="brand-intro-rest">LIX<span class="brand-intro-tv">TV</span></span></div></div>
   <header class="topbar">
-    <a class="brand" href="#" aria-label="FLIXTV kryefaqja"><span class="brand-name">FLIX<span>TV</span></span></a>
+    <a class="brand" href="/" aria-label="FLIXTV kryefaqja"><span class="brand-name">FLIX<span>TV</span></span></a>
     <nav class="desktop-nav" aria-label="Navigimi kryesor">
       <button class="nav-link active" data-page="home">Kryefaqja</button>
       <button class="nav-link" data-page="movies">Filma</button>
@@ -87,7 +87,7 @@
         <section class="content-section continue-watching-section" id="continue-watching-section" hidden>
           <div class="section-heading continue-section-heading">
             <button class="section-heading-link" id="continue-library-open" type="button" aria-label="Shfaq të gjithë historikun e shikimit">
-              <h2>Continue Watching</h2><i class="bi bi-chevron-right" aria-hidden="true"></i>
+              <span class="continue-heading-title">Continue Watching</span><i class="bi bi-chevron-right" aria-hidden="true"></i>
             </button>
             <button class="section-edit-button" id="continue-edit" type="button" aria-pressed="false">Edit</button>
           </div>
@@ -173,7 +173,7 @@
     <div id="notice" class="notice" role="status" hidden></div>
   </main>
 
-  <nav class="mobile-nav" aria-label="Main navigation">
+  <nav class="mobile-nav" aria-label="Navigimi kryesor">
     <button class="active" data-page="home" aria-label="Home">
       <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span class="nav-label">Home</span>
     </button>
@@ -238,6 +238,6 @@
     <video id="resolved-video" controls playsinline webkit-playsinline preload="none" hidden></video>
   </section>
 
-  <script src="/app.js?v=20261120-step3-content1"></script>
+  <script src="/app.js?v=20261120-step4-qa1"></script>
 </body>
 </html>
