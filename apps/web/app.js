@@ -162,6 +162,10 @@ async function appendRowPage(state){
   state.page=nextPage;
   state.totalPages=Math.min(Number(data.total_pages)||10,10);
   state.done=state.page>=state.totalPages||results.length===0;
+  if(state.done&&container.__flixRowScrollHandler){
+   container.removeEventListener("scroll",container.__flixRowScrollHandler);
+   container.__flixRowScrollHandler=null;
+  }
   if(!state.done){
    const sentinel=document.createElement("div");
    sentinel.className="row-more-hint";
@@ -178,8 +182,14 @@ async function appendRowPage(state){
   }
  }catch(error){
   if(state.active&&pagedRows.get(state.id)===state){
+   state.done=true;
+   if(state.observer){state.observer.disconnect();state.observer=null}
    const container=$(state.id),hint=container&&container.querySelector(".row-more-hint");
    if(hint){hint.textContent="Nuk u ngarkuan titujt e tjerë.";hint.classList.add("row-more-error")}
+   if(container&&container.__flixRowScrollHandler){
+    container.removeEventListener("scroll",container.__flixRowScrollHandler);
+    container.__flixRowScrollHandler=null;
+   }
    console.warn("[FLIXTV] Row pagination failed:",state.id,error);
   }
  }finally{state.loading=false}
