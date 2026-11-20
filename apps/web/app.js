@@ -97,6 +97,11 @@ function card(x){
  b.onclick=()=>openTitlePage(x,true,false,b);
  return b
 }
+function createTrendingMovieCard(item){
+ const element=card(item);
+ element.classList.add("trending-movie-card");
+ return element;
+}
 async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","sq-AL");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Kërkesa për katalogun dështoi ("+r.status+").");return r.json()}
 async function translateOverviewToAlbanian(text){
  if(!text)return "";
@@ -151,7 +156,7 @@ async function appendRowPage(state){
   results.forEach(item=>state.seen.add(item.id));
   const hint=container.querySelector(".row-more-hint");
   if(hint)hint.remove();
-  if(results.length)container.append(...results.map(card));
+  if(results.length)container.append(...results.map(state.renderCard||card));
   state.page=nextPage;
   state.totalPages=Math.min(Number(data.total_pages)||10,10);
   state.done=state.page>=state.totalPages||results.length===0;
@@ -173,14 +178,14 @@ async function appendRowPage(state){
   state.done=true;
  }finally{state.loading=false}
 }
-async function row(id,path){
+async function row(id,path,renderCard=card){
  try{
   const data=await tmdb(path);
   const container=$(id);
   if(!container)return data.results||[];
   const results=(data.results||[]).filter(item=>item.poster_path);
-  container.replaceChildren(...results.map(card));
-  const state={id,path,page:1,totalPages:Math.min(Number(data.total_pages)||10,10),loading:false,done:false,seen:new Set(results.map(item=>item.id)),observer:null};
+  container.replaceChildren(...results.map(renderCard));
+  const state={id,path,renderCard,page:1,totalPages:Math.min(Number(data.total_pages)||10,10),loading:false,done:false,seen:new Set(results.map(item=>item.id)),observer:null};
   state.done=state.page>=state.totalPages||results.length===0;
   pagedRows.set(id,state);
   if(!state.done){
@@ -467,25 +472,100 @@ function continueWatchUrl(item,entry){
  params.set("t",String(Math.floor(entry.currentTime||0)));
  return pageUrl(item,true)+"?"+params.toString();
 }
+let continueEditMode=false;
+function continueEntryItem(entry){
+ return {id:entry.id,media_type:entry.mediaType,title:entry.title,name:entry.title,poster_path:entry.poster_path||"",backdrop_path:entry.backdrop_path||""};
+}
+function createContinueWatchingCard(entry,editing=false){
+ const item=continueEntryItem(entry);
+ const shell=document.createElement("article");
+ shell.className="continue-card-shell"+(editing?" is-editing":"");
+ const button=document.createElement("button");
+ button.type="button";
+ button.className="continue-card";
+ button.setAttribute("aria-label","Vazhdo shikimin: "+(entry.title||"Pa titull"));
+ const image=document.createElement("img");
+ image.loading="lazy";
+ image.decoding="async";
+ image.alt="";
+ image.src=entry.backdrop_path?IMG+"w500"+entry.backdrop_path:(entry.poster_path?IMG+"w342"+entry.poster_path:"");
+ const body=document.createElement("span");
+ body.className="continue-card-copy";
+ const name=document.createElement("strong");
+ name.textContent=entry.title||"Pa titull";
+ const detail=document.createElement("small");
+ detail.textContent=entry.mediaType==="tv"?"Sezoni "+(entry.season||1)+" · Episodi "+(entry.episode||1):"Vazhdo filmin";
+ const progress=document.createElement("span");
+ progress.className="continue-progress";
+ const fill=document.createElement("i");
+ const percent=entry.duration>0?Math.min(100,Math.max(0,entry.currentTime/entry.duration*100)):0;
+ fill.style.width=percent+"%";
+ progress.append(fill);
+ const remaining=document.createElement("small");
+ remaining.className="continue-remaining";
+ remaining.textContent=entry.duration>0?"Mbeten "+formatPlaybackTime(Math.max(0,entry.duration-entry.currentTime)):"Vazhdo shikimin";
+ body.append(name,detail,progress,remaining);
+ button.append(image,body);
+ button.onclick=()=>{
+  if(continueEditMode)return;
+  window.location.assign(continueWatchUrl(item,entry));
+ };
+ shell.append(button);
+ if(editing){
+  const remove=document.createElement("button");
+  remove.type="button";
+  remove.className="continue-card-remove";
+  remove.setAttribute("aria-label","Hiq "+(entry.title||"titullin")+" nga historiku");
+  remove.innerHTML='<i class="bi bi-x-lg" aria-hidden="true"></i>';
+  remove.onclick=event=>{
+   event.preventDefault();
+   event.stopPropagation();
+   clearPlaybackProgress(item);
+  };
+  shell.append(remove);
+ }
+ return shell;
+}
+function toggleContinueEdit(){
+ continueEditMode=!continueEditMode;
+ const buttons=[$("continue-edit"),$("continue-library-edit")].filter(Boolean);
+ buttons.forEach(button=>{
+  button.textContent=continueEditMode?"Done":"Edit";
+  button.setAttribute("aria-pressed",String(continueEditMode));
+  button.classList.toggle("is-editing",continueEditMode);
+ });
+ renderContinueWatching();
+}
+function openContinueLibrary(){
+ renderContinueWatching();
+ modal("continue-library-modal",true);
+}
+function closeContinueLibrary(){
+ modal("continue-library-modal",false);
+}
 function renderContinueWatching(){
  const row=$("continue-watching"),section=$("continue-watching-section");
  if(!row||!section)return;
- const entries=Object.values(readWatchProgress()).filter(x=>x&&x.id&&x.currentTime>0&&(!x.duration||x.currentTime<x.duration*0.92)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,20);
- row.replaceChildren();
+ const entries=Object.values(readWatchProgress())
+  .filter(x=>x&&x.id&&x.currentTime>0&&(!x.duration||x.currentTime<x.duration*0.92))
+  .sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0))
+  .slice(0,40);
+ const rowScroll=row.scrollLeft;
+ row.replaceChildren(...entries.map(entry=>createContinueWatchingCard(entry,continueEditMode)));
+ row.scrollLeft=rowScroll;
  section.hidden=!entries.length;
- entries.forEach(entry=>{
-  const item={id:entry.id,media_type:entry.mediaType,title:entry.title,name:entry.title,poster_path:entry.poster_path,backdrop_path:entry.backdrop_path};
-  const button=document.createElement("button");button.type="button";button.className="continue-card";
-  const image=document.createElement("img");image.loading="lazy";image.alt="";image.src=entry.backdrop_path?IMG+"w500"+entry.backdrop_path:(entry.poster_path?IMG+"w342"+entry.poster_path:"");
-  const body=document.createElement("span");body.className="continue-card-copy";
-  const name=document.createElement("strong");name.textContent=entry.title||"Pa titull";
-  const detail=document.createElement("small");detail.textContent=entry.mediaType==="tv"?"Sezoni "+(entry.season||1)+" · Episodi "+(entry.episode||1):"Vazhdo filmin";
-  const progress=document.createElement("span");progress.className="continue-progress";
-  const fill=document.createElement("i");fill.style.width=(entry.duration>0?Math.min(100,Math.max(0,entry.currentTime/entry.duration*100)):0)+"%";progress.append(fill);
-  const remaining=document.createElement("small");remaining.className="continue-remaining";remaining.textContent=entry.duration>0?"Mbeten "+formatPlaybackTime(Math.max(0,entry.duration-entry.currentTime)):"Vazhdo shikimin";
-  body.append(name,detail,progress,remaining);button.append(image,body);
-  button.addEventListener("click",()=>window.location.assign(continueWatchUrl(item,entry)));
-  row.append(button);
+ const grid=$("continue-library-grid");
+ if(grid){
+  const gridScroll=grid.scrollTop;
+  grid.replaceChildren(...entries.map(entry=>createContinueWatchingCard(entry,continueEditMode)));
+  grid.scrollTop=gridScroll;
+ }
+ const empty=$("continue-library-empty");
+ if(empty)empty.hidden=entries.length>0;
+ const editButtons=[$("continue-edit"),$("continue-library-edit")].filter(Boolean);
+ editButtons.forEach(button=>{
+  button.textContent=continueEditMode?"Done":"Edit";
+  button.setAttribute("aria-pressed",String(continueEditMode));
  });
 }
 function startProgressPolling(){
@@ -636,13 +716,183 @@ window.addEventListener("message",handleCineSrcMessage);
  }
 
  
+const homeServiceProviders=new Map();
+function createServiceCard(provider){
+ const button=document.createElement("button");
+ button.type="button";
+ button.className="service-card";
+ button.setAttribute("aria-label","Shfleto në "+provider.provider_name);
+ const tile=document.createElement("span");
+ tile.className="service-logo-tile";
+ if(provider.logo_path){
+  const image=document.createElement("img");
+  image.loading="lazy";
+  image.decoding="async";
+  image.alt="";
+  image.src=IMG+"w185"+provider.logo_path;
+  tile.append(image);
+ }else{
+  const fallback=document.createElement("span");
+  fallback.className="service-logo-fallback";
+  fallback.textContent=String(provider.provider_name||"S").trim().slice(0,2).toUpperCase();
+  tile.append(fallback);
+ }
+ const label=document.createElement("span");
+ label.className="service-card-label";
+ label.textContent=provider.provider_name||"Shërbim";
+ button.append(tile,label);
+ button.onclick=()=>browseServiceProvider(provider);
+ return button;
+}
+async function loadBrowseServices(){
+ const rowNode=$("browse-services"),note=$("browse-services-note");
+ if(!rowNode)return [];
+ rowNode.replaceChildren();
+ rowNode.innerHTML='<div class="service-loading">Po ngarkohen shërbimet…</div>';
+ try{
+  const [movies,tv]=await Promise.all([
+   tmdb("/watch/providers/movie?watch_region=AL&language=sq-AL"),
+   tmdb("/watch/providers/tv?watch_region=AL&language=sq-AL")
+  ]);
+  const merged=new Map();
+  const add=(provider,type)=>{
+   if(!provider||!provider.provider_id||!provider.provider_name)return;
+   const key=String(provider.provider_id);
+   const existing=merged.get(key)||{...provider,mediaTypes:[],provider_id:Number(provider.provider_id)};
+   if(!existing.logo_path&&provider.logo_path)existing.logo_path=provider.logo_path;
+   if(!existing.mediaTypes.includes(type))existing.mediaTypes.push(type);
+   existing.display_priority=Math.min(Number(existing.display_priority??999),Number(provider.display_priority??999));
+   merged.set(key,existing);
+  };
+  (movies.results||[]).forEach(provider=>add(provider,"movie"));
+  (tv.results||[]).forEach(provider=>add(provider,"tv"));
+  const providers=[...merged.values()]
+   .sort((a,b)=>a.display_priority-b.display_priority||a.provider_name.localeCompare(b.provider_name))
+   .slice(0,20);
+  homeServiceProviders.clear();
+  providers.forEach(provider=>homeServiceProviders.set(String(provider.provider_id),provider));
+  if(!providers.length){
+   rowNode.replaceChildren();
+   if(note){note.hidden=false;note.textContent="TMDB nuk kthen aktualisht ofrues streaming për rajonin e Shqipërisë."}
+   return [];
+  }
+  if(note)note.hidden=true;
+  rowNode.replaceChildren(...providers.map(createServiceCard));
+  return providers;
+ }catch(error){
+  rowNode.replaceChildren();
+  if(note){note.hidden=false;note.textContent="Shërbimet streaming nuk u ngarkuan. Provo sërish më vonë."}
+  console.warn("[FLIXTV] Browse services failed",error);
+  return [];
+ }
+}
+async function browseServiceProvider(provider){
+ if(!provider||!provider.provider_id)return;
+ const section=$("service-results-section"),rowNode=$("service-results-row");
+ const titleNode=$("service-results-title"),note=$("service-results-note");
+ if(!section||!rowNode)return;
+ $("service-results-section").hidden=false;
+ titleNode.textContent=provider.provider_name;
+ note.textContent="Përmbajtje e disponueshme sipas të dhënave të TMDB për Shqipërinë.";
+ rowNode.replaceChildren();
+ const loader=document.createElement("p");
+ loader.className="service-loading";
+ loader.textContent="Po ngarkohet katalogu…";
+ rowNode.append(loader);
+ section.scrollIntoView({behavior:"smooth",block:"start"});
+ try{
+  const requests=(provider.mediaTypes||["movie","tv"]).map(async type=>{
+   const query=new URLSearchParams({
+    with_watch_providers:String(provider.provider_id),
+    watch_region:"AL",
+    with_watch_monetization_types:"flatrate|free|ads",
+    sort_by:"popularity.desc",
+    page:"1"
+   });
+   const data=await tmdb("/discover/"+type+"?"+query.toString());
+   return (data.results||[]).map(item=>({...item,media_type:type}));
+  });
+  const groups=await Promise.all(requests);
+  const combined=groups.flat().filter(item=>item.poster_path);
+  const unique=[...new Map(combined.map(item=>[kind(item)+":"+item.id,item])).values()]
+   .sort((a,b)=>(Number(b.popularity)||0)-(Number(a.popularity)||0))
+   .slice(0,40);
+  if(!unique.length){
+   rowNode.replaceChildren();
+   note.textContent="Nuk u gjetën filma ose seriale për këtë shërbim në rajonin e Shqipërisë.";
+   return;
+  }
+  note.textContent=unique.length+" tituj të gjetur · Disponueshmëria mund të ndryshojë sipas planit dhe vendit.";
+  rowNode.replaceChildren(...unique.map(createTrendingMovieCard));
+ }catch(error){
+  rowNode.replaceChildren();
+  note.textContent="Katalogu i këtij shërbimi nuk u ngarkua.";
+  console.warn("[FLIXTV] Provider catalogue failed",provider,error);
+ }
+}
+function createTop10Card(item,rank){
+ const button=document.createElement("button");
+ button.type="button";
+ button.className="top10-card";
+ button.setAttribute("aria-label","Numri "+rank+": "+title(item));
+ const number=document.createElement("span");
+ number.className="top10-rank";
+ number.setAttribute("aria-hidden","true");
+ number.textContent=String(rank);
+ const image=document.createElement("img");
+ image.className="top10-poster";
+ image.loading="lazy";
+ image.decoding="async";
+ image.fetchPriority="low";
+ image.alt="";
+ image.src=IMG+"w342"+item.poster_path;
+ const caption=document.createElement("span");
+ caption.className="top10-caption";
+ const name=document.createElement("strong");
+ name.textContent=title(item);
+ const meta=document.createElement("small");
+ const rating=Number(item.vote_average);
+ meta.textContent=[year(item),rating>0?"★ "+rating.toFixed(1):""].filter(Boolean).join(" · ");
+ caption.append(name,meta);
+ button.append(number,image,caption);
+ button.onclick=()=>openTitlePage(item,true,false,button);
+ return button;
+}
+async function loadHomeTop10(){
+ const container=$("top10-today");
+ if(!container)return [];
+ container.innerHTML='<div class="service-loading">Po ngarkohet renditja ditore…</div>';
+ try{
+  const data=await tmdb("/trending/movie/day?language=en-US");
+  const ranked=(data.results||[]).slice(0,10).map((item,index)=>({item,rank:index+1}));
+  const visible=ranked.filter(entry=>entry.item&&entry.item.poster_path);
+  if(!visible.length){
+   container.innerHTML='<div class="service-loading">Renditja ditore nuk është e disponueshme.</div>';
+   return [];
+  }
+  container.replaceChildren(...visible.map(entry=>createTop10Card(entry.item,entry.rank)));
+  return visible.map(entry=>entry.item);
+ }catch(error){
+  container.innerHTML='<div class="service-loading">Renditja Top 10 nuk u ngarkua.</div>';
+  console.warn("[FLIXTV] Daily Top 10 failed",error);
+  return [];
+ }
+}
+function scrollHomeCarousel(id,direction=1){
+ const node=$(id);
+ if(!node)return;
+ const distance=Math.max(node.clientWidth*.78,180)*direction;
+ node.scrollBy({left:distance,behavior:"smooth"});
+}
 async function home(){
  renderContinueWatching();
  $("catalog").hidden=false;
  $("search-page").hidden=true;
  $("hero").hidden=false;
  await Promise.all([
-   row("trending","/trending/all/week"),
+   row("trending-movies","/trending/movie/week",createTrendingMovieCard),
+   loadHomeTop10(),
+   loadBrowseServices(),
    row("movies","/movie/popular"),
    row("shows","/tv/popular"),
    row("home-top-movies","/movie/top_rated"),
@@ -2141,6 +2391,16 @@ async function openPage(page,updateHistory=true){
  await Promise.all(jobs.map(([id,path])=>row(id,path)));
  loadedPages.add(page);
 }
+$("continue-library-open").onclick=openContinueLibrary;
+$("continue-library-close").onclick=closeContinueLibrary;
+$("continue-library-backdrop").onclick=closeContinueLibrary;
+$("continue-edit").onclick=toggleContinueEdit;
+$("continue-library-edit").onclick=toggleContinueEdit;
+$("trending-movies-more").onclick=()=>scrollHomeCarousel("trending-movies",1);
+$("service-results-back").onclick=()=>{
+ $("service-results-section").hidden=true;
+ $("browse-services-section").scrollIntoView({behavior:"smooth",block:"start"});
+};
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
  document.querySelectorAll("[data-close]").forEach(e=>{if(e.dataset.close==="sports-settings")e.onclick=()=>modal("sports-settings",false)});
 $("hero-prev").onclick=()=>{if(heroItems.length>1){showHero(heroIndex-1);startHeroTimer()}};
