@@ -258,6 +258,143 @@ function startHeroTimer(){
 }
 
 const WATCH_PROGRESS_KEY="flxtv:watch-progress:v2",LEGACY_WATCH_PROGRESS_KEY="flxtv:watch-progress:v1";
+const WATCH_DB_NAME="flxtv-persistence",WATCH_DB_STORE="watch-progress";
+let watchDbPromise=null,latestPlaybackTime=0,latestPlaybackDuration=0,lastProgressWrite=0,progressPollTimer=null;
+function openWatchDb(){
+ if(!("indexedDB" in window))return Promise.resolve(null);
+ if(!watchDbPromise)watchDbPromise=new Promise(resolve=>{
+  try{
+   const request=indexedDB.open(WATCH_DB_NAME,1);
+   request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains(WATCH_DB_STORE))db.createObjectStore(WATCH_DB_STORE)};
+   request.onsuccess=()=>resolve(request.result);
+   request.onerror=()=>resolve(null);
+   request.onblocked=()=>resolve(null);
+  }catch(_){resolve(null)}
+ });
+ return watchDbPromise;
+}
+function readWatchProgress(){
+ try{
+  const current=JSON.parse(localStorage.getItem(profileProgressKey())||"null");
+  if(current&&typeof current==="object")return current;
+  const legacy=JSON.parse((activeWatchProfile.id==="main"?localStorage.getItem(LEGACY_WATCH_PROGRESS_KEY):null)||"{}");
+  return legacy&&typeof legacy==="object"?legacy:{};
+ }catch(_){return {}}
+}
+function writeWatchProgress(data){
+ const serialized=JSON.stringify(data);
+ try{localStorage.setItem(profileProgressKey(),serialized)}catch(error){console.warn("[FLIXTV] localStorage write failed; IndexedDB backup remains available",error)}
+ openWatchDb().then(db=>{
+  if(!db)return;
+  try{const tx=db.transaction(WATCH_DB_STORE,"readwrite");tx.objectStore(WATCH_DB_STORE).put(data,activeWatchProfile.id);}catch(error){console.warn("[FLIXTV] IndexedDB progress backup failed",error)}
+ });
+}
+async function restoreWatchProgress(){
+ const local=readWatchProgress(),db=await openWatchDb();
+ if(!db){renderContinueWatching();return}
+ const saved=await new Promise(resolve=>{
+  try{const request=db.transaction(WATCH_DB_STORE,"readonly").objectStore(WATCH_DB_STORE).get(activeWatchProfile.id);request.onsuccess=()=>resolve(request.result||{});request.onerror=()=>resolve({})}catch(_){resolve({})}
+ });
+ const merged={...saved,...local};
+ for(const [key,value] of Object.entries(saved||{})){
+  if(!merged[key]||(Number(value.updatedAt)||0)>(Number(merged[key].updatedAt)||0))merged[key]=value;
+ }
+ if(Object.keys(merged).length)writeWatchProgress(merged);
+ renderContinueWatching();
+ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(_){}
+}
+function progressId(item){return (kind(item)==="tv"?"tv:":"movie:")+String(item.id)}
+function getSavedProgress(item){return readWatchProgress()[progressId(item)]||null}
+function savePlaybackProgress(force=false){
+ if(!currentPlayback||!currentPlayback.item||!currentPlayback.item.id)return;
+ const now=Date.now();
+ if(!force&&now-lastProgressWrite<5000)return;
+ const duration=Number(latestPlaybackDuration),time=Number(latestPlaybackTime);
+ if(!Number.isFinite(time)||time<0)return;
+ const data=readWatchProgress(),key=progressId(currentPlayback.item);
+ if(duration>0&&time/duration>=0.92){delete data[key];writeWatchProgress(data);lastProgressWrite=now;renderContinueWatching();return}
+ const item=currentPlayback.item;
+ data[key]={
+  id:item.id,mediaType:kind(item),title:title(item),
+  poster_path:item.poster_path||"",backdrop_path:item.backdrop_path||"",
+  currentTime:time,duration:Number.isFinite(duration)?duration:0,
+  season:kind(item)==="tv"?Number(currentPlayback.season||1):null,
+  episode:kind(item)==="tv"?Number(currentPlayback.episode||1):null,
+  updatedAt:now
+ };
+ writeWatchProgress(data);lastProgressWrite=now;
+ renderContinueWatching();
+}
+function clearPlaybackProgress(item){
+ if(!item)return;
+ const data=readWatchProgress();delete data[progressId(item)];writeWatchProgress(data);renderContinueWatching();
+}
+function formatPlaybackTime(seconds){
+ const value=Math.max(0,Math.floor(Number(seconds)||0)),h=Math.floor(value/3600),m=Math.floor((value%3600)/60),s=value%60;
+ return h?String(h)+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0"):String(m)+":"+String(s).padStart(2,"0");
+}
+function continueWatchUrl(item,entry){
+ const params=new URLSearchParams();
+ if(entry.mediaType==="tv"){params.set("season",String(entry.season||1));params.set("episode",String(entry.episode||1))}
+ params.set("t",String(Math.floor(entry.currentTime||0)));
+ return pageUrl(item,true)+"?"+params.toString();
+}
+function renderContinueWatching(){
+ const row=$("continue-watching"),section=$("continue-watching-section");
+ if(!row||!section)return;
+ const entries=Object.values(readWatchProgress()).filter(x=>x&&x.id&&x.currentTime>0&&(!x.duration||x.currentTime<x.duration*0.92)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,20);
+ row.replaceChildren();
+ section.hidden=!entries.length;
+ entries.forEach(entry=>{
+  const item={id:entry.id,media_type:entry.mediaType,title:entry.title,name:entry.title,poster_path:entry.poster_path,backdrop_path:entry.backdrop_path};
+  const button=document.createElement("button");button.type="button";button.className="continue-card";
+  const image=document.createElement("img");image.loading="lazy";image.alt="";image.src=entry.backdrop_path?IMG+"w500"+entry.backdrop_path:(entry.poster_path?IMG+"w342"+entry.poster_path:"");
+  const body=document.createElement("span");body.className="continue-card-copy";
+  const name=document.createElement("strong");name.textContent=entry.title||"Pa titull";
+  const detail=document.createElement("small");detail.textContent=entry.mediaType==="tv"?"Sezoni "+(entry.season||1)+" · Episodi "+(entry.episode||1):"Vazhdo filmin";
+  const progress=document.createElement("span");progress.className="continue-progress";
+  const fill=document.createElement("i");fill.style.width=(entry.duration>0?Math.min(100,Math.max(0,entry.currentTime/entry.duration*100)):0)+"%";progress.append(fill);
+  const remaining=document.createElement("small");remaining.className="continue-remaining";remaining.textContent=entry.duration>0?"Mbeten "+formatPlaybackTime(Math.max(0,entry.duration-entry.currentTime)):"Vazhdo shikimin";
+  body.append(name,detail,progress,remaining);button.append(image,body);
+  button.addEventListener("click",()=>window.location.assign(continueWatchUrl(item,entry)));
+  row.append(button);
+ });
+}
+function startProgressPolling(){
+ clearInterval(progressPollTimer);
+ progressPollTimer=setInterval(()=>{
+  if(!$("player-modal").classList.contains("open")||!currentPlayback)return;
+  const video=$("resolved-video");
+  if(video&&!video.hidden&&Number.isFinite(video.currentTime)){
+   latestPlaybackTime=Number(video.currentTime)||0;
+   latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
+   renderExternalSubtitle(latestPlaybackTime);
+   savePlaybackProgress(false);
+  }
+ },2000);
+}
+function handleCineSrcMessage(event){
+ const frame=$("cinesrc-frame");
+ if(event.origin!=="https://cinesrc.st"||!frame||event.source!==frame.contentWindow||!currentPlayback)return;
+ const data=event.data;
+ if(!data||typeof data!=="object"||typeof data.type!=="string"||!data.type.startsWith("cinesrc:"))return;
+ const type=data.type.replace("cinesrc:","");
+ if(Number.isFinite(Number(data.currentTime))&&Number(data.currentTime)>=0)latestPlaybackTime=Number(data.currentTime);
+ if(Number.isFinite(Number(data.duration))&&Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
+ if(type==="timeupdate"||type==="seeked"||type==="pause"||type==="ended"){
+  savePlaybackProgress(type!=="timeupdate");
+ }
+ if(type==="timeupdate"||type==="seeked")renderExternalSubtitle(latestPlaybackTime);
+ if(type==="ended")savePlaybackProgress(true);
+ if(type==="nextepisode"&&data.internalNavigation){
+  savePlaybackProgress(true);
+  currentPlayback.season=Number(data.season||currentPlayback.season||1);
+  currentPlayback.episode=Number(data.episode||1);
+  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
+ }
+}
+window.addEventListener("message",handleCineSrcMessage);
+
  const WATCH_PROFILES_KEY="flxtv:profiles:v1",ACTIVE_PROFILE_KEY="flxtv:active-profile:v1";
  const DEFAULT_PROFILES=[
   {id:"arta",name:"Arta",color:"linear-gradient(135deg,#ff5f6d,#b52a26)",letter:"A"},
