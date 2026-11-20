@@ -3196,14 +3196,24 @@ body{
 }
 #app-ambient .app-ambient-art{
   position:absolute;
-  inset:-48px;
-  background-image:var(--flix-ambient-art,linear-gradient(135deg,#4a4b20,#38261a 55%,#182018));
+  inset:-58px;
+  background-image:linear-gradient(135deg,#4a4b20,#38261a 55%,#182018);
   background-size:cover;
   background-position:center;
-  filter:blur(34px) saturate(.82);
-  opacity:.56;
-  transform:scale(1.10);
-  transition:opacity .7s ease,filter .7s ease;
+  filter:blur(46px) saturate(1.08);
+  opacity:0;
+  transform:scale(1.16);
+  transition:opacity 1.9s cubic-bezier(.22,.61,.36,1),filter 1.9s ease,transform 18s ease-in-out;
+  will-change:opacity,transform;
+}
+#app-ambient .app-ambient-art.active{
+  opacity:.62;
+  transform:scale(1.23);
+  animation:ambientSmokeDrift 26s ease-in-out infinite alternate;
+}
+@keyframes ambientSmokeDrift{
+  0%{background-position:46% 48%;transform:scale(1.18) translate3d(-.7%,0,0)}
+  100%{background-position:56% 54%;transform:scale(1.25) translate3d(.8%,-.5%,0)}
 }
 #app-ambient .app-ambient-shade{
   position:absolute;
@@ -3461,7 +3471,7 @@ input:focus-visible{
   .content-section:last-child{padding-bottom:32px!important}
 }
 @media(prefers-reduced-motion:reduce){
-  #app-ambient .app-ambient-art{transition:none!important}
+  #app-ambient .app-ambient-art{transition:none!important;animation:none!important}
 }
 
 
@@ -4255,7 +4265,8 @@ html,body{max-width:100%;overflow-x:clip}
 
 /* Respect system accessibility preferences and provide non-blurred fallbacks. */
 @media(prefers-reduced-transparency:reduce){
-  #app-ambient .app-ambient-art{filter:blur(18px) saturate(.72);opacity:.36}
+  #app-ambient .app-ambient-art{filter:blur(24px) saturate(.72)}
+  #app-ambient .app-ambient-art.active{opacity:.36}
   .topbar .searchbox,
   .topbar .header-glass-button,
   .mobile-nav,
@@ -4425,4 +4436,11 @@ html,body{max-width:100%;overflow-x:clip}
     margin-inline:auto!important;
     text-wrap:pretty;
   }
+}
+
+
+/* Smoothly blend the active cover into a moving, color-matched ambient haze. */
+#app-ambient .app-ambient-art:not(.active){animation:none!important}
+@media(prefers-reduced-motion:reduce){
+  #app-ambient .app-ambient-art.active{animation:none!important}
 }
