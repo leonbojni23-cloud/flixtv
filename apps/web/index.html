@@ -15,7 +15,7 @@
     })();
   </script>
   <meta name="mobile-web-app-capable" content="yes">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; manifest-src 'self'; frame-src 'self' https:; connect-src 'self' https: https://api.themoviedb.org https://flixtv-snowy.vercel.app https://www.youtube.com https://www.youtube-nocookie.com; img-src 'self' data: https://raw.githubusercontent.com https://image.tmdb.org https://i.ytimg.com https://m.media-amazon.com; media-src 'self' blob: data: https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://www.youtube-nocookie.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data:; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; manifest-src 'self'; frame-src 'self' https:; connect-src 'self' https: https://api.themoviedb.org https://flixtv-snowy.vercel.app https://www.youtube.com https://www.youtube-nocookie.com; img-src 'self' data: https://raw.githubusercontent.com https://image.tmdb.org https://i.ytimg.com https://m.media-amazon.com; media-src 'self' blob: data: https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://www.youtube-nocookie.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; upgrade-insecure-requests">
   <meta name="description" content="FLIXTV movies and TV shows">
   <title>FLIXTV</title>
   <link rel="manifest" href="/manifest.webmanifest?v=20261115-icon4">
@@ -24,7 +24,8 @@
               <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
   <script>if(location.pathname!=="/"&&location.pathname!=="/index.html")document.documentElement.classList.add("deep-route-loading");</script>
-  <link rel="stylesheet" href="/style.css?v=20261120-opaque-ios-statusbar-v20">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/style.css?v=20261120-settings-bi1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.css">
   <script src="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.js" defer></script>
 </head>
@@ -39,7 +40,7 @@
     </nav>
     <div class="top-actions">
       <label class="searchbox" id="searchbox"><button type="button" class="search-trigger" id="search-trigger" aria-label="Kërko"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.35"></circle><path d="m15.5 15.5 4.25 4.25"></path></svg></button><input id="search" type="search" placeholder="Kërko filma dhe seriale" autocomplete="off" aria-label="Kërko filma dhe seriale"></label>
-      <button type="button" class="header-glass-button" id="header-settings" aria-label="Cilësimet"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5.7"></circle><circle cx="12" cy="12" r="2.35"></circle><path d="M12 2.2v2.1M12 19.7v2.1M2.2 12h2.1M19.7 12h2.1M5.07 5.07l1.49 1.49M17.44 17.44l1.49 1.49M18.93 5.07l-1.49 1.49M6.56 17.44l-1.49 1.49"></path></svg></button>
+      <button type="button" class="header-glass-button" id="header-settings" aria-label="Cilësimet"><i class="bi bi-gear" aria-hidden="true"></i></button>
     </div>
   </header>
 
