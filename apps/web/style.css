@@ -2721,7 +2721,7 @@ html.profile-ready #brand-intro{display:none!important;}
 @media(max-width:760px){
   .mobile-nav{
     display:grid!important;
-    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    grid-template-columns:1.5fr 1fr 1fr 1fr!important;
     align-items:center!important;
     gap:4px!important;
     position:fixed!important;
