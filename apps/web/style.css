@@ -3026,3 +3026,32 @@ html.profile-ready #brand-intro{display:none!important;}
   font-weight:950!important;
   -webkit-text-stroke:.45px currentColor!important;
 }
+
+/* FLIXTV wordmark: stronger scale, crisp weight and a restrained red finish */
+.topbar .brand-name{
+  font-size:28px!important;
+  font-weight:950!important;
+  letter-spacing:-1.55px!important;
+  line-height:.98!important;
+  color:#f8faff!important;
+  -webkit-text-stroke:.6px currentColor!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.16),0 3px 14px rgba(0,0,0,.34)!important;
+  transform:scaleX(1.025)!important;
+  transform-origin:left center!important;
+}
+.topbar .brand-name span{
+  display:inline-block!important;
+  font-weight:950!important;
+  letter-spacing:-1.35px!important;
+  color:#ff294f!important;
+  background:linear-gradient(180deg,#ff667f 0%,#ff294f 48%,#cf082f 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+  -webkit-text-stroke:.55px #f52a50!important;
+  text-shadow:0 2px 12px rgba(229,9,54,.24)!important;
+}
+@media(max-width:760px){
+  .topbar .brand-name{font-size:26px!important;letter-spacing:-1.4px!important}
+  .topbar .brand-name span{letter-spacing:-1.2px!important}
+}
