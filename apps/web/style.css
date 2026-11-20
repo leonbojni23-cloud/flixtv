@@ -3016,3 +3016,6 @@ html.profile-ready #brand-intro{display:none!important;}
   }
   .hero{margin-top:-58px!important}
 }
+
+/* Profile control is rendered inside the settings popover, never as a separate header avatar */
+.profile-switcher{display:none!important;}
