@@ -91,7 +91,10 @@ function card(x){
  if(src)b.querySelector("img").src=src;
  b.querySelector(".poster-title").textContent=title(x);
  b.querySelector(".poster-year").textContent=year(x)+(kind(x)==="tv"?" · TV":"");
- b.onclick=()=>window.location.assign(pageUrl(x));
+ const warm=()=>prefetchTitle(x);
+ b.addEventListener("pointerenter",warm,{once:true,passive:true});
+ b.addEventListener("touchstart",warm,{once:true,passive:true});
+ b.onclick=()=>openTitlePage(x,true,false);
  return b
 }
 async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","sq-AL");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Kërkesa për katalogun dështoi ("+r.status+").");return r.json()}
@@ -435,6 +438,41 @@ async function home(){
 function titleSlug(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"")}
 let titlePageItem=null,titlePageSeason=1,titlePageEpisode=1,titleEpisodesRequest=0;
 function pageUrl(item,play=false){const slug=titleSlug(title(item))||"title";const type=kind(item);return "/"+slug+"--"+type+"-"+String(item.id)+(play?"/play":"")}
+const titlePagePrefetches=new Map();
+const titlePageCache=new Map();
+const TITLE_PAGE_CACHE_TTL=6*60*60*1000;
+function titleDetailsKey(item){return kind(item)+":"+String(item.id)}
+function readTitleDetailsCache(item){
+ try{
+  const cached=JSON.parse(localStorage.getItem("flxtv:title:"+titleDetailsKey(item))||"null");
+  if(!cached||!cached.data||Date.now()-Number(cached.savedAt||0)>TITLE_PAGE_CACHE_TTL)return null;
+  return cached.data;
+ }catch(_){return null}
+}
+function storeTitleDetailsCache(item,data){
+ const key=titleDetailsKey(item);
+ titlePageCache.set(key,data);
+ try{localStorage.setItem("flxtv:title:"+key,JSON.stringify({savedAt:Date.now(),data}))}catch(_){}
+}
+function prefetchTitle(item){
+ if(!item||!item.id)return Promise.resolve(null);
+ const key=titleDetailsKey(item);
+ if(titlePageCache.has(key))return Promise.resolve(titlePageCache.get(key));
+ if(titlePagePrefetches.has(key))return titlePagePrefetches.get(key);
+ const stored=readTitleDetailsCache(item);
+ if(stored){titlePageCache.set(key,stored);return Promise.resolve(stored)}
+ const request=tmdb("/"+kind(item)+"/"+item.id+"?append_to_response=videos,credits,external_ids&include_video_language=en,null")
+  .then(data=>{if(data&&data.id)storeTitleDetailsCache(item,data);return data})
+  .catch(error=>{titlePagePrefetches.delete(key);throw error});
+ titlePagePrefetches.set(key,request);
+ return request;
+}
+function navigateToTitle(item){
+ if(!item||!item.id)return;
+ const url=pageUrl(item);
+ if(location.pathname!==url)history.pushState({titlePage:true},"",url);
+ openTitlePage(item,false,false);
+}
 let titleYoutubePlayer=null;
 function setTitleYoutubeButton(playing){
  const button=document.querySelector(".yt-play-toggle");if(!button)return;
@@ -509,16 +547,34 @@ function titlePageMarkup(item,d,playMode=false){
  (cast.length?'<div class="title-page-cast-head"><h2>Interpretojnë</h2><span>KASTI KRYESOR</span></div><div class="title-page-cast">'+cast.map(p=>'<div class="title-page-cast-card">'+(p.profile_path?'<img loading="lazy" src="'+IMG+'w185'+p.profile_path+'" alt="">':'<div class="cast-placeholder">FLIXTV</div>')+'<strong>'+escapeHtml(p.name||"")+'</strong><small>'+escapeHtml(p.character||"")+'</small></div>').join("")+'</div>':"")+'</section>';
 }
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-async function openTitlePage(item,push=false,playMode=false){
+async function hydrateTitlePage(item,push=false,playMode=false){
  if(!item||!item.id)return;
  try{
-  const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos,credits,external_ids&include_video_language=en,null");
-  await loadTitleVideos(item,d);
+  const k=kind(item),d=await prefetchTitle(item);
+  loadTitleVideos(item,d).catch(error=>console.warn("Trailer lookup failed",error));
   const imdbId=d.external_ids?.imdb_id;
   if(imdbId){
-   try{const imdbResponse=await fetch("/api/imdb-videos.js?id="+encodeURIComponent(imdbId));if(imdbResponse.ok){const imdbData=await imdbResponse.json();if(Array.isArray(imdbData.videos))d.imdbVideos=imdbData}}catch(_){/* Use the existing YouTube fallback if IMDb is unavailable. */}
+   fetch("/api/imdb-videos.js?id="+encodeURIComponent(imdbId)).then(response=>response.ok?response.json():null).then(imdbData=>{
+    if(imdbData&&Array.isArray(imdbData.videos)&&titlePageItem&&Number(titlePageItem.id)===Number(item.id)){
+     d.imdbVideos=imdbData;
+     const video=imdbData.videos.find(v=>(v.type||"").toLowerCase()==="trailer"&&Array.isArray(v.playback)&&v.playback.some(p=>p.url&&["MP4","M3U8"].includes(String(p.format||"").toUpperCase())));
+     const source=video?.playback?.find(p=>String(p.format||"").toUpperCase()==="MP4"&&p.url)||video?.playback?.find(p=>String(p.format||"").toUpperCase()==="M3U8"&&p.url);
+     const cover=$("title-page")?.querySelector(".title-page-cover");
+     if(source&&cover&&titlePageItem&&Number(titlePageItem.id)===Number(item.id)){
+      const preview=document.createElement("video");preview.className="title-page-imdb-video";preview.autoplay=true;preview.muted=true;preview.playsInline=true;preview.loop=true;preview.preload="metadata";
+      if(typeof video.thumbnail==="string")preview.poster=video.thumbnail;
+      const sourceNode=document.createElement("source");sourceNode.src=source.url;sourceNode.type=String(source.format).toUpperCase()==="M3U8"?"application/vnd.apple.mpegurl":"video/mp4";preview.append(sourceNode);cover.replaceChildren(preview);
+     }
+    }
+   }).catch(()=>{});
   }
-  d.overviewSq=await getAlbanianOverview(d,k);
+  d.overviewSq=String(d.overview||"");
+  getAlbanianOverview(d,k).then(translated=>{
+   if(!translated||!titlePageItem||Number(titlePageItem.id)!==Number(item.id))return;
+   d.overviewSq=translated;
+   const overviewNode=$("title-overview");
+   if(overviewNode){overviewNode.textContent=translated;const more=$("overview-more");if(more)more.hidden=translated.length<=190}
+  }).catch(()=>{});
   titlePageItem={...item,...d,media_type:k};
   const savedForTitle=getSavedProgress(titlePageItem);
   const savedIsResumable=!!(savedForTitle&&Number(savedForTitle.currentTime)>5&&(!savedForTitle.duration||Number(savedForTitle.currentTime)<Number(savedForTitle.duration)*0.92));
@@ -533,7 +589,7 @@ async function openTitlePage(item,push=false,playMode=false){
   $("title-page").innerHTML=titlePageMarkup(titlePageItem,d,playMode);
   initTitleYoutubeControls();
   document.body.classList.remove("no-scroll");
-  if(k==="tv")await loadTitleEpisodes();
+  if(k==="tv")loadTitleEpisodes();
   const canResume=savedIsResumable&&(k==="movie"||(Number(savedForTitle.season)===titlePageSeason&&Number(savedForTitle.episode)===titlePageEpisode));
   const titlePlayLabel=$("title-play").querySelector("span");
   if(titlePlayLabel)titlePlayLabel.textContent=canResume?(k==="tv"?"Vazhdo S"+savedForTitle.season+":E"+savedForTitle.episode:"Vazhdo filmin"):(k==="tv"?"Luaj S"+titlePageSeason+":E"+titlePageEpisode:"Luaj filmin");
@@ -550,9 +606,9 @@ async function openTitlePage(item,push=false,playMode=false){
    $("title-season").onchange=async()=>{titlePageSeason=Number($("title-season").value);titlePageEpisode=1;episodeTab.classList.add("active");similarTab.classList.remove("active");episodeList.hidden=false;const similar=$("series-similar-list");if(similar)similar.hidden=true;await loadTitleEpisodes()};
    const episodeTab=$("series-episodes-tab"),similarTab=$("series-similar-tab"),episodeList=$("title-episode-list");
    episodeTab.onclick=()=>{episodeTab.classList.add("active");similarTab.classList.remove("active");episodeList.hidden=false;const similar=$("series-similar-list");if(similar)similar.hidden=true};
-   similarTab.onclick=async()=>{similarTab.classList.add("active");episodeTab.classList.remove("active");episodeList.hidden=true;let similar=$("series-similar-list");if(!similar){similar=document.createElement("div");similar.id="series-similar-list";similar.className="series-similar-list";episodeList.after(similar)}if(similar.dataset.loaded==="true") {similar.hidden=false;return}similar.hidden=false;similar.textContent="Po ngarkohen sugjerimet…";try{const data=await tmdb("/tv/"+titlePageItem.id+"/similar");const items=(data.results||[]).filter(x=>x.poster_path).slice(0,12);similar.replaceChildren(...items.map(x=>{const b=document.createElement("button");b.className="series-similar-card";b.type="button";const img=document.createElement("img");img.loading="lazy";img.src=IMG+"w185"+x.poster_path;img.alt="";const label=document.createElement("span");label.textContent=title(x);b.append(img,label);b.onclick=()=>window.location.assign(pageUrl(x));return b}));similar.dataset.loaded="true";if(!items.length)similar.textContent="Nuk ka sugjerime për këtë serial."}catch(error){similar.textContent="Sugjerimet nuk u ngarkuan."}};
+   similarTab.onclick=async()=>{similarTab.classList.add("active");episodeTab.classList.remove("active");episodeList.hidden=true;let similar=$("series-similar-list");if(!similar){similar=document.createElement("div");similar.id="series-similar-list";similar.className="series-similar-list";episodeList.after(similar)}if(similar.dataset.loaded==="true") {similar.hidden=false;return}similar.hidden=false;similar.textContent="Po ngarkohen sugjerimet…";try{const data=await tmdb("/tv/"+titlePageItem.id+"/similar");const items=(data.results||[]).filter(x=>x.poster_path).slice(0,12);similar.replaceChildren(...items.map(x=>{const b=document.createElement("button");b.className="series-similar-card";b.type="button";const img=document.createElement("img");img.loading="lazy";img.src=IMG+"w185"+x.poster_path;img.alt="";const label=document.createElement("span");label.textContent=title(x);b.append(img,label);b.onclick=()=>openTitlePage(x,true,false);return b}));similar.dataset.loaded="true";if(!items.length)similar.textContent="Nuk ka sugjerime për këtë serial."}catch(error){similar.textContent="Sugjerimet nuk u ngarkuan."}};
   }
-  if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1);await loadTitleEpisodes()}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
+  if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1);loadTitleEpisodes()}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
   window.scrollTo(0,0);
  }catch(e){notice(e.message)}
 }
@@ -793,6 +849,17 @@ function slugSimilarity(a,b){
  const rows=Array.from({length:b.length+1},(_,i)=>i);
  for(let i=1;i<=a.length;i++){let prev=rows[0];rows[0]=i;for(let j=1;j<=b.length;j++){const temp=rows[j];rows[j]=Math.min(rows[j]+1,rows[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=temp}}
  return 1-rows[b.length]/Math.max(a.length,b.length,1);
+}
+function openTitlePage(item,push=false,playMode=false){
+ if(!item||!item.id)return Promise.resolve();
+ const k=kind(item);
+ titlePageItem={...item,media_type:k};
+ if(push)history.pushState({titlePage:true,play:playMode},"",pageUrl(item,playMode));
+ $("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;$("search-page").hidden=true;
+ $("title-page").innerHTML=titlePageMarkup(titlePageItem,titlePageItem,playMode);
+ document.body.classList.remove("no-scroll");
+ window.scrollTo(0,0);
+ return hydrateTitlePage(item,false,playMode);
 }
 async function resolveTitleRoute(){
  const parts=decodeURIComponent(location.pathname).split("/").filter(Boolean);
