@@ -206,6 +206,108 @@ async function row(id,path){
   return data.results||[];
  }catch(error){notice(error.message);return []}
 }
+const HERO_SAVED_KEY="flxtv:my-list:v1";
+const heroLogoCache=new Map();
+function heroListKey(){
+ let profileId="main";
+ try{if(activeWatchProfile&&activeWatchProfile.id)profileId=String(activeWatchProfile.id)}catch(_){}
+ return HERO_SAVED_KEY+":"+profileId;
+}
+function readHeroSavedItems(){
+ try{const value=JSON.parse(localStorage.getItem(heroListKey())||"[]");return Array.isArray(value)?value:[]}catch(_){return []}
+}
+function isHeroItemSaved(item){
+ const id=String(item&&item.id||"");
+ const media=kind(item);
+ return readHeroSavedItems().some(entry=>String(entry.id)===id&&String(entry.media_type||"movie")===media);
+}
+function renderHeroSaveButton(item){
+ const button=$("hero-add");
+ if(!button||!item)return;
+ const saved=isHeroItemSaved(item);
+ button.innerHTML='<i class="bi '+(saved?"bi-check-lg":"bi-plus-lg")+'" aria-hidden="true"></i>';
+ button.setAttribute("aria-pressed",String(saved));
+ button.setAttribute("aria-label",saved?"Hiq nga lista ime":"Shto te lista ime");
+ button.title=saved?"Hiq nga lista ime":"Shto te lista ime";
+ button.classList.toggle("is-saved",saved);
+}
+function toggleHeroSaved(item){
+ if(!item||!item.id)return;
+ try{
+  const list=readHeroSavedItems();
+  const media=kind(item),id=String(item.id);
+  const index=list.findIndex(entry=>String(entry.id)===id&&String(entry.media_type||"movie")===media);
+  if(index>=0){
+   list.splice(index,1);
+   localStorage.setItem(heroListKey(),JSON.stringify(list));
+   notice("U hoq nga Lista ime.");
+  }else{
+   list.unshift({
+    id:item.id,media_type:media,title:title(item),
+    poster_path:item.poster_path||"",backdrop_path:item.backdrop_path||"",
+    vote_average:Number(item.vote_average)||0,
+    release_date:item.release_date||"",first_air_date:item.first_air_date||"",
+    overview:item.overview||"",genre_ids:Array.isArray(item.genre_ids)?item.genre_ids:[],
+    savedAt:Date.now()
+   });
+   localStorage.setItem(heroListKey(),JSON.stringify(list.slice(0,500)));
+   notice("U shtua te Lista ime.");
+  }
+  renderHeroSaveButton(item);
+ }catch(error){
+  console.warn("[FLIXTV] Saved-title storage failed",error);
+  notice("Nuk u ruajt në këtë pajisje.");
+ }
+}
+function heroGenreLabel(item){
+ const ids=Array.isArray(item.genre_ids)?item.genre_ids:(Array.isArray(item.genres)?item.genres.map(g=>g.id):[]);
+ const names=ids.map(id=>genreSq&&genreSq[id]).filter(Boolean);
+ return names.slice(0,2).join(" · ");
+}
+function heroFocusPosition(item){
+ const supplied=item.hero_focus||item.backdrop_position;
+ if(typeof supplied==="string"&&supplied.trim())return supplied;
+ return kind(item)==="tv"?"center 28%":"center 32%";
+}
+async function resolveHeroLogo(item){
+ const media=kind(item),key=media+":"+item.id;
+ if(!heroLogoCache.has(key)){
+  const request=tmdb("/"+media+"/"+item.id+"/images?include_image_language=en,null")
+   .then(data=>{
+    const logos=Array.isArray(data.logos)?data.logos.filter(x=>x&&x.file_path):[];
+    logos.sort((a,b)=>{
+     const score=x=>(x.iso_639_1==="en"?3:x.iso_639_1===null?2:0)+(Number(x.width)||0)/100000;
+     return score(b)-score(a);
+    });
+    return logos[0]?.file_path||"";
+   }).catch(()=> "");
+  heroLogoCache.set(key,request);
+ }
+ return heroLogoCache.get(key);
+}
+async function applyHeroLogo(item,request){
+ const image=$("hero-title-logo"),fallback=$("hero-title");
+ if(!image||!fallback)return;
+ try{
+  const path=await resolveHeroLogo(item);
+  if(request!==showHero.requestId)return;
+  if(!path){image.hidden=true;image.removeAttribute("src");fallback.hidden=false;return}
+  image.onload=()=>{
+   if(request!==showHero.requestId)return;
+   image.alt=title(item);
+   image.hidden=false;
+   fallback.hidden=true;
+  };
+  image.onerror=()=>{
+   if(request!==showHero.requestId)return;
+   image.hidden=true;
+   fallback.hidden=false;
+  };
+  image.src=IMG+"w500"+path;
+ }catch(_){
+  if(request===showHero.requestId){image.hidden=true;fallback.hidden=false}
+ }
+}
 function showHero(index){
  if(!heroItems.length)return;
  heroIndex=(index+heroItems.length)%heroItems.length;
@@ -218,37 +320,62 @@ function showHero(index){
  const imageUrl=IMG+(item.backdrop_path?"w1280":"w780")+path;
  const image='url("'+imageUrl+'")';
  const hero=$("hero");
- // Apply the image immediately so the featured panel never stays black while preloading.
  next.style.backgroundImage=image;
  next.style.backgroundSize="cover";
- next.style.backgroundPosition="center 32%";
- next.style.backgroundColor="#202938";
+ next.style.backgroundPosition=heroFocusPosition(item);
+ next.style.backgroundColor="#202518";
  next.classList.add("active");
  current.classList.remove("active");
  heroLayer=nextLayer;
- hero.style.backgroundImage='linear-gradient(90deg,rgba(5,7,12,.48),rgba(5,7,12,.08)),linear-gradient(0deg,#090b10 0%,transparent 72%)';
+ hero.dataset.mediaType=kind(item);
+ hero.style.backgroundImage="none";
  document.querySelector("header.topbar").style.setProperty("--header-art",image);
-  document.documentElement.style.setProperty("--flix-ambient-art",image);
+ document.documentElement.style.setProperty("--flix-ambient-art",image);
  const preload=new Image();
  preload.onload=()=>{
-   if(request!==showHero.requestId)return;
-   next.style.backgroundImage=image;
+  if(request!==showHero.requestId)return;
+  next.style.backgroundImage=image;
  };
  preload.onerror=()=>{
-   if(request!==showHero.requestId)return;
-   next.style.backgroundImage="linear-gradient(135deg,#303b50,#111722)";
+  if(request!==showHero.requestId)return;
+  next.style.backgroundImage="linear-gradient(135deg,#303b27,#171b11)";
  };
  preload.src=imageUrl;
  $("hero-content").classList.add("changing");
  clearTimeout(showHero.contentTimer);
  showHero.contentTimer=setTimeout(()=>{
-   if(request!==showHero.requestId)return;
-   $("hero-title").textContent=title(item);
-   $("hero-overview").textContent=item.overview||"Po përgatitet përshkrimi në shqip…";getAlbanianOverview(item,kind(item)).then(text=>{if(request===showHero.requestId&&text)$("hero-overview").textContent=text})
-   $("hero-eyebrow").textContent="TË PËRZGJEDHUR";
-   $("hero-action").textContent="Shiko detajet";
-   $("hero-action").onclick=()=>window.location.assign(pageUrl(item));
-   requestAnimationFrame(()=>$("hero-content").classList.remove("changing"));
+  if(request!==showHero.requestId)return;
+  const heading=$("hero-title"),logo=$("hero-title-logo");
+  heading.textContent=title(item);
+  heading.hidden=false;
+  logo.hidden=true;
+  logo.removeAttribute("src");
+  if(item.vote_average&&Number(item.vote_average)>0){
+   $("hero-rating").textContent=Number(item.vote_average).toFixed(1);
+   $("hero-rating-item").hidden=false;
+  }else $("hero-rating-item").hidden=true;
+  const releaseYear=year(item);
+  $("hero-year").textContent=releaseYear;
+  $("hero-year-item").hidden=!releaseYear;
+  const genre=heroGenreLabel(item);
+  $("hero-genre").textContent=genre;
+  $("hero-genre-item").hidden=!genre;
+  $("hero-eyebrow").hidden=true;
+  $("hero-play").onclick=()=>{
+   try{
+    const result=play(item);
+    if(result&&typeof result.catch==="function")result.catch(error=>notice(error.message||"Nuk u hap player-i."));
+   }catch(error){notice(error.message||"Nuk u hap player-i.")}
+  };
+  $("hero-info").onclick=()=>openTitlePage(item,true,false);
+  $("hero-add").onclick=()=>toggleHeroSaved(item);
+  renderHeroSaveButton(item);
+  void applyHeroLogo(item,request);
+  $("hero-overview").textContent=item.overview||"Po përgatitet përshkrimi…";
+  getAlbanianOverview(item,kind(item)).then(translated=>{
+   if(request===showHero.requestId&&translated)$("hero-overview").textContent=translated;
+  }).catch(()=>{});
+  requestAnimationFrame(()=>$("hero-content").classList.remove("changing"));
  },180);
 }
 showHero.requestId=0;
@@ -421,7 +548,7 @@ window.addEventListener("message",handleCineSrcMessage);
   }catch(_){}
  }
  function profileProgressKey(){return WATCH_PROGRESS_KEY+":"+activeWatchProfile.id;}
- function saveProfiles(){try{if(watchProfiles.length)localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));else localStorage.removeItem(WATCH_PROFILES_KEY);if(activeWatchProfile&&activeWatchProfile!==EMPTY_PROFILE)localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id);else localStorage.removeItem(ACTIVE_PROFILE_KEY)}catch(_){notice("Nuk u ruajtën profilet në këtë pajisje.")}renderProfileButton();renderProfileCards()}
+ function saveProfiles(){try{if(watchProfiles.length)localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));else localStorage.removeItem(WATCH_PROFILES_KEY);if(activeWatchProfile&&activeWatchProfile!==EMPTY_PROFILE)localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id);else localStorage.removeItem(ACTIVE_PROFILE_KEY)}catch(_){notice("Nuk u ruajtën profilet në këtë pajisje.")}renderProfileButton();renderProfileCards();if(heroItems[heroIndex])renderHeroSaveButton(heroItems[heroIndex])}
  function ensureProfileUi(){
   if($("profile-switcher"))return;
   const button=document.createElement("button");button.id="profile-switcher";button.type="button";button.className="profile-switcher";button.hidden=true;button.setAttribute("aria-label","Profili aktiv");button.setAttribute("aria-haspopup","true");button.setAttribute("aria-expanded","false");document.body.append(button);
@@ -2016,7 +2143,8 @@ async function openPage(page,updateHistory=true){
 }
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
  document.querySelectorAll("[data-close]").forEach(e=>{if(e.dataset.close==="sports-settings")e.onclick=()=>modal("sports-settings",false)});
-$("hero-action").onclick=()=>{const item=heroItems[heroIndex];if(item)window.location.assign(pageUrl(item));};
+$("hero-prev").onclick=()=>{if(heroItems.length>1){showHero(heroIndex-1);startHeroTimer()}};
+$("hero-next").onclick=()=>{if(heroItems.length>1){showHero(heroIndex+1);startHeroTimer()}};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
 window.addEventListener("pageshow",()=>{renderContinueWatching();if(heroItems.length>1)startHeroTimer()});
 if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);else if(location.pathname!=="/")resolveTitleRoute();else home();
