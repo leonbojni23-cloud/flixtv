@@ -91,7 +91,7 @@ function card(x){
  if(src)b.querySelector("img").src=src;
  b.querySelector(".poster-title").textContent=title(x);
  b.querySelector(".poster-year").textContent=year(x)+(kind(x)==="tv"?" · TV":"");
- b.onclick=()=>details(x);
+ b.onclick=()=>window.location.assign(pageUrl(x));
  return b
 }
 async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","sq-AL");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Kërkesa për katalogun dështoi ("+r.status+").");return r.json()}
