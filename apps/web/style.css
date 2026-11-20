@@ -2773,16 +2773,16 @@ html.profile-ready #brand-intro{display:none!important;}
   .mobile-nav .nav-icon{
     display:grid!important;
     place-items:center!important;
-    width:20px!important;
-    height:20px!important;
+    width:24px!important;
+    height:24px!important;
     color:currentColor!important;
     font-size:0!important;
     transform:none!important;
   }
   .mobile-nav .nav-icon svg{
     display:block!important;
-    width:19px!important;
-    height:19px!important;
+    width:23px!important;
+    height:23px!important;
     fill:none!important;
     stroke:currentColor!important;
     stroke-width:1.8!important;
