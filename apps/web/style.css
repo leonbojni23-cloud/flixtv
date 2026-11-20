@@ -2548,3 +2548,23 @@ html.ios-home-app body {
  background:#05070b!important;
 }
 
+
+/* Netflix-style local viewer profiles */
+.profile-switcher{display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.12);background:#171d28;color:#fff;border-radius:24px;padding:5px 10px 5px 6px;max-width:180px}
+.profile-avatar{width:30px;height:30px;flex:0 0 30px;border-radius:8px;background:var(--profile-color,#e50936);display:grid;place-items:center;font-weight:900;color:white;font-size:15px}
+.profile-avatar.large{width:64px;height:64px;flex-basis:64px;border-radius:13px;font-size:29px}
+.profile-switcher-name{font-size:12px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-caret{color:#aab1be}
+.profile-picker{position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.88);display:grid;place-items:center;padding:24px}
+.profile-picker[hidden]{display:none!important}
+.profile-picker-panel{position:relative;width:min(680px,100%);text-align:center;padding:38px 24px 30px;background:#10141d;border:1px solid rgba(255,255,255,.1);border-radius:20px;box-shadow:0 25px 90px #000b}
+.profile-picker-kicker{font-size:10px;letter-spacing:4px;color:#e50936;font-weight:900}
+.profile-picker-panel h2{font-size:clamp(26px,5vw,38px);margin:10px 0 30px}
+.profile-picker-list{display:flex;justify-content:center;flex-wrap:wrap;gap:18px}
+.profile-choice{width:112px;display:flex;flex-direction:column;align-items:center;gap:9px;border:1px solid transparent;background:transparent;border-radius:13px;padding:10px;color:#fff}
+.profile-choice:hover,.profile-choice.active{background:#ffffff0c;border-color:#e50936}
+.profile-choice strong{font-size:14px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-choice small{font-size:10px;color:#ff526e}
+.profile-add{margin-top:28px;border:1px solid #555e6c;background:transparent;color:#d7dbe3;border-radius:8px;padding:10px 18px}
+.profile-picker-close{position:absolute;right:14px;top:10px;border:0;background:none;color:#aab1be;font-size:28px}
+@media(max-width:600px){.profile-switcher{padding:4px 7px 4px 4px;gap:5px}.profile-switcher-name{max-width:62px;font-size:11px}.profile-avatar{width:27px;height:27px;flex-basis:27px}}
