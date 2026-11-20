@@ -434,7 +434,7 @@ window.addEventListener("message",handleCineSrcMessage);
  function renderProfileButton(){
   const b=$("profile-switcher");if(!b)return;
   if(!activeWatchProfile||activeWatchProfile===EMPTY_PROFILE){b.hidden=true;return;}b.hidden=false;
-  b.innerHTML='<span class="profile-mini-avatar" style="--profile-color:'+escapeHtml(activeWatchProfile.color||"#e50914")+'">'+escapeHtml(activeWatchProfile.letter||activeWatchProfile.name.slice(0,1).toUpperCase())+'</span>';b.title=activeWatchProfile.name;b.setAttribute("aria-label","Profili: "+activeWatchProfile.name);
+  const profileIndex=Math.max(0,watchProfiles.findIndex(p=>p.id===activeWatchProfile.id));const portraitUrl="https://raw.githubusercontent.com/HoneyTyagii/Netflix-Clone/master/public/profile-"+(profileIndex+1)+".png";b.innerHTML='<span class="profile-mini-avatar" style="--profile-color:'+escapeHtml(activeWatchProfile.color||"#e50914")+'"><img src="'+portraitUrl+'" alt="" onerror="this.remove();this.parentElement.textContent=\''+escapeHtml(activeWatchProfile.letter||activeWatchProfile.name.slice(0,1).toUpperCase())+'\'"></span>';b.title=activeWatchProfile.name;b.setAttribute("aria-label","Profili: "+activeWatchProfile.name);
  }
  function renderProfileCards(){
   const list=$("profile-picker-list");if(!list)return;list.replaceChildren();
