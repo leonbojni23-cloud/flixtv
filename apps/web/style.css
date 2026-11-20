@@ -2647,3 +2647,9 @@ body.profile-screen-open{overflow:hidden}
 
 /* Keep the header avatar visually identical to the selected profile tile */
 .profile-mini-avatar img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;}
+
+/* Small square, fully visible profile icon with breathing room from search */
+.profile-switcher{width:36px!important;height:36px!important;min-width:36px!important;max-width:36px!important;margin-right:12px!important;padding:3px!important;border-radius:9px!important;display:grid!important;place-items:center!important;}
+.profile-switcher .profile-mini-avatar{width:28px!important;height:28px!important;flex:0 0 28px!important;border-radius:6px!important;overflow:hidden!important;background:transparent!important;box-shadow:none!important;}
+.profile-switcher .profile-mini-avatar img{width:100%!important;height:100%!important;object-fit:contain!important;border-radius:0!important;}
+@media(max-width:760px){.profile-switcher{width:34px!important;height:34px!important;min-width:34px!important;max-width:34px!important;margin-right:11px!important;padding:3px!important;border-radius:8px!important}.profile-switcher .profile-mini-avatar{width:26px!important;height:26px!important;flex-basis:26px!important;border-radius:5px!important}}
