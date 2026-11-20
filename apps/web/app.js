@@ -418,7 +418,7 @@ window.addEventListener("message",handleCineSrcMessage);
   const host=document.querySelector(".top-actions");if(!host)return;
   const button=document.createElement("button");button.id="profile-switcher";button.type="button";button.className="profile-switcher";button.setAttribute("aria-label","Ndrysho profilin");button.onclick=openProfilePicker;host.prepend(button);
   const screen=document.createElement("section");screen.id="profile-picker";screen.className="profile-screen";screen.hidden=true;
-  screen.innerHTML='<div class="profile-screen-bg"></div><div class="profile-screen-grain"></div><main class="profile-stage"><div class="profile-brand">FLIXTV</div><h1 class="profile-title">Kush po <strong>shikon?</strong></h1><p class="profile-subtitle">Zgjidh profilin tënd për të vazhduar</p><section class="profiles-grid" id="profile-picker-list"></section><button class="profile-manage" id="profile-manage" type="button">Menaxho profilet</button></main>';
+  screen.innerHTML='<main class="profile-stage"><h1 class="profile-title">Who\'s watching?</h1><section class="profiles-grid" id="profile-picker-list"></section><button class="profile-manage" id="profile-manage" type="button">MANAGE PROFILES</button></main>';
   document.body.append(screen);
   $("profile-manage").onclick=toggleProfileManage;
   renderProfileButton();renderProfileCards();
@@ -429,13 +429,13 @@ window.addEventListener("message",handleCineSrcMessage);
  }
  function renderProfileCards(){
   const list=$("profile-picker-list");if(!list)return;list.replaceChildren();
-  watchProfiles.forEach((p,index)=>{
+  watchProfiles.slice(0,3).forEach((p,index)=>{
    const card=document.createElement("div");card.className="profile-tile"+(profileManageMode?" managing":"");card.tabIndex=0;card.setAttribute("role","button");card.setAttribute("aria-label","Profili "+p.name);
    const wrap=document.createElement("div");wrap.className="profile-avatar-wrap";
-   const avatar=document.createElement("div");avatar.className="profile-avatar-art";avatar.style.background=p.color||"#e50914";avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase();wrap.append(avatar);
+   const avatar=document.createElement("div");avatar.className="profile-avatar-art";avatar.style.background=p.color||["#1674b8","#e50914","#d6a52b"][index%3];avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase();wrap.append(avatar);
    const name=document.createElement("span");name.className="profile-name";name.textContent=p.name;
    card.append(wrap,name);
-   if(profileManageMode){const edit=document.createElement("span");edit.className="profile-edit-badge";edit.textContent="✎";wrap.append(edit)}
+   if(profileManageMode){const edit=document.createElement("span");edit.className="profile-edit-badge";edit.setAttribute("aria-hidden","true");edit.textContent="✎";wrap.append(edit)}
    const activate=()=>{
     if(profileManageMode){manageOneProfile(p);return}
     card.classList.add("selected");if(navigator.vibrate)navigator.vibrate(15);
@@ -444,11 +444,13 @@ window.addEventListener("message",handleCineSrcMessage);
    card.addEventListener("click",activate);card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate()}});
    list.append(card);
   });
-  const add=document.createElement("div");add.className="profile-tile profile-add-tile";add.tabIndex=0;add.setAttribute("role","button");add.setAttribute("aria-label","Shto profil të ri");
-  add.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art">+</div></div><span class="profile-name">Shto profil</span>';
-  const addAction=()=>addWatchProfile();add.addEventListener("click",addAction);add.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();addAction()}});
-  if(watchProfiles.length<8)list.append(add);
-  const manage=$("profile-manage");if(manage)manage.textContent=profileManageMode?"Përfundo":"Menaxho profilet";
+  if(watchProfiles.length<3){
+   const add=document.createElement("div");add.className="profile-tile profile-add-tile";add.tabIndex=0;add.setAttribute("role","button");add.setAttribute("aria-label","Add Profile");
+   add.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art">+</div></div><span class="profile-name">Add Profile</span>';
+   const addAction=()=>addWatchProfile();add.addEventListener("click",addAction);add.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();addAction()}});
+   list.append(add);
+  }
+  const manage=$("profile-manage");if(manage)manage.textContent=profileManageMode?"DONE":"MANAGE PROFILES";
  }
  function openProfilePicker(){ensureProfileUi();profileManageMode=false;renderProfileCards();$("profile-picker").hidden=false;document.body.classList.add("profile-screen-open")}
  function closeProfilePicker(){const p=$("profile-picker");if(p)p.hidden=true;document.body.classList.remove("profile-screen-open")}
