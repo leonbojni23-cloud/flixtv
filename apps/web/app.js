@@ -891,24 +891,25 @@ function openTitlePage(item,push=false,playMode=false,originCard=null){
  const sourceRadius=sourceImage?getComputedStyle(sourceImage).borderRadius:"5px";
  const k=kind(item);
  titlePageItem={...item,media_type:k};
- if(push)history.pushState({titlePage:true,play:playMode},"",pageUrl(item,playMode));
- const update=()=>{
-  $("title-page").hidden=false;
-  $("catalog").hidden=true;
-  $("hero").hidden=true;
-  $("search-page").hidden=true;
-  $("title-page").innerHTML=titlePageMarkup(titlePageItem,titlePageItem,playMode);
-  document.body.classList.remove("no-scroll");
-  window.scrollTo(0,0);
- };
- update();
- // The transition source is strictly the poster IMG, never the surrounding
- // card, its rating badge, or its title labels.
+ if(push){
+  const activePage=document.querySelector("[data-page].active")?.dataset.page||"home";
+  history.replaceState({...history.state,flixView:{scrollY:window.scrollY,page:activePage,search:!$("search-page").hidden,sports:!$("sports-page").hidden}},"",location.href);
+  history.pushState({titlePage:true,play:playMode},"",pageUrl(item,playMode));
+ }
+ $("title-page").hidden=false;
+ $("catalog").hidden=true;
+ $("hero").hidden=true;
+ $("search-page").hidden=true;
+ $("title-page").innerHTML=titlePageMarkup(titlePageItem,titlePageItem,playMode);
+ document.body.classList.remove("no-scroll");
+ window.scrollTo({top:0,left:0,behavior:"instant"});
  const destination=$("title-page").querySelector(".title-page-cover>.title-page-cover-image");
  if(sourceImage&&destination&&sourceRect&&sourceRect.width>1&&sourceRect.height>1){
   animatePosterFallback(sourceImage,destination,sourceRect,sourceRadius);
  }
- return hydrateTitlePage(item,false,playMode);
+ // The page is interactive immediately. Details, trailer and translations hydrate in the background.
+ void hydrateTitlePage(item,false,playMode);
+ return Promise.resolve();
 }
 async function resolveTitleRoute(){
  const parts=decodeURIComponent(location.pathname).split("/").filter(Boolean);
@@ -952,7 +953,35 @@ async function leavePlayer(){
   await openTitlePage(item,false,false);
  }
 }
-window.addEventListener("popstate",()=>{if($("player-modal").classList.contains("open"))closePlayer();if(location.pathname.replace(/\/$/,"")==="/sports"){openPage("sports",false)}else if(location.pathname==="/"){ $("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;openPage("home",false)}else{resolveTitleRoute()}});
+history.scrollRestoration="manual";
+document.addEventListener("click",event=>{
+ const back=event.target.closest("[data-title-home]");
+ if(!back)return;
+ event.preventDefault();
+ if(history.state?.titlePage)history.back();
+ else location.assign("/");
+});
+window.addEventListener("popstate",event=>{
+ if($("player-modal").classList.contains("open"))closePlayer();
+ const view=event.state?.flixView;
+ if(view){
+  $("title-page").hidden=true;
+  $("catalog").hidden=false;
+  $("sports-page").hidden=!!view.sports;
+  $("hero").hidden=view.page!=="home";
+  $("home-page").hidden=view.page!=="home";
+  $("movies-page").hidden=view.page!=="movies";
+  $("shows-page").hidden=view.page!=="shows";
+  $("search-page").hidden=!view.search;
+  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===view.page));
+  requestAnimationFrame(()=>window.scrollTo({top:view.scrollY||0,left:0,behavior:"instant"}));
+  return;
+ }
+ if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);
+ else if(location.pathname==="/"){
+  $("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;openPage("home",false);
+ }else resolveTitleRoute();
+});
 document.addEventListener("keydown",e=>{if((e.key==="Escape"||e.key==="Backspace")&&$("player-modal").classList.contains("open")){e.preventDefault();leavePlayer()}});
 
 async function details(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+"?append_to_response=videos");selected={...item,...d,media_type:k};$("details-title").textContent=title(d);$("details-type").textContent=k==="tv"?"SERIAL":"FILM";$("details-meta").textContent=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1):"",d.runtime?d.runtime+" min":d.number_of_seasons?d.number_of_seasons+" sezone":""].filter(Boolean).join(" · ");const overview=await getAlbanianOverview(d,k);$("details-overview").textContent=overview||"Përshkrimi nuk është i disponueshëm.";$("details-backdrop").style.backgroundImage=d.backdrop_path?'linear-gradient(0deg,#111722,transparent 80%),url("'+IMG+"w1280"+d.backdrop_path+'")':"linear-gradient(0deg,#111722,#263143)";const t=(d.videos&&d.videos.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser"));$("watch-trailer").hidden=!t;$("watch-trailer").onclick=()=>window.open("https://www.youtube.com/watch?v="+t.key,"_blank","noopener");$("episode-controls").hidden=k!=="tv";$("play-title").hidden=k==="tv";$("episode-controls").style.display=k==="tv"?"flex":"none";if(k!=="tv"){$("season-select").replaceChildren();$("episode-select").replaceChildren()}if(k==="tv"){const seasons=(d.seasons||[]).filter(s=>s.season_number>=0);$("season-select").innerHTML=seasons.map(s=>'<option value="'+s.season_number+'">'+s.name+"</option>").join("");$("season-select").onchange=episodes;await episodes()}modal("details-modal",true)}catch(e){notice(e.message)}}
