@@ -252,13 +252,46 @@ function startHeroTimer(){
  heroTimer=setInterval(()=>{if(!document.hidden)showHero(heroIndex+1)},6500);
 }
 
-const WATCH_PROGRESS_KEY="flxtv:watch-progress:v1";
-let latestPlaybackTime=0,latestPlaybackDuration=0,lastProgressWrite=0,progressPollTimer=null;
+const WATCH_PROGRESS_KEY="flxtv:watch-progress:v2";
+const WATCH_DB_NAME="flxtv-persistence",WATCH_DB_STORE="watch-progress";
+let watchDbPromise=null,latestPlaybackTime=0,latestPlaybackDuration=0,lastProgressWrite=0,progressPollTimer=null;
+function openWatchDb(){
+ if(!("indexedDB" in window))return Promise.resolve(null);
+ if(!watchDbPromise)watchDbPromise=new Promise(resolve=>{
+  try{
+   const request=indexedDB.open(WATCH_DB_NAME,1);
+   request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains(WATCH_DB_STORE))db.createObjectStore(WATCH_DB_STORE)};
+   request.onsuccess=()=>resolve(request.result);
+   request.onerror=()=>resolve(null);
+   request.onblocked=()=>resolve(null);
+  }catch(_){resolve(null)}
+ });
+ return watchDbPromise;
+}
 function readWatchProgress(){
  try{const value=JSON.parse(localStorage.getItem(WATCH_PROGRESS_KEY)||"{}");return value&&typeof value==="object"?value:{}}catch(_){return {}}
 }
 function writeWatchProgress(data){
- try{localStorage.setItem(WATCH_PROGRESS_KEY,JSON.stringify(data))}catch(_){}
+ const serialized=JSON.stringify(data);
+ try{localStorage.setItem(WATCH_PROGRESS_KEY,serialized)}catch(error){console.warn("[FLIXTV] localStorage write failed; IndexedDB backup remains available",error)}
+ openWatchDb().then(db=>{
+  if(!db)return;
+  try{const tx=db.transaction(WATCH_DB_STORE,"readwrite");tx.objectStore(WATCH_DB_STORE).put(data,"all");}catch(error){console.warn("[FLIXTV] IndexedDB progress backup failed",error)}
+ });
+}
+async function restoreWatchProgress(){
+ const local=readWatchProgress(),db=await openWatchDb();
+ if(!db){renderContinueWatching();return}
+ const saved=await new Promise(resolve=>{
+  try{const request=db.transaction(WATCH_DB_STORE,"readonly").objectStore(WATCH_DB_STORE).get("all");request.onsuccess=()=>resolve(request.result||{});request.onerror=()=>resolve({})}catch(_){resolve({})}
+ });
+ const merged={...saved,...local};
+ for(const [key,value] of Object.entries(saved||{})){
+  if(!merged[key]||(Number(value.updatedAt)||0)>(Number(merged[key].updatedAt)||0))merged[key]=value;
+ }
+ if(Object.keys(merged).length)writeWatchProgress(merged);
+ renderContinueWatching();
+ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(_){}
 }
 function progressId(item){return (kind(item)==="tv"?"tv:":"movie:")+String(item.id)}
 function getSavedProgress(item){return readWatchProgress()[progressId(item)]||null}
@@ -328,8 +361,29 @@ function startProgressPolling(){
    renderExternalSubtitle(latestPlaybackTime);
    savePlaybackProgress(false);
   }
- },4000);
+ },2000);
 }
+function handleCineSrcMessage(event){
+ const frame=$("cinesrc-frame");
+ if(event.origin!=="https://cinesrc.st"||!frame||event.source!==frame.contentWindow||!currentPlayback)return;
+ const data=event.data;
+ if(!data||typeof data!=="object"||typeof data.type!=="string"||!data.type.startsWith("cinesrc:"))return;
+ const type=data.type.replace("cinesrc:","");
+ if(Number.isFinite(Number(data.currentTime))&&Number(data.currentTime)>=0)latestPlaybackTime=Number(data.currentTime);
+ if(Number.isFinite(Number(data.duration))&&Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
+ if(type==="timeupdate"||type==="seeked"||type==="pause"||type==="ended"){
+  savePlaybackProgress(type!=="timeupdate");
+ }
+ if(type==="timeupdate"||type==="seeked")renderExternalSubtitle(latestPlaybackTime);
+ if(type==="ended")savePlaybackProgress(true);
+ if(type==="nextepisode"&&data.internalNavigation){
+  savePlaybackProgress(true);
+  currentPlayback.season=Number(data.season||currentPlayback.season||1);
+  currentPlayback.episode=Number(data.episode||1);
+  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
+ }
+}
+window.addEventListener("message",handleCineSrcMessage);
 async function home(){
  renderContinueWatching();
  $("catalog").hidden=false;
@@ -1069,8 +1123,12 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   const mediaType=kind(item)==="tv"?"tv":"movie";
   const embedUrl=new URL("https://cinesrc.st/embed/"+mediaType+"/"+encodeURIComponent(String(item.id)));
   if(mediaType==="tv"){
-    embedUrl.searchParams.set("season",String(Number(season||1)));
-    embedUrl.searchParams.set("episode",String(Number(episode||1)));
+    embedUrl.searchParams.set("s",String(Number(season||1)));
+    embedUrl.searchParams.set("e",String(Number(episode||1)));
+  }
+  if(Number(resumeTime)>5){
+    embedUrl.searchParams.set("t",String(Math.floor(Number(resumeTime))));
+    embedUrl.searchParams.set("continueprompt","false");
   }
   const playbackId=++playbackOpenId;
   clearTimeout(introTimer);
@@ -1294,6 +1352,8 @@ if(subtitleMinus)subtitleMinus.addEventListener("click",()=>updateSubtitleOffset
 if(subtitlePlus)subtitlePlus.addEventListener("click",()=>updateSubtitleOffset(0.5));
 window.addEventListener("pagehide",()=>savePlaybackProgress(true));
 window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")savePlaybackProgress(true)});
+restoreWatchProgress();
 renderContinueWatching();
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);const playerCloseButton=$("player-close");if(playerCloseButton)playerCloseButton.onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
