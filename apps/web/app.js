@@ -322,7 +322,7 @@ function showHero(index){
  const hero=$("hero");
  next.style.backgroundImage=image;
  next.style.backgroundSize="cover";
- next.style.backgroundPosition=heroFocusPosition(item);
+ next.style.setProperty("--hero-position",heroFocusPosition(item));
  next.style.backgroundColor="#202518";
  next.classList.add("active");
  current.classList.remove("active");
@@ -382,7 +382,7 @@ showHero.requestId=0;
 function startHeroTimer(){
  clearInterval(heroTimer);
  if(heroItems.length<2)return;
- heroTimer=setInterval(()=>{if(!document.hidden)showHero(heroIndex+1)},6500);
+ heroTimer=setInterval(()=>{if(!document.hidden&&!$("hero").hidden&&!$("player-modal").classList.contains("open"))showHero(heroIndex+1)},6500);
 }
 
 const WATCH_PROGRESS_KEY="flxtv:watch-progress:v2",LEGACY_WATCH_PROGRESS_KEY="flxtv:watch-progress:v1";
