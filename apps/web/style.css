@@ -2752,8 +2752,8 @@ html.profile-ready #brand-intro{display:none!important;}
     gap:5px!important;
     width:100%!important;
     min-width:0!important;
-    height:42px!important;
-    min-height:42px!important;
+    height:100%!important;
+    min-height:0!important;
     padding:2px 3px!important;
     border:1px solid transparent!important;
     border-radius:999px!important;
