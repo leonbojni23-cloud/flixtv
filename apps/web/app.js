@@ -1716,7 +1716,7 @@ $("search-clear").onclick=()=>{$("search-page-input").value="";$("search").value
 $("search-page-input").addEventListener("keydown",e=>{if(e.key==="Escape")$("search-suggestions").hidden=true;if(e.key==="Enter"){e.preventDefault();$("search-suggestions").hidden=true;runAdvancedSearch()}});
 $("search").onfocus=()=>showSearchPage();
 $("search-trigger").onclick=showSearchPage;
-$("mobile-search").onclick=showSearchPage;
+const mobileSearchButton=$("mobile-search");if(mobileSearchButton)mobileSearchButton.onclick=showSearchPage;
 const movieGenreSelect=$("movie-genre-select");
 const genreCollections=$("movie-genre-collections");
 const movieCatalogSections=[...document.querySelectorAll("#movies-page > .catalog-row-section")];
