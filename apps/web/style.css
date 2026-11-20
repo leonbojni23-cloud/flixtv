@@ -2666,3 +2666,9 @@ body.profile-screen-open{overflow:hidden}
 .profile-menu-avatar img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:6px!important;}
 .profile-mini-avatar img{object-fit:cover!important;border-radius:5px!important;}
 .profile-avatar-art img{object-fit:cover!important;border-radius:5px!important;}
+
+/* iOS-safe static profile manager: prevent background/page scrolling */
+html:has(body.profile-screen-open),body.profile-screen-open{height:100%!important;overflow:hidden!important;overscroll-behavior:none!important;}
+body.profile-screen-open{position:fixed!important;left:0!important;right:0!important;width:100%!important;touch-action:none!important;}
+body.profile-screen-open .profile-screen{position:fixed!important;inset:0!important;height:100dvh!important;min-height:100dvh!important;overflow:hidden!important;overscroll-behavior:none!important;}
+body.profile-screen-open .profile-stage{height:100dvh!important;min-height:100dvh!important;overflow:hidden!important;}
