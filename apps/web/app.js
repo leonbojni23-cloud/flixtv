@@ -259,7 +259,7 @@ function startHeroTimer(){
 
 const WATCH_PROGRESS_KEY="flxtv:watch-progress:v2",LEGACY_WATCH_PROGRESS_KEY="flxtv:watch-progress:v1";
  const WATCH_PROFILES_KEY="flxtv:profiles:v1",ACTIVE_PROFILE_KEY="flxtv:active-profile:v1";
- const DEFAULT_PROFILE={id:"main",name:"Leon",color:"#e50936"};
+ const DEFAULT_PROFILE={id:"main",name:"Profil 1",color:"#e50936"};
  let watchProfiles=[],activeWatchProfile=DEFAULT_PROFILE;
  function loadWatchProfiles(){try{const p=JSON.parse(localStorage.getItem(WATCH_PROFILES_KEY)||"null");watchProfiles=Array.isArray(p)&&p.length?p.slice(0,8):[DEFAULT_PROFILE]}catch(_){watchProfiles=[DEFAULT_PROFILE]}let id="main";try{id=localStorage.getItem(ACTIVE_PROFILE_KEY)||"main"}catch(_){}activeWatchProfile=watchProfiles.find(x=>x.id===id)||watchProfiles[0];try{localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id)}catch(_){}}
  function profileProgressKey(){return WATCH_PROGRESS_KEY+":"+activeWatchProfile.id;}
@@ -281,8 +281,9 @@ function openWatchDb(){
 }
 function readWatchProgress(){
  try{
-  const current=JSON.parse(localStorage.getItem(WATCH_PROGRESS_KEY)||"null");
+  const current=JSON.parse(localStorage.getItem(profileProgressKey())||"null");
   if(current&&typeof current==="object")return current;
+  if(activeWatchProfile.id==="main"){const legacyCurrent=JSON.parse(localStorage.getItem(WATCH_PROGRESS_KEY)||"null");if(legacyCurrent&&typeof legacyCurrent==="object")return legacyCurrent;}
   const legacy=JSON.parse(localStorage.getItem(LEGACY_WATCH_PROGRESS_KEY)||"{}");
   return legacy&&typeof legacy==="object"?legacy:{};
  }catch(_){return {}}
@@ -292,14 +293,14 @@ function writeWatchProgress(data){
  try{localStorage.setItem(profileProgressKey(),serialized)}catch(error){console.warn("[FLIXTV] localStorage write failed; IndexedDB backup remains available",error)}
  openWatchDb().then(db=>{
   if(!db)return;
-  try{const tx=db.transaction(WATCH_DB_STORE,"readwrite");tx.objectStore(WATCH_DB_STORE).put(data,"all");}catch(error){console.warn("[FLIXTV] IndexedDB progress backup failed",error)}
+  try{const tx=db.transaction(WATCH_DB_STORE,"readwrite");tx.objectStore(WATCH_DB_STORE).put(data,activeWatchProfile.id);}catch(error){console.warn("[FLIXTV] IndexedDB progress backup failed",error)}
  });
 }
 async function restoreWatchProgress(){
  const local=readWatchProgress(),db=await openWatchDb();
  if(!db){renderContinueWatching();return}
  const saved=await new Promise(resolve=>{
-  try{const request=db.transaction(WATCH_DB_STORE,"readonly").objectStore(WATCH_DB_STORE).get("all");request.onsuccess=()=>resolve(request.result||{});request.onerror=()=>resolve({})}catch(_){resolve({})}
+  try{const request=db.transaction(WATCH_DB_STORE,"readonly").objectStore(WATCH_DB_STORE).get(activeWatchProfile.id);request.onsuccess=()=>resolve(request.result||{});request.onerror=()=>resolve({})}catch(_){resolve({})}
  });
  const merged={...saved,...local};
  for(const [key,value] of Object.entries(saved||{})){
@@ -1524,8 +1525,10 @@ if(subtitlePlus)subtitlePlus.addEventListener("click",()=>updateSubtitleOffset(0
 window.addEventListener("pagehide",()=>savePlaybackProgress(true));
 window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")savePlaybackProgress(true)});
+loadWatchProfiles();
 restoreWatchProgress();
 renderContinueWatching();
+ensureProfileUi();
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);const playerCloseButton=$("player-close");if(playerCloseButton)playerCloseButton.onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
 let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
