@@ -2715,3 +2715,82 @@ html.profile-ready #brand-intro{display:none!important;}
 .brand-intro-rest{
  transition:max-width 1.8s cubic-bezier(.2,.85,.2,1),opacity 1.1s ease,clip-path 1.8s cubic-bezier(.2,.85,.2,1)!important;
 }
+
+
+/* Floating glass bottom navigation inspired by the supplied reference */
+@media(max-width:760px){
+  .mobile-nav{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    align-items:center!important;
+    gap:4px!important;
+    position:fixed!important;
+    left:12px!important;
+    right:12px!important;
+    bottom:calc(12px + env(safe-area-inset-bottom))!important;
+    width:auto!important;
+    min-height:92px!important;
+    padding:10px!important;
+    border:1px solid rgba(255,255,255,.17)!important;
+    border-radius:999px!important;
+    background:rgba(91,72,49,.48)!important;
+    -webkit-backdrop-filter:blur(30px) saturate(145%)!important;
+    backdrop-filter:blur(30px) saturate(145%)!important;
+    box-shadow:0 12px 38px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.10)!important;
+    justify-content:stretch!important;
+  }
+  .mobile-nav button{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:72px!important;
+    padding:8px 3px!important;
+    border:1px solid transparent!important;
+    border-radius:999px!important;
+    background:transparent!important;
+    color:rgba(245,242,237,.76)!important;
+    box-shadow:none!important;
+    transition:background .22s ease,color .22s ease,transform .22s ease!important;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .mobile-nav button.active{
+    color:#080808!important;
+    background:#fff!important;
+    border-color:rgba(255,255,255,.9)!important;
+    box-shadow:0 2px 12px rgba(0,0,0,.10)!important;
+  }
+  .mobile-nav button.active:before{display:none!important}
+  .mobile-nav .nav-icon{
+    display:grid!important;
+    place-items:center!important;
+    width:22px!important;
+    height:22px!important;
+    color:currentColor!important;
+    font-size:0!important;
+    transform:none!important;
+  }
+  .mobile-nav .nav-icon svg{
+    display:block!important;
+    width:21px!important;
+    height:21px!important;
+    fill:none!important;
+    stroke:currentColor!important;
+    stroke-width:1.8!important;
+    stroke-linecap:round!important;
+    stroke-linejoin:round!important;
+  }
+  .mobile-nav .nav-label{
+    color:currentColor!important;
+    font-size:12px!important;
+    line-height:1.15!important;
+    letter-spacing:0!important;
+    font-weight:600!important;
+    white-space:nowrap!important;
+  }
+  body{padding-bottom:calc(118px + env(safe-area-inset-bottom))!important}
+  .content-section:last-child{padding-bottom:28px!important}
+}
