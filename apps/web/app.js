@@ -259,160 +259,81 @@ function startHeroTimer(){
 
 const WATCH_PROGRESS_KEY="flxtv:watch-progress:v2",LEGACY_WATCH_PROGRESS_KEY="flxtv:watch-progress:v1";
  const WATCH_PROFILES_KEY="flxtv:profiles:v1",ACTIVE_PROFILE_KEY="flxtv:active-profile:v1";
- const DEFAULT_PROFILE={id:"main",name:"Profil 1",color:"#e50936"};
- let watchProfiles=[],activeWatchProfile=DEFAULT_PROFILE;
- function loadWatchProfiles(){try{const p=JSON.parse(localStorage.getItem(WATCH_PROFILES_KEY)||"null");watchProfiles=Array.isArray(p)&&p.length?p.slice(0,8):[DEFAULT_PROFILE]}catch(_){watchProfiles=[DEFAULT_PROFILE]}let id="main";try{id=localStorage.getItem(ACTIVE_PROFILE_KEY)||"main"}catch(_){}activeWatchProfile=watchProfiles.find(x=>x.id===id)||watchProfiles[0];try{localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id)}catch(_){}}
+ const DEFAULT_PROFILES=[
+  {id:"arta",name:"Arta",color:"linear-gradient(135deg,#ff5f6d,#b52a26)",letter:"A"},
+  {id:"main",name:"Leon",color:"linear-gradient(135deg,#2f80ed,#14305c)",letter:"L"},
+  {id:"eli",name:"Eli",color:"linear-gradient(135deg,#8a2be2,#3b1d78)",letter:"E"}
+ ];
+ let watchProfiles=[],activeWatchProfile=DEFAULT_PROFILES[1],profileManageMode=false;
+ function loadWatchProfiles(){
+  try{const saved=JSON.parse(localStorage.getItem(WATCH_PROFILES_KEY)||"null");watchProfiles=Array.isArray(saved)&&saved.length?saved.slice(0,8):DEFAULT_PROFILES.map(x=>({...x}))}catch(_){watchProfiles=DEFAULT_PROFILES.map(x=>({...x}))}
+  if(!watchProfiles.some(x=>x.id==="main")&&watchProfiles.length<8)watchProfiles.push({...DEFAULT_PROFILES[1]});
+  const main=watchProfiles.find(x=>x.id==="main");if(main&&(!main.name||main.name==="Profil 1"))main.name="Leon";
+  let id="main";try{id=localStorage.getItem(ACTIVE_PROFILE_KEY)||"main"}catch(_){}
+  activeWatchProfile=watchProfiles.find(x=>x.id===id)||watchProfiles[0];
+  try{localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id)}catch(_){}
+ }
  function profileProgressKey(){return WATCH_PROGRESS_KEY+":"+activeWatchProfile.id;}
- function saveProfiles(){try{localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id)}catch(_){notice("Nuk u ruajtën profilet në këtë pajisje.")}renderProfileButton();}
-const WATCH_DB_NAME="flxtv-persistence",WATCH_DB_STORE="watch-progress";
-let watchDbPromise=null,latestPlaybackTime=0,latestPlaybackDuration=0,lastProgressWrite=0,progressPollTimer=null;
-function openWatchDb(){
- if(!("indexedDB" in window))return Promise.resolve(null);
- if(!watchDbPromise)watchDbPromise=new Promise(resolve=>{
-  try{
-   const request=indexedDB.open(WATCH_DB_NAME,1);
-   request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains(WATCH_DB_STORE))db.createObjectStore(WATCH_DB_STORE)};
-   request.onsuccess=()=>resolve(request.result);
-   request.onerror=()=>resolve(null);
-   request.onblocked=()=>resolve(null);
-  }catch(_){resolve(null)}
- });
- return watchDbPromise;
-}
-function readWatchProgress(){
- try{
-  const current=JSON.parse(localStorage.getItem(profileProgressKey())||"null");
-  if(current&&typeof current==="object")return current;
-  if(activeWatchProfile.id==="main"){const legacyCurrent=JSON.parse(localStorage.getItem(WATCH_PROGRESS_KEY)||"null");if(legacyCurrent&&typeof legacyCurrent==="object")return legacyCurrent;}
-  const legacy=JSON.parse(localStorage.getItem(LEGACY_WATCH_PROGRESS_KEY)||"{}");
-  return legacy&&typeof legacy==="object"?legacy:{};
- }catch(_){return {}}
-}
-function writeWatchProgress(data){
- const serialized=JSON.stringify(data);
- try{localStorage.setItem(profileProgressKey(),serialized)}catch(error){console.warn("[FLIXTV] localStorage write failed; IndexedDB backup remains available",error)}
- openWatchDb().then(db=>{
-  if(!db)return;
-  try{const tx=db.transaction(WATCH_DB_STORE,"readwrite");tx.objectStore(WATCH_DB_STORE).put(data,activeWatchProfile.id);}catch(error){console.warn("[FLIXTV] IndexedDB progress backup failed",error)}
- });
-}
-async function restoreWatchProgress(){
- const local=readWatchProgress(),db=await openWatchDb();
- if(!db){renderContinueWatching();return}
- const saved=await new Promise(resolve=>{
-  try{const request=db.transaction(WATCH_DB_STORE,"readonly").objectStore(WATCH_DB_STORE).get(activeWatchProfile.id);request.onsuccess=()=>resolve(request.result||{});request.onerror=()=>resolve({})}catch(_){resolve({})}
- });
- const merged={...saved,...local};
- for(const [key,value] of Object.entries(saved||{})){
-  if(!merged[key]||(Number(value.updatedAt)||0)>(Number(merged[key].updatedAt)||0))merged[key]=value;
- }
- if(Object.keys(merged).length)writeWatchProgress(merged);
- renderContinueWatching();
- try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(_){}
-}
-function progressId(item){return (kind(item)==="tv"?"tv:":"movie:")+String(item.id)}
-function getSavedProgress(item){return readWatchProgress()[progressId(item)]||null}
-function savePlaybackProgress(force=false){
- if(!currentPlayback||!currentPlayback.item||!currentPlayback.item.id)return;
- const now=Date.now();
- if(!force&&now-lastProgressWrite<5000)return;
- const duration=Number(latestPlaybackDuration),time=Number(latestPlaybackTime);
- if(!Number.isFinite(time)||time<0)return;
- const data=readWatchProgress(),key=progressId(currentPlayback.item);
- if(duration>0&&time/duration>=0.92){delete data[key];writeWatchProgress(data);lastProgressWrite=now;renderContinueWatching();return}
- const item=currentPlayback.item;
- data[key]={
-  id:item.id,mediaType:kind(item),title:title(item),
-  poster_path:item.poster_path||"",backdrop_path:item.backdrop_path||"",
-  currentTime:time,duration:Number.isFinite(duration)?duration:0,
-  season:kind(item)==="tv"?Number(currentPlayback.season||1):null,
-  episode:kind(item)==="tv"?Number(currentPlayback.episode||1):null,
-  updatedAt:now
- };
- writeWatchProgress(data);lastProgressWrite=now;
- renderContinueWatching();
-}
-function clearPlaybackProgress(item){
- if(!item)return;
- const data=readWatchProgress();delete data[progressId(item)];writeWatchProgress(data);renderContinueWatching();
-}
-function formatPlaybackTime(seconds){
- const value=Math.max(0,Math.floor(Number(seconds)||0)),h=Math.floor(value/3600),m=Math.floor((value%3600)/60),s=value%60;
- return h?String(h)+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0"):String(m)+":"+String(s).padStart(2,"0");
-}
-function continueWatchUrl(item,entry){
- const params=new URLSearchParams();
- if(entry.mediaType==="tv"){params.set("season",String(entry.season||1));params.set("episode",String(entry.episode||1))}
- params.set("t",String(Math.floor(entry.currentTime||0)));
- return pageUrl(item,true)+"?"+params.toString();
-}
-function renderContinueWatching(){
- const row=$("continue-watching"),section=$("continue-watching-section");
- if(!row||!section)return;
- const entries=Object.values(readWatchProgress()).filter(x=>x&&x.id&&x.currentTime>0&&(!x.duration||x.currentTime<x.duration*0.92)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,20);
- row.replaceChildren();
- section.hidden=!entries.length;
- entries.forEach(entry=>{
-  const item={id:entry.id,media_type:entry.mediaType,title:entry.title,name:entry.title,poster_path:entry.poster_path,backdrop_path:entry.backdrop_path};
-  const button=document.createElement("button");button.type="button";button.className="continue-card";
-  const image=document.createElement("img");image.loading="lazy";image.alt="";image.src=entry.backdrop_path?IMG+"w500"+entry.backdrop_path:(entry.poster_path?IMG+"w342"+entry.poster_path:"");
-  const body=document.createElement("span");body.className="continue-card-copy";
-  const name=document.createElement("strong");name.textContent=entry.title||"Pa titull";
-  const detail=document.createElement("small");detail.textContent=entry.mediaType==="tv"?"Sezoni "+(entry.season||1)+" · Episodi "+(entry.episode||1):"Vazhdo filmin";
-  const progress=document.createElement("span");progress.className="continue-progress";
-  const fill=document.createElement("i");fill.style.width=(entry.duration>0?Math.min(100,Math.max(0,entry.currentTime/entry.duration*100)):0)+"%";progress.append(fill);
-  const remaining=document.createElement("small");remaining.className="continue-remaining";remaining.textContent=entry.duration>0?"Mbeten "+formatPlaybackTime(Math.max(0,entry.duration-entry.currentTime)):"Vazhdo shikimin";
-  body.append(name,detail,progress,remaining);button.append(image,body);
-  button.addEventListener("click",()=>window.location.assign(continueWatchUrl(item,entry)));
-  row.append(button);
- });
-}
-function startProgressPolling(){
- clearInterval(progressPollTimer);
- progressPollTimer=setInterval(()=>{
-  if(!$("player-modal").classList.contains("open")||!currentPlayback)return;
-  const video=$("resolved-video");
-  if(video&&!video.hidden&&Number.isFinite(video.currentTime)){
-   latestPlaybackTime=Number(video.currentTime)||0;
-   latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
-   renderExternalSubtitle(latestPlaybackTime);
-   savePlaybackProgress(false);
-  }
- },2000);
-}
-function handleCineSrcMessage(event){
- const frame=$("cinesrc-frame");
- if(event.origin!=="https://cinesrc.st"||!frame||event.source!==frame.contentWindow||!currentPlayback)return;
- const data=event.data;
- if(!data||typeof data!=="object"||typeof data.type!=="string"||!data.type.startsWith("cinesrc:"))return;
- const type=data.type.replace("cinesrc:","");
- if(Number.isFinite(Number(data.currentTime))&&Number(data.currentTime)>=0)latestPlaybackTime=Number(data.currentTime);
- if(Number.isFinite(Number(data.duration))&&Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
- if(type==="timeupdate"||type==="seeked"||type==="pause"||type==="ended"){
-  savePlaybackProgress(type!=="timeupdate");
- }
- if(type==="timeupdate"||type==="seeked")renderExternalSubtitle(latestPlaybackTime);
- if(type==="ended")savePlaybackProgress(true);
- if(type==="nextepisode"&&data.internalNavigation){
-  savePlaybackProgress(true);
-  currentPlayback.season=Number(data.season||currentPlayback.season||1);
-  currentPlayback.episode=Number(data.episode||1);
-  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
- }
-}
-window.addEventListener("message",handleCineSrcMessage);
+ function saveProfiles(){try{localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id)}catch(_){notice("Nuk u ruajtën profilet në këtë pajisje.")}renderProfileButton();renderProfileCards()}
  function ensureProfileUi(){
   if($("profile-switcher"))return;
   const host=document.querySelector(".top-actions");if(!host)return;
-  const button=document.createElement("button");button.id="profile-switcher";button.type="button";button.className="profile-switcher";button.setAttribute("aria-label","Kush po shikon?");button.onclick=openProfilePicker;host.prepend(button);
-  const overlay=document.createElement("div");overlay.id="profile-picker";overlay.className="profile-picker";overlay.hidden=true;overlay.innerHTML='<div class="profile-picker-panel" role="dialog" aria-modal="true" aria-labelledby="profile-picker-title"><button type="button" class="profile-picker-close" id="profile-picker-close" aria-label="Mbyll">×</button><span class="profile-picker-kicker">FLIXTV</span><h2 id="profile-picker-title">Kush po shikon?</h2><div class="profile-picker-list" id="profile-picker-list"></div><button type="button" class="profile-add" id="profile-add">＋ Shto profil</button></div>';
-  document.body.append(overlay);$("profile-picker-close").onclick=closeProfilePicker;overlay.addEventListener("click",e=>{if(e.target===overlay)closeProfilePicker()});$("profile-add").onclick=addWatchProfile;
-  renderProfileButton();
+  const button=document.createElement("button");button.id="profile-switcher";button.type="button";button.className="profile-switcher";button.setAttribute("aria-label","Ndrysho profilin");button.onclick=openProfilePicker;host.prepend(button);
+  const screen=document.createElement("section");screen.id="profile-picker";screen.className="profile-screen";screen.hidden=true;
+  screen.innerHTML='<div class="profile-screen-bg"></div><div class="profile-screen-grain"></div><main class="profile-stage"><div class="profile-brand">FLIXTV</div><h1 class="profile-title">Kush po <strong>shikon?</strong></h1><p class="profile-subtitle">Zgjidh profilin tënd për të vazhduar</p><section class="profiles-grid" id="profile-picker-list"></section><button class="profile-manage" id="profile-manage" type="button">Menaxho profilet</button></main>';
+  document.body.append(screen);
+  $("profile-manage").onclick=toggleProfileManage;
+  renderProfileButton();renderProfileCards();
  }
- function renderProfileButton(){const b=$("profile-switcher");if(!b)return;b.innerHTML='<span class="profile-avatar" style="--profile-color:'+escapeHtml(activeWatchProfile.color||"#e50936")+'">'+escapeHtml((activeWatchProfile.name||"P").slice(0,1).toUpperCase())+'</span><span class="profile-switcher-name">'+escapeHtml(activeWatchProfile.name||"Profili")+'</span><span class="profile-caret">⌄</span>'}
- function openProfilePicker(){ensureProfileUi();const list=$("profile-picker-list");list.replaceChildren();watchProfiles.forEach(p=>{const b=document.createElement("button");b.type="button";b.className="profile-choice"+(p.id===activeWatchProfile.id?" active":"");b.innerHTML='<span class="profile-avatar large" style="--profile-color:'+escapeHtml(p.color||"#e50936")+'">'+escapeHtml((p.name||"P").slice(0,1).toUpperCase())+'</span><strong>'+escapeHtml(p.name)+'</strong>'+(p.id===activeWatchProfile.id?'<small>Aktiv</small>':"");b.onclick=()=>{if(p.id!==activeWatchProfile.id){savePlaybackProgress(true);activeWatchProfile=p;saveProfiles();renderContinueWatching();if(!$("player-modal").classList.contains("open"))notice("Profili aktiv: "+p.name)}closeProfilePicker()};list.append(b)});$("profile-picker").hidden=false}
- function closeProfilePicker(){const p=$("profile-picker");if(p)p.hidden=true}
- function addWatchProfile(){if(watchProfiles.length>=8){notice("Mund të krijosh deri në 8 profile.");return}const name=prompt("Emri i profilit:");if(!name||!name.trim())return;const colors=["#e50936","#2878d0","#1b9b70","#8b5cf6","#d97706","#db4b9b"];const p={id:"p"+Date.now().toString(36),name:name.trim().slice(0,24),color:colors[watchProfiles.length%colors.length]};watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();openProfilePicker()}
+ function renderProfileButton(){
+  const b=$("profile-switcher");if(!b)return;
+  b.innerHTML='<span class="profile-mini-avatar" style="--profile-color:'+escapeHtml(activeWatchProfile.color||"#e50914")+'">'+escapeHtml(activeWatchProfile.letter||activeWatchProfile.name.slice(0,1).toUpperCase())+'</span><span class="profile-switcher-name">'+escapeHtml(activeWatchProfile.name)+'</span><span class="profile-caret">⌄</span>';
+ }
+ function renderProfileCards(){
+  const list=$("profile-picker-list");if(!list)return;list.replaceChildren();
+  watchProfiles.forEach((p,index)=>{
+   const card=document.createElement("div");card.className="profile-tile"+(profileManageMode?" managing":"");card.tabIndex=0;card.setAttribute("role","button");card.setAttribute("aria-label","Profili "+p.name);
+   const wrap=document.createElement("div");wrap.className="profile-avatar-wrap";
+   const avatar=document.createElement("div");avatar.className="profile-avatar-art";avatar.style.background=p.color||"#e50914";avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase();wrap.append(avatar);
+   const name=document.createElement("span");name.className="profile-name";name.textContent=p.name;
+   card.append(wrap,name);
+   if(profileManageMode){const edit=document.createElement("span");edit.className="profile-edit-badge";edit.textContent="✎";wrap.append(edit)}
+   const activate=()=>{
+    if(profileManageMode){manageOneProfile(p);return}
+    card.classList.add("selected");if(navigator.vibrate)navigator.vibrate(15);
+    setTimeout(()=>{activeWatchProfile=p;saveProfiles();profileManageMode=false;$("profile-picker").hidden=true;document.body.classList.remove("profile-screen-open");renderContinueWatching();restoreWatchProgress();},380);
+   };
+   card.addEventListener("click",activate);card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate()}});
+   list.append(card);
+  });
+  const add=document.createElement("div");add.className="profile-tile profile-add-tile";add.tabIndex=0;add.setAttribute("role","button");add.setAttribute("aria-label","Shto profil të ri");
+  add.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art">+</div></div><span class="profile-name">Shto profil</span>';
+  const addAction=()=>addWatchProfile();add.addEventListener("click",addAction);add.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();addAction()}});
+  if(watchProfiles.length<8)list.append(add);
+  const manage=$("profile-manage");if(manage)manage.textContent=profileManageMode?"Përfundo":"Menaxho profilet";
+ }
+ function openProfilePicker(){ensureProfileUi();profileManageMode=false;renderProfileCards();$("profile-picker").hidden=false;document.body.classList.add("profile-screen-open")}
+ function closeProfilePicker(){const p=$("profile-picker");if(p)p.hidden=true;document.body.classList.remove("profile-screen-open")}
+ function toggleProfileManage(){profileManageMode=!profileManageMode;renderProfileCards()}
+ function manageOneProfile(p){
+  if(p.id==="main"&&watchProfiles.length===1){notice("Duhet të mbetet të paktën një profil.");return}
+  const action=prompt("Shkruaj emrin e ri për "+p.name+". Për ta fshirë, shkruaj DELETE.",p.name);
+  if(action===null)return;
+  if(action.trim().toUpperCase()==="DELETE"){
+   if(watchProfiles.length<=1){notice("Duhet të mbetet të paktën një profil.");return}
+   if(p.id===activeWatchProfile.id){activeWatchProfile=watchProfiles.find(x=>x.id!==p.id)}
+   watchProfiles=watchProfiles.filter(x=>x.id!==p.id);saveProfiles();renderContinueWatching();return;
+  }
+  if(action.trim()){p.name=action.trim().slice(0,24);p.letter=p.name.slice(0,1).toUpperCase();saveProfiles()}
+ }
+ function addWatchProfile(){
+  if(watchProfiles.length>=8){notice("Mund të krijosh deri në 8 profile.");return}
+  const name=prompt("Emri i profilit të ri:");if(!name||!name.trim())return;
+  const colors=["linear-gradient(135deg,#ff5f6d,#b52a26)","linear-gradient(135deg,#2f80ed,#14305c)","linear-gradient(135deg,#8a2be2,#3b1d78)","linear-gradient(135deg,#16a085,#075e54)","linear-gradient(135deg,#d97706,#78350f)","linear-gradient(135deg,#db4b9b,#831843)"];
+  const p={id:"p"+Date.now().toString(36),name:name.trim().slice(0,24),color:colors[watchProfiles.length%colors.length],letter:name.trim().slice(0,1).toUpperCase()};
+  watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();openProfilePicker();
+ }
+
  
 async function home(){
  renderContinueWatching();
@@ -1529,6 +1450,7 @@ loadWatchProfiles();
 restoreWatchProgress();
 renderContinueWatching();
 ensureProfileUi();
+openProfilePicker();
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);const playerCloseButton=$("player-close");if(playerCloseButton)playerCloseButton.onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
 let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
