@@ -268,6 +268,7 @@ const WATCH_PROGRESS_KEY="flxtv:watch-progress:v2",LEGACY_WATCH_PROGRESS_KEY="fl
  function loadWatchProfiles(){
   try{const saved=JSON.parse(localStorage.getItem(WATCH_PROFILES_KEY)||"null");watchProfiles=Array.isArray(saved)&&saved.length?saved.slice(0,8):DEFAULT_PROFILES.map(x=>({...x}))}catch(_){watchProfiles=DEFAULT_PROFILES.map(x=>({...x}))}
   if(!watchProfiles.some(x=>x.id==="main")&&watchProfiles.length<8)watchProfiles.push({...DEFAULT_PROFILES[1]});
+  if(watchProfiles.length===1&&watchProfiles[0].id==="main"){watchProfiles.push({...DEFAULT_PROFILES[0]},{...DEFAULT_PROFILES[2]});}
   const main=watchProfiles.find(x=>x.id==="main");if(main&&(!main.name||main.name==="Profil 1"))main.name="Leon";
   let id="main";try{id=localStorage.getItem(ACTIVE_PROFILE_KEY)||"main"}catch(_){}
   activeWatchProfile=watchProfiles.find(x=>x.id===id)||watchProfiles[0];
