@@ -3098,3 +3098,40 @@ html.profile-ready #brand-intro{display:none!important;}
   html.ios-home-app #app{padding-top:0!important}
   html.ios-home-app #app > #hero{margin-top:0!important}
 }
+
+
+/* Header actions: crisp SF Symbols-inspired glyphs inside restrained glass buttons */
+@media(max-width:760px){
+  .topbar .searchbox,
+  .topbar .header-glass-button{
+    width:40px!important;
+    min-width:40px!important;
+    max-width:40px!important;
+    height:40px!important;
+    min-height:40px!important;
+    max-height:40px!important;
+    flex:0 0 40px!important;
+    border:1px solid rgba(255,255,255,.34)!important;
+    border-radius:50%!important;
+    background:rgba(245,248,255,.13)!important;
+    -webkit-backdrop-filter:blur(18px) saturate(155%)!important;
+    backdrop-filter:blur(18px) saturate(155%)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 4px 15px rgba(0,0,0,.16)!important;
+  }
+  .topbar .searchbox .search-trigger{width:100%!important;height:100%!important}
+  .topbar .search-trigger svg,
+  .topbar .header-glass-button svg{
+    width:21px!important;height:21px!important;
+    fill:none!important;stroke:rgba(255,255,255,.98)!important;
+    stroke-width:1.85!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.22))!important;
+  }
+  .topbar .header-glass-button svg{stroke-width:1.65!important}
+}
+@media(min-width:761px){
+  .topbar .searchbox .search-trigger svg,
+  .topbar .header-glass-button svg{
+    width:21px;height:21px;fill:none;stroke:currentColor;
+    stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+  }
+}
