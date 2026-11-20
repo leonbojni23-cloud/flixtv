@@ -860,7 +860,7 @@ function animatePosterFallback(sourceImage,targetPoster,sourceRect,sourceRadius)
  Object.assign(clone.style,{
   position:"fixed",left:sourceRect.left+"px",top:sourceRect.top+"px",
   width:sourceRect.width+"px",height:sourceRect.height+"px",
-  objectFit:"cover",objectPosition:"center",borderRadius:sourceRadius||"5px",
+  objectFit:"contain",objectPosition:"center center",borderRadius:sourceRadius||"5px",
   background:"#05070b",border:"0",boxShadow:"0 12px 34px rgba(0,0,0,.28)",
   zIndex:"2147483647",pointerEvents:"none",margin:"0",padding:"0",
   maxWidth:"none",maxHeight:"none",transformOrigin:"top left",
