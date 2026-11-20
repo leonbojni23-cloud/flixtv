@@ -1619,11 +1619,22 @@ if(subtitlePlus)subtitlePlus.addEventListener("click",()=>updateSubtitleOffset(0
 window.addEventListener("pagehide",()=>savePlaybackProgress(true));
 window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")savePlaybackProgress(true)});
+function runBrandIntro(){
+ const splash=document.createElement("div");splash.id="brand-intro";splash.className="brand-intro";splash.setAttribute("aria-label","FLIXTV");
+ splash.innerHTML='<div class="brand-intro-mark">F</div><div class="brand-intro-word">FLIX<span>TV</span></div>';
+ document.body.append(splash);
+ const reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+ if(reduced){splash.remove();openProfilePicker();return;}
+ requestAnimationFrame(()=>splash.classList.add("stage-mark"));
+ setTimeout(()=>splash.classList.add("stage-word"),850);
+ setTimeout(()=>splash.classList.add("stage-exit"),1900);
+ setTimeout(()=>{splash.remove();openProfilePicker()},2350);
+}
 loadWatchProfiles();
 restoreWatchProgress();
 renderContinueWatching();
 ensureProfileUi();
-openProfilePicker();
+runBrandIntro();
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);const playerCloseButton=$("player-close");if(playerCloseButton)playerCloseButton.onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
 let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
