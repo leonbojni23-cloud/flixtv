@@ -3019,3 +3019,10 @@ html.profile-ready #brand-intro{display:none!important;}
 
 /* Profile control is rendered inside the settings popover, never as a separate header avatar */
 .profile-switcher{display:none!important;}
+
+/* Wordmark only: slightly heavier strokes for stronger FLIXTV presence */
+.topbar .brand-name,
+.topbar .brand-name span{
+  font-weight:950!important;
+  -webkit-text-stroke:.45px currentColor!important;
+}
