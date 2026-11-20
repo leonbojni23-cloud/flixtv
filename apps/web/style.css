@@ -2706,3 +2706,12 @@ html.profile-ready #brand-intro{display:none!important;}
 .brand-intro.stage-mark .brand-intro-f{transform:scale(1.42)!important;}
 .brand-intro.stage-word .brand-intro-f{transform:scale(1)!important;}
 .brand-intro-rest{transition:max-width 1.8s cubic-bezier(.2,.85,.2,1),opacity 1.1s ease,clip-path 1.8s cubic-bezier(.2,.85,.2,1)!important;}
+
+/* Synchronize the F landing with completion of the full FLIXTV reveal.
+   The F starts its final movement later, so both finish at 1.8s. */
+.brand-intro-f{
+ transition:transform 1.45s cubic-bezier(.2,.85,.2,1) .35s,opacity 1.1s ease!important;
+}
+.brand-intro-rest{
+ transition:max-width 1.8s cubic-bezier(.2,.85,.2,1),opacity 1.1s ease,clip-path 1.8s cubic-bezier(.2,.85,.2,1)!important;
+}
