@@ -424,7 +424,7 @@ window.addEventListener("message",handleCineSrcMessage);
  function ensureProfileUi(){
   if($("profile-switcher"))return;
   const host=document.querySelector(".top-actions");if(!host)return;
-  const button=document.createElement("button");button.id="profile-switcher";button.type="button";button.className="profile-switcher";button.setAttribute("aria-label","Ndrysho profilin");button.onclick=openProfilePicker;host.prepend(button);
+  const button=document.createElement("button");button.id="profile-switcher";button.type="button";button.className="profile-switcher";button.setAttribute("aria-label","Profili aktiv");button.setAttribute("aria-haspopup","true");button.setAttribute("aria-expanded","false");button.onclick=toggleProfileMenu;host.prepend(button);
   const screen=document.createElement("section");screen.id="profile-picker";screen.className="profile-screen";screen.hidden=true;
   screen.innerHTML='<main class="profile-stage"><h1 class="profile-title">Who\'s watching?</h1><section class="profiles-grid" id="profile-picker-list"></section><button class="profile-manage" id="profile-manage" type="button">MANAGE PROFILES</button></main>';
   document.body.append(screen);
@@ -434,7 +434,7 @@ window.addEventListener("message",handleCineSrcMessage);
  function renderProfileButton(){
   const b=$("profile-switcher");if(!b)return;
   if(!activeWatchProfile||activeWatchProfile===EMPTY_PROFILE){b.hidden=true;return;}b.hidden=false;
-  b.innerHTML='<span class="profile-mini-avatar" style="--profile-color:'+escapeHtml(activeWatchProfile.color||"#e50914")+'">'+escapeHtml(activeWatchProfile.letter||activeWatchProfile.name.slice(0,1).toUpperCase())+'</span><span class="profile-switcher-name">'+escapeHtml(activeWatchProfile.name)+'</span><span class="profile-caret">⌄</span>';
+  b.innerHTML='<span class="profile-mini-avatar" style="--profile-color:'+escapeHtml(activeWatchProfile.color||"#e50914")+'">'+escapeHtml(activeWatchProfile.letter||activeWatchProfile.name.slice(0,1).toUpperCase())+'</span>';b.title=activeWatchProfile.name;b.setAttribute("aria-label","Profili: "+activeWatchProfile.name);
  }
  function renderProfileCards(){
   const list=$("profile-picker-list");if(!list)return;list.replaceChildren();
@@ -461,6 +461,28 @@ window.addEventListener("message",handleCineSrcMessage);
   }
   const manage=$("profile-manage");if(manage){manage.textContent=profileManageMode?"DONE":"MANAGE PROFILES";manage.hidden=watchProfiles.length===0;}
  }
+ function closeProfileMenu(){const menu=$("profile-menu");if(menu)menu.remove();const button=$("profile-switcher");if(button)button.setAttribute("aria-expanded","false")}
+ function toggleProfileMenu(event){
+  event&&event.stopPropagation();if($("profile-menu")){closeProfileMenu();return}
+  const button=$("profile-switcher");if(!button)return;
+  const menu=document.createElement("div");menu.id="profile-menu";menu.className="profile-menu";
+  const heading=document.createElement("div");heading.className="profile-menu-heading";heading.textContent="Profile";menu.append(heading);
+  watchProfiles.forEach(p=>{
+   const item=document.createElement("button");item.type="button";item.className="profile-menu-item"+(p.id===activeWatchProfile.id?" active":"");
+   const avatar=document.createElement("span");avatar.className="profile-menu-avatar";avatar.style.background=p.color||"#333";avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase();
+   const name=document.createElement("span");name.className="profile-menu-name";name.textContent=p.name;
+   const check=document.createElement("span");check.className="profile-menu-check";check.textContent=p.id===activeWatchProfile.id?"✓":"";
+   item.append(avatar,name,check);item.onclick=()=>{closeProfileMenu();if(p.id===activeWatchProfile.id)return;activeWatchProfile=p;saveProfiles();renderContinueWatching();restoreWatchProgress()};menu.append(item);
+  });
+  const divider=document.createElement("div");divider.className="profile-menu-divider";menu.append(divider);
+  const add=document.createElement("button");add.type="button";add.className="profile-menu-action";add.textContent="+  Shto profil";add.onclick=()=>{closeProfileMenu();addWatchProfile()};menu.append(add);
+  const manage=document.createElement("button");manage.type="button";manage.className="profile-menu-action";manage.textContent="Menaxho profilet";manage.onclick=()=>{closeProfileMenu();openProfilePicker()};menu.append(manage);
+  document.body.append(menu);button.setAttribute("aria-expanded","true");
+  const rect=button.getBoundingClientRect(),width=Math.min(280,window.innerWidth-24);
+  menu.style.width=width+"px";menu.style.top=Math.min(rect.bottom+10,window.innerHeight-menu.offsetHeight-12)+"px";menu.style.right=Math.max(12,window.innerWidth-rect.right)+"px";
+  setTimeout(()=>document.addEventListener("pointerdown",outsideProfileMenu,{once:true}),0);
+ }
+ function outsideProfileMenu(event){const menu=$("profile-menu"),button=$("profile-switcher");if(!menu)return;if(menu.contains(event.target)||button?.contains(event.target)){document.addEventListener("pointerdown",outsideProfileMenu,{once:true});return}closeProfileMenu()}
  function openProfilePicker(){ensureProfileUi();profileManageMode=false;renderProfileCards();$("profile-picker").hidden=false;document.body.classList.add("profile-screen-open")}
  function closeProfilePicker(){const p=$("profile-picker");if(p)p.hidden=true;document.body.classList.remove("profile-screen-open")}
  function toggleProfileManage(){profileManageMode=!profileManageMode;renderProfileCards()}
@@ -480,7 +502,7 @@ window.addEventListener("message",handleCineSrcMessage);
   const name=prompt("Emri i profilit të ri:");if(!name||!name.trim())return;
   const colors=["linear-gradient(135deg,#ff5f6d,#b52a26)","linear-gradient(135deg,#2f80ed,#14305c)","linear-gradient(135deg,#8a2be2,#3b1d78)","linear-gradient(135deg,#16a085,#075e54)","linear-gradient(135deg,#d97706,#78350f)","linear-gradient(135deg,#db4b9b,#831843)"];
   const p={id:"p"+Date.now().toString(36),name:name.trim().slice(0,24),color:colors[watchProfiles.length%colors.length],letter:name.trim().slice(0,1).toUpperCase()};
-  watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();openProfilePicker();
+  watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();closeProfileMenu();
  }
 
  
