@@ -258,6 +258,12 @@ function startHeroTimer(){
 }
 
 const WATCH_PROGRESS_KEY="flxtv:watch-progress:v2",LEGACY_WATCH_PROGRESS_KEY="flxtv:watch-progress:v1";
+ const WATCH_PROFILES_KEY="flxtv:profiles:v1",ACTIVE_PROFILE_KEY="flxtv:active-profile:v1";
+ const DEFAULT_PROFILE={id:"main",name:"Leon",color:"#e50936"};
+ let watchProfiles=[],activeWatchProfile=DEFAULT_PROFILE;
+ function loadWatchProfiles(){try{const p=JSON.parse(localStorage.getItem(WATCH_PROFILES_KEY)||"null");watchProfiles=Array.isArray(p)&&p.length?p.slice(0,8):[DEFAULT_PROFILE]}catch(_){watchProfiles=[DEFAULT_PROFILE]}let id="main";try{id=localStorage.getItem(ACTIVE_PROFILE_KEY)||"main"}catch(_){}activeWatchProfile=watchProfiles.find(x=>x.id===id)||watchProfiles[0];try{localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id)}catch(_){}}
+ function profileProgressKey(){return WATCH_PROGRESS_KEY+":"+activeWatchProfile.id;}
+ function saveProfiles(){try{localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id)}catch(_){notice("Nuk u ruajtën profilet në këtë pajisje.")}renderProfileButton();}
 const WATCH_DB_NAME="flxtv-persistence",WATCH_DB_STORE="watch-progress";
 let watchDbPromise=null,latestPlaybackTime=0,latestPlaybackDuration=0,lastProgressWrite=0,progressPollTimer=null;
 function openWatchDb(){
@@ -283,7 +289,7 @@ function readWatchProgress(){
 }
 function writeWatchProgress(data){
  const serialized=JSON.stringify(data);
- try{localStorage.setItem(WATCH_PROGRESS_KEY,serialized)}catch(error){console.warn("[FLIXTV] localStorage write failed; IndexedDB backup remains available",error)}
+ try{localStorage.setItem(profileProgressKey(),serialized)}catch(error){console.warn("[FLIXTV] localStorage write failed; IndexedDB backup remains available",error)}
  openWatchDb().then(db=>{
   if(!db)return;
   try{const tx=db.transaction(WATCH_DB_STORE,"readwrite");tx.objectStore(WATCH_DB_STORE).put(data,"all");}catch(error){console.warn("[FLIXTV] IndexedDB progress backup failed",error)}
@@ -394,6 +400,19 @@ function handleCineSrcMessage(event){
  }
 }
 window.addEventListener("message",handleCineSrcMessage);
+ function ensureProfileUi(){
+  if($("profile-switcher"))return;
+  const host=document.querySelector(".top-actions");if(!host)return;
+  const button=document.createElement("button");button.id="profile-switcher";button.type="button";button.className="profile-switcher";button.setAttribute("aria-label","Kush po shikon?");button.onclick=openProfilePicker;host.prepend(button);
+  const overlay=document.createElement("div");overlay.id="profile-picker";overlay.className="profile-picker";overlay.hidden=true;overlay.innerHTML='<div class="profile-picker-panel" role="dialog" aria-modal="true" aria-labelledby="profile-picker-title"><button type="button" class="profile-picker-close" id="profile-picker-close" aria-label="Mbyll">×</button><span class="profile-picker-kicker">FLIXTV</span><h2 id="profile-picker-title">Kush po shikon?</h2><div class="profile-picker-list" id="profile-picker-list"></div><button type="button" class="profile-add" id="profile-add">＋ Shto profil</button></div>';
+  document.body.append(overlay);$("profile-picker-close").onclick=closeProfilePicker;overlay.addEventListener("click",e=>{if(e.target===overlay)closeProfilePicker()});$("profile-add").onclick=addWatchProfile;
+  renderProfileButton();
+ }
+ function renderProfileButton(){const b=$("profile-switcher");if(!b)return;b.innerHTML='<span class="profile-avatar" style="--profile-color:'+escapeHtml(activeWatchProfile.color||"#e50936")+'">'+escapeHtml((activeWatchProfile.name||"P").slice(0,1).toUpperCase())+'</span><span class="profile-switcher-name">'+escapeHtml(activeWatchProfile.name||"Profili")+'</span><span class="profile-caret">⌄</span>'}
+ function openProfilePicker(){ensureProfileUi();const list=$("profile-picker-list");list.replaceChildren();watchProfiles.forEach(p=>{const b=document.createElement("button");b.type="button";b.className="profile-choice"+(p.id===activeWatchProfile.id?" active":"");b.innerHTML='<span class="profile-avatar large" style="--profile-color:'+escapeHtml(p.color||"#e50936")+'">'+escapeHtml((p.name||"P").slice(0,1).toUpperCase())+'</span><strong>'+escapeHtml(p.name)+'</strong>'+(p.id===activeWatchProfile.id?'<small>Aktiv</small>':"");b.onclick=()=>{if(p.id!==activeWatchProfile.id){savePlaybackProgress(true);activeWatchProfile=p;saveProfiles();renderContinueWatching();if(!$("player-modal").classList.contains("open"))notice("Profili aktiv: "+p.name)}closeProfilePicker()};list.append(b)});$("profile-picker").hidden=false}
+ function closeProfilePicker(){const p=$("profile-picker");if(p)p.hidden=true}
+ function addWatchProfile(){if(watchProfiles.length>=8){notice("Mund të krijosh deri në 8 profile.");return}const name=prompt("Emri i profilit:");if(!name||!name.trim())return;const colors=["#e50936","#2878d0","#1b9b70","#8b5cf6","#d97706","#db4b9b"];const p={id:"p"+Date.now().toString(36),name:name.trim().slice(0,24),color:colors[watchProfiles.length%colors.length]};watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();openProfilePicker()}
+ 
 async function home(){
  renderContinueWatching();
  $("catalog").hidden=false;
