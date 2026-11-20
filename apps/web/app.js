@@ -536,7 +536,7 @@ function titlePageMarkup(item,d,playMode=false){
  // IMDb is the only trailer source in both Safari and the installed PWA.
  // If IMDb has no playable clip, keep the poster instead of switching to YouTube.
  const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':"";
- const cover=preview||(posterPath?'<img class="title-page-poster" src="'+posterPath+'" alt="'+escapeHtml(title(d))+' poster">':'<div class="title-page-poster-placeholder">FLIXTV</div>');
+  const cover=preview||(backdrop?'<img class="title-page-cover-image" src="'+backdrop+'" alt="'+escapeHtml(title(d))+'">':posterPath?'<img class="title-page-cover-image" src="'+posterPath+'" alt="'+escapeHtml(title(d))+'">':'<div class="title-page-poster-placeholder">FLIXTV</div>');
  return '<div class="title-page-hero"><div class="title-page-backdrop" style="'+(backdrop?'background-image:linear-gradient(90deg,#080b11 0%,rgba(8,11,17,.92) 30%,rgba(8,11,17,.48) 66%,rgba(8,11,17,.25)),linear-gradient(0deg,#090b10 0%,transparent 52%),url("'+backdrop+'")':'')+'"></div>'+
  '<div class="title-page-inner"><a class="title-page-back" href="/" data-title-home aria-label="Kthehu në faqen kryesore"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a><div class="title-page-cover">'+cover+'</div><div class="title-page-layout"><div class="title-page-copy"><div class="title-page-kicker"><span class="title-page-kicker-dot"></span>'+(tv?"FLIXTV ORIGINAL SERIES":"FLIXTV FILM")+'</div><h1>'+escapeHtml(title(d))+'</h1>'+
  '<div class="title-page-meta">'+meta.map((x,i)=>'<span class="'+(i===1?'rating':'')+'">'+escapeHtml(x)+'</span>').join('<i></i>')+'</div>'+
@@ -904,7 +904,7 @@ function openTitlePage(item,push=false,playMode=false,originCard=null){
  update();
  // The transition source is strictly the poster IMG, never the surrounding
  // card, its rating badge, or its title labels.
- const destination=$("title-page").querySelector(".title-page-cover>.title-page-poster");
+ const destination=$("title-page").querySelector(".title-page-cover>.title-page-cover-image");
  if(sourceImage&&destination&&sourceRect&&sourceRect.width>1&&sourceRect.height>1){
   animatePosterFallback(sourceImage,destination,sourceRect,sourceRadius);
  }
