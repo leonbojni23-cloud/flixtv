@@ -401,18 +401,26 @@ window.addEventListener("message",handleCineSrcMessage);
   {id:"main",name:"Leon",color:"linear-gradient(135deg,#2f80ed,#14305c)",letter:"L"},
   {id:"eli",name:"Eli",color:"linear-gradient(135deg,#8a2be2,#3b1d78)",letter:"E"}
  ];
- let watchProfiles=[],activeWatchProfile=DEFAULT_PROFILES[1],profileManageMode=false;
+ const EMPTY_PROFILE={id:"__no_profile__",name:"Profile",color:"#555",letter:"+"};
+ let watchProfiles=[],activeWatchProfile=EMPTY_PROFILE,profileManageMode=false;
  function loadWatchProfiles(){
-  try{const saved=JSON.parse(localStorage.getItem(WATCH_PROFILES_KEY)||"null");watchProfiles=Array.isArray(saved)&&saved.length?saved.slice(0,8):DEFAULT_PROFILES.map(x=>({...x}))}catch(_){watchProfiles=DEFAULT_PROFILES.map(x=>({...x}))}
-  if(!watchProfiles.some(x=>x.id==="main")&&watchProfiles.length<8)watchProfiles.push({...DEFAULT_PROFILES[1]});
-  if(watchProfiles.length===1&&watchProfiles[0].id==="main"){watchProfiles.push({...DEFAULT_PROFILES[0]},{...DEFAULT_PROFILES[2]});}
-  const main=watchProfiles.find(x=>x.id==="main");if(main&&(!main.name||main.name==="Profil 1"))main.name="Leon";
-  let id="main";try{id=localStorage.getItem(ACTIVE_PROFILE_KEY)||"main"}catch(_){}
-  activeWatchProfile=watchProfiles.find(x=>x.id===id)||watchProfiles[0];
-  try{localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id)}catch(_){}
+  try{
+   const saved=JSON.parse(localStorage.getItem(WATCH_PROFILES_KEY)||"[]");
+   watchProfiles=Array.isArray(saved)?saved.filter(p=>p&&p.id&&p.name).slice(0,8):[];
+  }catch(_){watchProfiles=[]}
+  // Remove only the three profiles that were automatically seeded by the old build.
+  watchProfiles=watchProfiles.filter(p=>!DEFAULT_PROFILES.some(d=>p.id===d.id&&p.name===d.name));
+  let id="";try{id=localStorage.getItem(ACTIVE_PROFILE_KEY)||""}catch(_){}
+  activeWatchProfile=watchProfiles.find(x=>x.id===id)||watchProfiles[0]||EMPTY_PROFILE;
+  try{
+   if(watchProfiles.length)localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));
+   else localStorage.removeItem(WATCH_PROFILES_KEY);
+   if(activeWatchProfile===EMPTY_PROFILE)localStorage.removeItem(ACTIVE_PROFILE_KEY);
+   else localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id);
+  }catch(_){}
  }
  function profileProgressKey(){return WATCH_PROGRESS_KEY+":"+activeWatchProfile.id;}
- function saveProfiles(){try{localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id)}catch(_){notice("Nuk u ruajtën profilet në këtë pajisje.")}renderProfileButton();renderProfileCards()}
+ function saveProfiles(){try{if(watchProfiles.length)localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));else localStorage.removeItem(WATCH_PROFILES_KEY);if(activeWatchProfile&&activeWatchProfile!==EMPTY_PROFILE)localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id);else localStorage.removeItem(ACTIVE_PROFILE_KEY)}catch(_){notice("Nuk u ruajtën profilet në këtë pajisje.")}renderProfileButton();renderProfileCards()}
  function ensureProfileUi(){
   if($("profile-switcher"))return;
   const host=document.querySelector(".top-actions");if(!host)return;
@@ -425,6 +433,7 @@ window.addEventListener("message",handleCineSrcMessage);
  }
  function renderProfileButton(){
   const b=$("profile-switcher");if(!b)return;
+  if(!activeWatchProfile||activeWatchProfile===EMPTY_PROFILE){b.hidden=true;return;}b.hidden=false;
   b.innerHTML='<span class="profile-mini-avatar" style="--profile-color:'+escapeHtml(activeWatchProfile.color||"#e50914")+'">'+escapeHtml(activeWatchProfile.letter||activeWatchProfile.name.slice(0,1).toUpperCase())+'</span><span class="profile-switcher-name">'+escapeHtml(activeWatchProfile.name)+'</span><span class="profile-caret">⌄</span>';
  }
  function renderProfileCards(){
@@ -444,13 +453,13 @@ window.addEventListener("message",handleCineSrcMessage);
    card.addEventListener("click",activate);card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate()}});
    list.append(card);
   });
-  if(watchProfiles.length<3){
+  if(watchProfiles.length<8){
    const add=document.createElement("div");add.className="profile-tile profile-add-tile";add.tabIndex=0;add.setAttribute("role","button");add.setAttribute("aria-label","Add Profile");
    add.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art">+</div></div><span class="profile-name">Add Profile</span>';
    const addAction=()=>addWatchProfile();add.addEventListener("click",addAction);add.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();addAction()}});
    list.append(add);
   }
-  const manage=$("profile-manage");if(manage)manage.textContent=profileManageMode?"DONE":"MANAGE PROFILES";
+  const manage=$("profile-manage");if(manage){manage.textContent=profileManageMode?"DONE":"MANAGE PROFILES";manage.hidden=watchProfiles.length===0;}
  }
  function openProfilePicker(){ensureProfileUi();profileManageMode=false;renderProfileCards();$("profile-picker").hidden=false;document.body.classList.add("profile-screen-open")}
  function closeProfilePicker(){const p=$("profile-picker");if(p)p.hidden=true;document.body.classList.remove("profile-screen-open")}
