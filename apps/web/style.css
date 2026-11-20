@@ -2683,3 +2683,19 @@ body.profile-screen-open .profile-stage{height:100dvh!important;min-height:100dv
 .brand-intro.stage-word .brand-intro-word{opacity:1;transform:scale(1);}
 .brand-intro.stage-exit{opacity:0;visibility:hidden;}
 @media(prefers-reduced-motion:reduce){.brand-intro{display:none!important}}
+
+/* First-run gate: never expose app content before a viewer profile is selected */
+html:not(.profile-ready) body> :not(#brand-intro):not(#profile-picker){visibility:hidden!important;}
+html:not(.profile-ready) body{background:#050505!important;}
+html.profile-ready #brand-intro{display:none!important;}
+/* Slow, continuous FLIXTV logo assembly: the F travels into the full wordmark */
+.brand-intro{position:fixed!important;inset:0!important;z-index:50000!important;display:flex!important;align-items:center!important;justify-content:center!important;background:#050505!important;opacity:1;visibility:visible;overflow:hidden;transition:opacity .7s cubic-bezier(.22,1,.36,1),visibility .7s;}
+.brand-intro-lockup{position:relative;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;font-size:clamp(4.2rem,18vw,9rem);font-weight:950;line-height:1;letter-spacing:-.085em;white-space:nowrap;}
+.brand-intro-f{position:relative;z-index:2;color:#e50936;text-shadow:0 0 38px #e5093650;opacity:0;transform:translateX(1.15em) scale(1.55);transform-origin:center;transition:transform 1.45s cubic-bezier(.2,.85,.2,1),opacity .8s ease;}
+.brand-intro-rest{display:inline-block;overflow:hidden;max-width:0;opacity:0;clip-path:inset(0 100% 0 0);color:#fff;transition:max-width 1.55s cubic-bezier(.2,.85,.2,1),opacity .9s ease,clip-path 1.55s cubic-bezier(.2,.85,.2,1);}
+.brand-intro-tv{color:#e50936;}
+.brand-intro.stage-mark .brand-intro-f{opacity:1;transform:translateX(1.15em) scale(1.55);}
+.brand-intro.stage-word .brand-intro-f{transform:translateX(0) scale(1);}
+.brand-intro.stage-word .brand-intro-rest{max-width:5em;opacity:1;clip-path:inset(0 0 0 0);}
+.brand-intro.stage-exit{opacity:0;visibility:hidden;}
+@media(prefers-reduced-motion:reduce){.brand-intro{display:none!important}}
