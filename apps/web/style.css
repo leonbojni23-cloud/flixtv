@@ -4293,3 +4293,107 @@ html,body{max-width:100%;overflow-x:clip}
   letter-spacing:inherit;
 }
 #home-page .continue-section-title .section-heading-link{font:inherit}
+
+
+/* =========================================================
+   FLIXTV iPHONE PASS — HERO FIT, METADATA, ACTIONS & FLOATING NAV
+   Scoped to compact touch layouts to avoid changing desktop/tablet.
+   ========================================================= */
+@media (max-width:760px) and (orientation:portrait){
+  /* Let the actual visible iOS viewport drive the Hero instead of a tall fixed minimum. */
+  #hero.hero{
+    height:clamp(540px, min(76svh, 690px), 690px)!important;
+    min-height:540px!important;
+    max-height:690px!important;
+    padding:0 20px calc(34px + env(safe-area-inset-bottom,0px))!important;
+    align-items:flex-end!important;
+  }
+  @supports not (height: 1svh){
+    #hero.hero{height:clamp(540px,76vh,690px)!important}
+  }
+  #hero .hero-backdrop{background-position:var(--hero-position,center 30%)!important}
+  #hero .hero-backdrop:after{
+    background:
+      linear-gradient(180deg,rgba(7,9,5,.02) 0%,rgba(7,9,5,.02) 36%,rgba(8,10,5,.25) 55%,rgba(9,11,6,.72) 76%,rgba(10,12,7,.91) 100%),
+      linear-gradient(90deg,rgba(7,9,5,.16),transparent 82%)!important;
+  }
+  #hero .hero-title-wrap{margin-bottom:11px!important}
+  #hero .hero-title-logo{max-width:min(84vw,430px)!important;max-height:88px!important}
+  #hero #hero-title{font-size:clamp(34px,8.5vw,48px)!important;letter-spacing:-1.4px!important}
+  /* Metadata may wrap, but must never force the page wider than the device. */
+  #hero .hero-meta{
+    display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+    column-gap:12px!important;row-gap:7px!important;
+    width:100%!important;min-width:0!important;max-width:100%!important;
+    margin:0 0 11px!important;font-size:13px!important;line-height:1.2!important;
+    overflow:visible!important;white-space:normal!important;
+  }
+  #hero .hero-meta-item{min-width:0!important;max-width:100%!important;gap:5px!important}
+  #hero #hero-rating-item,#hero #hero-year-item{flex:0 0 auto!important;white-space:nowrap!important}
+  #hero #hero-genre-item{flex:1 1 125px!important;overflow:hidden!important}
+  #hero #hero-genre-item b{
+    display:block!important;min-width:0!important;overflow:hidden!important;
+    text-overflow:ellipsis!important;white-space:nowrap!important;
+  }
+  #hero #hero-overview{
+    max-width:100%!important;font-size:14px!important;line-height:1.42!important;
+    -webkit-line-clamp:2!important;overflow:hidden!important;
+  }
+  /* Keep all four controls in one predictable row on narrow iPhones. */
+  #hero .hero-actions{
+    display:flex!important;align-items:center!important;flex-wrap:nowrap!important;
+    width:100%!important;min-width:0!important;gap:8px!important;margin-top:15px!important;
+  }
+  #hero .hero-play{
+    flex:0 1 116px!important;min-width:104px!important;width:116px!important;
+    height:48px!important;padding:0 15px!important;font-size:15px!important;gap:7px!important;
+  }
+  #hero .hero-play .bi{font-size:19px!important}
+  #hero .hero-utility-group{
+    flex:0 0 auto!important;height:48px!important;padding:0 2px!important;
+    border-color:rgba(255,255,255,.19)!important;
+    background:rgba(255,255,255,.105)!important;
+    -webkit-backdrop-filter:blur(14px) saturate(135%)!important;
+    backdrop-filter:blur(14px) saturate(135%)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 4px 14px rgba(0,0,0,.12)!important;
+  }
+  #hero .hero-utility-button{width:39px!important;height:44px!important;font-size:18px!important}
+  #hero .hero-utility-button .bi{font-size:19px!important}
+  #hero .hero-utility-divider{height:22px!important}
+  #hero .hero-controls{flex:0 0 auto!important;gap:5px!important;margin-left:auto!important}
+  #hero .hero-controls>button{width:32px!important;height:32px!important}
+  #hero .hero-controls>button .bi{font-size:15px!important}
+
+  /* Compact floating navigation; safe-area is handled by its bottom offset. */
+  .mobile-nav{
+    left:15px!important;right:15px!important;
+    bottom:calc(env(safe-area-inset-bottom,0px) + 8px)!important;
+    height:66px!important;min-height:66px!important;padding:5px!important;gap:3px!important;
+    border:1px solid rgba(255,255,255,.15)!important;
+    background:linear-gradient(115deg,rgba(167,111,66,.14),rgba(110,119,103,.12),rgba(69,101,111,.14)),rgba(24,25,21,.58)!important;
+    -webkit-backdrop-filter:blur(22px) saturate(145%)!important;
+    backdrop-filter:blur(22px) saturate(145%)!important;
+    box-shadow:0 8px 25px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.14)!important;
+  }
+  .mobile-nav button{gap:3px!important;padding:2px!important}
+  .mobile-nav .nav-icon,.mobile-nav .nav-icon svg{width:19px!important;height:19px!important}
+  .mobile-nav .nav-label{font-size:10px!important;line-height:1.05!important;font-weight:650!important}
+  body{padding-bottom:calc(94px + env(safe-area-inset-bottom,0px))!important}
+  #home-page>.content-section:last-child{padding-bottom:28px!important}
+  /* Do not let the fixed dock obscure the first row after the Hero. */
+  #browse-services-section{padding-top:19px!important}
+}
+@media(max-width:390px) and (orientation:portrait){
+  #hero.hero{padding-left:17px!important;padding-right:17px!important}
+  #hero .hero-meta{column-gap:9px!important;font-size:12.5px!important}
+  #hero .hero-play{flex-basis:108px!important;width:108px!important;min-width:100px!important}
+  #hero .hero-utility-button{width:36px!important}
+  #hero .hero-controls>button{width:30px!important;height:30px!important}
+  .mobile-nav{left:12px!important;right:12px!important}
+}
+@media(prefers-reduced-transparency:reduce){
+  @media(max-width:760px){
+    .mobile-nav{background:rgba(25,27,23,.94)!important}
+    #hero .hero-utility-group{background:rgba(25,27,23,.9)!important}
+  }
+}
