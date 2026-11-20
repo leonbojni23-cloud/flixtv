@@ -1881,7 +1881,7 @@ async function openPage(page,updateHistory=true){
  if(updateHistory){
   const currentPage=document.querySelector("[data-page].active")?.dataset.page||"home";
   history.replaceState({...history.state,page:currentPage},"",location.href);
-  const target=page==="sports"?"/":"/";
+  const target=page==="sports"?"/sports":"/";
   history.pushState({page},"",target);
  }
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
