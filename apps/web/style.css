@@ -4281,3 +4281,15 @@ html,body{max-width:100%;overflow-x:clip}
   .service-card:hover .service-logo-tile,
   .poster-card:hover{transform:none}
 }
+
+/* Continue Watching keeps a real h2 for heading navigation and accessibility. */
+#home-page .continue-section-title{
+  display:flex;
+  min-width:0;
+  margin:0!important;
+  padding:0;
+  font:inherit;
+  line-height:inherit;
+  letter-spacing:inherit;
+}
+#home-page .continue-section-title .section-heading-link{font:inherit}
