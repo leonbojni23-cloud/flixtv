@@ -956,6 +956,10 @@ html.deep-route-loading::after{
 @media(max-width:680px){.title-page-hero:has(.title-page-preview) .title-page-preview{opacity:.72!important}}
 
 
+/* Keep independent app views isolated even when component CSS changes display. */
+#sports-page[hidden],#search-page[hidden],#title-page[hidden],#catalog[hidden],
+#hero[hidden],#home-page[hidden],#movies-page[hidden],#shows-page[hidden]{display:none!important}
+
 /* Dedicated cover frame: trailer replaces the still poster and stays out of title details. */
 .title-page-hero{min-height:0}
 .title-page-inner{min-height:0}
