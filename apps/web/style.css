@@ -2660,3 +2660,9 @@ body.profile-screen-open{overflow:hidden}
 .profile-avatar-wrap{border-radius:7px!important;}
 .profile-avatar-art,.profile-avatar-art img{border-radius:5px!important;}
 .profile-menu-item{border-radius:9px!important;}
+
+/* Real square profile artwork in dropdown, header and profile manager */
+.profile-menu-avatar{width:42px!important;height:42px!important;flex:0 0 42px!important;border-radius:7px!important;overflow:hidden!important;padding:0!important;}
+.profile-menu-avatar img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:6px!important;}
+.profile-mini-avatar img{object-fit:cover!important;border-radius:5px!important;}
+.profile-avatar-art img{object-fit:cover!important;border-radius:5px!important;}
