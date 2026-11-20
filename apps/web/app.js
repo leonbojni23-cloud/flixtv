@@ -252,7 +252,7 @@ function startHeroTimer(){
  heroTimer=setInterval(()=>{if(!document.hidden)showHero(heroIndex+1)},6500);
 }
 
-const WATCH_PROGRESS_KEY="flxtv:watch-progress:v2";
+const WATCH_PROGRESS_KEY="flxtv:watch-progress:v2",LEGACY_WATCH_PROGRESS_KEY="flxtv:watch-progress:v1";
 const WATCH_DB_NAME="flxtv-persistence",WATCH_DB_STORE="watch-progress";
 let watchDbPromise=null,latestPlaybackTime=0,latestPlaybackDuration=0,lastProgressWrite=0,progressPollTimer=null;
 function openWatchDb(){
@@ -269,7 +269,12 @@ function openWatchDb(){
  return watchDbPromise;
 }
 function readWatchProgress(){
- try{const value=JSON.parse(localStorage.getItem(WATCH_PROGRESS_KEY)||"{}");return value&&typeof value==="object"?value:{}}catch(_){return {}}
+ try{
+  const current=JSON.parse(localStorage.getItem(WATCH_PROGRESS_KEY)||"null");
+  if(current&&typeof current==="object")return current;
+  const legacy=JSON.parse(localStorage.getItem(LEGACY_WATCH_PROGRESS_KEY)||"{}");
+  return legacy&&typeof legacy==="object"?legacy:{};
+ }catch(_){return {}}
 }
 function writeWatchProgress(data){
  const serialized=JSON.stringify(data);
