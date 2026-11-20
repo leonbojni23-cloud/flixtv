@@ -1518,8 +1518,15 @@ renderContinueWatching();
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);const playerCloseButton=$("player-close");if(playerCloseButton)playerCloseButton.onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
 let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
+let searchReturnPage="home",searchReturnScroll=0;
 function showSearchPage(){
+ if(!searchPageActive){
+  searchReturnPage=document.querySelector("[data-page].active")?.dataset.page||(!$("sports-page").hidden?"sports":"home");
+  searchReturnScroll=window.scrollY||0;
+ }
  searchPageActive=true;
+ $("title-page").hidden=true;
+ $("sports-page").hidden=true;
  $("hero").hidden=true;$("catalog").hidden=true;
  $("search-page").hidden=false;
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));
@@ -1531,9 +1538,10 @@ function showSearchPage(){
  window.scrollTo({top:0,behavior:"instant"});
 }
 function closeSearchPage(){
- searchPageActive=false;$("search-page").hidden=true;
- $("hero").hidden=false;$("catalog").hidden=false;
- openPage("home");
+ searchPageActive=false;
+ $("search-page").hidden=true;
+ void openPage(searchReturnPage,false);
+ requestAnimationFrame(()=>window.scrollTo({top:searchReturnScroll,left:0,behavior:"instant"}));
 }
 function renderSearchCards(items){
  $("search-grid").replaceChildren(...items.filter(x=>x.poster_path).map(card));
