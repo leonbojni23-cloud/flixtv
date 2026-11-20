@@ -2418,3 +2418,34 @@ html.flxtv-player-active body{overscroll-behavior:none!important}
 html.ios-home-app body {
   padding-top: max(0px, calc(env(safe-area-inset-top, 0px) - 10px));
 }
+
+/* Netflix-inspired poster cards: artwork first, restrained typography.
+   Keep the existing row gaps and all Continue Watching dimensions untouched. */
+.poster-card img,
+.poster-card .placeholder{
+  border-radius:4px;
+  box-shadow:none;
+}
+.poster-title{
+  margin-top:7px;
+  font-size:14px;
+  line-height:1.35;
+  font-weight:500;
+  letter-spacing:0;
+  color:#fff;
+}
+.poster-year{
+  margin-top:3px;
+  font-size:12px;
+  line-height:1.35;
+  font-weight:400;
+  color:#a3a3a3;
+}
+@media(min-width:761px){
+  .poster-row{grid-auto-columns:150px}
+}
+@media(max-width:760px){
+  .poster-row{grid-auto-columns:130px}
+  .poster-title{font-size:13px;line-height:1.3}
+  .poster-year{font-size:11px}
+}
