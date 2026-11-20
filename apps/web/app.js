@@ -228,6 +228,7 @@ function showHero(index){
  heroLayer=nextLayer;
  hero.style.backgroundImage='linear-gradient(90deg,rgba(5,7,12,.48),rgba(5,7,12,.08)),linear-gradient(0deg,#090b10 0%,transparent 72%)';
  document.querySelector("header.topbar").style.setProperty("--header-art",image);
+  document.documentElement.style.setProperty("--flix-ambient-art",image);
  const preload=new Image();
  preload.onload=()=>{
    if(request!==showHero.requestId)return;
