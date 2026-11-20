@@ -4397,3 +4397,32 @@ html,body{max-width:100%;overflow-x:clip}
     #hero .hero-utility-group{background:rgba(25,27,23,.9)!important}
   }
 }
+
+
+/* iPhone Hero alignment: center the title, metadata and synopsis as one visual block. */
+@media(max-width:760px) and (orientation:portrait){
+  #hero .hero-title-wrap{
+    justify-content:center!important;
+    text-align:center!important;
+  }
+  #hero .hero-title-logo{
+    object-position:center center!important;
+    margin-inline:auto!important;
+  }
+  #hero #hero-title{
+    width:100%!important;
+    text-align:center!important;
+    margin-inline:auto!important;
+  }
+  #hero .hero-meta{
+    justify-content:center!important;
+    text-align:center!important;
+  }
+  #hero #hero-overview{
+    width:100%!important;
+    max-width:100%!important;
+    text-align:center!important;
+    margin-inline:auto!important;
+    text-wrap:pretty;
+  }
+}
