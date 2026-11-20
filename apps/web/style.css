@@ -3463,3 +3463,138 @@ input:focus-visible{
 @media(prefers-reduced-motion:reduce){
   #app-ambient .app-ambient-art{transition:none!important}
 }
+
+
+/* =========================================================
+   FLIXTV STEP 2 — CINEMATIC FEATURED HERO
+   ========================================================= */
+#hero.hero{
+  position:relative!important;display:flex!important;align-items:flex-end!important;
+  justify-content:flex-start!important;width:100%!important;
+  min-height:680px!important;height:min(88vh,900px)!important;max-height:900px!important;
+  margin:0!important;padding:0 clamp(28px,6vw,86px) 66px!important;
+  overflow:hidden!important;isolation:isolate!important;background:transparent!important;
+}
+#hero.hero:before{display:none!important;content:none!important}
+#hero .hero-backdrop{
+  position:absolute!important;inset:0!important;z-index:0!important;
+  background-repeat:no-repeat!important;background-size:cover!important;
+  opacity:0;transform:scale(1.025);
+  transition:opacity 1s cubic-bezier(.22,.61,.36,1),transform 8s ease!important;
+}
+#hero .hero-backdrop.active{opacity:1;transform:scale(1.055)}
+#hero .hero-backdrop:after{
+  content:""!important;position:absolute!important;inset:0!important;pointer-events:none!important;
+  background:
+    linear-gradient(180deg,rgba(7,9,5,.10) 0%,rgba(7,9,5,.02) 28%,rgba(7,9,5,.12) 47%,rgba(9,11,6,.68) 72%,rgba(10,12,7,.96) 100%),
+    linear-gradient(90deg,rgba(7,9,5,.20) 0%,transparent 62%)!important;
+}
+#hero .hero-content{
+  position:relative!important;z-index:2!important;width:min(100%,760px)!important;
+  max-width:760px!important;margin:0!important;padding:0!important;opacity:1;
+  transition:opacity .55s ease,transform .55s ease!important;
+}
+#hero .hero-content.changing{opacity:0;transform:translateY(12px);filter:blur(1px)}
+#hero .eyebrow{display:none!important}
+#hero .hero-title-wrap{display:flex;align-items:flex-end;width:100%;min-height:0;margin:0 0 18px}
+#hero #hero-title{
+  display:block;max-width:720px!important;margin:0!important;color:#f8f7fb!important;
+  font-size:clamp(44px,6.2vw,82px)!important;font-weight:950!important;
+  line-height:.96!important;letter-spacing:-2.7px!important;text-transform:uppercase;
+  text-wrap:balance;text-shadow:0 4px 30px rgba(0,0,0,.38)!important;
+}
+#hero #hero-title[hidden]{display:none!important}
+#hero .hero-title-logo{
+  display:block;width:auto;max-width:min(78vw,570px);max-height:150px;
+  object-fit:contain;object-position:left bottom;filter:drop-shadow(0 4px 18px rgba(0,0,0,.4));
+}
+#hero .hero-title-logo[hidden]{display:none!important}
+#hero .hero-meta{
+  display:flex;align-items:center;gap:clamp(12px,2vw,22px);min-height:22px;
+  margin:0 0 18px;color:rgba(255,255,255,.96);
+  font-size:clamp(14px,1.55vw,19px);line-height:1.2;font-weight:700;
+}
+#hero .hero-meta-item{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+#hero .hero-meta-item[hidden]{display:none!important}
+#hero .hero-meta-item .bi{font-size:1.05em;line-height:1}
+#hero #hero-rating-item .bi{color:#f6d56b}
+#hero #hero-overview{
+  display:-webkit-box!important;max-width:650px!important;margin:0!important;overflow:hidden!important;
+  color:rgba(248,247,243,.86)!important;font-size:clamp(15px,1.5vw,18px)!important;
+  font-weight:450!important;line-height:1.58!important;text-shadow:0 2px 14px rgba(0,0,0,.48)!important;
+  -webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
+}
+#hero .hero-actions{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:12px!important;margin:24px 0 0!important}
+#hero .hero-play{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;
+  min-width:142px!important;height:56px!important;padding:0 28px!important;
+  border:1px solid rgba(255,255,255,.96)!important;border-radius:999px!important;
+  background:#fff!important;color:#080908!important;font-size:17px!important;
+  font-weight:800!important;letter-spacing:-.2px!important;box-shadow:0 6px 24px rgba(0,0,0,.16)!important;
+  transition:transform .18s ease,background .18s ease!important;
+}
+#hero .hero-play .bi{font-size:22px!important;line-height:1}
+#hero .hero-play:active{transform:scale(.97)}
+#hero .hero-utility-group{
+  display:inline-flex;align-items:center;justify-content:center;height:56px;padding:0 5px;
+  border:1px solid rgba(255,255,255,.23);border-radius:999px;background:rgba(255,255,255,.13);
+  -webkit-backdrop-filter:blur(20px) saturate(145%);backdrop-filter:blur(20px) saturate(145%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 5px 22px rgba(0,0,0,.13);
+}
+#hero .hero-utility-button{
+  display:grid;place-items:center;width:52px;height:52px;padding:0;border:0;border-radius:50%;
+  background:transparent;color:#fff;font-size:22px;-webkit-tap-highlight-color:transparent;
+}
+#hero .hero-utility-button .bi{font-size:22px;line-height:1}
+#hero .hero-utility-button:active{background:rgba(255,255,255,.16)}
+#hero .hero-utility-button.is-saved .bi{color:#d9f1b0}
+#hero .hero-utility-divider{display:block;width:1px;height:27px;background:rgba(255,255,255,.27)}
+#hero .hero-controls{display:flex!important;align-items:center!important;gap:8px!important;margin-left:auto!important}
+#hero .hero-controls>button{
+  display:grid!important;place-items:center!important;width:40px!important;height:40px!important;padding:0!important;
+  border:1px solid rgba(255,255,255,.28)!important;border-radius:50%!important;
+  background:rgba(14,16,12,.32)!important;color:rgba(255,255,255,.94)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(135%)!important;backdrop-filter:blur(16px) saturate(135%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.13)!important;font-size:18px!important;line-height:1!important;
+}
+#hero .hero-controls>button .bi{font-size:18px;line-height:1}
+#hero .hero-controls>button:active{transform:scale(.95)}
+@media(max-width:760px){
+  #hero.hero{min-height:0!important;height:clamp(610px,84svh,780px)!important;max-height:none!important;padding:0 22px 42px!important;margin:0!important}
+  #hero .hero-backdrop{background-position:center 28%!important}
+  #hero .hero-backdrop:after{
+    background:
+      linear-gradient(180deg,rgba(7,9,5,.08) 0%,rgba(7,9,5,.04) 27%,rgba(7,9,5,.10) 43%,rgba(8,10,5,.60) 64%,rgba(10,12,7,.97) 100%),
+      linear-gradient(90deg,rgba(7,9,5,.12),transparent 78%)!important;
+  }
+  #hero .hero-content{width:100%!important;max-width:none!important;padding:0!important}
+  #hero .hero-title-wrap{margin-bottom:14px}
+  #hero #hero-title{max-width:100%!important;font-size:clamp(37px,9.4vw,54px)!important;line-height:.98!important;letter-spacing:-1.65px!important}
+  #hero .hero-title-logo{max-width:82vw;max-height:112px;object-position:left bottom}
+  #hero .hero-meta{gap:13px;margin-bottom:13px;font-size:14px;overflow:hidden;white-space:nowrap}
+  #hero .hero-meta-item{gap:6px}
+  #hero #hero-overview{max-width:100%!important;font-size:14.5px!important;line-height:1.55!important;-webkit-line-clamp:2!important}
+  #hero .hero-actions{display:flex!important;gap:9px!important;margin-top:18px!important;flex-wrap:nowrap!important}
+  #hero .hero-play{flex:0 0 auto!important;min-width:122px!important;height:52px!important;padding:0 21px!important;gap:8px!important;font-size:16px!important}
+  #hero .hero-play .bi{font-size:20px!important}
+  #hero .hero-utility-group{flex:0 0 auto;height:52px;padding:0 3px}
+  #hero .hero-utility-button{width:43px;height:48px;font-size:19px}
+  #hero .hero-utility-button .bi{font-size:20px}
+  #hero .hero-utility-divider{height:24px}
+  #hero .hero-controls{flex:0 0 auto;gap:6px!important;margin-left:auto!important}
+  #hero .hero-controls>button{width:34px!important;height:34px!important;font-size:16px!important}
+  #hero .hero-controls>button .bi{font-size:16px}
+}
+@media(max-width:370px){
+  #hero.hero{height:clamp(590px,86svh,740px)!important;padding-left:18px!important;padding-right:18px!important}
+  #hero .hero-actions{gap:7px!important}
+  #hero .hero-play{min-width:108px!important;padding:0 15px!important}
+  #hero .hero-utility-button{width:38px}
+  #hero .hero-controls{gap:4px!important}
+  #hero .hero-controls>button{width:31px!important;height:31px!important}
+  #hero .hero-meta{gap:9px;font-size:12.5px}
+}
+@media(prefers-reduced-motion:reduce){
+  #hero .hero-backdrop,#hero .hero-content,#hero .hero-play{transition:none!important}
+  #hero .hero-backdrop.active{transform:none!important}
+}
