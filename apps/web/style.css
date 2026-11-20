@@ -2521,3 +2521,25 @@ html.ios-home-app body {
   #details-modal .modal-backdrop,
   #details-modal .details-sheet{animation:none}
 }
+
+
+/* Show the complete portrait poster inside the 16:9 trailer frame while media loads. */
+.title-page-cover>.title-page-poster{
+ display:block!important;
+ width:100%!important;
+ height:100%!important;
+ aspect-ratio:auto!important;
+ object-fit:contain!important;
+ object-position:center center!important;
+ background:#05070b!important;
+ border:0!important;
+ border-radius:0!important;
+}
+.title-page-cover>.title-page-poster-placeholder{
+ display:grid!important;
+ place-items:center!important;
+ width:100%!important;
+ height:100%!important;
+ aspect-ratio:auto!important;
+ background:#05070b!important;
+}
