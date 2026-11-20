@@ -448,7 +448,7 @@ window.addEventListener("message",handleCineSrcMessage);
    const activate=()=>{
     if(profileManageMode){manageOneProfile(p);return}
     card.classList.add("selected");if(navigator.vibrate)navigator.vibrate(15);
-    setTimeout(()=>{activeWatchProfile=p;saveProfiles();profileManageMode=false;$("profile-picker").hidden=true;unlockProfileScreen();renderContinueWatching();restoreWatchProgress();},380);
+    setTimeout(()=>{activeWatchProfile=p;saveProfiles();profileManageMode=false;$("profile-picker").hidden=true;unlockProfileScreen();document.documentElement.classList.add("profile-ready");renderContinueWatching();restoreWatchProgress();},380);
    };
    card.addEventListener("click",activate);card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate()}});
    list.append(card);
@@ -504,7 +504,7 @@ window.addEventListener("message",handleCineSrcMessage);
   const name=prompt("Emri i profilit të ri:");if(!name||!name.trim())return;
   const colors=["linear-gradient(135deg,#ff5f6d,#b52a26)","linear-gradient(135deg,#2f80ed,#14305c)","linear-gradient(135deg,#8a2be2,#3b1d78)","linear-gradient(135deg,#16a085,#075e54)","linear-gradient(135deg,#d97706,#78350f)","linear-gradient(135deg,#db4b9b,#831843)"];
   const p={id:"p"+Date.now().toString(36),name:name.trim().slice(0,24),color:colors[watchProfiles.length%colors.length],letter:name.trim().slice(0,1).toUpperCase()};
-  watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();closeProfileMenu();
+  watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();closeProfileMenu();if(!document.documentElement.classList.contains("profile-ready")){$("profile-picker").hidden=true;unlockProfileScreen();document.documentElement.classList.add("profile-ready")}
  }
 
  
@@ -1620,15 +1620,13 @@ window.addEventListener("pagehide",()=>savePlaybackProgress(true));
 window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")savePlaybackProgress(true)});
 function runBrandIntro(){
- const splash=document.createElement("div");splash.id="brand-intro";splash.className="brand-intro";splash.setAttribute("aria-label","FLIXTV");
- splash.innerHTML='<div class="brand-intro-mark">F</div><div class="brand-intro-word">FLIX<span>TV</span></div>';
- document.body.append(splash);
+ const splash=$("brand-intro");if(!splash){openProfilePicker();return;}
  const reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
  if(reduced){splash.remove();openProfilePicker();return;}
  requestAnimationFrame(()=>splash.classList.add("stage-mark"));
- setTimeout(()=>splash.classList.add("stage-word"),850);
- setTimeout(()=>splash.classList.add("stage-exit"),1900);
- setTimeout(()=>{splash.remove();openProfilePicker()},2350);
+ setTimeout(()=>splash.classList.add("stage-word"),1450);
+ setTimeout(()=>splash.classList.add("stage-exit"),3500);
+ setTimeout(()=>{splash.remove();openProfilePicker()},4200);
 }
 loadWatchProfiles();
 restoreWatchProgress();
