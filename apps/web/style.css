@@ -3151,3 +3151,315 @@ html.profile-ready #brand-intro{display:none!important;}
 @media(max-width:760px){
   .topbar .header-glass-button .bi{font-size:22px!important}
 }
+
+
+/* =========================================================
+   FLIXTV STEP 1 — GLOBAL THEME, FLOATING CHROME & LAYOUT TOKENS
+   ========================================================= */
+:root{
+  --flix-bg:#111407;
+  --flix-olive:#252a0d;
+  --flix-warm:#4a2a1b;
+  --flix-glass:rgba(226,220,198,.12);
+  --flix-glass-border:rgba(255,255,255,.20);
+  --flix-glass-highlight:rgba(255,255,255,.16);
+  --flix-text:#f7f6f0;
+  --flix-muted:rgba(245,243,234,.72);
+  --flix-accent:#e50936;
+  --flix-radius-card:22px;
+  --flix-radius-panel:30px;
+  --flix-shadow-card:0 12px 32px rgba(0,0,0,.24);
+  --flix-page-gutter:clamp(18px,5vw,38px);
+  --flix-section-space:clamp(30px,5vw,50px);
+}
+
+/* Persistent artwork ambience: follows the active featured title while the page scrolls. */
+html{
+  background:var(--flix-bg)!important;
+  color-scheme:dark;
+}
+body{
+  position:relative;
+  isolation:isolate;
+  background:transparent!important;
+  color:var(--flix-text);
+}
+#app-ambient{
+  position:fixed;
+  z-index:-1;
+  inset:0;
+  overflow:hidden;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse at 18% 18%,rgba(88,93,30,.30),transparent 48%),
+    linear-gradient(145deg,#171b09 0%,#1e1a0d 48%,#140e0b 100%);
+}
+#app-ambient .app-ambient-art{
+  position:absolute;
+  inset:-48px;
+  background-image:var(--flix-ambient-art,linear-gradient(135deg,#4a4b20,#38261a 55%,#182018));
+  background-size:cover;
+  background-position:center;
+  filter:blur(34px) saturate(.82);
+  opacity:.56;
+  transform:scale(1.10);
+  transition:opacity .7s ease,filter .7s ease;
+}
+#app-ambient .app-ambient-shade{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse at 75% 22%,rgba(114,78,35,.13),transparent 52%),
+    linear-gradient(180deg,rgba(10,13,5,.61) 0%,rgba(13,15,7,.72) 42%,rgba(8,10,8,.83) 100%);
+}
+#app{
+  background:transparent!important;
+}
+
+/* Shared spacing, typography and surface tokens for the sections added in later steps. */
+.content-section{
+  padding-left:var(--flix-page-gutter);
+  padding-right:var(--flix-page-gutter);
+}
+.section-heading{
+  gap:14px;
+  margin-bottom:18px;
+}
+.section-heading h2{
+  color:var(--flix-text);
+  font-size:clamp(19px,2.4vw,23px);
+  font-weight:760;
+  letter-spacing:-.55px;
+  line-height:1.15;
+}
+.poster-card img,
+.poster-card .placeholder{
+  border-radius:var(--flix-radius-card);
+  box-shadow:var(--flix-shadow-card);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible{
+  outline:2px solid rgba(255,255,255,.85);
+  outline-offset:3px;
+}
+
+/* Floating header: retains the FLIXTV wordmark and existing search/settings actions. */
+@media(max-width:760px){
+  .topbar{
+    position:fixed!important;
+    top:max(8px,env(safe-area-inset-top,0px))!important;
+    left:0!important;
+    right:0!important;
+    width:100%!important;
+    height:58px!important;
+    min-height:58px!important;
+    padding:0 18px!important;
+    z-index:18!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+    overflow:visible!important;
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+    pointer-events:none;
+  }
+  .topbar .brand,
+  .topbar .top-actions{
+    pointer-events:auto;
+  }
+  .topbar .brand-name{
+    font-size:27px!important;
+    font-weight:950!important;
+    letter-spacing:-1.55px!important;
+    line-height:.98!important;
+    text-shadow:0 2px 12px rgba(0,0,0,.42)!important;
+  }
+  .topbar .top-actions{
+    gap:9px!important;
+  }
+  .topbar .searchbox,
+  .topbar .header-glass-button{
+    box-sizing:border-box!important;
+    width:40px!important;
+    min-width:40px!important;
+    max-width:40px!important;
+    height:40px!important;
+    min-height:40px!important;
+    max-height:40px!important;
+    flex:0 0 40px!important;
+    display:grid!important;
+    place-items:center!important;
+    padding:0!important;
+    border:1px solid var(--flix-glass-border)!important;
+    border-radius:50%!important;
+    background:var(--flix-glass)!important;
+    color:#fff!important;
+    -webkit-backdrop-filter:blur(19px) saturate(155%)!important;
+    backdrop-filter:blur(19px) saturate(155%)!important;
+    box-shadow:
+      inset 0 1px 0 var(--flix-glass-highlight),
+      0 4px 16px rgba(0,0,0,.18)!important;
+    transform:none!important;
+  }
+  .topbar .searchbox .search-trigger{
+    width:100%!important;
+    height:100%!important;
+    display:grid!important;
+    place-items:center!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:50%!important;
+    background:transparent!important;
+    color:#fff!important;
+  }
+  .topbar .search-trigger svg{
+    width:21px!important;
+    height:21px!important;
+    fill:none!important;
+    stroke:#fff!important;
+    stroke-width:1.85!important;
+    stroke-linecap:round!important;
+    stroke-linejoin:round!important;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.24))!important;
+  }
+  .topbar .header-glass-button .bi{
+    font-family:"bootstrap-icons"!important;
+    font-size:21px!important;
+    font-weight:400!important;
+    line-height:1!important;
+    color:#fff!important;
+    -webkit-font-smoothing:antialiased;
+  }
+  .topbar .searchbox.expanded{
+    position:absolute!important;
+    left:14px!important;
+    right:54px!important;
+    width:auto!important;
+    max-width:none!important;
+    height:42px!important;
+    padding:0 12px!important;
+    display:flex!important;
+    justify-content:flex-start!important;
+    border-radius:24px!important;
+    background:rgba(19,22,14,.84)!important;
+    border-color:rgba(255,255,255,.25)!important;
+  }
+  .topbar .searchbox.expanded input{
+    display:block!important;
+    color:#fff!important;
+  }
+  .topbar .header-glass-button[aria-expanded="true"]{
+    background:rgba(255,255,255,.21)!important;
+    border-color:rgba(255,255,255,.48)!important;
+  }
+}
+
+/* Desktop keeps its full search field and receives the same calmer glass material. */
+@media(min-width:761px){
+  .topbar{
+    background:rgba(18,20,12,.28)!important;
+    -webkit-backdrop-filter:blur(20px) saturate(145%)!important;
+    backdrop-filter:blur(20px) saturate(145%)!important;
+    border-bottom:1px solid rgba(255,255,255,.09)!important;
+  }
+  .topbar .searchbox,
+  .topbar .header-glass-button{
+    border-color:var(--flix-glass-border);
+    background:var(--flix-glass);
+    -webkit-backdrop-filter:blur(16px) saturate(145%);
+    backdrop-filter:blur(16px) saturate(145%);
+  }
+}
+
+/* Floating four-item navigation with a white active capsule and iOS safe-area clearance. */
+@media(max-width:760px){
+  .mobile-nav{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    align-items:center!important;
+    gap:4px!important;
+    position:fixed!important;
+    left:12px!important;
+    right:12px!important;
+    bottom:calc(env(safe-area-inset-bottom,0px) + 9px)!important;
+    width:auto!important;
+    height:76px!important;
+    min-height:76px!important;
+    padding:6px!important;
+    border:1px solid rgba(255,255,255,.20)!important;
+    border-radius:999px!important;
+    background:
+      linear-gradient(115deg,rgba(167,111,66,.22),rgba(110,119,103,.18),rgba(69,101,111,.20)),
+      rgba(29,29,22,.38)!important;
+    -webkit-backdrop-filter:blur(30px) saturate(165%)!important;
+    backdrop-filter:blur(30px) saturate(165%)!important;
+    box-shadow:
+      0 12px 38px rgba(0,0,0,.30),
+      inset 0 1px 0 rgba(255,255,255,.20)!important;
+    justify-content:stretch!important;
+    z-index:22!important;
+  }
+  .mobile-nav:has(button:nth-child(1).active){grid-template-columns:1.35fr 1fr 1fr 1fr!important}
+  .mobile-nav:has(button:nth-child(2).active){grid-template-columns:1fr 1.35fr 1fr 1fr!important}
+  .mobile-nav:has(button:nth-child(3).active){grid-template-columns:1fr 1fr 1.35fr 1fr!important}
+  .mobile-nav:has(button:nth-child(4).active){grid-template-columns:1fr 1fr 1fr 1.35fr!important}
+  .mobile-nav button{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    width:100%!important;
+    min-width:0!important;
+    height:100%!important;
+    min-height:0!important;
+    padding:2px 3px!important;
+    border:1px solid transparent!important;
+    border-radius:999px!important;
+    background:transparent!important;
+    color:rgba(247,246,240,.76)!important;
+    box-shadow:none!important;
+  }
+  .mobile-nav button.active{
+    color:#10110d!important;
+    background:#fff!important;
+    border-color:rgba(255,255,255,.92)!important;
+    box-shadow:0 3px 14px rgba(0,0,0,.16)!important;
+  }
+  .mobile-nav button.active:before{display:none!important}
+  .mobile-nav .nav-icon{
+    display:grid!important;
+    place-items:center!important;
+    width:22px!important;
+    height:22px!important;
+    color:currentColor!important;
+    font-size:0!important;
+    transform:none!important;
+  }
+  .mobile-nav .nav-icon svg{
+    display:block!important;
+    width:21px!important;
+    height:21px!important;
+    fill:none!important;
+    stroke:currentColor!important;
+    stroke-width:1.8!important;
+    stroke-linecap:round!important;
+    stroke-linejoin:round!important;
+  }
+  .mobile-nav .nav-label{
+    color:currentColor!important;
+    font-size:11px!important;
+    line-height:1.1!important;
+    letter-spacing:0!important;
+    font-weight:650!important;
+    white-space:nowrap!important;
+  }
+  body{
+    padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))!important;
+  }
+  .content-section:last-child{padding-bottom:32px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #app-ambient .app-ambient-art{transition:none!important}
+}
