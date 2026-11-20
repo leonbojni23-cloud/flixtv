@@ -2729,7 +2729,8 @@ html.profile-ready #brand-intro{display:none!important;}
     right:12px!important;
     bottom:calc(4px + env(safe-area-inset-bottom))!important;
     width:auto!important;
-    min-height:68px!important;
+    height:50px!important;
+    min-height:50px!important;
     padding:7px!important;
     border:1px solid rgba(255,255,255,.17)!important;
     border-radius:999px!important;
@@ -2747,8 +2748,9 @@ html.profile-ready #brand-intro{display:none!important;}
     gap:5px!important;
     width:100%!important;
     min-width:0!important;
-    min-height:60px!important;
-    padding:5px 3px!important;
+    height:42px!important;
+    min-height:42px!important;
+    padding:2px 3px!important;
     border:1px solid transparent!important;
     border-radius:999px!important;
     background:transparent!important;
