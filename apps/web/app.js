@@ -94,7 +94,7 @@ function card(x){
  const warm=()=>prefetchTitle(x);
  b.addEventListener("pointerenter",warm,{once:true,passive:true});
  b.addEventListener("touchstart",warm,{once:true,passive:true});
- b.onclick=()=>openTitlePage(x,true,false);
+ b.onclick=()=>openTitlePage(x,true,false,b);
  return b
 }
 async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","sq-AL");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Kërkesa për katalogun dështoi ("+r.status+").");return r.json()}
@@ -850,8 +850,46 @@ function slugSimilarity(a,b){
  for(let i=1;i<=a.length;i++){let prev=rows[0];rows[0]=i;for(let j=1;j<=b.length;j++){const temp=rows[j];rows[j]=Math.min(rows[j]+1,rows[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=temp}}
  return 1-rows[b.length]/Math.max(a.length,b.length,1);
 }
-function openTitlePage(item,push=false,playMode=false){
+function animatePosterExpansion(sourceImage,targetCover){
+ if(!sourceImage||!targetCover||!sourceImage.getBoundingClientRect)return;
+ if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+ const from=sourceImage.getBoundingClientRect(),to=targetCover.getBoundingClientRect();
+ if(from.width<2||from.height<2||to.width<2||to.height<2)return;
+ const poster=targetCover.querySelector(".title-page-poster");
+ const clone=document.createElement("img");
+ clone.src=poster?.currentSrc||poster?.src||sourceImage.currentSrc||sourceImage.src;
+ if(!clone.src)return;
+ clone.alt="";
+ clone.setAttribute("aria-hidden","true");
+ clone.draggable=false;
+ Object.assign(clone.style,{
+  position:"fixed",left:from.left+"px",top:from.top+"px",
+  width:from.width+"px",height:from.height+"px",
+  objectFit:"contain",objectPosition:"center center",
+  background:"#05070b",borderRadius:getComputedStyle(sourceImage).borderRadius||"5px",
+  border:"0",boxShadow:"0 12px 34px rgba(0,0,0,.28)",
+  zIndex:"2147483647",pointerEvents:"none",margin:"0",
+  padding:"0",maxWidth:"none",maxHeight:"none",
+  transform:"translateZ(0)",willChange:"left,top,width,height,border-radius"
+ });
+ document.body.append(clone);
+ if(poster)poster.style.opacity="0";
+ const animation=clone.animate([
+  {left:from.left+"px",top:from.top+"px",width:from.width+"px",height:from.height+"px",borderRadius:getComputedStyle(sourceImage).borderRadius||"5px"},
+  {left:to.left+"px",top:to.top+"px",width:to.width+"px",height:to.height+"px",borderRadius:getComputedStyle(targetCover).borderRadius||"10px"}
+ ],{duration:560,easing:"cubic-bezier(.22,.78,.18,1)",fill:"forwards"});
+ animation.onfinish=()=>{
+  clone.remove();
+  if(poster&&poster.isConnected)poster.style.opacity="";
+ };
+ animation.oncancel=()=>{
+  clone.remove();
+  if(poster&&poster.isConnected)poster.style.opacity="";
+ };
+}
+function openTitlePage(item,push=false,playMode=false,originCard=null){
  if(!item||!item.id)return Promise.resolve();
+ const sourceImage=originCard?.querySelector("img")||null;
  const k=kind(item);
  titlePageItem={...item,media_type:k};
  if(push)history.pushState({titlePage:true,play:playMode},"",pageUrl(item,playMode));
@@ -859,6 +897,7 @@ function openTitlePage(item,push=false,playMode=false){
  $("title-page").innerHTML=titlePageMarkup(titlePageItem,titlePageItem,playMode);
  document.body.classList.remove("no-scroll");
  window.scrollTo(0,0);
+ if(sourceImage)animatePosterExpansion(sourceImage,$("title-page").querySelector(".title-page-cover"));
  return hydrateTitlePage(item,false,playMode);
 }
 async function resolveTitleRoute(){
