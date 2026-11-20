@@ -432,7 +432,7 @@ window.addEventListener("message",handleCineSrcMessage);
   watchProfiles.slice(0,3).forEach((p,index)=>{
    const card=document.createElement("div");card.className="profile-tile"+(profileManageMode?" managing":"");card.tabIndex=0;card.setAttribute("role","button");card.setAttribute("aria-label","Profili "+p.name);
    const wrap=document.createElement("div");wrap.className="profile-avatar-wrap";
-   const avatar=document.createElement("div");avatar.className="profile-avatar-art";avatar.style.background=p.color||["#1674b8","#e50914","#d6a52b"][index%3];avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase();wrap.append(avatar);
+   const avatar=document.createElement("div");avatar.className="profile-avatar-art";avatar.style.background=p.color||["#1674b8","#e50914","#d6a52b"][index%3];const portrait=document.createElement("img");portrait.src="https://raw.githubusercontent.com/HoneyTyagii/Netflix-Clone/master/public/profile-"+(index+1)+".png";portrait.alt=p.name;portrait.loading="eager";portrait.onerror=()=>{portrait.remove();avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase()};avatar.append(portrait);wrap.append(avatar);
    const name=document.createElement("span");name.className="profile-name";name.textContent=p.name;
    card.append(wrap,name);
    if(profileManageMode){const edit=document.createElement("span");edit.className="profile-edit-badge";edit.setAttribute("aria-hidden","true");edit.textContent="✎";wrap.append(edit)}
