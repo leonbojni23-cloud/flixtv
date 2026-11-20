@@ -2721,7 +2721,7 @@ html.profile-ready #brand-intro{display:none!important;}
 @media(max-width:760px){
   .mobile-nav{
     display:grid!important;
-    grid-template-columns:1.5fr 1fr 1fr 1fr!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
     align-items:center!important;
     gap:4px!important;
     position:fixed!important;
@@ -2740,6 +2740,10 @@ html.profile-ready #brand-intro{display:none!important;}
     box-shadow:0 12px 38px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.10)!important;
     justify-content:stretch!important;
   }
+  .mobile-nav:has(button:nth-child(1).active){grid-template-columns:1.5fr 1fr 1fr 1fr!important;}
+  .mobile-nav:has(button:nth-child(2).active){grid-template-columns:1fr 1.5fr 1fr 1fr!important;}
+  .mobile-nav:has(button:nth-child(3).active){grid-template-columns:1fr 1fr 1.5fr 1fr!important;}
+  .mobile-nav:has(button:nth-child(4).active){grid-template-columns:1fr 1fr 1fr 1.5fr!important;}
   .mobile-nav button{
     display:flex!important;
     flex-direction:column!important;
