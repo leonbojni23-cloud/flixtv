@@ -25,7 +25,7 @@
   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
   <script>if(location.pathname!=="/"&&location.pathname!=="/index.html")document.documentElement.classList.add("deep-route-loading");</script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="/style.css?v=20261120-step2-hero1">
+  <link rel="stylesheet" href="/style.css?v=20261120-step3-content1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.css">
   <script src="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.js" defer></script>
 </head>
@@ -75,9 +75,6 @@
         </div>
       </div>
     </section>
-      <div class="hero-backdrop hero-backdrop-a active" id="hero-bg-a"></div><div class="hero-backdrop hero-backdrop-b" id="hero-bg-b"></div>
-      <div class="hero-content" id="hero-content"><span class="eyebrow" id="hero-eyebrow">ZGJEDHJET E FLIXTV</span><h1 id="hero-title">Zbulo diçka të veçantë.</h1><p id="hero-overview">Filma dhe seriale, të gjitha në një vend.</p><div class="hero-actions"><button class="primary-btn" id="hero-action">Shiko detajet</button><div class="hero-controls"><button type="button" id="hero-prev" aria-label="Titulli i mëparshëm">‹</button><button type="button" id="hero-next" aria-label="Titulli i radhës">›</button></div></div></div>
-    </section>
     <section id="search-page" class="search-page" hidden>
       <div class="search-page-head"><span class="catalog-overline"><span class="catalog-live-dot"></span>ZBULO FLIXTV</span><h1>Gjej çfarë të shikosh më pas.</h1><p>Kërko një film ose serial televiziv.</p></div>
       <div class="search-main">
@@ -87,8 +84,51 @@
     </section>
     <div id="catalog">
       <div id="home-page">
-        <section class="content-section continue-watching-section" id="continue-watching-section" hidden><div class="section-heading"><h2>Vazhdo shikimin</h2><span class="section-kicker">VAZHDO KU E LE</span></div><div class="poster-row continue-watching-row" id="continue-watching"></div></section>
-        <section class="content-section"><div class="section-heading"><h2>Në trend këtë javë</h2><span class="section-kicker">MË TË PËLQYERIT</span></div><div class="poster-row" id="trending"></div></section>
+        <section class="content-section continue-watching-section" id="continue-watching-section" hidden>
+          <div class="section-heading continue-section-heading">
+            <button class="section-heading-link" id="continue-library-open" type="button" aria-label="Shfaq të gjithë historikun e shikimit">
+              <h2>Continue Watching</h2><i class="bi bi-chevron-right" aria-hidden="true"></i>
+            </button>
+            <button class="section-edit-button" id="continue-edit" type="button" aria-pressed="false">Edit</button>
+          </div>
+          <div class="poster-row continue-watching-row" id="continue-watching"></div>
+        </section>
+
+        <section class="content-section service-section" id="browse-services-section">
+          <div class="section-heading"><h2>Browse by Service</h2><span class="section-kicker">STREAMING PLATFORMS</span></div>
+          <div class="service-row" id="browse-services" aria-label="Shërbimet streaming">
+            <div class="service-loading">Po ngarkohen shërbimet…</div>
+          </div>
+          <p class="service-note" id="browse-services-note" hidden></p>
+        </section>
+
+        <section class="content-section top10-section" id="top10-section">
+          <div class="section-heading">
+            <div class="section-heading-copy"><h2>Top 10 Today</h2><span class="section-subtitle">Sipas trendit ditor të TMDB</span></div>
+            <span class="section-kicker">DAILY CHART</span>
+          </div>
+          <div class="top10-row" id="top10-today" aria-label="Dhjetë filmat më në trend sot">
+            <div class="service-loading">Po ngarkohet renditja ditore…</div>
+          </div>
+        </section>
+
+        <section class="content-section trending-movies-section" id="trending-movies-section">
+          <div class="section-heading">
+            <h2>Trending Movies</h2>
+            <button class="section-more-button" id="trending-movies-more" type="button" aria-label="Shfaq më shumë filma në trend"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+          </div>
+          <div class="poster-row home-poster-carousel" id="trending-movies"></div>
+        </section>
+
+        <section class="content-section service-results-section" id="service-results-section" hidden>
+          <div class="section-heading service-results-heading">
+            <div class="section-heading-copy"><span class="section-kicker">BROWSE BY SERVICE</span><h2 id="service-results-title">Katalogu</h2></div>
+            <button class="service-back-button" id="service-results-back" type="button"><i class="bi bi-arrow-left" aria-hidden="true"></i> Kthehu</button>
+          </div>
+          <p class="service-results-note" id="service-results-note"></p>
+          <div class="poster-row home-poster-carousel" id="service-results-row"></div>
+        </section>
+
         <section class="content-section"><div class="section-heading"><h2>Filma të njohur</h2><span class="section-kicker">ZGJEDHJE FILMASH</span></div><div class="poster-row" id="movies"></div></section>
         <section class="content-section"><div class="section-heading"><h2>Seriale të njohura</h2><span class="section-kicker">ZGJEDHJE SERIALESH</span></div><div class="poster-row" id="shows"></div></section>
         <section class="content-section"><div class="section-heading"><h2>Filmat më të vlerësuar</h2><span class="section-kicker">MË TË VLERËSUARIT</span></div><div class="poster-row" id="home-top-movies"></div></section>
@@ -147,6 +187,21 @@
     </button>
   </nav>
 
+  <section class="modal continue-library-modal" id="continue-library-modal" aria-hidden="true">
+    <div class="modal-backdrop" id="continue-library-backdrop"></div>
+    <article class="continue-library-sheet" role="dialog" aria-modal="true" aria-labelledby="continue-library-title">
+      <header class="continue-library-header">
+        <div><span class="section-kicker">FLIXTV · WATCH HISTORY</span><h2 id="continue-library-title">Continue Watching</h2></div>
+        <div class="continue-library-actions">
+          <button class="section-edit-button" id="continue-library-edit" type="button" aria-pressed="false">Edit</button>
+          <button class="continue-library-close" id="continue-library-close" type="button" aria-label="Mbyll"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+      </header>
+      <div class="continue-library-grid" id="continue-library-grid"></div>
+      <p class="continue-library-empty" id="continue-library-empty" hidden>Nuk ka përmbajtje të ruajtur për vazhdim.</p>
+    </article>
+  </section>
+
   <section class="modal" id="sports-settings-modal" aria-hidden="true"><div class="modal-backdrop"></div><article class="settings-card"></article></section>
 
   <section class="modal" id="details-modal" aria-hidden="true">
@@ -182,6 +237,6 @@
     <video id="resolved-video" controls playsinline webkit-playsinline preload="none" hidden></video>
   </section>
 
-  <script src="/app.js?v=20261120-step2-hero1"></script>
+  <script src="/app.js?v=20261120-step3-content1"></script>
 </body>
 </html>
