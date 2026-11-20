@@ -1,4 +1,4 @@
-const ALLOWED_PREFIXES = ["/trending/", "/movie/", "/tv/", "/search/", "/discover/"];
+const ALLOWED_PREFIXES = ["/trending/", "/movie/", "/tv/", "/search/", "/discover/", "/watch/providers/"];
 
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
