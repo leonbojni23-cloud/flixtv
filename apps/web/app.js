@@ -893,32 +893,20 @@ function openTitlePage(item,push=false,playMode=false,originCard=null){
  titlePageItem={...item,media_type:k};
  if(push)history.pushState({titlePage:true,play:playMode},"",pageUrl(item,playMode));
  const update=()=>{
-  $("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;$("search-page").hidden=true;
+  $("title-page").hidden=false;
+  $("catalog").hidden=true;
+  $("hero").hidden=true;
+  $("search-page").hidden=true;
   $("title-page").innerHTML=titlePageMarkup(titlePageItem,titlePageItem,playMode);
   document.body.classList.remove("no-scroll");
   window.scrollTo(0,0);
  };
- const reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
- const supportsShared=!!(sourceImage&&sourceRect&&document.startViewTransition&&!reduced&&
-  CSS.supports&&CSS.supports("view-transition-name","flxtv-poster"));
- if(supportsShared){
-  const transitionName="flxtv-poster";
-  sourceImage.style.viewTransitionName=transitionName;
-  const transition=document.startViewTransition(()=>{
-   sourceImage.style.viewTransitionName="none";
-   update();
-   const destination=$("title-page").querySelector(".title-page-poster");
-   if(destination)destination.style.viewTransitionName=transitionName;
-  });
-  transition.finished.finally(()=>{
-   sourceImage.style.viewTransitionName="";
-   const destination=$("title-page")?.querySelector(".title-page-poster");
-   if(destination)destination.style.viewTransitionName="";
-  });
- }else{
-  update();
-  const destination=$("title-page").querySelector(".title-page-poster");
-  if(sourceImage&&destination)animatePosterFallback(sourceImage,destination,sourceRect,sourceRadius);
+ update();
+ // The transition source is strictly the poster IMG, never the surrounding
+ // card, its rating badge, or its title labels.
+ const destination=$("title-page").querySelector(".title-page-cover>.title-page-poster");
+ if(sourceImage&&destination&&sourceRect&&sourceRect.width>1&&sourceRect.height>1){
+  animatePosterFallback(sourceImage,destination,sourceRect,sourceRadius);
  }
  return hydrateTitlePage(item,false,playMode);
 }
