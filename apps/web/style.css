@@ -3055,3 +3055,38 @@ html.profile-ready #brand-intro{display:none!important;}
   .topbar .brand-name{font-size:26px!important;letter-spacing:-1.4px!important}
   .topbar .brand-name span{letter-spacing:-1.2px!important}
 }
+
+/* FLIXTV wordmark: heavier premium glass finish with a deeper red accent */
+.topbar .brand-name{
+  font-size:29px!important;
+  font-weight:1000!important;
+  letter-spacing:-1.65px!important;
+  line-height:.96!important;
+  color:#fff!important;
+  -webkit-text-stroke:.9px currentColor!important;
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.24),
+    0 2px 0 rgba(0,0,0,.28),
+    0 4px 13px rgba(0,0,0,.42)!important;
+}
+.topbar .brand-name span{
+  display:inline-block!important;
+  font-weight:1000!important;
+  letter-spacing:-1.45px!important;
+  background:linear-gradient(180deg,
+    rgba(255,126,145,.96) 0%,
+    rgba(195,31,62,.94) 42%,
+    rgba(111,8,31,.98) 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+  -webkit-text-stroke:.8px rgba(157,24,51,.96)!important;
+  text-shadow:
+    0 1px 0 rgba(255,210,218,.28),
+    0 2px 5px rgba(75,0,18,.38),
+    0 0 13px rgba(155,13,46,.22)!important;
+}
+@media(max-width:760px){
+  .topbar .brand-name{font-size:27px!important;letter-spacing:-1.5px!important}
+  .topbar .brand-name span{letter-spacing:-1.3px!important}
+}
