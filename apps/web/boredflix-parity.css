@@ -506,6 +506,7 @@ html.bf-inner-route #hero{display:none!important}
 /* Top 10: stronger outlined ranks, with posters sitting further inside the numerals. */
 #home-page .top10-media{
   gap:0!important;
+  height:260px!important;
 }
 #home-page .top10-rank{
   position:relative!important;
@@ -527,11 +528,12 @@ html.bf-inner-route #hero{display:none!important}
 }
 #home-page .top10-art{
   position:relative!important;
+  align-self:flex-start!important;
   z-index:2!important;
   margin-left:-15px!important;
 }
 @media(max-width:767px){
-  #home-page .top10-media{gap:0!important}
+  #home-page .top10-media{gap:0!important;height:210px!important}
   #home-page .top10-rank{
     flex-basis:70px!important;
     width:70px!important;
