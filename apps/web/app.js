@@ -443,8 +443,8 @@ function ambientHslToRgb(h,s,l){
 function ambientPaletteColor(hsl,lightnessOffset=0,hueOffset=0){
  return ambientHslToRgb(
   hsl.h+hueOffset,
-  ambientClamp(hsl.s+9,43,82),
-  ambientClamp(hsl.l+lightnessOffset,37,61)
+  ambientClamp(hsl.s+24,68,98),
+  ambientClamp(hsl.l+lightnessOffset+5,44,69)
  ).join(",");
 }
 function ambientFallbackPalette(){
@@ -474,9 +474,9 @@ function ensureHeroSmokeStage(){
     const sx=(nx+wx)*3.15+t*.13,sy=(ny+wy)*2.25-t*.085;
     const broad=fbm(sx*5.2,sy*3.7),detail=fbm(sx*13+43,sy*11-19),filaments=1-Math.abs(2*detail-1);
     const density=smooth(.43,.66,broad+(filaments-.5)*.18),rising=smooth(.04,.30,ny)*(1-smooth(.86,1.08,ny)),plume=smooth(.04,.95,1-Math.abs(nx-.5)*1.78);
-    const alpha=Math.min(158,Math.max(0,(density-.08)*238*(.52+detail*.62)*rising*plume));if(alpha<1)continue;
+    const alpha=Math.min(196,Math.max(0,(density-.055)*286*(.58+detail*.68)*rising*plume));if(alpha<1)continue;
     const mix=Math.max(0,Math.min(1,detail*.85+ny*.12)),a=p[0],b=p[1],c=p[2],i=(y*w+x)*4;
-    data[i]=Math.min(255,a[0]*(1-mix)*.52+b[0]*mix*.42+c[0]*.16+18);data[i+1]=Math.min(255,a[1]*(1-mix)*.52+b[1]*mix*.42+c[1]*.16+18);data[i+2]=Math.min(255,a[2]*(1-mix)*.52+b[2]*mix*.42+c[2]*.16+22);data[i+3]=alpha;
+    data[i]=Math.min(255,a[0]*(1-mix)*.48+b[0]*mix*.34+c[0]*.18+22);data[i+1]=Math.min(255,a[1]*(1-mix)*.48+b[1]*mix*.34+c[1]*.18+22);data[i+2]=Math.min(255,a[2]*(1-mix)*.48+b[2]*mix*.34+c[2]*.18+24);data[i+3]=alpha;
    }}
    context.putImageData(frame,0,0);st.raf=requestAnimationFrame(render);
   };
@@ -516,7 +516,7 @@ function ensurePageSmokeCanvas(){
     const ribbons=smooth(.49,.69,body+(filaments-.5)*.17);
     const vertical=smooth(.015,.20,ny)*(1-smooth(.94,1.08,ny));
     const side=smooth(-.04,.24,nx)*(1-smooth(.76,1.04,nx));
-    const alpha=Math.min(142,Math.max(0,(ribbons-.20)*190*vertical*side*(.72+detail*.42)));
+    const alpha=Math.min(208,Math.max(0,(ribbons-.17)*268*vertical*side*(.78+detail*.48)));
     if(alpha<1)continue;
     const mix=Math.max(0,Math.min(1,detail*.78+ny*.12)),i=(y*w+x)*4;
     data[i]=p[0][0]*(1-mix)*.62+p[1][0]*mix*.27+p[2][0]*.11;
