@@ -59,25 +59,34 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
     void main(){
       vec2 p=vUv*vec2(uResolution.x/max(uResolution.y,1.0),1.0);
-      float t=uTime*0.105;
+      float t=uTime*0.055;
+
+      // Broad, slowly drifting noise fields create soft volumetric clouds.
       vec2 warp=vec2(
-        fbm(p*1.65+vec2(2.7,-t)),
-        fbm(p*1.65+vec2(8.2,3.1)-t*0.72)
+        fbm(p*0.92+vec2(1.7,-t)),
+        fbm(p*0.92+vec2(5.3,2.1)-t*0.72)
       );
-      float broad=fbm(p*2.45+warp*1.65+vec2(0.0,-t*0.48));
-      float detail=fbm(p*5.2+warp*2.2+vec2(4.4,t*0.28));
-      float filaments=1.0-abs(detail);
-      float plume=smoothstep(-0.95,0.05,p.y)* (1.0-smoothstep(0.95,1.65,p.y));
-      float sideFade=smoothstep(-1.0,-0.25,p.x)*(1.0-smoothstep(1.15,1.9,p.x));
-      float density=smoothstep(-0.38,0.18,broad+filaments*0.20)*plume*sideFade;
-      float wisps=smoothstep(0.10,0.72,filaments)*density;
-      float glow=exp(-length((vUv-vec2(0.52,0.48))*vec2(0.82,0.62))*1.75);
-      vec3 palette=mix(uColorA,uColorB,smoothstep(-0.52,0.30,broad));
-      palette=mix(palette,uColorC,smoothstep(0.02,0.72,detail)*0.42);
-      vec3 lifted=mix(palette,vec3(0.22,0.25,0.42),0.18);
-      vec3 smoke=lifted*(0.72+density*1.25)+uColorB*wisps*0.34;
-      smoke+=mix(uColorC,uColorB,0.35)*glow*density*0.20;
-      float alpha=clamp(density*0.58+wisps*0.20+glow*density*0.05,0.0,0.62)*uOpacity;
+      float cloudA=fbm(p*1.18+warp*0.78+vec2(0.0,-t*0.42));
+      float cloudB=fbm(p*1.82+warp*0.58+vec2(3.4,t*0.24));
+      float cloud=cloudA*0.76+cloudB*0.24;
+
+      // Wide feathered envelope. Avoid sharp cellular edges and dark outlines.
+      float envelope=smoothstep(-0.88,-0.08,p.y)*(1.0-smoothstep(0.88,1.48,p.y));
+      float density=smoothstep(-0.48,0.38,cloud)*envelope;
+      density=clamp(density,0.0,1.0);
+
+      float colorMix=smoothstep(-0.42,0.42,cloudA);
+      vec3 palette=mix(uColorA,uColorB,colorMix);
+      palette=mix(palette,uColorC,smoothstep(-0.12,0.52,cloudB)*0.28);
+
+      // Lift the palette toward a luminous blue-violet haze, never black.
+      vec3 haze=mix(palette,vec3(0.34,0.38,0.58),0.24);
+      haze*=1.08;
+      float softGlow=exp(-length((vUv-vec2(0.52,0.46))*vec2(0.72,0.62))*1.25);
+      vec3 smoke=haze+vec3(0.045,0.055,0.105)*softGlow*density;
+
+      // Low opacity lets the app's dark base show through like the reference.
+      float alpha=density*(0.20+softGlow*0.035)*uOpacity;
       gl_FragColor=vec4(smoke,alpha);
     }
   `;
