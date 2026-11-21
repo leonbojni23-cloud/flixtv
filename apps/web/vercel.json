@@ -53,9 +53,21 @@
     {
       "src": "api/subtitles.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "boredflix-parity.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "boredflix-parity.css",
+      "use": "@vercel/static"
     }
   ],
   "rewrites": [
+    {
+      "source": "/browse/:path*",
+      "destination": "/index.html"
+    },
     {
       "source": "/flixtv-home-icon-v4.png",
       "destination": "/api/pwa-icon"
