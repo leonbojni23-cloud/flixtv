@@ -541,13 +541,14 @@ html.bf-inner-route #hero{display:none!important}
   display: flex !important;
   align-items: flex-end !important;
   justify-content: center !important;
-  flex: 0 0 92px !important;
-  width: 92px !important;
-  min-width: 92px !important;
-  max-width: 92px !important;
+  flex: 0 0 104px !important;
+  width: 104px !important;
+  min-width: 104px !important;
+  max-width: 104px !important;
   margin: 0 !important;
   padding: 0 !important;
-  font-size: clamp(150px, 11vw, 168px) !important;
+  font-size: clamp(172px, 12vw, 184px) !important;
+  transform: translateY(-20px) !important;
   line-height: 0.72 !important;
   letter-spacing: -0.11em !important;
   font-weight: 850 !important;
@@ -559,8 +560,8 @@ html.bf-inner-route #hero{display:none!important}
 
 /* Double-digit rank */
 #home-page .top10-rank.is-double-digit {
-  font-size: clamp(88px, 7vw, 96px) !important;
-  letter-spacing: -0.13em !important;
+  font-size: clamp(96px, 7.6vw, 106px) !important;
+  letter-spacing: -0.14em !important;
   -webkit-text-stroke: 3px rgba(255, 255, 255, 0.48) !important;
 }
 
@@ -573,7 +574,7 @@ html.bf-inner-route #hero{display:none!important}
   width: 168px !important;
   height: 252px !important;
   min-width: 168px !important;
-  margin-left: -28px !important;
+  margin-left: -34px !important;
   border-radius: 11px !important;
   overflow: hidden !important;
   background: #191b21 !important;
@@ -612,17 +613,18 @@ html.bf-inner-route #hero{display:none!important}
   }
 
   #home-page .top10-rank {
-    flex-basis: 74px !important;
-    width: 74px !important;
-    min-width: 74px !important;
-    max-width: 74px !important;
-    font-size: 126px !important;
+    flex-basis: 82px !important;
+    width: 82px !important;
+    min-width: 82px !important;
+    max-width: 82px !important;
+    font-size: 140px !important;
+    transform: translateY(-15px) !important;
     line-height: 0.70 !important;
     -webkit-text-stroke: 2.8px rgba(255, 255, 255, 0.45) !important;
   }
 
   #home-page .top10-rank.is-double-digit {
-    font-size: 72px !important;
+    font-size: 80px !important;
     -webkit-text-stroke: 2.7px rgba(255, 255, 255, 0.45) !important;
   }
 
@@ -631,6 +633,6 @@ html.bf-inner-route #hero{display:none!important}
     width: 136px !important;
     height: 204px !important;
     min-width: 136px !important;
-    margin-left: -22px !important;
+    margin-left: -28px !important;
   }
 }
