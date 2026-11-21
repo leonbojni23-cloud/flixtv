@@ -1863,3 +1863,49 @@ body.bf-reference-mode #hero .hero-content {
     height: 46% !important;
   }
 }
+
+
+/* Full-page cinematic smoke: fixed behind every catalogue row, tinted by the
+   currently selected Hero artwork and animated continuously while scrolling. */
+body.bf-reference-mode #app-ambient {
+  display:block !important;
+  position:fixed !important;
+  inset:0 !important;
+  z-index:0 !important;
+  overflow:hidden !important;
+  pointer-events:none !important;
+  background:
+    radial-gradient(ellipse at 18% 8%,rgb(var(--hero-smoke-one,80,92,110) / .13),transparent 54%),
+    radial-gradient(ellipse at 82% 42%,rgb(var(--hero-smoke-two,74,82,105) / .11),transparent 58%),
+    radial-gradient(ellipse at 48% 96%,rgb(var(--hero-smoke-three,95,82,111) / .09),transparent 60%),
+    #08090d !important;
+}
+body.bf-reference-mode #app-ambient .page-smoke-canvas {
+  position:absolute !important;
+  inset:-8% -4% !important;
+  display:block !important;
+  width:108% !important;
+  height:116% !important;
+  opacity:.82 !important;
+  pointer-events:none !important;
+  mix-blend-mode:screen !important;
+  filter:blur(1px) saturate(1.45) !important;
+}
+body.bf-reference-mode #app,
+body.bf-reference-mode #catalog,
+body.bf-reference-mode #home-page,
+body.bf-reference-mode #movies-page,
+body.bf-reference-mode #shows-page,
+body.bf-reference-mode #sports-page,
+body.bf-reference-mode #title-page {
+  background:transparent !important;
+}
+@media(max-width:767px) {
+  body.bf-reference-mode #app-ambient .page-smoke-canvas {
+    opacity:.76 !important;
+    filter:blur(1.5px) saturate(1.35) !important;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  body.bf-reference-mode #app-ambient .page-smoke-canvas { opacity:.42 !important; }
+}
