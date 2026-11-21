@@ -105,7 +105,7 @@ async function renderProvider(s){
  if(!p){setPanel('<div class="bf-page-inner"><div class="bf-empty">This streaming service is not available for Albania in the current TMDB catalogue.</div></div>');return}
  current.provider=p;current.media="movie";current.pageNo=0;resetFilters();setPanel(providerMarkup(p,providers));
  doc.querySelectorAll(".bf-service-chip").forEach(function(b){b.onclick=function(){navigate("provider",b.getAttribute("data-provider"))}});
- doc.querySelectorAll(".bf-provider-tab").forEach(function(b){b.onclick=function(){current.media=b.getAttribute("data-media");doc.querySelectorAll(".bf-provider-tab").forEach(function(t){t.classList.toggle("active",t===b)});current.pageNo=0;resetFilters();connectFilters(true);loadProviderResults(true)}});
+ doc.querySelectorAll(".bf-provider-tab").forEach(function(b){b.onclick=function(){current.media=b.getAttribute("data-media");doc.querySelectorAll(".bf-provider-tab").forEach(function(t){t.classList.toggle("active",t===b)});current.pageNo=0;resetFilters();["genre","year","sort","rating","votes"].forEach(function(k){var el=$("bf-"+k);if(el)el.value=current.filters[k]||""});loadProviderResults(true)}});
  connectFilters(true);loadProviderResults(true);
 }
 function readLibrary(){var b=bridge();return b&&b.library?b.library():{profileId:"main",saved:[],progress:{}}}
@@ -213,7 +213,7 @@ function install(){
  else if(location.pathname==="/library")render("library");
  else if(location.pathname==="/search")render("search",null,params.get("q")||"");
  else render("home");
- if(location.pathname==="/")loadHomeExtras();
+ if(!intent&&location.pathname==="/")loadHomeExtras();
  window.addEventListener("popstate",function(){
   var p=location.pathname,qs=new URLSearchParams(location.search);
   if(p==="/browse/movies")render("movies");
