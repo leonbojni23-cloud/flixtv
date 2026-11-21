@@ -20,6 +20,8 @@ function ensurePanel(){var p=$("bf-route-page");if(p)return p;p=doc.createElemen
 function setPanel(html){var p=ensurePanel();p.className="bf-page";p.innerHTML=html;p.hidden=false;return p}
 function navActive(page){doc.querySelectorAll(".desktop-nav [data-bf-page],.mobile-nav [data-bf-page]").forEach(function(el){el.classList.toggle("active",el.getAttribute("data-bf-page")===page)})}
 function showOnly(page){
+ var innerRoute=page==="movies"||page==="shows"||page==="library"||page==="provider";
+ doc.documentElement.classList.toggle("bf-inner-route",innerRoute);
  if($("hero"))$("hero").hidden=page!=="home";
  if($("catalog"))$("catalog").hidden=page!=="home";
  if($("search-page"))$("search-page").hidden=true;
@@ -55,10 +57,13 @@ function createPoster(item,onOpen){
  var img=doc.createElement("img");img.loading="lazy";img.decoding="async";img.alt="";img.src=posterUrl(item);
  img.onerror=function(){img.style.display="none"};
  media.appendChild(img);
- if(Number(item.vote_average)>0){var rate=doc.createElement("span");rate.className="bf-grid-rating";rate.textContent="★ "+Number(item.vote_average).toFixed(1);media.appendChild(rate)}
  var hover=doc.createElement("span");hover.className="bf-grid-hover";var play=doc.createElement("span");play.className="bf-grid-play";play.textContent="▶";hover.appendChild(play);media.appendChild(hover);
  var title=doc.createElement("strong");title.className="bf-grid-title";title.textContent=name(item);
- var meta=doc.createElement("span");meta.className="bf-grid-meta";meta.innerHTML="<span>"+(kind(item)==="tv"?"TV Series":"Movie")+"</span><span>"+safe(yr(item))+"</span>";
+ var meta=doc.createElement("span");meta.className="bf-grid-meta";
+ var identity=doc.createElement("span");identity.className="bf-grid-identity";identity.textContent=(kind(item)==="tv"?"TV Series":"Movie")+(yr(item)?" · "+yr(item):"");
+ meta.appendChild(identity);
+ var rating=Number(item.vote_average);
+ if(Number.isFinite(rating)&&rating>0){var score=doc.createElement("span");score.className="bf-grid-rating-inline";score.textContent="★ "+rating.toFixed(1);score.setAttribute("aria-label","Rating "+rating.toFixed(1));meta.appendChild(score)}
  b.append(media,title,meta);b.addEventListener("click",function(e){if(onOpen)onOpen(item);else if(e.target.closest(".bf-grid-play"))playTitle(item);else openTitle(item)});return b;
 }
 function createWide(item){
@@ -68,12 +73,64 @@ function createWide(item){
  var small=doc.createElement("small"),date=item.release_date||item.first_air_date;small.textContent=date?new Date(date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"";
  copy.append(strong,small);b.append(img,copy);b.onclick=function(){openTitle(item)};return b;
 }
-function filterMarkup(){var gs=GENRES[current.media]||GENRES.movie;return '<div class="bf-filterbar"><button type="button" class="bf-filter-action" id="bf-surprise">✦ Surprise me</button><select class="bf-filter-select" id="bf-genre"><option value="">Genre</option>'+gs.map(function(g){return'<option value="'+g[0]+'">'+safe(g[1])+'</option>'}).join("")+'</select><select class="bf-filter-select" id="bf-year"><option value="">Year</option>'+Array.from({length:47},function(_,i){return 2026-i}).map(function(y){return'<option value="'+y+'">'+y+'</option>'}).join("")+'</select><select class="bf-filter-select" id="bf-sort"><option value="popularity.desc">Popular</option><option value="vote_average.desc">Rating</option><option value="vote_count.desc">Votes</option><option value="primary_release_date.desc">Newest</option></select><select class="bf-filter-select" id="bf-rating"><option value="">Min rating</option><option value="6">6.0+</option><option value="7">7.0+</option><option value="8">8.0+</option><option value="9">9.0+</option></select><select class="bf-filter-select" id="bf-votes"><option value="">Votes</option><option value="100">100+</option><option value="500">500+</option><option value="1000">1,000+</option><option value="5000">5,000+</option></select><span class="bf-result-count" id="bf-result-count"></span></div>'}
-function browseMarkup(page){var tv=page==="shows";return '<div class="bf-page-inner"><div class="bf-page-kicker">'+(tv?"TV SERIES":"MOVIE COLLECTION")+'</div><h1 class="bf-page-title">'+(tv?'TV <span class="bf-accent">Shows</span>':'Movies')+'</h1>'+filterMarkup()+'<div class="bf-grid" id="bf-grid"><div class="bf-loading">Loading titles…</div></div><button class="bf-load-more" id="bf-load-more" type="button">Load more</button></div>'}
+function filterMarkup(){var gs=GENRES[current.media]||GENRES.movie;return '<div class="bf-filterbar"><button type="button" class="bf-filter-action" id="bf-surprise"><span class="bf-surprise-icon" aria-hidden="true">✦</span><span class="bf-surprise-label">Surprise me</span></button><select class="bf-filter-select" id="bf-genre" aria-label="Genre"><option value="">Genre</option>'+gs.map(function(g){return'<option value="'+g[0]+'">'+safe(g[1])+'</option>'}).join("")+'</select><select class="bf-filter-select" id="bf-year" aria-label="Year"><option value="">Year</option>'+Array.from({length:47},function(_,i){return 2026-i}).map(function(y){return'<option value="'+y+'">'+y+'</option>'}).join("")+'</select><select class="bf-filter-select" id="bf-sort" aria-label="Sort by"><option value="popularity.desc">Popular</option><option value="vote_average.desc">Rating</option><option value="vote_count.desc">Votes</option><option value="primary_release_date.desc">Newest</option></select><select class="bf-filter-select" id="bf-rating" aria-label="Minimum rating"><option value="">Min rating</option><option value="6">6.0+</option><option value="7">7.0+</option><option value="8">8.0+</option><option value="9">9.0+</option></select><select class="bf-filter-select" id="bf-votes" aria-label="Minimum votes"><option value="">Votes</option><option value="100">100+</option><option value="500">500+</option><option value="1000">1,000+</option><option value="5000">5,000+</option></select><span class="bf-result-count" id="bf-result-count"></span></div>'}
+function browseMarkup(page){var tv=page==="shows";return '<div class="bf-page-inner"><div class="bf-page-kicker">'+(tv?"TV SERIES":"MOVIE COLLECTION")+'</div><h1 class="bf-page-title">'+(tv?'TV <span class="bf-accent">Shows</span>':'Movies')+'</h1>'+filterMarkup()+'<div class="bf-surprise-result" id="bf-surprise-result" hidden aria-live="polite"></div><div class="bf-grid" id="bf-grid"><div class="bf-loading">Loading titles…</div></div><button class="bf-load-more" id="bf-load-more" type="button">Load more</button></div>'}
 function filterPath(page){var q=new URLSearchParams();q.set("include_adult","false");q.set("sort_by",current.filters.sort==="primary_release_date.desc"&&current.media==="tv"?"first_air_date.desc":current.filters.sort||"popularity.desc");q.set("page",String(page));if(current.filters.genre)q.set("with_genres",current.filters.genre);if(current.filters.year)q.set(current.media==="movie"?"primary_release_year":"first_air_date_year",current.filters.year);if(current.filters.rating)q.set("vote_average.gte",current.filters.rating);if(current.filters.votes)q.set("vote_count.gte",current.filters.votes);return"/discover/"+current.media+"?"+q.toString()}
+function clearSurprisePick(){var zone=$("bf-surprise-result");if(zone){zone.hidden=true;zone.classList.remove("is-visible");zone.replaceChildren()}}
+function surpriseQuery(page,providerMode,relaxed){
+ var old=current.filters;current.filters=Object.assign({},old,{sort:"vote_average.desc",rating:String(Math.max(Number(old.rating)||0,relaxed?6.4:7)),votes:String(Math.max(Number(old.votes)||0,relaxed?75:250))});
+ var path=providerMode?providerPath(page):filterPath(page);current.filters=old;return path;
+}
+function showSurprisePick(item){
+ var zone=$("bf-surprise-result");if(!zone)return;
+ zone.replaceChildren();
+ var card=doc.createElement("article");card.className="bf-surprise-pick";
+ var img=doc.createElement("img");img.loading="eager";img.alt="";img.src=posterUrl(item);
+ var copy=doc.createElement("div");copy.className="bf-surprise-pick-copy";
+ var kicker=doc.createElement("span");kicker.className="bf-surprise-pick-kicker";kicker.textContent="ZGJEDHJA JOTE";
+ var heading=doc.createElement("strong");heading.className="bf-surprise-pick-title";heading.textContent=name(item);
+ var meta=doc.createElement("span");meta.className="bf-surprise-pick-meta";
+ var rating=Number(item.vote_average);meta.textContent=[kind(item)==="tv"?"Serial":"Film",yr(item),rating>0?"★ "+rating.toFixed(1):""].filter(Boolean).join(" · ");
+ var action=doc.createElement("button");action.type="button";action.className="bf-surprise-pick-open";action.textContent="Hap titullin";action.onclick=function(){openTitle(item)};
+ copy.append(kicker,heading,meta);
+ if(item.overview){var summary=doc.createElement("p");summary.textContent=item.overview;copy.appendChild(summary)}
+ copy.appendChild(action);card.append(img,copy);zone.appendChild(card);zone.hidden=false;
+ zone.classList.remove("is-visible");void zone.offsetWidth;zone.classList.add("is-visible");
+ if(zone.scrollIntoView)zone.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+async function runSurprise(providerMode){
+ var button=$("bf-surprise");if(!button||button.disabled)return;
+ var label=button.querySelector(".bf-surprise-label"),original=label?label.textContent:button.textContent;
+ button.disabled=true;button.classList.add("is-spinning");button.setAttribute("aria-busy","true");
+ if(label)label.textContent="Po zgjedh…";
+ clearSurprisePick();
+ try{
+  var pages=[1,2,3],responses=await Promise.all(pages.map(function(page){return tmdb(surpriseQuery(page,providerMode,false))}));
+  var pool=[];responses.forEach(function(data){(data.results||[]).forEach(function(item){if(item&&item.poster_path)pool.push(Object.assign({},item,{media_type:current.media}))})});
+  var strong=pool.filter(function(item){return Number(item.vote_average)>=7&&Number(item.vote_count)>=250});
+  if(!strong.length){
+   var fallback=await Promise.all([1,2].map(function(page){return tmdb(surpriseQuery(page,providerMode,true))}));
+   fallback.forEach(function(data){(data.results||[]).forEach(function(item){if(item&&item.poster_path)pool.push(Object.assign({},item,{media_type:current.media}))})});
+   strong=pool.filter(function(item){return Number(item.vote_average)>=6.4&&Number(item.vote_count)>=75});
+  }
+  var unique=strong.filter(function(item,index,array){return array.findIndex(function(other){return String(other.id)===String(item.id)})===index});
+  if(!unique.length)throw new Error("Nuk u gjet një titull i përshtatshëm me këto filtra. Provo të heqësh një filtër.");
+  unique.sort(function(a,b){return (Number(b.vote_average)-Number(a.vote_average))*2+Math.log1p(Number(b.vote_count)||0)-Math.log1p(Number(a.vote_count)||0)});
+  var shortlist=unique.slice(0,Math.min(24,unique.length)),choice=shortlist[Math.floor(Math.random()*shortlist.length)];
+  showSurprisePick(choice);
+  if(label)label.textContent="U zgjodh!";
+  button.classList.add("has-pick");
+  window.setTimeout(function(){if(label&&label.isConnected)label.textContent=original;if(button.isConnected)button.classList.remove("has-pick")},2600);
+ }catch(error){
+  if(label)label.textContent=original;
+  var zone=$("bf-surprise-result");if(zone){var message=doc.createElement("div");message.className="bf-surprise-error";message.textContent=error&&error.message?error.message:"Surprise Me nuk arriti të zgjedhë një titull.";zone.appendChild(message);zone.hidden=false}
+ }finally{
+  button.disabled=false;button.classList.remove("is-spinning");button.removeAttribute("aria-busy");
+ }
+}
 function connectFilters(providerMode){
- ["genre","year","sort","rating","votes"].forEach(function(key){var el=$("bf-"+key);if(!el)return;el.value=current.filters[key]||"";el.addEventListener("change",function(){current.filters[key]=el.value;if(providerMode)loadProviderResults(true);else loadDiscover(true)})});
- var surprise=$("bf-surprise");if(surprise)surprise.onclick=function(){var n=Math.max(1,Math.min(current.totalPages||8,8)),p=1+Math.floor(Math.random()*n);if(providerMode)loadProviderResults(true,p);else loadDiscover(true,p)};
+ ["genre","year","sort","rating","votes"].forEach(function(key){var el=$("bf-"+key);if(!el)return;el.value=current.filters[key]||"";el.addEventListener("change",function(){current.filters[key]=el.value;clearSurprisePick();if(providerMode)loadProviderResults(true);else loadDiscover(true)})});
+ var surprise=$("bf-surprise");if(surprise)surprise.onclick=function(){runSurprise(providerMode)};
  var more=$("bf-load-more");if(more)more.onclick=function(){if(providerMode)loadProviderResults(false);else loadDiscover(false)};
 }
 function setCount(n){var c=$("bf-result-count");if(c)c.textContent=Number(n||0).toLocaleString("en-US")+" titles"}
@@ -92,7 +149,7 @@ function slug(p){var s=String(p.provider_name||"").toLowerCase().replace(/\+/g,"
 async function loadProviders(){var lists=await Promise.all([tmdb("/watch/providers/movie?watch_region=AL&language=sq-AL"),tmdb("/watch/providers/tv?watch_region=AL&language=sq-AL")]),map=new Map();[["movie",lists[0]],["tv",lists[1]]].forEach(function(pair){(pair[1].results||[]).forEach(function(p){if(!p.provider_id||!p.provider_name)return;var x=map.get(String(p.provider_id))||Object.assign({},p,{mediaTypes:[]});x.mediaTypes.push(pair[0]);map.set(String(p.provider_id),x)})});var order=["netflix","max","disney-plus","prime-video","hulu","apple-tv","paramount-plus","peacock","crunchyroll"];return Array.from(map.values()).filter(function(p){return !/^justwatch/i.test(p.provider_name)}).sort(function(a,b){var ai=order.indexOf(slug(a)),bi=order.indexOf(slug(b));if(ai<0)ai=90;if(bi<0)bi=90;return ai-bi||(Number(a.display_priority)||999)-(Number(b.display_priority)||999)}).slice(0,20)}
 function renderHomeServices(providers){var row=$("browse-services");if(!row)return;row.replaceChildren();providers.forEach(function(p){var btn=doc.createElement("button");btn.type="button";btn.className="service-card";var tile=doc.createElement("span");tile.className="service-logo-tile";if(p.logo_path){var img=doc.createElement("img");img.loading="lazy";img.alt="";img.src=IMG+"w185"+p.logo_path;tile.appendChild(img)}else{var initials=doc.createElement("span");initials.textContent=p.provider_name.slice(0,2).toUpperCase();tile.appendChild(initials)}var label=doc.createElement("span");label.className="service-card-label";label.textContent=p.provider_name;btn.append(tile,label);btn.onclick=function(){navigate("provider",slug(p))};row.appendChild(btn)});current.providerData=providers}
 function findProvider(s){return(current.providerData||[]).find(function(p){return slug(p)===s})||null}
-function providerMarkup(p,providers){var rail=providers.map(function(x){return'<button class="bf-service-chip '+(x.provider_id===p.provider_id?"active":"")+'" data-provider="'+safe(slug(x))+'">'+(x.logo_path?'<img alt="" src="'+IMG+'w92'+safe(x.logo_path)+'">':'')+safe(x.provider_name)+'</button>'}).join("");return '<div class="bf-page-inner"><div class="bf-page-kicker">STREAMING SERVICE</div><h1 class="bf-page-title">'+safe(p.provider_name)+'</h1><div class="bf-service-rail">'+rail+'</div><div class="bf-provider-summary"><span class="bf-provider-mark">'+(p.logo_path?'<img alt="" src="'+IMG+'w92'+safe(p.logo_path)+'">':safe(p.provider_name.slice(0,2)))+'</span><span>Browse titles available in Albania according to TMDB provider data.</span></div><div class="bf-provider-tabs"><button class="bf-provider-tab active" data-media="movie">Movies</button><button class="bf-provider-tab" data-media="tv">TV Shows</button></div>'+filterMarkup()+'<div class="bf-grid" id="bf-grid"><div class="bf-loading">Loading titles…</div></div><button class="bf-load-more" id="bf-load-more" type="button">Load more</button></div>'}
+function providerMarkup(p,providers){var rail=providers.map(function(x){return'<button class="bf-service-chip '+(x.provider_id===p.provider_id?"active":"")+'" data-provider="'+safe(slug(x))+'">'+(x.logo_path?'<img alt="" src="'+IMG+'w92'+safe(x.logo_path)+'">':'')+safe(x.provider_name)+'</button>'}).join("");return '<div class="bf-page-inner"><div class="bf-page-kicker">STREAMING SERVICE</div><h1 class="bf-page-title">'+safe(p.provider_name)+'</h1><div class="bf-service-rail">'+rail+'</div><div class="bf-provider-summary"><span class="bf-provider-mark">'+(p.logo_path?'<img alt="" src="'+IMG+'w92'+safe(p.logo_path)+'">':safe(p.provider_name.slice(0,2)))+'</span><span>Browse titles available in Albania according to TMDB provider data.</span></div><div class="bf-provider-tabs"><button class="bf-provider-tab active" data-media="movie">Movies</button><button class="bf-provider-tab" data-media="tv">TV Shows</button></div>'+filterMarkup()+'<div class="bf-surprise-result" id="bf-surprise-result" hidden aria-live="polite"></div><div class="bf-grid" id="bf-grid"><div class="bf-loading">Loading titles…</div></div><button class="bf-load-more" id="bf-load-more" type="button">Load more</button></div>'}
 function providerPath(p){var q=new URLSearchParams();q.set("with_watch_providers",String(current.provider.provider_id));q.set("watch_region","AL");q.set("with_watch_monetization_types","flatrate|free|ads");q.set("sort_by",current.filters.sort==="primary_release_date.desc"&&current.media==="tv"?"first_air_date.desc":current.filters.sort||"popularity.desc");q.set("page",String(p));q.set("include_adult","false");if(current.filters.genre)q.set("with_genres",current.filters.genre);if(current.filters.year)q.set(current.media==="movie"?"primary_release_year":"first_air_date_year",current.filters.year);if(current.filters.rating)q.set("vote_average.gte",current.filters.rating);if(current.filters.votes)q.set("vote_count.gte",current.filters.votes);return"/discover/"+current.media+"?"+q.toString()}
 async function loadProviderResults(reset,forced){
  if((current.loading&&!reset)||!current.provider)return;if(reset){current.results=[];current.pageNo=0}

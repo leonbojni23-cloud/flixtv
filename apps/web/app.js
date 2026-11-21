@@ -1089,7 +1089,7 @@ function createTop10Card(item,rank){
  button.setAttribute("aria-label","Numri "+rank+": "+title(item));
  const media=document.createElement("span");media.className="top10-media";
  const number=document.createElement("span");
- number.className="top10-rank";number.setAttribute("aria-hidden","true");number.textContent=String(rank);
+ number.className="top10-rank"+(rank>=10?" is-double-digit":"");number.setAttribute("aria-hidden","true");number.textContent=String(rank);
  const art=document.createElement("span");art.className="top10-art";
  const image=document.createElement("img");
  image.className="top10-poster";image.loading="lazy";image.decoding="async";
