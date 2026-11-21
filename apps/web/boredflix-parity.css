@@ -18,7 +18,7 @@ body.bf-reference-mode .search-trigger,body.bf-reference-mode .header-glass-butt
 body.bf-reference-mode .search-trigger svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8}
 body.bf-reference-mode .search-trigger:hover,body.bf-reference-mode .header-glass-button:hover,.bf-sport-shortcut:hover{background:rgba(255,255,255,.13)!important;border-color:rgba(255,255,255,.2)!important;transform:translateY(-1px)}
 .bf-sport-shortcut{font-size:12px;font-weight:700;padding:0 15px;border-radius:999px;cursor:pointer}
-body.bf-reference-mode #app{position:relative!important;inset:auto!important;height:auto!important;min-height:100dvh;overflow:visible!important;padding-bottom:calc(42px + env(safe-area-inset-bottom))!important;background:transparent!important}
+body.bf-reference-mode #app{position:relative!important;inset:auto!important;height:auto!important;min-height:100dvh;overflow:visible!important;z-index:1;padding-bottom:calc(42px + env(safe-area-inset-bottom))!important;background:transparent!important}
 body.bf-reference-mode .hero{position:relative!important;isolation:isolate;display:flex!important;align-items:flex-end!important;min-height:560px!important;height:86svh!important;max-height:940px!important;margin:0!important;padding:0 var(--bf-gutter) 14vh!important;overflow:hidden;background:#08090d!important}
 body.bf-reference-mode .hero-backdrop{position:absolute!important;inset:0!important;background-size:cover!important;background-position:center 28%!important;opacity:0;transition:opacity 1s ease;z-index:-2}
 body.bf-reference-mode .hero-backdrop.active{opacity:1}
@@ -138,8 +138,8 @@ body.bf-reference-mode .top10-card:focus-visible{outline:2px solid #fcd34d;outli
 .bf-provider-tabs{display:flex;gap:8px;margin:0 0 12px}
 .bf-provider-tab{padding:9px 15px;border-radius:999px;border:1px solid rgba(255,255,255,.13);background:transparent;color:rgba(255,255,255,.6);font-size:12px;font-weight:700}
 .bf-provider-tab.active{background:#fff;color:#101116;border-color:#fff}
-.bf-fluid-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:.42}
-.bf-motion-fallback{position:fixed;inset:-20%;z-index:-1;pointer-events:none;filter:blur(72px);opacity:.23;background:radial-gradient(ellipse at 15% 22%,#273c55 0,transparent 35%),radial-gradient(ellipse at 85% 18%,#412949 0,transparent 32%),radial-gradient(ellipse at 60% 78%,#3d3343 0,transparent 35%);animation:bf-drift 34s ease-in-out infinite alternate}
+.bf-fluid-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.42}
+.bf-motion-fallback{position:fixed;inset:-20%;z-index:0;pointer-events:none;filter:blur(72px);opacity:.23;background:radial-gradient(ellipse at 15% 22%,#273c55 0,transparent 35%),radial-gradient(ellipse at 85% 18%,#412949 0,transparent 32%),radial-gradient(ellipse at 60% 78%,#3d3343 0,transparent 35%);animation:bf-drift 34s ease-in-out infinite alternate}
 @keyframes bf-drift{0%{transform:translate3d(-2%,1%,0) scale(1)}50%{transform:translate3d(2%,-1%,0) scale(1.08)}100%{transform:translate3d(-1%,2%,0) scale(1.02)}}
 @media(min-width:560px){.bf-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:25px 16px}}
 @media(min-width:768px){
@@ -160,7 +160,7 @@ body.bf-reference-mode .top10-card:focus-visible{outline:2px solid #fcd34d;outli
  body.bf-reference-mode .desktop-nav{display:none!important}
  body.bf-reference-mode .top-actions{gap:7px!important}
  body.bf-reference-mode .search-trigger,body.bf-reference-mode .header-glass-button,.bf-sport-shortcut{width:38px;height:38px}
- .bf-sport-shortcut{display:none}
+ .bf-sport-shortcut{display:grid;width:36px;height:36px;padding:0;border-radius:50%;font-size:0}.bf-sport-shortcut:before{content:'⚽';font-size:15px}
  body.bf-reference-mode .hero{height:86svh!important;min-height:560px!important;max-height:820px!important;padding:0 var(--bf-gutter) 12vh!important}
  body.bf-reference-mode .hero-content{width:100%;max-width:560px}
  body.bf-reference-mode .hero h1{font-size:clamp(34px,10vw,48px)!important;max-width:94%}
