@@ -16,6 +16,8 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: "TMDB_API_KEY is not configured" });
   }
 
+  // Railway's self-hosted server passes req.query from URLSearchParams as a plain object.
+  // Accept only a single string path; reject absent/array inputs explicitly.
   const rawPath = typeof req.query.path === "string" ? req.query.path : "";
   const pathname = "/" + rawPath.replace(/^\/+/, "");
   if (
