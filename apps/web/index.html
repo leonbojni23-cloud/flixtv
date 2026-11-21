@@ -23,7 +23,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/flixtv-home-icon-v4.png">
               <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-  <script>(function(){var p=location.pathname.replace(/\/$/,""),m=p.match(/^\/browse\/provider\/([^/]+)$/),intent=null;if(p==="/browse/movies")intent={page:"movies"};else if(p==="/browse/tv")intent={page:"shows"};else if(p==="/library")intent={page:"library"};else if(p==="/search")intent={page:"search",query:new URLSearchParams(location.search).get("q")||""};else if(m)intent={page:"provider",provider:m[1]};if(intent){window.__FLIXTV_ROUTE_INTENT=intent;history.replaceState({bfBoot:true},"","/")}})();</script>
+  <script>(function(){var p=location.pathname.replace(/\/$/,""),m=p.match(/^\/browse\/provider\/([^/]+)$/),intent=null;if(p==="/browse/movies")intent={page:"movies",sortBy:new URLSearchParams(location.search).get("sortBy")||""};else if(p==="/browse/tv")intent={page:"shows",sortBy:new URLSearchParams(location.search).get("sortBy")||""};else if(p==="/library")intent={page:"library"};else if(p==="/search")intent={page:"search",query:new URLSearchParams(location.search).get("q")||""};else if(m)intent={page:"provider",provider:m[1]};if(intent){window.__FLIXTV_ROUTE_INTENT=intent;history.replaceState({bfBoot:true},"","/")}})();</script>
   <script>if(location.pathname!=="/"&&location.pathname!=="/index.html")document.documentElement.classList.add("deep-route-loading");</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
