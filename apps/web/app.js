@@ -484,10 +484,55 @@ function ensureHeroSmokeStage(){
  }
  return stage;
 }
+let pageSmokeState=null;
+function ensurePageSmokeCanvas(){
+ const ambient=$("app-ambient");if(!ambient)return null;
+ let canvas=ambient.querySelector(".page-smoke-canvas");
+ if(!canvas){canvas=document.createElement("canvas");canvas.className="page-smoke-canvas";canvas.setAttribute("aria-hidden","true");canvas.width=180;canvas.height=320;ambient.appendChild(canvas);}
+ if(!pageSmokeState||pageSmokeState.canvas!==canvas){
+  const context=canvas.getContext("2d",{alpha:true});if(!context)return null;
+  const size=128,grid=new Float32Array(size*size);let seed=0x3c6ef372;
+  for(let i=0;i<grid.length;i++){seed=(seed*1664525+1013904223)>>>0;grid[i]=(seed&65535)/65535;}
+  const noise=(x,y)=>{x=((x%size)+size)%size;y=((y%size)+size)%size;const x0=Math.floor(x),y0=Math.floor(y),x1=(x0+1)&127,y1=(y0+1)&127,fx=x-x0,fy=y-y0,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),a=grid[y0*size+x0],b=grid[y0*size+x1],c=grid[y1*size+x0],d=grid[y1*size+x1];return(a+(b-a)*sx)*(1-sy)+(c+(d-c)*sx)*sy;};
+  const fbm=(x,y)=>{let sum=0,w=.56,total=0;for(let o=0;o<4;o++){sum+=noise(x,y)*w;total+=w;x=x*2.02+13.7;y=y*2.01-8.3;w*=.51;}return sum/total;};
+  const smooth=(a,b,v)=>{const q=Math.max(0,Math.min(1,(v-a)/(b-a)));return q*q*(3-2*q);};
+  pageSmokeState={canvas,context,grid,size,palette:[[125,94,82],[83,108,112],[119,91,137]],time:0,last:0,raf:0,fbm,smooth};
+  const render=now=>{
+   const st=pageSmokeState;if(!st||st.canvas!==canvas)return;
+   if(document.hidden||now-st.last<42){st.raf=requestAnimationFrame(render);return;}
+   st.last=now;st.time+=.009;const w=canvas.width,h=canvas.height,t=st.time,p=st.palette,frame=context.createImageData(w,h),data=frame.data;
+   for(let y=0;y<h;y++){const ny=y/h;for(let x=0;x<w;x++){const nx=x/w;
+    const warpX=(fbm(nx*2.5+17+t*.12,ny*2.2-4-t*.05)-.5)*1.25;
+    const warpY=(fbm(nx*2.1-8-t*.07,ny*2.6+19+t*.09)-.5)*1.45;
+    const sx=(nx+warpX)*3.1+t*.07,sy=(ny+warpY)*2.25-t*.045;
+    const body=fbm(sx*5.1,sy*4.1),detail=fbm(sx*12.5+31,sy*10.5-17),threads=1-Math.abs(detail*2-1);
+    const wisps=smooth(.45,.69,body+(threads-.5)*.22);
+    const plume=smooth(.02,.27,ny)*(1-smooth(.92,1.08,ny));
+    const spread=.28+.72*Math.sin(Math.PI*Math.min(1,ny));
+    const edge=smooth(0,.2,nx)*(1-smooth(.8,1,nx));
+    const alpha=Math.min(104,Math.max(0,(wisps-.17)*145*plume*spread*edge*(.62+detail*.5)));
+    if(alpha<1)continue;
+    const blend=Math.max(0,Math.min(1,detail*.72+ny*.22)),i=(y*w+x)*4;
+    data[i]=p[0][0]*(1-blend)*.65+p[1][0]*blend*.25+p[2][0]*.1;
+    data[i+1]=p[0][1]*(1-blend)*.65+p[1][1]*blend*.25+p[2][1]*.1;
+    data[i+2]=p[0][2]*(1-blend)*.65+p[1][2]*blend*.25+p[2][2]*.1;
+    data[i+3]=alpha;
+   }}
+   context.putImageData(frame,0,0);st.raf=requestAnimationFrame(render);
+  };
+  pageSmokeState.raf=requestAnimationFrame(render);
+ }
+ return canvas;
+}
+function updatePageSmokePalette(colors){
+ const canvas=ensurePageSmokeCanvas();if(!canvas||!pageSmokeState)return;
+ const rgb=value=>String(value||"80,92,110").split(",").map(channel=>Math.max(0,Math.min(255,Number(channel)||0)));
+ pageSmokeState.palette=[rgb(colors.c1),rgb(colors.c2),rgb(colors.c3)];
+}
 function updateHeroSmoke(colors,request){
  const stage=ensureHeroSmokeStage();if(!stage||!heroSmokeCanvasState)return;
  const rgb=value=>String(value||"80,92,110").split(",").map(channel=>Math.max(0,Math.min(255,Number(channel)||0)));
- heroSmokeCanvasState.palette=[rgb(colors.c1),rgb(colors.c2),rgb(colors.c3)];stage.classList.add("is-visible");
+ heroSmokeCanvasState.palette=[rgb(colors.c1),rgb(colors.c2),rgb(colors.c3)];updatePageSmokePalette(colors);stage.classList.add("is-visible");
 }
 function readAmbientPalette(imageUrl){
  if(!imageUrl)return Promise.resolve(null);
