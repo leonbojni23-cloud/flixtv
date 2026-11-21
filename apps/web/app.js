@@ -445,9 +445,9 @@ function readAmbientPalette(imageUrl){
  if(ambientPaletteCache.size>28)ambientPaletteCache.delete(ambientPaletteCache.keys().next().value);
  return task;
 }
-async function updateAmbientScene(imageUrl,request){
+async function updateAmbientScene(imageUrl,paletteUrl,request){
  let palette=null;
- if(imageUrl){try{palette=await readAmbientPalette(imageUrl)}catch(_){}}
+ if(paletteUrl){try{palette=await readAmbientPalette(paletteUrl)}catch(_){}}
  if(request!==showHero.requestId)return;
  const nextLayer=ambientLayer===0?1:0;
  const next=$("app-ambient-scene-"+(nextLayer===0?"a":"b"));
@@ -493,13 +493,15 @@ function showHero(index){
  preload.onload=()=>{
   if(request!==showHero.requestId)return;
   next.style.backgroundImage=image;
-  void updateAmbientScene(imageUrl,request);
+  const paletteImagePath="/t/p/"+(item.backdrop_path?"w1280":"w780")+path;
+  const paletteImageUrl="/api/tmdb-image?path="+encodeURIComponent(paletteImagePath);
+  void updateAmbientScene(imageUrl,paletteImageUrl,request);
  };
  preload.onerror=()=>{
   if(request!==showHero.requestId)return;
   const fallback="linear-gradient(135deg,#303b27,#171b11)";
   next.style.backgroundImage=fallback;
-  void updateAmbientScene(null,request);
+  void updateAmbientScene(null,null,request);
  };
  preload.src=imageUrl;
  $("hero-content").classList.add("changing");
