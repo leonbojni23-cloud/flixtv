@@ -478,11 +478,13 @@ function updateHeroSmoke(colors,request){
  const rgb=value=>String(value||"80,92,110").split(",").map(channel=>Math.max(0,Math.min(255,Number(channel)||0))).join(",");
  const c1=rgb(colors.c1),c2=rgb(colors.c2),c3=rgb(colors.c3);
  next.style.backgroundImage=[
-  "radial-gradient(ellipse 36% 24% at 14% 70%,rgba("+c1+",.68) 0%,rgba("+c1+",.30) 38%,transparent 78%)",
-  "radial-gradient(ellipse 31% 22% at 42% 34%,rgba("+c2+",.58) 0%,rgba("+c2+",.24) 42%,transparent 79%)",
-  "radial-gradient(ellipse 39% 27% at 76% 62%,rgba("+c3+",.60) 0%,rgba("+c3+",.22) 45%,transparent 81%)",
-  "radial-gradient(ellipse 27% 20% at 88% 25%,rgba("+c1+",.42) 0%,transparent 78%)",
-  "radial-gradient(ellipse 46% 23% at 55% 88%,rgba("+c2+",.28) 0%,transparent 83%)"
+  "radial-gradient(ellipse 48% 13% at 13% 64%,rgba("+c1+",.74) 0%,rgba("+c1+",.34) 36%,transparent 78%)",
+  "radial-gradient(ellipse 43% 11% at 42% 36%,rgba("+c2+",.66) 0%,rgba("+c2+",.28) 40%,transparent 80%)",
+  "radial-gradient(ellipse 51% 15% at 78% 59%,rgba("+c3+",.70) 0%,rgba("+c3+",.30) 43%,transparent 82%)",
+  "radial-gradient(ellipse 35% 10% at 88% 24%,rgba("+c1+",.52) 0%,transparent 79%)",
+  "radial-gradient(ellipse 58% 12% at 54% 86%,rgba("+c2+",.40) 0%,transparent 84%)",
+  "radial-gradient(ellipse 24% 9% at 24% 27%,rgba("+c3+",.42) 0%,transparent 82%)",
+  "radial-gradient(ellipse 32% 8% at 67% 43%,rgba("+c1+",.38) 0%,transparent 82%)"
  ].join(",");
  next.classList.remove("is-active");
  void next.offsetWidth;
