@@ -129,6 +129,9 @@ body.bf-reference-mode .top10-card:focus-visible{outline:2px solid #fcd34d;outli
 .bf-library-filter.active{border-color:rgba(251,191,36,.42);background:rgba(251,191,36,.12);color:#fcd34d}
 .bf-library-clear{margin-left:auto;border:0;background:transparent;color:rgba(255,255,255,.6);font-size:11px;font-weight:700;white-space:nowrap}
 .bf-library-clear:hover{color:#fff}
+.bf-heading-link{display:inline-flex;align-items:center;gap:5px;padding:0;border:0;background:none;color:inherit;font:inherit;font-size:inherit;font-weight:inherit;letter-spacing:inherit;text-align:left;cursor:pointer}
+.bf-heading-link svg{width:20px;height:20px;color:rgba(255,255,255,.62);transition:transform .2s}
+.bf-heading-link:hover svg{transform:translateX(3px)}
 .bf-library-progress{display:block;font-size:10px;color:rgba(255,255,255,.55);margin-top:5px}
 .bf-library-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .bf-library-actions button{padding:6px 9px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(255,255,255,.05);font-size:10px;color:rgba(255,255,255,.74)}
