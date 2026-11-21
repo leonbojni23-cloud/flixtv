@@ -151,7 +151,14 @@ function card(x){
  const warm=()=>prefetchTitle(x);
  b.addEventListener("pointerenter",warm,{once:true,passive:true});
  b.addEventListener("touchstart",warm,{once:true,passive:true});
- b.onclick=()=>openTitlePage(x,true,false,b);
+ b.onclick=event=>{
+  if(event.target&&event.target.closest&&event.target.closest(".poster-play-icon")){
+   try{const result=play(x);if(result&&typeof result.catch==="function")result.catch(error=>notice(error.message||"Nuk u hap player-i."))}
+   catch(error){notice(error.message||"Nuk u hap player-i.")}
+   return;
+  }
+  openTitlePage(x,true,false,b);
+ };
  return b
 }
 function createTrendingMovieCard(item){
@@ -1098,7 +1105,14 @@ function createTop10Card(item,rank){
  const caption=document.createElement("span");caption.className="top10-caption";
  caption.textContent=title(item);
  button.append(media,caption);
- button.onclick=()=>openTitlePage(item,true,false,button);
+ button.onclick=event=>{
+  if(event.target&&event.target.closest&&event.target.closest(".top10-play")){
+   try{const result=play(item);if(result&&typeof result.catch==="function")result.catch(error=>notice(error.message||"Nuk u hap player-i."))}
+   catch(error){notice(error.message||"Nuk u hap player-i.")}
+   return;
+  }
+  openTitlePage(item,true,false,button);
+ };
  return button;
 }
 async function loadHomeTop10(){
