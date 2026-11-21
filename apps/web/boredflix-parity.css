@@ -2149,3 +2149,24 @@ body.bf-reference-mode #title-page{background:transparent!important}
   body.bf-reference-mode #hero .hero-backdrop{opacity:0!important;}
   body.bf-reference-mode #hero .hero-backdrop.active{opacity:1!important;}
 }
+
+
+/* Three.js volumetric shader: one continuous full-viewport atmosphere behind all FLIXTV pages. */
+body.bf-reference-mode #app-ambient{
+  display:block!important;position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+  z-index:0!important;overflow:hidden!important;pointer-events:none!important;isolation:isolate!important;
+  background:#07090e!important;
+}
+body.bf-reference-mode #app-ambient .webgl-smoke-canvas{
+  position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;
+  opacity:.92!important;pointer-events:none!important;mix-blend-mode:screen!important;
+}
+body.bf-reference-mode #app-ambient .page-smoke-canvas,
+body.bf-reference-mode #app-ambient .ambient-scene,
+body.bf-reference-mode #app-ambient .ambient-shade{display:none!important}
+@media(max-width:767px){
+ body.bf-reference-mode #app-ambient .webgl-smoke-canvas{opacity:.82!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body.bf-reference-mode #app-ambient .webgl-smoke-canvas{opacity:.68!important}
+}
