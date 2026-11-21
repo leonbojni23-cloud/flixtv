@@ -610,6 +610,7 @@ async function updateAmbientScene(imageUrl,paletteUrl,request){
   root.style.setProperty("--hero-smoke-two",secondary.join(","));
   root.style.setProperty("--hero-smoke-three",tertiary.join(","));
   root.style.setProperty("--hero-background-rgb",baseRgb);
+   window.dispatchEvent(new CustomEvent("flxtv:ambient-palette"));
  next.style.setProperty("--ambient-c1",colors.c1);
  next.style.setProperty("--ambient-c2",colors.c2);
  next.style.setProperty("--ambient-c3",colors.c3);
