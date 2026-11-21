@@ -61,39 +61,60 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       vec2 aspect=vec2(uResolution.x/max(uResolution.y,1.0),1.0);
       vec2 p=vUv*aspect;
 
-      // Slow, layered flow in several directions for a calm, drifting atmosphere.
-      float t=uTime*0.026;
-      vec2 driftA=vec2(t*0.42,-t*0.30);
-      vec2 driftB=vec2(-t*0.24,t*0.34);
+      // A little faster, with several independent currents moving at different angles.
+      float t=uTime*0.040;
+      vec2 driftA=vec2(t*0.52,-t*0.38);
+      vec2 driftB=vec2(-t*0.34,t*0.46);
+      vec2 driftC=vec2(t*0.18,t*0.22);
       vec2 flow=vec2(
         fbm(p*0.72+driftA+vec2(1.7,2.4)),
         fbm(p*0.72+driftB+vec2(5.3,1.1))
       );
       vec2 flow2=vec2(
-        fbm(p*1.05+flow*0.52+vec2(0.0,-t*0.24)),
-        fbm(p*1.05+flow*0.52+vec2(3.8,t*0.20))
+        fbm(p*1.05+flow*0.52+driftC+vec2(0.0,-t*0.30)),
+        fbm(p*1.05+flow*0.52-driftB*0.42+vec2(3.8,t*0.24))
       );
       float broad=fbm(p*0.92+flow*0.78+flow2*0.24+driftA);
       float middle=fbm(p*1.42+flow2*0.58+driftB+vec2(2.2,-1.6));
-      float cloud=broad*0.78+middle*0.22;
+      float fine=fbm(p*2.65+flow*0.42+driftC+vec2(-1.3,4.1));
+      float cloud=broad*0.68+middle*0.24+fine*0.08;
 
-      // Soft, overlapping vapor layers. No hard edges or black cut-outs.
+      // Layered vapor fields drift at different speeds to suggest depth.
       float cloudA=smoothstep(-0.72,0.48,cloud);
       float cloudB=smoothstep(-0.36,0.60,middle*0.72+broad*0.28);
-      float vapor=0.5+0.5*sin((broad-middle)*2.1+uTime*0.10);
-      float vaporShape=clamp(cloudA*0.68+cloudB*0.20+vapor*0.12,0.0,1.0);
+      float vapor=0.5+0.5*sin((broad-middle)*2.1+uTime*0.15);
+      float vaporShape=clamp(cloudA*0.62+cloudB*0.23+vapor*0.15,0.0,1.0);
+
+      // Approximate a height field and its normal for soft volumetric lighting.
+      float h=fbm(p*1.18+flow*0.72+driftA)*0.62
+             +fbm(p*2.15+flow2*0.62+driftB)*0.24
+             +fine*0.14;
+      float hx=fbm((p+vec2(0.012,0.0))*1.18+flow*0.72+driftA)*0.62
+              +fbm((p+vec2(0.012,0.0))*2.15+flow2*0.62+driftB)*0.24
+              +fbm((p+vec2(0.012,0.0))*2.65+flow*0.42+driftC+vec2(-1.3,4.1))*0.14;
+      float hy=fbm((p+vec2(0.0,0.012))*1.18+flow*0.72+driftA)*0.62
+              +fbm((p+vec2(0.0,0.012))*2.15+flow2*0.62+driftB)*0.24
+              +fbm((p+vec2(0.0,0.012))*2.65+flow*0.42+driftC+vec2(-1.3,4.1))*0.14;
+      vec3 normal=normalize(vec3((h-hx)*8.0,(h-hy)*8.0,0.72));
+      vec3 lightDir=normalize(vec3(-0.42,0.58,0.82));
+      float diffuse=0.5+0.5*max(dot(normal,lightDir),0.0);
+      float rim=pow(1.0-max(normal.z,0.0),2.0);
+      float depthShade=0.88+0.24*diffuse+rim*0.12;
 
       // Keep the whole screen in the Hero's dominant hue family and lift shadows.
-      vec3 base=mix(uColorA,uColorB,0.16+cloudA*0.10);
-      vec3 highlight=mix(uColorA,uColorC,0.18+cloudB*0.12);
-      vec3 smoke=mix(base*0.82,highlight*1.08,vaporShape*0.72+0.12);
-      smoke=mix(smoke,uColorA*1.18,cloudA*0.16);
-      smoke=max(smoke,uColorA*0.58);
+      vec3 base=mix(uColorA,uColorB,0.13+cloudA*0.09);
+      vec3 highlight=mix(uColorA,uColorC,0.14+cloudB*0.10);
+      vec3 smoke=mix(base*0.88,highlight*1.12,vaporShape*0.72+0.12);
+      smoke=mix(smoke,uColorA*1.20,cloudA*0.18);
+      smoke=max(smoke,uColorA*0.64);
+      smoke*=depthShade;
 
-      // Broad luminous haze, with a gentle moving highlight.
-      float glow1=exp(-length((vUv-vec2(0.34+0.035*sin(uTime*0.07),0.48))*vec2(0.72,0.58))*1.35);
-      float glow2=exp(-length((vUv-vec2(0.72+0.025*cos(uTime*0.055),0.62))*vec2(0.82,0.68))*1.55);
-      smoke+=uColorA*(glow1*0.10+glow2*0.07);
+      // Broad highlights slide over the vapor, creating occasional 3D-like depth.
+      float glow1=exp(-length((vUv-vec2(0.34+0.045*sin(uTime*0.095),0.48+0.035*cos(uTime*0.07)))*vec2(0.72,0.58))*1.35);
+      float glow2=exp(-length((vUv-vec2(0.72+0.035*cos(uTime*0.075),0.62+0.04*sin(uTime*0.06)))*vec2(0.82,0.68))*1.55);
+      float highlightPulse=0.94+0.06*sin(uTime*0.22+cloud*2.0);
+      smoke+=uColorA*(glow1*0.12+glow2*0.085)*highlightPulse;
+      smoke+=uColorC*rim*0.035;
 
       gl_FragColor=vec4(smoke,1.0);
     }
