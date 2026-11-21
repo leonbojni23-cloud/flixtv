@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 var doc=document,$=function(id){return doc.getElementById(id)},root=$("app");
-var current={page:"home",provider:null,query:"",tab:"continue",media:"movie",filters:{genre:"",year:"",sort:"popularity.desc",rating:"",votes:""},results:[],pageNo:0,totalPages:1,loading:false,request:0,providerData:[],searchTimer:0};
+var current={page:"home",provider:null,query:"",tab:"continue",savedFilter:"all",media:"movie",filters:{genre:"",year:"",sort:"popularity.desc",rating:"",votes:""},results:[],pageNo:0,totalPages:1,loading:false,request:0,providerData:[],searchTimer:0};
 var API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/";
 var GENRES={movie:[[28,"Action"],[12,"Adventure"],[16,"Animation"],[35,"Comedy"],[80,"Crime"],[99,"Documentary"],[18,"Drama"],[10751,"Family"],[14,"Fantasy"],[36,"History"],[27,"Horror"],[10402,"Music"],[9648,"Mystery"],[10749,"Romance"],[878,"Sci-Fi"],[53,"Thriller"],[10752,"War"],[37,"Western"]],tv:[[10759,"Action & Adventure"],[16,"Animation"],[35,"Comedy"],[80,"Crime"],[99,"Documentary"],[18,"Drama"],[10751,"Family"],[10762,"Kids"],[9648,"Mystery"],[10763,"News"],[10764,"Reality"],[10765,"Sci-Fi & Fantasy"],[10766,"Soap"],[10767,"Talk"],[10768,"War & Politics"],[37,"Western"]]};
 function safe(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -116,25 +116,70 @@ function readWatched(){try{var a=JSON.parse(localStorage.getItem(watchedKey())||
 function writeWatched(a){try{localStorage.setItem(watchedKey(),JSON.stringify(a.slice(0,500)))}catch(_){}}
 function markWatched(item){var key=kind(item)+":"+item.id,a=readWatched().filter(function(x){return kind(x)+":"+x.id!==key});a.unshift({id:item.id,media_type:kind(item),title:name(item),name:name(item),poster_path:item.poster_path||"",backdrop_path:item.backdrop_path||"",watchedAt:Date.now(),vote_average:item.vote_average||0});writeWatched(a);var b=bridge();if(b&&b.markWatched)b.markWatched(Object.assign({},item,{media_type:kind(item)}))}
 function removeSaved(item){var b=bridge();if(b&&b.removeSaved){b.removeSaved(Object.assign({},item,{media_type:kind(item)}));return}var d=readLibrary(),list=(d.saved||[]).filter(function(x){return !(String(x.id)===String(item.id)&&kind(x)===kind(item))});try{localStorage.setItem("flxtv:my-list:v1:"+(d.profileId||"main"),JSON.stringify(list))}catch(_){}}
-function libraryMarkup(){return '<div class="bf-page-inner"><div class="bf-library-head"><div><div class="bf-page-kicker">YOUR COLLECTION</div><h1 class="bf-library-title">My Library</h1></div><div class="bf-library-tabs" role="tablist"><button class="bf-library-tab '+(current.tab==="continue"?"active":"")+'" data-tab="continue" role="tab">Continue</button><button class="bf-library-tab '+(current.tab==="saved"?"active":"")+'" data-tab="saved" role="tab">Saved</button><button class="bf-library-tab '+(current.tab==="watched"?"active":"")+'" data-tab="watched" role="tab">Watched</button></div></div><div class="bf-library-tools"><span id="bf-library-count"></span><button type="button" id="bf-library-clear" hidden>Clear all</button></div><div class="bf-grid" id="bf-grid"></div></div>'}
-function renderLibrary(tab){current.tab=tab||"continue";setPanel(libraryMarkup());doc.querySelectorAll("[data-tab]").forEach(function(b){b.onclick=function(){renderLibrary(b.getAttribute("data-tab"))}});populateLibrary()}
+function libraryMarkup(){return '<div class="bf-page-inner"><div class="bf-library-head"><div class="bf-library-tabs" role="tablist" aria-label="My Library"><button class="bf-library-tab '+(current.tab==="continue"?"active":"")+'" data-tab="continue" role="tab" aria-selected="'+(current.tab==="continue")+'">Continue <span id="bf-count-continue"></span></button><button class="bf-library-tab '+(current.tab==="saved"?"active":"")+'" data-tab="saved" role="tab" aria-selected="'+(current.tab==="saved")+'">Saved <span id="bf-count-saved"></span></button><button class="bf-library-tab '+(current.tab==="watched"?"active":"")+'" data-tab="watched" role="tab" aria-selected="'+(current.tab==="watched")+'">Watched <span id="bf-count-watched"></span></button></div></div><div class="bf-library-toolbar" id="bf-library-toolbar"></div><div class="bf-grid" id="bf-grid"></div></div>'}
+function renderLibrary(tab){current.tab=tab||"continue";if(current.tab!=="saved")current.savedFilter="all";setPanel(libraryMarkup());doc.querySelectorAll("[data-tab]").forEach(function(b){b.onclick=function(){renderLibrary(b.getAttribute("data-tab"))}});populateLibrary()}
 function populateLibrary(){
- var grid=$("bf-grid");if(!grid)return;var d=readLibrary(),items=[];
- if(current.tab==="continue"){items=Object.values(d.progress||{}).filter(function(x){return x&&x.id&&x.currentTime>0&&(!x.duration||x.currentTime<x.duration*.92)}).sort(function(a,b){return(b.updatedAt||0)-(a.updatedAt||0)}).map(function(x){return{id:x.id,title:x.title,name:x.title,poster_path:x.poster_path,backdrop_path:x.backdrop_path,media_type:x.mediaType||"movie",season:x.season,episode:x.episode,currentTime:x.currentTime,duration:x.duration}})}
- else if(current.tab==="saved")items=(d.saved||[]).slice();else items=readWatched();
- grid.replaceChildren();if(!items.length){var empty=doc.createElement("div");empty.className="bf-empty";empty.textContent=current.tab==="continue"?"Nothing here yet. Start watching and your progress will appear here.":current.tab==="saved"?"Your saved list is empty.":"No watched titles yet.";grid.appendChild(empty)}
+ var grid=$("bf-grid");if(!grid)return;
+ var d=readLibrary();
+ var progress=Object.values(d.progress||{}).filter(function(x){return x&&x.id&&x.currentTime>0&&(!x.duration||x.currentTime<x.duration*.92)}).sort(function(a,b){return(b.updatedAt||0)-(a.updatedAt||0)}).map(function(x){return{id:x.id,title:x.title,name:x.title,poster_path:x.poster_path,backdrop_path:x.backdrop_path,media_type:x.mediaType||"movie",season:x.season,episode:x.episode,currentTime:x.currentTime,duration:x.duration,updatedAt:x.updatedAt}});
+ var saved=(d.saved||[]).slice(),watched=readWatched();
+ var counts={continue:progress.length,saved:saved.length,watched:watched.length};
+ ["continue","saved","watched"].forEach(function(tab){var node=$("bf-count-"+tab);if(node){node.textContent=counts[tab]?" "+counts[tab]:"";node.hidden=!counts[tab]}});
+ var toolbar=$("bf-library-toolbar");if(toolbar){
+  toolbar.replaceChildren();
+  if(current.tab==="saved"){
+   var filters=doc.createElement("div");filters.className="bf-library-filters";
+   [["all","All",saved.length],["movie","Movies",saved.filter(function(x){return kind(x)==="movie"}).length],["tv","Shows",saved.filter(function(x){return kind(x)==="tv"}).length]].forEach(function(entry){
+    var button=doc.createElement("button");button.type="button";button.className="bf-library-filter"+(current.savedFilter===entry[0]?" active":"");button.textContent=entry[1]+" "+entry[2];button.setAttribute("aria-pressed",String(current.savedFilter===entry[0]));button.onclick=function(){current.savedFilter=entry[0];populateLibrary()};filters.appendChild(button)
+   });
+   toolbar.appendChild(filters)
+  }
+  var total=counts[current.tab]||0;
+  if(total){
+   var clear=doc.createElement("button");clear.type="button";clear.className="bf-library-clear";
+   clear.textContent=current.tab==="continue"?"Clear all":current.tab==="saved"?"Clear saved":"Clear history";
+   clear.onclick=function(){
+    var message=current.tab==="continue"?"Remove all titles from Continue Watching?":current.tab==="saved"?"Remove all saved titles?":"Clear the watched history?";
+    if(!window.confirm(message))return;
+    var b=bridge();
+    if(current.tab==="continue"&&b&&b.clearProgress)b.clearProgress();
+    else if(current.tab==="saved"&&b&&b.clearSaved)b.clearSaved();
+    else if(current.tab==="watched")writeWatched([]);
+    populateLibrary()
+   };
+   toolbar.appendChild(clear)
+  }
+ }
+ var items=current.tab==="continue"?progress:current.tab==="saved"?saved.filter(function(x){return current.savedFilter==="all"||kind(x)===current.savedFilter}):watched;
+ grid.replaceChildren();
+ if(!items.length){
+  var empty=doc.createElement("div");empty.className="bf-empty";
+  empty.textContent=current.tab==="continue"?"Nothing in progress. Start a movie or an episode and it will wait here, right where you stopped.":current.tab==="saved"?(saved.length?"No "+(current.savedFilter==="movie"?"movies":"shows")+" saved yet.":"Start your list. Tap + on any movie or show to save it for later."):"Nothing watched yet. Titles you finish show up here, so you always know what you've seen.";
+  grid.appendChild(empty)
+ }
  items.forEach(function(item){
   var shell=doc.createElement("div");shell.className="bf-library-card";
   var open=function(){if(current.tab==="continue"){var b=bridge();if(b&&b.openContinueEntry)b.openContinueEntry({id:item.id,mediaType:kind(item),title:name(item),poster_path:item.poster_path||"",backdrop_path:item.backdrop_path||"",currentTime:item.currentTime,duration:item.duration,season:item.season,episode:item.episode});else openTitle(item)}else openTitle(item)};
   shell.appendChild(createPoster(item,open));
-  if(current.tab==="continue"){var info=doc.createElement("small");info.className="bf-library-progress";info.textContent=item.media_type==="tv"?"S"+(item.season||1)+" · E"+(item.episode||1):"Continue watching";shell.appendChild(info)}
+  if(current.tab==="continue"){
+   var info=doc.createElement("small");info.className="bf-library-progress";
+   info.textContent=(item.media_type==="tv"?"S"+(item.season||1)+" · E"+(item.episode||1)+" · ":"")+"Continue watching";
+   shell.appendChild(info)
+  }
   var actions=doc.createElement("div");actions.className="bf-library-actions";
-  if(current.tab==="saved"){var seen=doc.createElement("button");seen.textContent="Mark watched";seen.onclick=function(){markWatched(item);populateLibrary()};var del=doc.createElement("button");del.textContent="Remove";del.onclick=function(){removeSaved(item);populateLibrary()};actions.append(seen,del)}
-  else if(current.tab==="watched"){var undo=doc.createElement("button");undo.textContent="Remove from watched";undo.onclick=function(){writeWatched(readWatched().filter(function(x){return !(String(x.id)===String(item.id)&&kind(x)===kind(item))}));populateLibrary()};actions.appendChild(undo)}
-  else{var go=doc.createElement("button");go.textContent="Open";go.onclick=open;actions.appendChild(go)}
+  if(current.tab==="saved"){
+   var seen=doc.createElement("button");seen.textContent="Mark watched";seen.onclick=function(){markWatched(item);removeSaved(item);populateLibrary()};
+   var del=doc.createElement("button");del.textContent="Remove";del.onclick=function(){removeSaved(item);populateLibrary()};
+   actions.append(seen,del)
+  }else if(current.tab==="watched"){
+   var undo=doc.createElement("button");undo.textContent="Remove from watched";undo.onclick=function(){writeWatched(readWatched().filter(function(x){return !(String(x.id)===String(item.id)&&kind(x)===kind(item))}));populateLibrary()};actions.appendChild(undo)
+  }else{
+   var seen2=doc.createElement("button");seen2.textContent="Mark as finished";seen2.onclick=function(){markWatched(item);var b=bridge();if(b&&b.removeProgress)b.removeProgress(item);populateLibrary()};
+   var remove=doc.createElement("button");remove.textContent="Remove";remove.onclick=function(){var b=bridge();if(b&&b.removeProgress)b.removeProgress(item);populateLibrary()};
+   actions.append(seen2,remove)
+  }
   shell.appendChild(actions);grid.appendChild(shell)
  });
- var count=$("bf-library-count");if(count)count.textContent=items.length+" titles";
 }
 function renderSearch(q){
  current.query=q||"";setPanel('<div class="bf-page-inner bf-page-search"><div class="bf-page-kicker" style="justify-content:center">DISCOVER FLIXTV</div><h1 class="bf-search-title">Discover something <span>new</span></h1><form class="bf-search-form" id="bf-search-form" role="search"><span class="bf-search-icon">⌕</span><input class="bf-search-input" id="bf-search-input" type="search" value="'+safe(current.query)+'" placeholder="Search movies and TV shows…" autocomplete="off"><button class="bf-search-clear" id="bf-search-clear" type="button" aria-label="Clear search">×</button></form><div class="section-heading"><h2 id="bf-search-heading">'+(current.query?"Search results":"Trending Today")+'</h2><span class="bf-result-count" id="bf-result-count"></span></div><div class="bf-grid" id="bf-grid"><div class="bf-loading">Loading…</div></div></div>');
