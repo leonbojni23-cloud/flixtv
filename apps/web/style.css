@@ -3173,7 +3173,8 @@ html.profile-ready #brand-intro{display:none!important;}
   --flix-section-space:clamp(30px,5vw,50px);
 }
 
-/* Persistent artwork ambience: follows the active featured title while the page scrolls. */
+/* Color-responsive ambient smoke system.
+   Two buffered scenes let the cover palette and artwork crossfade together. */
 html{
   background:var(--flix-bg)!important;
   color-scheme:dark;
@@ -3186,44 +3187,137 @@ body{
 }
 #app-ambient{
   position:fixed;
-  z-index:-1;
+  z-index:0;
   inset:0;
   overflow:hidden;
   pointer-events:none;
-  background:
-    radial-gradient(ellipse at 18% 18%,rgba(88,93,30,.30),transparent 48%),
-    linear-gradient(145deg,#171b09 0%,#1e1a0d 48%,#140e0b 100%);
+  background:#080b09;
+  contain:paint;
 }
-#app-ambient .app-ambient-art{
-  position:absolute;
-  inset:-58px;
-  background-image:linear-gradient(135deg,#4a4b20,#38261a 55%,#182018);
-  background-size:cover;
-  background-position:center;
-  filter:blur(46px) saturate(1.08);
-  opacity:0;
-  transform:scale(1.16);
-  transition:opacity 1.9s cubic-bezier(.22,.61,.36,1),filter 1.9s ease,transform 18s ease-in-out;
-  will-change:opacity,transform;
-}
-#app-ambient .app-ambient-art.active{
-  opacity:.62;
-  transform:scale(1.23);
-  animation:ambientSmokeDrift 26s ease-in-out infinite alternate;
-}
-@keyframes ambientSmokeDrift{
-  0%{background-position:46% 48%;transform:scale(1.18) translate3d(-.7%,0,0)}
-  100%{background-position:56% 54%;transform:scale(1.25) translate3d(.8%,-.5%,0)}
-}
-#app-ambient .app-ambient-shade{
+#app-ambient .ambient-scene{
+  --ambient-c1:194,104,62;
+  --ambient-c2:81,111,92;
+  --ambient-c3:132,92,151;
   position:absolute;
   inset:0;
+  overflow:hidden;
+  opacity:0;
+  isolation:isolate;
   background:
-    radial-gradient(ellipse at 75% 22%,rgba(114,78,35,.13),transparent 52%),
-    linear-gradient(180deg,rgba(10,13,5,.61) 0%,rgba(13,15,7,.72) 42%,rgba(8,10,8,.83) 100%);
+    radial-gradient(ellipse at 18% 8%,rgba(var(--ambient-c1),.22),transparent 52%),
+    radial-gradient(ellipse at 82% 36%,rgba(var(--ambient-c2),.18),transparent 54%),
+    radial-gradient(ellipse at 48% 92%,rgba(var(--ambient-c3),.14),transparent 58%),
+    #080b09;
+  transition:opacity 2.8s cubic-bezier(.22,.61,.36,1);
+}
+#app-ambient .ambient-scene.active{opacity:1}
+#app-ambient .ambient-scene-art{
+  position:absolute;
+  inset:-8%;
+  background-repeat:no-repeat;
+  background-size:cover;
+  background-position:center 30%;
+  filter:blur(58px) saturate(1.35);
+  opacity:.20;
+  transform:scale(1.12);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.82) 36%,rgba(0,0,0,.22) 72%,transparent 94%);
+  mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.82) 36%,rgba(0,0,0,.22) 72%,transparent 94%);
+  transition:opacity 2.8s ease,transform 34s ease-in-out;
+}
+#app-ambient .ambient-scene.active .ambient-scene-art{
+  opacity:.25;
+  transform:scale(1.20);
+}
+#app-ambient .ambient-cloud{
+  position:absolute;
+  display:block;
+  pointer-events:none;
+  background-repeat:no-repeat;
+  filter:blur(40px) saturate(1.32);
+  mix-blend-mode:screen;
+  opacity:.48;
+  will-change:transform,opacity;
+  transform:translate3d(0,0,0) scale(1);
+}
+#app-ambient .ambient-cloud-one{
+  left:-22%;top:-12%;width:112%;height:76%;
+  background:
+    radial-gradient(ellipse at 28% 48%,rgba(var(--ambient-c1),.58) 0%,rgba(var(--ambient-c1),.22) 30%,transparent 66%),
+    radial-gradient(ellipse at 66% 34%,rgba(var(--ambient-c2),.34) 0%,transparent 58%),
+    radial-gradient(ellipse at 48% 76%,rgba(var(--ambient-c1),.22) 0%,transparent 56%);
+  animation:ambientCloudFlowOne 43s ease-in-out infinite alternate;
+}
+#app-ambient .ambient-cloud-two{
+  right:-28%;top:10%;width:112%;height:82%;
+  background:
+    radial-gradient(ellipse at 70% 38%,rgba(var(--ambient-c2),.52) 0%,rgba(var(--ambient-c2),.18) 32%,transparent 66%),
+    radial-gradient(ellipse at 34% 58%,rgba(var(--ambient-c3),.34) 0%,transparent 60%),
+    radial-gradient(ellipse at 82% 76%,rgba(var(--ambient-c1),.20) 0%,transparent 58%);
+  animation:ambientCloudFlowTwo 56s ease-in-out infinite alternate;
+}
+#app-ambient .ambient-cloud-three{
+  left:-18%;bottom:-28%;width:118%;height:78%;
+  background:
+    radial-gradient(ellipse at 34% 52%,rgba(var(--ambient-c3),.40) 0%,transparent 62%),
+    radial-gradient(ellipse at 68% 36%,rgba(var(--ambient-c1),.34) 0%,transparent 60%),
+    radial-gradient(ellipse at 54% 76%,rgba(var(--ambient-c2),.22) 0%,transparent 62%);
+  animation:ambientCloudFlowThree 64s ease-in-out infinite alternate;
+}
+@keyframes ambientCloudFlowOne{
+  0%{transform:translate3d(-2.5%,-1.5%,0) scale(.96);opacity:.38}
+  50%{opacity:.52}
+  100%{transform:translate3d(3.5%,2%,0) scale(1.09);opacity:.46}
+}
+@keyframes ambientCloudFlowTwo{
+  0%{transform:translate3d(2.5%,1%,0) scale(1.06);opacity:.34}
+  50%{opacity:.48}
+  100%{transform:translate3d(-3%,-2%,0) scale(.96);opacity:.52}
+}
+@keyframes ambientCloudFlowThree{
+  0%{transform:translate3d(-1%,2%,0) scale(1.02);opacity:.30}
+  50%{opacity:.43}
+  100%{transform:translate3d(2%,-2.5%,0) scale(1.10);opacity:.48}
+}
+#app-ambient .ambient-scene:not(.active) .ambient-cloud,
+#app-ambient .ambient-scene:not(.active) .ambient-scene-art{
+  animation-play-state:paused;
+}
+#app-ambient .ambient-shade{
+  position:absolute;
+  z-index:3;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(8,10,7,.04) 0%,transparent 52%),
+    linear-gradient(180deg,rgba(7,9,5,.10) 0%,rgba(8,10,7,.20) 46%,rgba(6,8,7,.52) 100%);
 }
 #app{
+  position:relative!important;
+  z-index:auto!important;
   background:transparent!important;
+}
+@media(max-width:760px){
+  #app-ambient .ambient-scene-art{filter:blur(52px) saturate(1.30);opacity:.17}
+  #app-ambient .ambient-scene.active .ambient-scene-art{opacity:.21}
+  #app-ambient .ambient-cloud{filter:blur(34px) saturate(1.28)}
+  #app-ambient .ambient-cloud-one{left:-34%;width:138%;height:70%}
+  #app-ambient .ambient-cloud-two{right:-38%;width:140%;height:78%}
+  #app-ambient .ambient-cloud-three{left:-30%;width:140%;height:74%}
+  #app-ambient .ambient-shade{
+    background:linear-gradient(180deg,rgba(7,9,5,.05) 0%,rgba(8,10,7,.18) 52%,rgba(6,8,7,.48) 100%);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #app-ambient .ambient-scene{transition:none!important}
+  #app-ambient .ambient-cloud,
+  #app-ambient .ambient-scene-art{animation:none!important;transform:none!important}
+}
+@media(prefers-reduced-transparency:reduce){
+  #app-ambient .ambient-cloud{opacity:.34;filter:blur(25px) saturate(1.12)}
+  #app-ambient .ambient-scene.active .ambient-scene-art{opacity:.14}
+}
+@supports not ((mix-blend-mode:screen)){
+  #app-ambient .ambient-cloud{mix-blend-mode:normal;opacity:.35}
 }
 
 /* Shared spacing, typography and surface tokens for the sections added in later steps. */
