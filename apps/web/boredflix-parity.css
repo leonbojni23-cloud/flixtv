@@ -1820,3 +1820,46 @@ body.bf-reference-mode #hero .hero-smoke-layer{display:none!important;filter:non
 body.bf-reference-mode #hero .hero-backdrop.active{animation:flix-cover-camera-motion 19s ease-in-out infinite alternate!important;will-change:transform!important}
 @media(max-width:767px){body.bf-reference-mode #hero .hero-smoke-stage{inset:-9% -12% -1%!important}body.bf-reference-mode #hero .hero-smoke-canvas{opacity:.88!important}body.bf-reference-mode #hero .hero-backdrop.active{animation-duration:22s!important}}
 @media(prefers-reduced-motion:reduce){body.bf-reference-mode #hero .hero-backdrop.active{animation:none!important;transform:scale(1.08)!important}}
+
+
+/* Smoke belongs UNDER the Hero cover: it rises from the cover's lower edge,
+   rather than sitting as a translucent layer over the artwork. */
+body.bf-reference-mode #hero .hero-backdrop {
+  inset: 0 0 auto 0 !important;
+  height: 82% !important;
+  z-index: 2 !important;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, rgba(0,0,0,.92) 76%, rgba(0,0,0,.48) 89%, transparent 100%) !important;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 65%, rgba(0,0,0,.92) 76%, rgba(0,0,0,.48) 89%, transparent 100%) !important;
+}
+body.bf-reference-mode #hero .hero-backdrop::after {
+  background:
+    linear-gradient(90deg,rgb(var(--hero-background-rgb,8,9,13) / .24) 0%,transparent 74%),
+    linear-gradient(180deg,transparent 44%,rgb(var(--hero-background-rgb,8,9,13) / .12) 64%,rgb(var(--hero-background-rgb,8,9,13) / .76) 100%) !important;
+}
+body.bf-reference-mode #hero .hero-smoke-stage {
+  inset: auto -5% 0 !important;
+  height: 43% !important;
+  z-index: 1 !important;
+  overflow: visible !important;
+}
+body.bf-reference-mode #hero .hero-smoke-canvas {
+  inset: -28% 0 0 !important;
+  height: 128% !important;
+  opacity: 1 !important;
+  mix-blend-mode: screen !important;
+}
+body.bf-reference-mode #hero .hero-content {
+  z-index: 4 !important;
+}
+@media (max-width: 767px) {
+  body.bf-reference-mode #hero .hero-backdrop {
+    height: 73% !important;
+    background-position: right top !important;
+    -webkit-mask-image: linear-gradient(to bottom,#000 0%,#000 62%,rgba(0,0,0,.86) 77%,rgba(0,0,0,.38) 91%,transparent 100%) !important;
+    mask-image: linear-gradient(to bottom,#000 0%,#000 62%,rgba(0,0,0,.86) 77%,rgba(0,0,0,.38) 91%,transparent 100%) !important;
+  }
+  body.bf-reference-mode #hero .hero-smoke-stage {
+    inset: auto -10% 0 !important;
+    height: 46% !important;
+  }
+}
