@@ -2698,7 +2698,7 @@ if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);else
 
 window.FLIXTV_BRIDGE={
  openPage:function(page,updateHistory){return openPage(page,updateHistory!==false)},
- openTitle:function(item){if(!item||!item.id)return;var panel=document.getElementById("bf-route-page");if(panel)panel.hidden=true;var url=pageUrl(item);if(location.pathname!==url)history.pushState({titlePage:true},"",url);return openTitlePage(item,true,false)},
+ openTitle:function(item){if(!item||!item.id)return;var panel=document.getElementById("bf-route-page");if(panel)panel.hidden=true;return openTitlePage(item,true,false)},
  play:function(item,season,episode){return play(item,season,episode)},
  library:function(){return {profileId:activeWatchProfile&&activeWatchProfile.id||"main",saved:readHeroSavedItems(),progress:readWatchProgress()}},
  markWatched:function(item){try{var key="flxtv:watched:v1:"+(activeWatchProfile&&activeWatchProfile.id||"main");var list=JSON.parse(localStorage.getItem(key)||"[]");if(!Array.isArray(list))list=[];var id=String(item&&item.id||"");list=list.filter(function(x){return !(String(x.id)===id&&kind(x)===kind(item))});list.unshift({id:item.id,media_type:kind(item),title:title(item),name:title(item),poster_path:item.poster_path||"",backdrop_path:item.backdrop_path||"",watchedAt:Date.now(),vote_average:item.vote_average||0});localStorage.setItem(key,JSON.stringify(list.slice(0,500)))}catch(error){console.warn("[FLIXTV] Could not store watched title",error)}},
