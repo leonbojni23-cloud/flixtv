@@ -664,71 +664,83 @@ function showHero(index){
  const nextLayer=heroLayer===0?1:0;
  const next=$(nextLayer===0?"hero-bg-a":"hero-bg-b");
  const current=$(heroLayer===0?"hero-bg-a":"hero-bg-b");
- const path=item.backdrop_path||item.poster_path;
- const imageUrl=IMG+"original"+path;
- const image='url("'+imageUrl+'")';
+ const path=item.backdrop_path;
+ if(!path){
+  notice("Ky titull nuk ka fotografi horizontale për Hero.");
+  return;
+ }
+ const originalUrl=IMG+"original"+path;
+ const fallbackUrl=IMG+"w1280"+path;
  const hero=$("hero");
- next.style.backgroundImage=image;
- next.style.backgroundSize="cover";
- next.style.setProperty("--hero-position",heroFocusPosition(item));
- next.style.backgroundColor="#202518";
- next.classList.add("active");
- current.classList.remove("active");
- heroLayer=nextLayer;
- hero.dataset.mediaType=kind(item);
- hero.style.backgroundImage="none";
- document.querySelector("header.topbar").style.setProperty("--header-art",image);
  const preload=new Image();
- preload.onload=()=>{
-  if(request!==showHero.requestId)return;
-  next.style.backgroundImage=image;
-  const paletteImagePath="/t/p/original"+path;
-  const paletteImageUrl="/api/tmdb-image.js?path="+encodeURIComponent(paletteImagePath);
-  void updateAmbientScene(imageUrl,paletteImageUrl,request);
- };
+ preload.decoding="async";
+ preload.onload=()=>commitHero(originalUrl);
  preload.onerror=()=>{
   if(request!==showHero.requestId)return;
-  const fallback="linear-gradient(135deg,#303b27,#171b11)";
-  next.style.backgroundImage=fallback;
-  void updateAmbientScene(null,null,request);
- };
- preload.src=imageUrl;
- $("hero-content").classList.add("changing");
- clearTimeout(showHero.contentTimer);
- showHero.contentTimer=setTimeout(()=>{
-  if(request!==showHero.requestId)return;
-  const heading=$("hero-title"),logo=$("hero-title-logo");
-  heading.textContent=title(item);
-  heading.hidden=false;
-  logo.hidden=true;
-  logo.removeAttribute("src");
-  if(item.vote_average&&Number(item.vote_average)>0){
-   $("hero-rating").textContent=Number(item.vote_average).toFixed(1);
-   $("hero-rating-item").hidden=false;
-  }else $("hero-rating-item").hidden=true;
-  const releaseYear=year(item);
-  $("hero-year").textContent=releaseYear;
-  $("hero-year-item").hidden=!releaseYear;
-  const genre=heroGenreLabel(item);
-  $("hero-genre").textContent=genre;
-  $("hero-genre-item").hidden=!genre;
-  $("hero-eyebrow").hidden=true;
-  $("hero-play").onclick=()=>{
-   try{
-    const result=play(item);
-    if(result&&typeof result.catch==="function")result.catch(error=>notice(error.message||"Nuk u hap player-i."));
-   }catch(error){notice(error.message||"Nuk u hap player-i.")}
+  const fallback=new Image();
+  fallback.decoding="async";
+  fallback.onload=()=>commitHero(fallbackUrl);
+  fallback.onerror=()=>{
+   if(request!==showHero.requestId)return;
+   notice("Fotografia e Hero nuk u ngarkua. Po ruaj titullin aktual për të shmangur mospërputhjen.");
   };
-  $("hero-info").onclick=()=>openTitlePage(item,true,false);
-  $("hero-add").onclick=()=>toggleHeroSaved(item);
-  renderHeroSaveButton(item);
-  void applyHeroLogo(item,request);
-  $("hero-overview").textContent=item.overview||"Po përgatitet përshkrimi…";
-  getAlbanianOverview(item,kind(item)).then(translated=>{
-   if(request===showHero.requestId&&translated)$("hero-overview").textContent=translated;
-  }).catch(()=>{});
-  requestAnimationFrame(()=>$("hero-content").classList.remove("changing"));
- },180);
+  fallback.src=fallbackUrl;
+ };
+ function commitHero(loadedUrl){
+  if(request!==showHero.requestId)return;
+  const image='url("'+loadedUrl+'")';
+  next.style.backgroundImage=image;
+  next.style.backgroundSize="cover";
+  next.style.backgroundPosition=heroFocusPosition(item);
+  next.style.setProperty("--hero-position",heroFocusPosition(item));
+  next.style.backgroundColor="#202518";
+  next.classList.add("active");
+  current.classList.remove("active");
+  heroLayer=nextLayer;
+  hero.dataset.mediaType=kind(item);
+  hero.style.backgroundImage="none";
+  document.querySelector("header.topbar").style.setProperty("--header-art",image);
+  const paletteImagePath="/t/p/"+(loadedUrl===originalUrl?"original":"w1280")+path;
+  const paletteImageUrl="/api/tmdb-image.js?path="+encodeURIComponent(paletteImagePath);
+  void updateAmbientScene(loadedUrl,paletteImageUrl,request);
+  $("hero-content").classList.add("changing");
+  clearTimeout(showHero.contentTimer);
+  showHero.contentTimer=setTimeout(()=>{
+   if(request!==showHero.requestId)return;
+   const heading=$("hero-title"),logo=$("hero-title-logo");
+   heading.textContent=title(item);
+   heading.hidden=false;
+   logo.hidden=true;
+   logo.removeAttribute("src");
+   if(item.vote_average&&Number(item.vote_average)>0){
+    $("hero-rating").textContent=Number(item.vote_average).toFixed(1);
+    $("hero-rating-item").hidden=false;
+   }else $("hero-rating-item").hidden=true;
+   const releaseYear=year(item);
+   $("hero-year").textContent=releaseYear;
+   $("hero-year-item").hidden=!releaseYear;
+   const genre=heroGenreLabel(item);
+   $("hero-genre").textContent=genre;
+   $("hero-genre-item").hidden=!genre;
+   $("hero-eyebrow").hidden=true;
+   $("hero-play").onclick=()=>{
+    try{
+     const result=play(item);
+     if(result&&typeof result.catch==="function")result.catch(error=>notice(error.message||"Nuk u hap player-i."));
+    }catch(error){notice(error.message||"Nuk u hap player-i.")}
+   };
+   $("hero-info").onclick=()=>openTitlePage(item,true,false);
+   $("hero-add").onclick=()=>toggleHeroSaved(item);
+   renderHeroSaveButton(item);
+   void applyHeroLogo(item,request);
+   $("hero-overview").textContent=item.overview||"Po përgatitet përshkrimi…";
+   getAlbanianOverview(item,kind(item)).then(translated=>{
+    if(request===showHero.requestId&&translated)$("hero-overview").textContent=translated;
+   }).catch(()=>{});
+   requestAnimationFrame(()=>$("hero-content").classList.remove("changing"));
+  },180);
+ }
+ preload.src=originalUrl;
 }
 showHero.requestId=0;
 function startHeroTimer(){
@@ -1292,11 +1304,11 @@ async function home(){
   try{
    let data=await tmdb("/trending/all/week");
    let candidates=(data&&data.results)||[];
-   heroItems=candidates.filter(item=>(item.media_type==="movie"||item.media_type==="tv"||item.title||item.name)&&(item.backdrop_path||item.poster_path)).slice(0,8);
+   heroItems=candidates.filter(item=>(item.media_type==="movie"||item.media_type==="tv")&&item.backdrop_path).slice(0,8);
    if(!heroItems.length){
     data=await tmdb("/movie/popular");
     candidates=(data&&data.results)||[];
-    heroItems=candidates.filter(item=>item.backdrop_path||item.poster_path).slice(0,8);
+    heroItems=candidates.filter(item=>item.backdrop_path).slice(0,8);
    }
    renderHeroDots();
    if(heroItems.length){
