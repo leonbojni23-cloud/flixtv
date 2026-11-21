@@ -75,18 +75,15 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       float density=smoothstep(-0.48,0.38,cloud)*envelope;
       density=clamp(density,0.0,1.0);
 
-      float colorMix=smoothstep(-0.42,0.42,cloudA);
-      vec3 palette=mix(uColorA,uColorB,colorMix);
-      palette=mix(palette,uColorC,smoothstep(-0.12,0.52,cloudB)*0.28);
-
-      // Lift the palette toward a luminous blue-violet haze, never black.
-      vec3 haze=mix(palette,vec3(0.34,0.38,0.58),0.24);
-      haze*=1.08;
+      // Keep the dominant cover hue as the identity of the entire smoke field.
+      vec3 palette=uColorA;
+      vec3 shade=mix(uColorB,uColorC,smoothstep(-0.25,0.42,cloudB));
+      palette=mix(palette,shade,0.28+0.22*smoothstep(-0.3,0.45,cloudA));
       float softGlow=exp(-length((vUv-vec2(0.52,0.46))*vec2(0.72,0.62))*1.25);
-      vec3 smoke=haze+vec3(0.045,0.055,0.105)*softGlow*density;
+      vec3 smoke=palette*(0.88+0.34*density)+uColorC*softGlow*density*0.12;
 
-      // Low opacity lets the app's dark base show through like the reference.
-      float alpha=density*(0.20+softGlow*0.035)*uOpacity;
+      // Stronger color presence: broad smoke clouds visibly carry the cover's hue.
+      float alpha=density*(0.34+softGlow*0.055)*uOpacity;
       gl_FragColor=vec4(smoke,alpha);
     }
   `;
