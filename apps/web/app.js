@@ -471,9 +471,10 @@ function ensureHeroSmokeStage(){
    st.last=now;st.time+=.018;const w=canvas.width,h=canvas.height,p=st.palette,t=st.time,frame=context.createImageData(w,h),data=frame.data;
    for(let y=0;y<h;y++){const ny=y/h;for(let x=0;x<w;x++){const nx=x/w;
     const wx=(fbm(nx*2.1+31+t*.19,ny*2+7-t*.08)-.5)*1.25,wy=(fbm(nx*2.4-13-t*.11,ny*2.8+21+t*.14)-.5)*.92;
-    const sx=(nx+wx)*3.15+t*.13,sy=(ny+wy)*2.25-t*.085,broad=fbm(sx*9,sy*9),detail=fbm(sx*18+43,sy*17-19),filaments=1-Math.abs(2*broad-1);
-    const density=smooth(.52,.82,filaments*(.66+detail*.56)),rising=smooth(.04,.30,ny)*(1-smooth(.82,1.08,ny)),plume=smooth(.04,.95,1-Math.abs(nx-.5)*1.78);
-    const alpha=Math.min(142,Math.max(0,(density-.10)*210*rising*plume));if(alpha<1)continue;
+    const sx=(nx+wx)*3.15+t*.13,sy=(ny+wy)*2.25-t*.085;
+    const broad=fbm(sx*5.2,sy*3.7),detail=fbm(sx*13+43,sy*11-19),filaments=1-Math.abs(2*detail-1);
+    const density=smooth(.43,.66,broad+(filaments-.5)*.18),rising=smooth(.04,.30,ny)*(1-smooth(.86,1.08,ny)),plume=smooth(.04,.95,1-Math.abs(nx-.5)*1.78);
+    const alpha=Math.min(158,Math.max(0,(density-.08)*238*(.52+detail*.62)*rising*plume));if(alpha<1)continue;
     const mix=Math.max(0,Math.min(1,detail*.85+ny*.12)),a=p[0],b=p[1],c=p[2],i=(y*w+x)*4;
     data[i]=Math.min(255,a[0]*(1-mix)*.52+b[0]*mix*.42+c[0]*.16+18);data[i+1]=Math.min(255,a[1]*(1-mix)*.52+b[1]*mix*.42+c[1]*.16+18);data[i+2]=Math.min(255,a[2]*(1-mix)*.52+b[2]*mix*.42+c[2]*.16+22);data[i+3]=alpha;
    }}
