@@ -32,6 +32,7 @@ function showOnly(page){
 }
 function routeUrl(page,provider){if(page==="movies")return"/browse/movies";if(page==="shows")return"/browse/tv";if(page==="library")return"/library";if(page==="search")return"/search";if(page==="sports")return"/sports";if(page==="provider")return"/browse/provider/"+provider;return"/"}
 function navigate(page,provider,query,replace){
+ if(page!=="search")clearTimeout(current.searchTimer);
  if(page==="search"&&query!=null)current.query=query;
  var url=routeUrl(page,provider)+(page==="search"&&current.query?"?q="+encodeURIComponent(current.query):"");
  if(location.pathname+location.search!==url){
@@ -102,6 +103,7 @@ async function loadProviderResults(reset,forced){
 async function renderProvider(s){
  var providers=current.providerData;if(!providers||!providers.length){try{providers=await loadProviders();current.providerData=providers}catch(_){providers=[]}}
  var p=typeof s==="string"?findProvider(s):s;if(!p&&typeof s==="string"){var q=s.replace(/-/g," ");p=providers.find(function(x){return x.provider_name.toLowerCase().indexOf(q)>=0})}
+ if(current.page!=="provider")return;
  if(!p){setPanel('<div class="bf-page-inner"><div class="bf-empty">This streaming service is not available for Albania in the current TMDB catalogue.</div></div>');return}
  current.provider=p;current.media="movie";current.pageNo=0;resetFilters();setPanel(providerMarkup(p,providers));
  doc.querySelectorAll(".bf-service-chip").forEach(function(b){b.onclick=function(){navigate("provider",b.getAttribute("data-provider"))}});
