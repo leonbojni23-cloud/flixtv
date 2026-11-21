@@ -205,7 +205,7 @@ function shader(){
 function install(){
  doc.body.classList.add("bf-reference-mode");ensurePanel().hidden=true;installHeader();reorderHome();shader();
  var intent=window.__FLIXTV_ROUTE_INTENT,params=new URLSearchParams(location.search);
- if(intent){current.query=intent.query||"";var initialUrl=routeUrl(intent.page,intent.provider)+(intent.page==="search"&&current.query?"?q="+encodeURIComponent(current.query):"");history.replaceState({flixView:{page:"home",sports:false,search:false,scrollY:0},bfRoute:intent},"",initialUrl);render(intent.page,intent.provider,intent.query)};
+ if(intent){current.query=intent.query||"";var initialUrl=routeUrl(intent.page,intent.provider)+(intent.page==="search"&&current.query?"?q="+encodeURIComponent(current.query):"");history.replaceState({flixView:{page:"home",sports:false,search:false,scrollY:0},bfRoute:intent},"",initialUrl);render(intent.page,intent.provider,intent.query)}
  else if(location.pathname==="/sports")render("sports");
  else if(location.pathname.indexOf("/browse/provider/")===0)render("provider",location.pathname.split("/").pop());
  else if(location.pathname==="/browse/movies")render("movies");
