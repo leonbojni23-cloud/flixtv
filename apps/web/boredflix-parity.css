@@ -1810,3 +1810,13 @@ body.bf-reference-mode #hero .hero-smoke-layer.is-active {
     filter: blur(19px) saturate(1.5) !important;
   }
 }
+
+
+/* Actual turbulent smoke pixels animated on canvas, not blurred colour blobs. */
+body.bf-reference-mode #hero .hero-smoke-stage{position:absolute!important;inset:-12% -8% -2%!important;z-index:2!important;display:block!important;overflow:hidden!important;pointer-events:none!important;opacity:1!important;isolation:isolate!important}
+body.bf-reference-mode #hero .hero-smoke-canvas{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;opacity:.92!important;image-rendering:auto!important;filter:none!important;mix-blend-mode:screen!important;transform:scale(1.04)!important}
+body.bf-reference-mode #hero .hero-smoke-layer{display:none!important;filter:none!important;animation:none!important}
+@keyframes flix-cover-camera-motion{0%{transform:scale(1.075) translate3d(1.8%,.4%,0)}50%{transform:scale(1.155) translate3d(-2.2%,-.8%,0)}100%{transform:scale(1.105) translate3d(1.5%,.5%,0)}}
+body.bf-reference-mode #hero .hero-backdrop.active{animation:flix-cover-camera-motion 19s ease-in-out infinite alternate!important;will-change:transform!important}
+@media(max-width:767px){body.bf-reference-mode #hero .hero-smoke-stage{inset:-9% -12% -1%!important}body.bf-reference-mode #hero .hero-smoke-canvas{opacity:.88!important}body.bf-reference-mode #hero .hero-backdrop.active{animation-duration:22s!important}}
+@media(prefers-reduced-motion:reduce){body.bf-reference-mode #hero .hero-backdrop.active{animation:none!important;transform:scale(1.08)!important}}
