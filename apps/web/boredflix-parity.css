@@ -1522,3 +1522,198 @@ body.bf-reference-mode #hero .hero-dots {
 @media (prefers-reduced-motion: reduce) {
   body.bf-reference-mode #hero .hero-smoke-layer { animation: none !important; transition: none !important; }
 }
+
+
+/* BoredFlix-inspired Home atmosphere: keep the active cover's colour and smoke
+   flowing behind Browse by Service and Top 10 instead of ending at the Hero. */
+html { background: #08090d !important; }
+body.bf-reference-mode {
+  background-color: transparent !important;
+  background-image:
+    radial-gradient(ellipse at 18% 24%, rgb(var(--hero-smoke-one, 80,92,110) / .16), transparent 48%),
+    radial-gradient(ellipse at 82% 18%, rgb(var(--hero-smoke-two, 74,82,105) / .13), transparent 45%),
+    radial-gradient(ellipse at 54% 82%, rgb(var(--hero-smoke-three, 95,82,111) / .10), transparent 52%) !important;
+  background-attachment: fixed !important;
+}
+body.bf-reference-mode #app-ambient {
+  display: block !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  opacity: 1 !important;
+  background: #08090d !important;
+}
+body.bf-reference-mode #app-ambient .ambient-scene {
+  background:
+    radial-gradient(ellipse at 18% 8%, rgba(var(--ambient-c1),.34), transparent 54%),
+    radial-gradient(ellipse at 82% 36%, rgba(var(--ambient-c2),.29), transparent 56%),
+    radial-gradient(ellipse at 48% 92%, rgba(var(--ambient-c3),.24), transparent 60%),
+    #080b09 !important;
+}
+body.bf-reference-mode #app-ambient .ambient-scene-art {
+  opacity: .31 !important;
+  filter: blur(58px) saturate(1.55) contrast(1.04) !important;
+}
+body.bf-reference-mode #app-ambient .ambient-scene.active .ambient-scene-art {
+  opacity: .40 !important;
+  transform: scale(1.24) !important;
+}
+body.bf-reference-mode #app-ambient .ambient-cloud {
+  opacity: .62 !important;
+  filter: blur(42px) saturate(1.5) !important;
+}
+body.bf-reference-mode #app-ambient .ambient-shade {
+  background:
+    linear-gradient(180deg, rgba(5,7,11,.06) 0%, rgba(5,7,11,.10) 40%, rgba(5,7,11,.23) 100%) !important;
+}
+body.bf-reference-mode #hero.hero {
+  background: transparent !important;
+}
+body.bf-reference-mode #hero .hero-backdrop::after {
+  background:
+    linear-gradient(90deg, rgba(5,7,11,.68) 0%, rgba(5,7,11,.34) 34%, rgba(5,7,11,.08) 67%, transparent 86%),
+    linear-gradient(180deg, rgba(5,7,11,.04) 0%, transparent 43%, rgba(var(--hero-background-rgb,8,9,13) / .20) 73%, rgba(var(--hero-background-rgb,8,9,13) / .42) 100%) !important;
+}
+body.bf-reference-mode #hero.hero::before {
+  background:
+    linear-gradient(90deg, rgba(5,7,11,.46) 0%, rgba(5,7,11,.18) 48%, transparent 82%),
+    linear-gradient(180deg, transparent 0%, transparent 58%, rgba(var(--hero-background-rgb,8,9,13) / .12) 100%) !important;
+}
+body.bf-reference-mode #home-page,
+body.bf-reference-mode #catalog {
+  background: transparent !important;
+}
+body.bf-reference-mode #home-page .content-section {
+  background: transparent !important;
+}
+
+/* Streaming logos are the tiles: remove the extra inset glass box. */
+body.bf-reference-mode #home-page .service-section {
+  padding-top: 22px !important;
+}
+body.bf-reference-mode #home-page .service-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 15px !important;
+  padding: 3px 0 13px !important;
+}
+body.bf-reference-mode #home-page .service-card {
+  flex: 0 0 78px !important;
+  width: 78px !important;
+  gap: 8px !important;
+}
+body.bf-reference-mode #home-page .service-logo-tile {
+  display: block !important;
+  width: 78px !important;
+  height: 78px !important;
+  aspect-ratio: 1 / 1 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 23px !important;
+  background: transparent !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.24) !important;
+}
+body.bf-reference-mode #home-page .service-logo-tile img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  border-radius: 23px !important;
+  filter: none !important;
+}
+body.bf-reference-mode #home-page .service-card-label {
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  color: rgba(255,255,255,.72) !important;
+  font-weight: 550 !important;
+}
+
+/* Top 10: larger outlined ranks sit behind compact portrait artwork. */
+body.bf-reference-mode #home-page .top10-row {
+  gap: 24px !important;
+  padding: 8px 0 17px !important;
+}
+body.bf-reference-mode #home-page .top10-card {
+  flex: 0 0 174px !important;
+  width: 174px !important;
+  min-width: 174px !important;
+  gap: 7px !important;
+}
+body.bf-reference-mode #home-page .top10-media {
+  height: 184px !important;
+  gap: 0 !important;
+  align-items: flex-end !important;
+}
+body.bf-reference-mode #home-page .top10-rank {
+  position: relative !important;
+  z-index: 2 !important;
+  flex: 0 0 54px !important;
+  width: 54px !important;
+  min-width: 54px !important;
+  max-width: 54px !important;
+  margin-right: -9px !important;
+  transform: translateY(-11px) !important;
+  font-size: 94px !important;
+  line-height: .72 !important;
+  letter-spacing: -.10em !important;
+  -webkit-text-stroke: 2.6px rgba(255,255,255,.34) !important;
+  text-shadow: 0 7px 18px rgba(0,0,0,.24) !important;
+}
+body.bf-reference-mode #home-page .top10-rank.is-double-digit {
+  font-size: 55px !important;
+}
+body.bf-reference-mode #home-page .top10-art {
+  position: relative !important;
+  z-index: 1 !important;
+  flex: 0 0 120px !important;
+  width: 120px !important;
+  min-width: 120px !important;
+  height: 180px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 9px 24px rgba(0,0,0,.25) !important;
+}
+body.bf-reference-mode #home-page .top10-poster {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: inherit !important;
+}
+body.bf-reference-mode #home-page .top10-caption {
+  padding-left: 45px !important;
+  font-size: 10px !important;
+}
+@media (max-width: 767px) {
+  body.bf-reference-mode #home-page {
+    margin-top: -3vh !important;
+    padding-bottom: 90px !important;
+  }
+  body.bf-reference-mode #home-page .content-section {
+    padding: 17px var(--bf-gutter) 22px !important;
+  }
+  body.bf-reference-mode #home-page .section-heading {
+    margin-bottom: 17px !important;
+  }
+  body.bf-reference-mode #home-page .section-heading h2 {
+    font-size: 18px !important;
+    letter-spacing: -.035em !important;
+  }
+  body.bf-reference-mode #home-page .service-section {
+    padding-top: 19px !important;
+  }
+  body.bf-reference-mode #home-page .service-row {
+    gap: 15px !important;
+  }
+  body.bf-reference-mode #home-page .top10-row {
+    gap: 22px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.bf-reference-mode #app-ambient .ambient-scene,
+  body.bf-reference-mode #app-ambient .ambient-cloud,
+  body.bf-reference-mode #app-ambient .ambient-scene-art {
+    animation: none !important;
+    transition: none !important;
+  }
+}
