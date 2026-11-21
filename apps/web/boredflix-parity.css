@@ -2110,12 +2110,15 @@ body.bf-reference-mode #title-page{background:transparent!important}
 }
 
 
-/* Cover-only zoom: enlarge the Hero artwork without moving or resizing its content. */
-body.bf-reference-mode #hero .hero-backdrop{
-  background-size:112% 112%!important;
-}
+
+/* Extend only the Hero artwork farther down; keep all copy and controls anchored. */
 @media(max-width:767px){
   body.bf-reference-mode #hero .hero-backdrop{
-    background-size:116% 116%!important;
+    height:88%!important;
+    inset:0 0 auto!important;
+    background-size:cover!important;
+    background-position:center 26%!important;
+    -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 76%,rgba(0,0,0,.88) 88%,rgba(0,0,0,.30) 97%,transparent 100%)!important;
+    mask-image:linear-gradient(to bottom,#000 0%,#000 76%,rgba(0,0,0,.88) 88%,rgba(0,0,0,.30) 97%,transparent 100%)!important;
   }
 }
