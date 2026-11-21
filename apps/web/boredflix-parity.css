@@ -1775,3 +1775,38 @@ body.bf-reference-mode #app-ambient .ambient-cloud-three {
     opacity: .66 !important;
   }
 }
+
+
+/* Turbulent wisps: distort the tinted smoke plumes instead of showing soft orbs. */
+.flix-smoke-filters {
+  position: fixed !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+body.bf-reference-mode #hero .hero-smoke-stage {
+  inset: -22% -18% !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+}
+body.bf-reference-mode #hero .hero-smoke-layer {
+  filter: url(#flix-smoke-turbulence) blur(17px) saturate(1.72) contrast(1.14) !important;
+  background-size: 155% 155% !important;
+  mix-blend-mode: screen !important;
+  transition: opacity 5.5s cubic-bezier(.22,.61,.36,1) !important;
+}
+body.bf-reference-mode #hero .hero-smoke-layer.is-active {
+  opacity: .94 !important;
+}
+@media (max-width: 767px) {
+  body.bf-reference-mode #hero .hero-smoke-layer {
+    filter: url(#flix-smoke-turbulence) blur(14px) saturate(1.58) contrast(1.10) !important;
+    background-size: 165% 165% !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.bf-reference-mode #hero .hero-smoke-layer {
+    filter: blur(19px) saturate(1.5) !important;
+  }
+}
