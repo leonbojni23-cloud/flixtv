@@ -1,9 +1,14 @@
 name: Web syntax check
 on:
   push:
+    branches: [main, feature/boredflix-visual-parity]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/web-syntax.yml"
+  pull_request:
     branches: [main]
     paths:
-      - "apps/web/app.js"
+      - "apps/web/**"
       - ".github/workflows/web-syntax.yml"
 jobs:
   check:
@@ -13,4 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node --check apps/web/app.js
+      - name: Validate FLIXTV browser JavaScript
+        run: |
+          node --check apps/web/app.js
+          node --check apps/web/boredflix-parity.js
