@@ -508,6 +508,13 @@ html.bf-inner-route #hero{display:none!important}
   gap:0!important;
   height:260px!important;
 }
+/* Rank 1 sits clearly below its poster; the remaining ranks tuck farther behind their posters. */
+#home-page .top10-card:first-child .top10-media{
+  height:286px!important;
+}
+#home-page .top10-card:not(:first-child) .top10-rank{
+  transform:translateX(18px)!important;
+}
 #home-page .top10-rank{
   position:relative!important;
   z-index:1!important;
@@ -534,6 +541,8 @@ html.bf-inner-route #hero{display:none!important}
 }
 @media(max-width:767px){
   #home-page .top10-media{gap:0!important;height:210px!important}
+  #home-page .top10-card:first-child .top10-media{height:228px!important}
+  #home-page .top10-card:not(:first-child) .top10-rank{transform:translateX(16px)!important}
   #home-page .top10-rank{
     flex-basis:70px!important;
     width:70px!important;
