@@ -1717,3 +1717,61 @@ body.bf-reference-mode #home-page .top10-caption {
     transition: none !important;
   }
 }
+
+
+/* Seamless Hero-to-page transition: fade the cover into the live palette,
+   rather than ending the artwork on a hard horizontal edge. */
+body.bf-reference-mode #hero .hero-backdrop {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 48%,
+    rgba(0,0,0,.96) 58%,
+    rgba(0,0,0,.78) 69%,
+    rgba(0,0,0,.42) 82%,
+    transparent 100%
+  ) !important;
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 48%,
+    rgba(0,0,0,.96) 58%,
+    rgba(0,0,0,.78) 69%,
+    rgba(0,0,0,.42) 82%,
+    transparent 100%
+  ) !important;
+}
+body.bf-reference-mode #hero .hero-backdrop::after {
+  background:
+    linear-gradient(90deg, rgba(5,7,11,.68) 0%, rgba(5,7,11,.34) 34%, rgba(5,7,11,.08) 67%, transparent 86%),
+    linear-gradient(180deg,
+      rgba(5,7,11,.04) 0%,
+      transparent 38%,
+      rgba(var(--hero-background-rgb,8,9,13) / .24) 62%,
+      rgba(var(--hero-background-rgb,8,9,13) / .68) 82%,
+      rgba(var(--hero-background-rgb,8,9,13) / .92) 100%
+    ) !important;
+}
+body.bf-reference-mode #app-ambient .ambient-cloud {
+  opacity: .72 !important;
+  filter: blur(48px) saturate(1.62) contrast(1.05) !important;
+}
+body.bf-reference-mode #app-ambient .ambient-cloud-one {
+  animation-duration: 22s !important;
+}
+body.bf-reference-mode #app-ambient .ambient-cloud-two {
+  animation-duration: 27s !important;
+}
+body.bf-reference-mode #app-ambient .ambient-cloud-three {
+  animation-duration: 32s !important;
+}
+@media (max-width: 767px) {
+  body.bf-reference-mode #hero .hero-backdrop {
+    -webkit-mask-image: linear-gradient(to bottom,#000 0%,#000 44%,rgba(0,0,0,.9) 61%,rgba(0,0,0,.55) 80%,transparent 100%) !important;
+    mask-image: linear-gradient(to bottom,#000 0%,#000 44%,rgba(0,0,0,.9) 61%,rgba(0,0,0,.55) 80%,transparent 100%) !important;
+  }
+  body.bf-reference-mode #app-ambient .ambient-cloud {
+    filter: blur(38px) saturate(1.5) !important;
+    opacity: .66 !important;
+  }
+}
