@@ -490,7 +490,7 @@ function ensurePageSmokeCanvas(){
  let canvas=ambient.querySelector(".page-smoke-canvas");
  if(!canvas){
   canvas=document.createElement("canvas");canvas.className="page-smoke-canvas";
-  canvas.setAttribute("aria-hidden","true");canvas.width=112;canvas.height=200;ambient.appendChild(canvas);
+  canvas.setAttribute("aria-hidden","true");canvas.width=168;canvas.height=300;ambient.appendChild(canvas);
  }
  if(!pageSmokeState||pageSmokeState.canvas!==canvas){
   const context=canvas.getContext("2d",{alpha:true,desynchronized:true});if(!context)return null;
@@ -499,7 +499,7 @@ function ensurePageSmokeCanvas(){
   const noise=(x,y)=>{x=((x%size)+size)%size;y=((y%size)+size)%size;const x0=Math.floor(x),y0=Math.floor(y),x1=(x0+1)&127,y1=(y0+1)&127,fx=x-x0,fy=y-y0,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),a=grid[y0*size+x0],b=grid[y0*size+x1],c=grid[y1*size+x0],d=grid[y1*size+x1];return(a+(b-a)*sx)*(1-sy)+(c+(d-c)*sx)*sy;};
   const fbm=(x,y)=>{let sum=0,w=.58,total=0;for(let o=0;o<3;o++){sum+=noise(x,y)*w;total+=w;x=x*2.02+13.7;y=y*2.01-8.3;w*=.5;}return sum/total;};
   const smooth=(a,b,v)=>{const q=Math.max(0,Math.min(1,(v-a)/(b-a)));return q*q*(3-2*q);};
-  pageSmokeState={canvas,context,palette:[[125,94,82],[83,108,112],[119,91,137]],time:0,last:0,raf:0,fbm,smooth};
+  pageSmokeState={canvas,context,palette:[[125,94,82],[83,108,112],[119,91,137]],targetPalette:[[125,94,82],[83,108,112],[119,91,137]],time:0,last:0,raf:0,fbm,smooth};
   const render=now=>{
    const st=pageSmokeState;if(!st||st.canvas!==canvas)return;
    if(document.hidden){st.raf=requestAnimationFrame(render);return;}
@@ -508,15 +508,15 @@ function ensurePageSmokeCanvas(){
    const w=canvas.width,h=canvas.height,t=st.time,p=st.palette,frame=context.createImageData(w,h),data=frame.data;
    for(let y=0;y<h;y++){const ny=y/h;for(let x=0;x<w;x++){const nx=x/w;
     // Broad, gently rising currents with fine filament detail: slow liquid-smoke motion.
-    const bend=(fbm(nx*2.1+11+t*.10,ny*2.0-7-t*.045)-.5)*.82;
-    const flow=(fbm(nx*1.35-5-t*.055,ny*2.4+17+t*.065)-.5)*.52;
-    const sx=(nx+bend)*3.0+t*.045,sy=(ny+flow)*2.05-t*.035;
-    const body=fbm(sx*3.2,sy*3.0),detail=fbm(sx*8.0+29,sy*7.2-13);
+    const bend=(fbm(nx*1.8+11+t*.075,ny*1.8-7-t*.035)-.5)*1.12;
+    const flow=(fbm(nx*1.15-5-t*.04,ny*2.0+17+t*.045)-.5)*.76;
+    const sx=(nx+bend)*2.65+t*.035,sy=(ny+flow)*1.85-t*.025;
+    const body=fbm(sx*2.7,sy*2.55),detail=fbm(sx*6.5+29,sy*5.8-13);
     const filaments=1-Math.abs(detail*2-1);
-    const ribbons=smooth(.49,.69,body+(filaments-.5)*.17);
+    const ribbons=smooth(.43,.64,body+(filaments-.5)*.13);
     const vertical=smooth(.015,.20,ny)*(1-smooth(.94,1.08,ny));
     const side=smooth(-.04,.24,nx)*(1-smooth(.76,1.04,nx));
-    const alpha=Math.min(208,Math.max(0,(ribbons-.17)*268*vertical*side*(.78+detail*.48)));
+    const alpha=Math.min(232,Math.max(0,(ribbons-.12)*330*vertical*side*(.82+detail*.52)));
     if(alpha<1)continue;
     const mix=Math.max(0,Math.min(1,detail*.78+ny*.12)),i=(y*w+x)*4;
     data[i]=p[0][0]*(1-mix)*.62+p[1][0]*mix*.27+p[2][0]*.11;
@@ -533,7 +533,7 @@ function ensurePageSmokeCanvas(){
 function updatePageSmokePalette(colors){
  const canvas=ensurePageSmokeCanvas();if(!canvas||!pageSmokeState)return;
  const rgb=value=>String(value||"80,92,110").split(",").map(channel=>Math.max(0,Math.min(255,Number(channel)||0)));
- pageSmokeState.palette=[rgb(colors.c1),rgb(colors.c2),rgb(colors.c3)];
+ pageSmokeState.targetPalette=[rgb(colors.c1),rgb(colors.c2),rgb(colors.c3)];
 }
 function readAmbientPalette(imageUrl){
  if(!imageUrl)return Promise.resolve(null);
