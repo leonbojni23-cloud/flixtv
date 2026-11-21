@@ -450,6 +450,48 @@ function ambientPaletteColor(hsl,lightnessOffset=0,hueOffset=0){
 function ambientFallbackPalette(){
  return {c1:"190,104,69",c2:"76,111,94",c3:"121,91,151"};
 }
+function ensureHeroSmokeStage(){
+ const hero=$("hero");
+ if(!hero)return null;
+ let stage=hero.querySelector(".hero-smoke-stage");
+ if(!stage){
+  stage=document.createElement("div");
+  stage.className="hero-smoke-stage";
+  stage.setAttribute("aria-hidden","true");
+  const first=document.createElement("div");
+  first.className="hero-smoke-layer hero-smoke-layer-a";
+  const second=document.createElement("div");
+  second.className="hero-smoke-layer hero-smoke-layer-b";
+  stage.append(first,second);
+  const content=$("hero-content");
+  if(content)hero.insertBefore(stage,content);else hero.appendChild(stage);
+ }
+ return stage;
+}
+function updateHeroSmoke(colors,request){
+ const stage=ensureHeroSmokeStage();
+ if(!stage)return;
+ const layers=Array.from(stage.children);
+ if(layers.length<2)return;
+ const current=layers.find(layer=>layer.classList.contains("is-active"))||null;
+ const next=current===layers[0]?layers[1]:layers[0];
+ const rgb=value=>String(value||"80,92,110").split(",").map(channel=>Math.max(0,Math.min(255,Number(channel)||0))).join(",");
+ const c1=rgb(colors.c1),c2=rgb(colors.c2),c3=rgb(colors.c3);
+ next.style.backgroundImage=[
+  "radial-gradient(ellipse 36% 24% at 14% 70%,rgba("+c1+",.68) 0%,rgba("+c1+",.30) 38%,transparent 78%)",
+  "radial-gradient(ellipse 31% 22% at 42% 34%,rgba("+c2+",.58) 0%,rgba("+c2+",.24) 42%,transparent 79%)",
+  "radial-gradient(ellipse 39% 27% at 76% 62%,rgba("+c3+",.60) 0%,rgba("+c3+",.22) 45%,transparent 81%)",
+  "radial-gradient(ellipse 27% 20% at 88% 25%,rgba("+c1+",.42) 0%,transparent 78%)",
+  "radial-gradient(ellipse 46% 23% at 55% 88%,rgba("+c2+",.28) 0%,transparent 83%)"
+ ].join(",");
+ next.classList.remove("is-active");
+ void next.offsetWidth;
+ requestAnimationFrame(()=>{
+  if(request!==showHero.requestId)return;
+  next.classList.add("is-active");
+  layers.forEach(layer=>{if(layer!==next)layer.classList.remove("is-active")});
+ });
+}
 function readAmbientPalette(imageUrl){
  if(!imageUrl)return Promise.resolve(null);
  if(ambientPaletteCache.has(imageUrl))return ambientPaletteCache.get(imageUrl);
@@ -516,6 +558,15 @@ async function updateAmbientScene(imageUrl,paletteUrl,request){
  const current=$("app-ambient-scene-"+(ambientLayer===0?"a":"b"));
  if(!next||!current)return;
  const colors=palette||ambientFallbackPalette();
+ updateHeroSmoke(colors,request);
+  const root=document.documentElement;
+  const toRgb=value=>String(value||"").split(",").map(channel=>Math.max(0,Math.min(255,Number(channel)||0)));
+  const primary=toRgb(colors.c1),secondary=toRgb(colors.c2),tertiary=toRgb(colors.c3);
+  const baseRgb=primary.map(value=>Math.round(value*.13+4)).join(",");
+  root.style.setProperty("--hero-smoke-one",primary.join(","));
+  root.style.setProperty("--hero-smoke-two",secondary.join(","));
+  root.style.setProperty("--hero-smoke-three",tertiary.join(","));
+  root.style.setProperty("--hero-background-rgb",baseRgb);
  next.style.setProperty("--ambient-c1",colors.c1);
  next.style.setProperty("--ambient-c2",colors.c2);
  next.style.setProperty("--ambient-c3",colors.c3);
@@ -532,9 +583,38 @@ async function updateAmbientScene(imageUrl,paletteUrl,request){
  });
 }
 
+function updateHeroDots(){
+ const container=$("hero-dots");
+ if(!container)return;
+ container.querySelectorAll(".hero-dot").forEach((dot,index)=>{
+  const active=index===heroIndex;
+  dot.classList.toggle("active",active);
+  dot.setAttribute("aria-current",active?"true":"false");
+  dot.setAttribute("aria-pressed",active?"true":"false");
+ });
+}
+function renderHeroDots(){
+ const container=$("hero-dots");
+ if(!container)return;
+ const dots=heroItems.map((item,index)=>{
+  const dot=document.createElement("button");
+  dot.type="button";
+  dot.className="hero-dot";
+  dot.setAttribute("aria-label","Shfaq "+title(item));
+  dot.addEventListener("click",()=>{
+   if(index===heroIndex)return;
+   showHero(index);
+   startHeroTimer();
+  });
+  return dot;
+ });
+ container.replaceChildren(...dots);
+ updateHeroDots();
+}
 function showHero(index){
  if(!heroItems.length)return;
  heroIndex=(index+heroItems.length)%heroItems.length;
+ updateHeroDots();
  const item=heroItems[heroIndex];
  const request=++showHero.requestId;
  restartHeroProgress();
@@ -1175,6 +1255,7 @@ async function home(){
     candidates=(data&&data.results)||[];
     heroItems=candidates.filter(item=>item.backdrop_path||item.poster_path).slice(0,8);
    }
+   renderHeroDots();
    if(heroItems.length){
     showHero(0);
     startHeroTimer();
