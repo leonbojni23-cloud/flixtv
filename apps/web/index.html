@@ -15,7 +15,7 @@
     })();
   </script>
   <meta name="mobile-web-app-capable" content="yes">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; manifest-src 'self'; frame-src 'self' https:; connect-src 'self' https: https://api.themoviedb.org https://flixtv-snowy.vercel.app https://www.youtube.com https://www.youtube-nocookie.com; img-src 'self' data: https://raw.githubusercontent.com https://image.tmdb.org https://i.ytimg.com https://m.media-amazon.com; media-src 'self' blob: data: https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://www.youtube-nocookie.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; manifest-src 'self'; frame-src 'self' https:; connect-src 'self' https: https://api.themoviedb.org https://flixtv-snowy.vercel.app https://www.youtube.com https://www.youtube-nocookie.com; img-src 'self' data: https://raw.githubusercontent.com https://image.tmdb.org https://i.ytimg.com https://m.media-amazon.com; media-src 'self' blob: data: https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://www.youtube-nocookie.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; upgrade-insecure-requests">
   <meta name="description" content="FLIXTV movies and TV shows">
   <title>FLIXTV</title>
   <link rel="manifest" href="/manifest.webmanifest?v=20261115-icon4">
@@ -24,12 +24,16 @@
               <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
   <script>if(location.pathname!=="/"&&location.pathname!=="/index.html")document.documentElement.classList.add("deep-route-loading");</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="/style.css?v=20261121-ambient-cors-4">
+  <link rel="stylesheet" href="/style.css?v=20261121-boredflix-redesign-1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.css">
   <script src="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.js" defer></script>
 </head>
 <body>
+  <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
   <div id="app-ambient" aria-hidden="true">
     <div class="ambient-scene active" id="app-ambient-scene-a">
       <div class="ambient-scene-art"></div>
@@ -48,7 +52,7 @@
   <div id="brand-intro" class="brand-intro" aria-label="FLIXTV"><div class="brand-intro-lockup"><span class="brand-intro-f">F</span><span class="brand-intro-rest">LIX<span class="brand-intro-tv">TV</span></span></div></div>
   <header class="topbar">
     <a class="brand" href="/" aria-label="FLIXTV kryefaqja"><span class="brand-name">FLIX<span>TV</span></span></a>
-    <nav class="desktop-nav" aria-label="Navigimi kryesor">
+    <nav class="desktop-nav" aria-label="Navigimi kryesor"><span class="nav-pill" aria-hidden="true"></span>
       <button class="nav-link active" data-page="home">Kryefaqja</button>
       <button class="nav-link" data-page="movies">Filma</button>
       <button class="nav-link" data-page="shows">Seriale</button><button class="nav-link" data-page="sports">Sport</button>
@@ -59,7 +63,7 @@
     </div>
   </header>
 
-  <main id="app">
+  <main id="app" class="v3-root">
     <section id="hero" class="hero">
       <div class="hero-backdrop hero-backdrop-a active" id="hero-bg-a"></div>
       <div class="hero-backdrop hero-backdrop-b" id="hero-bg-b"></div>
@@ -87,6 +91,7 @@
             <button type="button" id="hero-next" aria-label="Titulli i radhës"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
           </div>
         </div>
+        <div class="hero-progress" aria-hidden="true"><span id="hero-progress-fill"></span></div>
       </div>
     </section>
     <section id="search-page" class="search-page" hidden>
@@ -254,6 +259,6 @@
     <video id="resolved-video" controls playsinline webkit-playsinline preload="none" hidden></video>
   </section>
 
-  <script src="/app.js?v=20261121-ambient-cors-4"></script>
+  <script src="/app.js?v=20261121-boredflix-redesign-1"></script>
 </body>
 </html>
