@@ -72,18 +72,18 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
       // Wide feathered envelope. Avoid sharp cellular edges and dark outlines.
       float envelope=smoothstep(-0.88,-0.08,p.y)*(1.0-smoothstep(0.88,1.48,p.y));
-      float density=smoothstep(-0.48,0.38,cloud)*envelope;
+      float density=smoothstep(-0.54,0.34,cloud)*envelope;
       density=clamp(density,0.0,1.0);
 
-      // Keep the dominant cover hue as the identity of the entire smoke field.
-      // The dominant cover color remains unmistakable; secondary tones only shade the smoke.
+      // Preserve the dominant cover hue, but shape it as light, translucent vapor.
       vec3 shade=mix(uColorB,uColorC,smoothstep(-0.32,0.38,cloudB));
-      vec3 palette=mix(uColorA,shade,0.10+0.10*smoothstep(-0.3,0.45,cloudA));
-      float softGlow=exp(-length((vUv-vec2(0.52,0.46))*vec2(0.72,0.62))*1.25);
-      vec3 smoke=palette*(1.05+0.48*density)+uColorC*softGlow*density*0.18;
+      vec3 palette=mix(uColorA,shade,0.07+0.08*smoothstep(-0.3,0.45,cloudA));
+      palette=mix(palette,vec3(0.78,0.80,0.88),0.09);
+      float softGlow=exp(-length((vUv-vec2(0.52,0.46))*vec2(0.72,0.62))*1.18);
+      vec3 smoke=palette*(1.18+0.34*density)+uColorC*softGlow*density*0.10;
 
-      // Higher opacity and saturation make the cover's color visible across the page.
-      float alpha=density*(0.58+softGlow*0.10)*uOpacity;
+      // The hue stays vivid, while lower opacity prevents a heavy muddy blanket.
+      float alpha=density*(0.40+softGlow*0.075)*uOpacity;
       gl_FragColor=vec4(smoke,alpha);
     }
   `;
