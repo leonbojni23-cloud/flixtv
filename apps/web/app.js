@@ -494,7 +494,7 @@ function showHero(index){
   if(request!==showHero.requestId)return;
   next.style.backgroundImage=image;
   const paletteImagePath="/t/p/"+(item.backdrop_path?"w1280":"w780")+path;
-  const paletteImageUrl="/api/tmdb-image?path="+encodeURIComponent(paletteImagePath);
+  const paletteImageUrl="/api/tmdb-image.js?path="+encodeURIComponent(paletteImagePath);
   void updateAmbientScene(imageUrl,paletteImageUrl,request);
  };
  preload.onerror=()=>{
