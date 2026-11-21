@@ -2122,7 +2122,7 @@ body.bf-reference-mode #title-page{background:transparent!important}
     background-repeat:no-repeat!important;
     background-position:center 34%!important;
     opacity:1!important;
-    filter:brightness(1.08) saturate(1.08) contrast(1.035)!important;
+    filter:none!important;
     -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 76%,rgba(0,0,0,.88) 88%,rgba(0,0,0,.30) 97%,transparent 100%)!important;
     mask-image:linear-gradient(to bottom,#000 0%,#000 76%,rgba(0,0,0,.88) 88%,rgba(0,0,0,.30) 97%,transparent 100%)!important;
   }
@@ -2130,5 +2130,14 @@ body.bf-reference-mode #title-page{background:transparent!important}
     background:
       linear-gradient(90deg,rgba(5,7,11,.08),transparent 72%),
       linear-gradient(180deg,transparent 0%,rgba(8,9,13,.04) 48%,rgba(8,9,13,.30) 100%)!important;
+  }
+}
+
+/* iPhone: keep the source artwork crisp. No artificial camera zoom or resampling. */
+@media(max-width:767px){
+  body.bf-reference-mode #hero .hero-backdrop.active{
+    animation:none!important;
+    transform:none!important;
+    will-change:auto!important;
   }
 }
