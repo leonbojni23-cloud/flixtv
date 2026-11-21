@@ -2114,7 +2114,7 @@ body.bf-reference-mode #title-page{background:transparent!important}
 /* Extend only the Hero artwork farther down; keep all copy and controls anchored. */
 @media(max-width:767px){
   body.bf-reference-mode #hero .hero-backdrop{
-    height:88%!important;
+    height:96%!important;
     inset:0 0 auto!important;
     background-size:cover!important;
     background-position:center 26%!important;
