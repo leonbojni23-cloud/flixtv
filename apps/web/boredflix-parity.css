@@ -156,7 +156,7 @@ body.bf-reference-mode .top10-card:focus-visible{outline:2px solid #fcd34d;outli
 @keyframes bf-drift{0%{transform:translate3d(-2%,1%,0) scale(1)}50%{transform:translate3d(2%,-1%,0) scale(1.08)}100%{transform:translate3d(-1%,2%,0) scale(1.02)}}
 @media(min-width:380px){.bf-library-tab{font-size:22px}}
 @media(min-width:640px){.bf-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 16px}.bf-grid-library{grid-template-columns:repeat(4,minmax(0,1fr))}.bf-grid-continue{grid-template-columns:repeat(2,minmax(0,1fr))}.bf-library-tab{font-size:28px}.bf-library-tabs{gap:20px}}
-@media(min-width:768px){
+@media(min-width:768px){.bf-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.bf-grid-library{grid-template-columns:repeat(5,minmax(0,1fr))}
  .bf-library-tab{font-size:44px}.bf-library-tab span{font-size:14px;margin-top:10px}.bf-library-tabs{gap:28px}
  body.bf-reference-mode .section-heading h2{font-size:21px!important}
  body.bf-reference-mode .service-card{flex-basis:104px!important;width:104px!important}
@@ -169,7 +169,7 @@ body.bf-reference-mode .top10-card:focus-visible{outline:2px solid #fcd34d;outli
  .bf-wide-card{flex-basis:300px;width:300px}.bf-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 18px}.bf-grid-library{grid-template-columns:repeat(5,minmax(0,1fr))}.bf-page{padding-top:126px}
 }
 @media(min-width:1024px){.bf-grid-library{grid-template-columns:repeat(6,minmax(0,1fr))}.bf-grid-continue{grid-template-columns:repeat(3,minmax(0,1fr))}.bf-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
-@media(min-width:1280px){.bf-grid-library{grid-template-columns:repeat(7,minmax(0,1fr))}.bf-library-tab{font-size:44px}.bf-library-tabs{gap:28px}body.bf-reference-mode .poster-card{flex-basis:196px!important;width:196px!important;min-width:196px!important}.bf-wide-card{flex-basis:330px;width:330px}.bf-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:26px 20px}.bf-grid-library{grid-template-columns:repeat(6,minmax(0,1fr))}}
+@media(min-width:1280px){.bf-grid-library{grid-template-columns:repeat(7,minmax(0,1fr))}.bf-library-tab{font-size:44px}.bf-library-tabs{gap:28px}body.bf-reference-mode .poster-card{flex-basis:196px!important;width:196px!important;min-width:196px!important}.bf-wide-card{flex-basis:330px;width:330px}.bf-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:26px 20px}}
 @media(min-width:1536px){.bf-grid-continue{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:767px){
  body.bf-reference-mode .topbar{min-height:58px;padding:10px var(--bf-gutter)!important}
