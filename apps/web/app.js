@@ -665,7 +665,7 @@ function showHero(index){
  const next=$(nextLayer===0?"hero-bg-a":"hero-bg-b");
  const current=$(heroLayer===0?"hero-bg-a":"hero-bg-b");
  const path=item.backdrop_path||item.poster_path;
- const imageUrl=IMG+(item.backdrop_path?"w1280":"w780")+path;
+ const imageUrl=IMG+"original"+path;
  const image='url("'+imageUrl+'")';
  const hero=$("hero");
  next.style.backgroundImage=image;
@@ -682,7 +682,7 @@ function showHero(index){
  preload.onload=()=>{
   if(request!==showHero.requestId)return;
   next.style.backgroundImage=image;
-  const paletteImagePath="/t/p/"+(item.backdrop_path?"w1280":"w780")+path;
+  const paletteImagePath="/t/p/original"+path;
   const paletteImageUrl="/api/tmdb-image.js?path="+encodeURIComponent(paletteImagePath);
   void updateAmbientScene(imageUrl,paletteImageUrl,request);
  };
