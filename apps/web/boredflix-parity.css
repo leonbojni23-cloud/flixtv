@@ -20,10 +20,10 @@ body.bf-reference-mode .search-trigger:hover,body.bf-reference-mode .header-glas
 .bf-sport-shortcut{font-size:12px;font-weight:700;padding:0 15px;border-radius:999px;cursor:pointer}
 body.bf-reference-mode #app{position:relative!important;inset:auto!important;height:auto!important;min-height:100dvh;overflow:visible!important;z-index:1;padding-bottom:calc(42px + env(safe-area-inset-bottom))!important;background:transparent!important}
 body.bf-reference-mode .hero{position:relative!important;isolation:isolate;display:flex!important;align-items:flex-end!important;min-height:560px!important;height:86svh!important;max-height:940px!important;margin:0!important;padding:0 var(--bf-gutter) 14vh!important;overflow:hidden;background:#08090d!important}
-body.bf-reference-mode .hero-backdrop{position:absolute!important;inset:0!important;background-size:cover!important;background-position:center 28%!important;opacity:0;transition:opacity 1s ease;z-index:-2}
+body.bf-reference-mode .hero-backdrop{position:absolute!important;inset:0!important;background-size:cover!important;background-position:center 28%!important;opacity:0;transition:opacity 1s ease;z-index:0}
 body.bf-reference-mode .hero-backdrop.active{opacity:1}
-body.bf-reference-mode .hero:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(7,8,12,.88),rgba(7,8,12,.56) 44%,rgba(7,8,12,.08)),linear-gradient(0deg,#08090d 0%,rgba(8,9,13,.72) 12%,transparent 60%)}
-body.bf-reference-mode .hero-content{width:min(660px,76vw);max-width:660px;position:relative;z-index:1}
+body.bf-reference-mode .hero:before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(7,8,12,.88),rgba(7,8,12,.56) 44%,rgba(7,8,12,.08)),linear-gradient(0deg,#08090d 0%,rgba(8,9,13,.72) 12%,transparent 60%)}
+body.bf-reference-mode .hero-content{width:min(660px,76vw);max-width:660px;position:relative;z-index:2}
 body.bf-reference-mode .hero-title-wrap{margin:0 0 14px}
 body.bf-reference-mode .hero h1{font-family:Montserrat,Inter,sans-serif;font-size:clamp(38px,5vw,66px)!important;line-height:.99!important;letter-spacing:-.055em!important;font-weight:800!important;text-shadow:0 4px 28px rgba(0,0,0,.46);max-width:650px}
 body.bf-reference-mode .hero-title-logo{max-width:min(420px,70vw);max-height:112px;object-position:left center}
