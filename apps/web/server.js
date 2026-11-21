@@ -144,8 +144,8 @@ function serveFile(req, res, filePath) {
   res.setHeader("Content-Type", MIME[ext] || "application/octet-stream");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "origin");
-  if (ext === ".html") res.setHeader("Cache-Control", "no-cache");
-  else if (/\.[a-f0-9]{8,}\./i.test(path.basename(filePath))) res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  if (/\.[a-f0-9]{8,}\./i.test(path.basename(filePath))) res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  else if ([".html", ".js", ".css", ".json", ".webmanifest"].includes(ext)) res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
   else res.setHeader("Cache-Control", "public, max-age=300");
   res.setHeader("Content-Length", stat.size);
   if (req.method === "HEAD") { res.end(); return true; }

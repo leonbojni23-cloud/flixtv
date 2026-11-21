@@ -443,7 +443,7 @@ function ambientHslToRgb(h,s,l){
 function ambientPaletteColor(hsl,lightnessOffset=0,hueOffset=0){
  return ambientHslToRgb(
   hsl.h+hueOffset,
-  ambientClamp(hsl.s+14,48,88),
+  ambientClamp(hsl.s+9,43,82),
   ambientClamp(hsl.l+lightnessOffset,37,61)
  ).join(",");
 }
@@ -472,7 +472,7 @@ function readAmbientPalette(imageUrl){
      const high=Math.max(r,g,b),low=Math.min(r,g,b);
      if(high<28||high>249)continue;
      const saturation=high===0?0:(high-low)/high;
-     if(saturation<.10)continue;
+     if(saturation<.16)continue;
      let hue=0;
      if(high===r)hue=((g-b)/(high-low))%6;
      else if(high===g)hue=(b-r)/(high-low)+2;
