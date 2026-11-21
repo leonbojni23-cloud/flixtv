@@ -2111,14 +2111,24 @@ body.bf-reference-mode #title-page{background:transparent!important}
 
 
 
-/* Extend only the Hero artwork farther down; keep all copy and controls anchored. */
+/* Mobile Hero: preserve the complete artwork instead of aggressively cropping faces.
+   Render the source at its natural 16:9 ratio, with restrained clarity/brightness. */
 @media(max-width:767px){
   body.bf-reference-mode #hero .hero-backdrop{
     height:96%!important;
     inset:0 0 auto!important;
-    background-size:cover!important;
-    background-position:center 26%!important;
+    background-color:#0b0e14!important;
+    background-size:100% auto!important;
+    background-repeat:no-repeat!important;
+    background-position:center top!important;
+    opacity:1!important;
+    filter:brightness(1.08) saturate(1.08) contrast(1.035)!important;
     -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 76%,rgba(0,0,0,.88) 88%,rgba(0,0,0,.30) 97%,transparent 100%)!important;
     mask-image:linear-gradient(to bottom,#000 0%,#000 76%,rgba(0,0,0,.88) 88%,rgba(0,0,0,.30) 97%,transparent 100%)!important;
+  }
+  body.bf-reference-mode #hero .hero-backdrop::after{
+    background:
+      linear-gradient(90deg,rgba(5,7,11,.08),transparent 72%),
+      linear-gradient(180deg,transparent 0%,rgba(8,9,13,.04) 48%,rgba(8,9,13,.30) 100%)!important;
   }
 }
