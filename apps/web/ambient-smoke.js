@@ -58,35 +58,43 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       return value;
     }
     void main(){
-      vec2 p=vUv*vec2(uResolution.x/max(uResolution.y,1.0),1.0);
-      float t=uTime*0.055;
+      vec2 aspect=vec2(uResolution.x/max(uResolution.y,1.0),1.0);
+      vec2 p=vUv*aspect;
 
-      // Broad, slowly drifting noise fields create soft volumetric clouds.
-      vec2 warp=vec2(
-        fbm(p*0.92+vec2(1.7,-t)),
-        fbm(p*0.92+vec2(5.3,2.1)-t*0.72)
+      // Slow, layered flow in several directions for a calm, drifting atmosphere.
+      float t=uTime*0.026;
+      vec2 driftA=vec2(t*0.42,-t*0.30);
+      vec2 driftB=vec2(-t*0.24,t*0.34);
+      vec2 flow=vec2(
+        fbm(p*0.72+driftA+vec2(1.7,2.4)),
+        fbm(p*0.72+driftB+vec2(5.3,1.1))
       );
-      float cloudA=fbm(p*1.18+warp*0.78+vec2(0.0,-t*0.42));
-      float cloudB=fbm(p*1.82+warp*0.58+vec2(3.4,t*0.24));
-      float cloud=cloudA*0.76+cloudB*0.24;
+      vec2 flow2=vec2(
+        fbm(p*1.05+flow*0.52+vec2(0.0,-t*0.24)),
+        fbm(p*1.05+flow*0.52+vec2(3.8,t*0.20))
+      );
+      float broad=fbm(p*0.92+flow*0.78+flow2*0.24+driftA);
+      float middle=fbm(p*1.42+flow2*0.58+driftB+vec2(2.2,-1.6));
+      float cloud=broad*0.78+middle*0.22;
 
-      // Wide feathered envelope. Avoid sharp cellular edges and dark outlines.
-      float envelope=smoothstep(-0.88,-0.08,p.y)*(1.0-smoothstep(0.88,1.48,p.y));
-      float density=smoothstep(-0.66,0.26,cloud)*envelope;
-      density=clamp(density,0.0,1.0);
+      // Soft, overlapping vapor layers. No hard edges or black cut-outs.
+      float cloudA=smoothstep(-0.72,0.48,cloud);
+      float cloudB=smoothstep(-0.36,0.60,middle*0.72+broad*0.28);
+      float vapor=0.5+0.5*sin((broad-middle)*2.1+uTime*0.10);
+      float vaporShape=clamp(cloudA*0.68+cloudB*0.20+vapor*0.12,0.0,1.0);
 
-      // Full-frame chromatic base: keep the Hero hue present even between smoke plumes.
-      float cloudLight=smoothstep(-0.62,0.52,cloudA*0.78+cloudB*0.22);
-      float plumeLight=smoothstep(-0.42,0.62,cloud);
-      vec3 deepHue=uColorA*0.24;
-      vec3 midHue=mix(uColorA*0.42,uColorA*0.78,cloudLight);
-      vec3 smoke=mix(deepHue,midHue,0.72);
-      smoke=mix(smoke,uColorA*(0.92+0.18*cloudLight),plumeLight*0.62);
-      smoke=mix(smoke,uColorC*0.72,cloudLight*0.08);
-      float softGlow=exp(-length((vUv-vec2(0.52,0.46))*vec2(0.72,0.62))*1.12);
-      smoke+=uColorA*softGlow*0.08;
+      // Keep the whole screen in the Hero's dominant hue family and lift shadows.
+      vec3 base=mix(uColorA,uColorB,0.16+cloudA*0.10);
+      vec3 highlight=mix(uColorA,uColorC,0.18+cloudB*0.12);
+      vec3 smoke=mix(base*0.82,highlight*1.08,vaporShape*0.72+0.12);
+      smoke=mix(smoke,uColorA*1.18,cloudA*0.16);
+      smoke=max(smoke,uColorA*0.58);
 
-      // Opaque color atmosphere eliminates black transparent gaps; FBM still animates the smoke.
+      // Broad luminous haze, with a gentle moving highlight.
+      float glow1=exp(-length((vUv-vec2(0.34+0.035*sin(uTime*0.07),0.48))*vec2(0.72,0.58))*1.35);
+      float glow2=exp(-length((vUv-vec2(0.72+0.025*cos(uTime*0.055),0.62))*vec2(0.82,0.68))*1.55);
+      smoke+=uColorA*(glow1*0.10+glow2*0.07);
+
       gl_FragColor=vec4(smoke,1.0);
     }
   `;
