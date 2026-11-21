@@ -76,14 +76,14 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       density=clamp(density,0.0,1.0);
 
       // Keep the dominant cover hue as the identity of the entire smoke field.
-      vec3 palette=uColorA;
-      vec3 shade=mix(uColorB,uColorC,smoothstep(-0.25,0.42,cloudB));
-      palette=mix(palette,shade,0.28+0.22*smoothstep(-0.3,0.45,cloudA));
+      // The dominant cover color remains unmistakable; secondary tones only shade the smoke.
+      vec3 shade=mix(uColorB,uColorC,smoothstep(-0.32,0.38,cloudB));
+      vec3 palette=mix(uColorA,shade,0.10+0.10*smoothstep(-0.3,0.45,cloudA));
       float softGlow=exp(-length((vUv-vec2(0.52,0.46))*vec2(0.72,0.62))*1.25);
-      vec3 smoke=palette*(0.88+0.34*density)+uColorC*softGlow*density*0.12;
+      vec3 smoke=palette*(1.05+0.48*density)+uColorC*softGlow*density*0.18;
 
-      // Stronger color presence: broad smoke clouds visibly carry the cover's hue.
-      float alpha=density*(0.34+softGlow*0.055)*uOpacity;
+      // Higher opacity and saturation make the cover's color visible across the page.
+      float alpha=density*(0.58+softGlow*0.10)*uOpacity;
       gl_FragColor=vec4(smoke,alpha);
     }
   `;
@@ -99,11 +99,16 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (parts.length !== 3 || parts.some(n => !Number.isFinite(n))) return new THREE.Color(fallback);
     return new THREE.Color(parts[0] / 255, parts[1] / 255, parts[2] / 255);
   };
+  const paletteTargets = {
+    a: new THREE.Color("#a05a42"),
+    b: new THREE.Color("#52705f"),
+    c: new THREE.Color("#795b97")
+  };
   const readPalette = () => {
     const styles = getComputedStyle(document.documentElement);
-    material.uniforms.uColorA.value.copy(parseColor(styles.getPropertyValue("--hero-smoke-one"), "#a05a42"));
-    material.uniforms.uColorB.value.copy(parseColor(styles.getPropertyValue("--hero-smoke-two"), "#52705f"));
-    material.uniforms.uColorC.value.copy(parseColor(styles.getPropertyValue("--hero-smoke-three"), "#795b97"));
+    paletteTargets.a.copy(parseColor(styles.getPropertyValue("--hero-smoke-one"), "#a05a42"));
+    paletteTargets.b.copy(parseColor(styles.getPropertyValue("--hero-smoke-two"), "#52705f"));
+    paletteTargets.c.copy(parseColor(styles.getPropertyValue("--hero-smoke-three"), "#795b97"));
   };
 
   try {
@@ -151,6 +156,10 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       last = now;
       if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) elapsed += delta;
       material.uniforms.uTime.value = elapsed;
+      // Smoothly morph the smoke palette after each Hero change.
+      material.uniforms.uColorA.value.lerp(paletteTargets.a, 0.055);
+      material.uniforms.uColorB.value.lerp(paletteTargets.b, 0.055);
+      material.uniforms.uColorC.value.lerp(paletteTargets.c, 0.055);
       renderer.render(scene, camera);
     };
     resize();
