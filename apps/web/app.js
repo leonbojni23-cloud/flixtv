@@ -593,44 +593,85 @@ function readAmbientPalette(imageUrl){
  return task;
 }
 async function updateAmbientScene(imageUrl,paletteUrl,request){
-  // Sample the exact Hero artwork first; use the same-origin image proxy only as fallback.
-  let palette=null;
-  if(imageUrl){try{palette=await readAmbientPalette(imageUrl)}catch(_){}}
-  if(!palette&&paletteUrl&&paletteUrl!==imageUrl){try{palette=await readAmbientPalette(paletteUrl)}catch(_){}}
+ let palette=null;
+ // Try the exact image URL first; same-origin proxy is the CORS-safe fallback.
+ if(imageUrl){try{palette=await readAmbientPalette(imageUrl)}catch(_){}}
+ if(!palette&&paletteUrl&&paletteUrl!==imageUrl){try{palette=await readAmbientPalette(paletteUrl)}catch(_){}}
+ if(request!==showHero.requestId)return;
+ const colors=palette||ambientFallbackPalette();
+ updateHeroSmoke(colors,request);
+ const root=document.documentElement;
+ const toRgb=value=>String(value||"").split(",").map(channel=>Math.max(0,Math.min(255,Number(channel)||0)));
+ const primary=toRgb(colors.c1),secondary=toRgb(colors.c2),tertiary=toRgb(colors.c3);
+ const baseRgb=primary.map(value=>Math.round(value*.13+4)).join(",");
+ root.style.setProperty("--hero-smoke-one",primary.join(","));
+ root.style.setProperty("--hero-smoke-two",secondary.join(","));
+ root.style.setProperty("--hero-smoke-three",tertiary.join(","));
+ root.style.setProperty("--hero-background-rgb",baseRgb);
+ window.dispatchEvent(new CustomEvent("flxtv:ambient-palette"));
+ const nextLayer=ambientLayer===0?1:0;
+ const next=$("app-ambient-scene-"+(nextLayer===0?"a":"b"));
+ const current=$("app-ambient-scene-"+(ambientLayer===0?"a":"b"));
+ if(!next||!current)return;
+ next.style.setProperty("--ambient-c1",colors.c1);
+ next.style.setProperty("--ambient-c2",colors.c2);
+ next.style.setProperty("--ambient-c3",colors.c3);
+ next.style.setProperty("--ambient-color-one","rgb("+colors.c1+")");
+ next.style.setProperty("--ambient-color-two","rgb("+colors.c2+")");
+ next.style.setProperty("--ambient-color-three","rgb("+colors.c3+")");
+ const art=next.querySelector(".ambient-scene-art");
+ if(art)art.style.backgroundImage=imageUrl?'url("'+imageUrl+'")':'linear-gradient(135deg,#303b27,#171b11)';
+ requestAnimationFrame(()=>{
   if(request!==showHero.requestId)return;
+  next.classList.add("active");
+  current.classList.remove("active");
+  ambientLayer=nextLayer;
+ });
+}
 
-  const colors=palette||ambientFallbackPalette();
-  updateHeroSmoke(colors,request);
 
-  // Update WebGL uniforms before touching the optional legacy DOM scene.
-  const root=document.documentElement;
-  const toRgb=value=>String(value||"").split(",").map(channel=>Math.max(0,Math.min(255,Number(channel)||0)));
-  const primary=toRgb(colors.c1),secondary=toRgb(colors.c2),tertiary=toRgb(colors.c3);
-  const baseRgb=primary.map(value=>Math.round(value*.13+4)).join(",");
-  root.style.setProperty("--hero-smoke-one",primary.join(","));
-  root.style.setProperty("--hero-smoke-two",secondary.join(","));
-  root.style.setProperty("--hero-smoke-three",tertiary.join(","));
-  root.style.setProperty("--hero-background-rgb",baseRgb);
-  window.dispatchEvent(new CustomEvent("flxtv:ambient-palette"));
-
-  const nextLayer=ambientLayer===0?1:0;
-  const next=$("app-ambient-scene-"+(nextLayer===0?"a":"b"));
-  const current=$("app-ambient-scene-"+(ambientLayer===0?"a":"b"));
-  if(!next||!current)return;
-  next.style.setProperty("--ambient-c1",colors.c1);
-  next.style.setProperty("--ambient-c2",colors.c2);
-  next.style.setProperty("--ambient-c3",colors.c3);
-  next.style.setProperty("--ambient-color-one","rgb("+colors.c1+")");
-  next.style.setProperty("--ambient-color-two","rgb("+colors.c2+")");
-  next.style.setProperty("--ambient-color-three","rgb("+colors.c3+")");
-  const art=next.querySelector(".ambient-scene-art");
-  if(art)art.style.backgroundImage=imageUrl?'url("'+imageUrl+'")':'linear-gradient(135deg,#303b27,#171b11)';
-  requestAnimationFrame(()=>{
-   if(request!==showHero.requestId)return;
-   next.classList.add("active");
-   current.classList.remove("active");
-   ambientLayer=nextLayer;
+function updateHeroDots(){
+ const container=$("hero-dots");
+ if(!container)return;
+ container.querySelectorAll(".hero-dot").forEach((dot,index)=>{
+  const active=index===heroIndex;
+  dot.classList.toggle("active",active);
+  dot.setAttribute("aria-current",active?"true":"false");
+  dot.setAttribute("aria-pressed",active?"true":"false");
+ });
+}
+function renderHeroDots(){
+ const container=$("hero-dots");
+ if(!container)return;
+ const dots=heroItems.map((item,index)=>{
+  const dot=document.createElement("button");
+  dot.type="button";
+  dot.className="hero-dot";
+  dot.setAttribute("aria-label","Shfaq "+title(item));
+  dot.addEventListener("click",()=>{
+   if(index===heroIndex)return;
+   showHero(index);
+   startHeroTimer();
   });
+  return dot;
+ });
+ container.replaceChildren(...dots);
+ updateHeroDots();
+}
+function showHero(index){
+ if(!heroItems.length)return;
+ heroIndex=(index+heroItems.length)%heroItems.length;
+ updateHeroDots();
+ const item=heroItems[heroIndex];
+ const request=++showHero.requestId;
+ restartHeroProgress();
+ const nextLayer=heroLayer===0?1:0;
+ const next=$(nextLayer===0?"hero-bg-a":"hero-bg-b");
+ const current=$(heroLayer===0?"hero-bg-a":"hero-bg-b");
+ const path=item.backdrop_path;
+ if(!path){
+  notice("Ky titull nuk ka fotografi horizontale për Hero.");
+  return;
  }
  const originalUrl=IMG+"original"+path;
  const fallbackUrl=IMG+"w1280"+path;
