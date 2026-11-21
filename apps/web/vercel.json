@@ -11,6 +11,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/tmdb-image.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "index.html",
       "use": "@vercel/static"
     },
