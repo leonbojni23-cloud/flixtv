@@ -75,6 +75,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
  document.addEventListener("DOMContentLoaded",()=>removeInjectedAdElements(document));
 })();
 let selected=null,searchTimer=null,searchRequest=0,introTimer=null,controlsTimer=null,heroItems=[],heroIndex=0,heroTimer=null,heroLayer=0,ambientLayer=0,heroBusy=false;
+const ambientPaletteCache=new Map();
 let homeDataPromise=null,homeDataLoadedAt=0,serviceBrowseRequest=0;
 function notice(m){const e=$("notice");e.textContent=m;e.hidden=false;clearTimeout(notice.timer);notice.timer=setTimeout(()=>e.hidden=true,3600)}
 function modal(id,on){$(id).classList.toggle("open",on);$(id).setAttribute("aria-hidden",String(!on));document.body.classList.toggle("no-scroll",on||$("player-modal").classList.contains("open"))}
@@ -352,6 +353,120 @@ async function applyHeroLogo(item,request){
   if(request===showHero.requestId){image.hidden=true;fallback.hidden=false}
  }
 }
+
+/* Extract a compact color palette from the active TMDB cover.
+   The canvas is intentionally tiny so this runs once per cover, not per frame. */
+function ambientClamp(value,min,max){return Math.max(min,Math.min(max,value))}
+function ambientRgbToHsl(r,g,b){
+ r/=255;g/=255;b/=255;
+ const max=Math.max(r,g,b),min=Math.min(r,g,b),delta=max-min;
+ let h=0,s=0,l=(max+min)/2;
+ if(delta){
+  s=delta/(1-Math.abs(2*l-1));
+  if(max===r)h=((g-b)/delta)%6;
+  else if(max===g)h=(b-r)/delta+2;
+  else h=(r-g)/delta+4;
+  h=(h*60+360)%360;
+ }
+ return {h,s:s*100,l:l*100};
+}
+function ambientHslToRgb(h,s,l){
+ h=((h%360)+360)%360;s=ambientClamp(s,0,100)/100;l=ambientClamp(l,0,100)/100;
+ const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;
+ let r=0,g=0,b=0;
+ if(h<60){r=c;g=x}else if(h<120){r=x;g=c}else if(h<180){g=c;b=x}
+ else if(h<240){g=x;b=c}else if(h<300){r=x;b=c}else{r=c;b=x}
+ return [r,g,b].map(v=>Math.round((v+m)*255));
+}
+function ambientPaletteColor(hsl,lightnessOffset=0,hueOffset=0){
+ return ambientHslToRgb(
+  hsl.h+hueOffset,
+  ambientClamp(hsl.s+9,43,82),
+  ambientClamp(hsl.l+lightnessOffset,37,61)
+ ).join(",");
+}
+function ambientFallbackPalette(){
+ return {c1:"190,104,69",c2:"76,111,94",c3:"121,91,151"};
+}
+function readAmbientPalette(imageUrl){
+ if(!imageUrl)return Promise.resolve(null);
+ if(ambientPaletteCache.has(imageUrl))return ambientPaletteCache.get(imageUrl);
+ const task=new Promise(resolve=>{
+  const image=new Image();
+  image.crossOrigin="anonymous";
+  image.decoding="async";
+  image.onload=()=>{
+   try{
+    const canvas=document.createElement("canvas");
+    canvas.width=32;canvas.height=32;
+    const context=canvas.getContext("2d",{willReadFrequently:true});
+    if(!context){resolve(null);return}
+    context.drawImage(image,0,0,32,32);
+    const pixels=context.getImageData(0,0,32,32).data;
+    const bins=Array.from({length:18},()=>({weight:0,r:0,g:0,b:0}));
+    for(let i=0;i<pixels.length;i+=4){
+     const r=pixels[i],g=pixels[i+1],b=pixels[i+2],alpha=pixels[i+3];
+     if(alpha<180)continue;
+     const high=Math.max(r,g,b),low=Math.min(r,g,b);
+     if(high<28||high>249)continue;
+     const saturation=high===0?0:(high-low)/high;
+     if(saturation<.16)continue;
+     let hue=0;
+     if(high===r)hue=((g-b)/(high-low))%6;
+     else if(high===g)hue=(b-r)/(high-low)+2;
+     else hue=(r-g)/(high-low)+4;
+     hue=(hue*60+360)%360;
+     const weight=saturation*(.48+.52*Math.min(high,220)/220);
+     const bin=bins[Math.floor(hue/20)%18];
+     bin.weight+=weight;bin.r+=r*weight;bin.g+=g*weight;bin.b+=b*weight;
+    }
+    const ranked=bins.filter(bin=>bin.weight>0).sort((a,b)=>b.weight-a.weight);
+    const selected=[];
+    for(const bin of ranked){
+     const avg=ambientRgbToHsl(bin.r/bin.weight,bin.g/bin.weight,bin.b/bin.weight);
+     if(selected.every(entry=>Math.abs(((avg.h-entry.hsl.h+540)%360)-180)>28))selected.push({hsl:avg});
+     if(selected.length===3)break;
+    }
+    if(!selected.length){resolve(null);return}
+    const base=selected[0].hsl;
+    const second=selected[1]?.hsl||{h:(base.h+34)%360,s:base.s,l:base.l-4};
+    const third=selected[2]?.hsl||{h:(base.h+158)%360,s:base.s*.86,l:base.l+5};
+    resolve({
+     c1:ambientPaletteColor(base,2),
+     c2:ambientPaletteColor(second,-1),
+     c3:ambientPaletteColor(third,3)
+    });
+   }catch(_){resolve(null)}
+  };
+  image.onerror=()=>resolve(null);
+  image.src=imageUrl;
+ });
+ ambientPaletteCache.set(imageUrl,task);
+ if(ambientPaletteCache.size>28)ambientPaletteCache.delete(ambientPaletteCache.keys().next().value);
+ return task;
+}
+async function updateAmbientScene(imageUrl,request){
+ let palette=null;
+ if(imageUrl){try{palette=await readAmbientPalette(imageUrl)}catch(_){}}
+ if(request!==showHero.requestId)return;
+ const nextLayer=ambientLayer===0?1:0;
+ const next=$("app-ambient-scene-"+(nextLayer===0?"a":"b"));
+ const current=$("app-ambient-scene-"+(ambientLayer===0?"a":"b"));
+ if(!next||!current)return;
+ const colors=palette||ambientFallbackPalette();
+ next.style.setProperty("--ambient-c1",colors.c1);
+ next.style.setProperty("--ambient-c2",colors.c2);
+ next.style.setProperty("--ambient-c3",colors.c3);
+ const art=next.querySelector(".ambient-scene-art");
+ if(art)art.style.backgroundImage=imageUrl?'url("'+imageUrl+'")':'linear-gradient(135deg,#303b27,#171b11)';
+ requestAnimationFrame(()=>{
+  if(request!==showHero.requestId)return;
+  next.classList.add("active");
+  current.classList.remove("active");
+  ambientLayer=nextLayer;
+ });
+}
+
 function showHero(index){
  if(!heroItems.length)return;
  heroIndex=(index+heroItems.length)%heroItems.length;
@@ -378,23 +493,13 @@ function showHero(index){
  preload.onload=()=>{
   if(request!==showHero.requestId)return;
   next.style.backgroundImage=image;
-  const ambientNext=$(ambientLayer===0?"app-ambient-art-b":"app-ambient-art-a");
-  const ambientCurrent=$(ambientLayer===0?"app-ambient-art-a":"app-ambient-art-b");
-  ambientNext.style.backgroundImage=image;
-  ambientNext.classList.add("active");
-  ambientCurrent.classList.remove("active");
-  ambientLayer=ambientLayer===0?1:0;
+  void updateAmbientScene(imageUrl,request);
  };
  preload.onerror=()=>{
   if(request!==showHero.requestId)return;
   const fallback="linear-gradient(135deg,#303b27,#171b11)";
   next.style.backgroundImage=fallback;
-  const ambientNext=$(ambientLayer===0?"app-ambient-art-b":"app-ambient-art-a");
-  const ambientCurrent=$(ambientLayer===0?"app-ambient-art-a":"app-ambient-art-b");
-  ambientNext.style.backgroundImage=fallback;
-  ambientNext.classList.add("active");
-  ambientCurrent.classList.remove("active");
-  ambientLayer=ambientLayer===0?1:0;
+  void updateAmbientScene(null,request);
  };
  preload.src=imageUrl;
  $("hero-content").classList.add("changing");
