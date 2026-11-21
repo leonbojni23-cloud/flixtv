@@ -240,8 +240,8 @@ function shader(){
  var vs="attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
  var fs="precision mediump float;uniform vec2 r;uniform float t;float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);}float fb(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p*=2.02;a*=.5;}return v;}void main(){vec2 q=gl_FragCoord.xy/r,p=(q-.5)*vec2(r.x/r.y,1.);float tm=t*.055;vec2 w=vec2(fb(p*1.6+vec2(tm,0.)),fb(p*1.7+vec2(0.,-tm)));vec2 d=p+(w-.5)*1.5;float f=fb(d*2.2+vec2(-tm*.6,tm*.4)),g=fb(d*1.3+vec2(1.7,-tm*.3));vec3 col=mix(vec3(.10,.18,.27),vec3(.28,.13,.25),smoothstep(.28,.78,f));col=mix(col,vec3(.23,.25,.34),smoothstep(.36,.82,g)*.42);gl_FragColor=vec4(col,.46);}";
  function compile(type,src){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){gl.deleteShader(s);return null}return s}
- var a=compile(gl.VERTEX_SHADER,vs),b=compile(gl.FRAGMENT_SHADER,fs);if(!a||!b)return;
- var pr=gl.createProgram();gl.attachShader(pr,a);gl.attachShader(pr,b);gl.linkProgram(pr);if(!gl.getProgramParameter(pr,gl.LINK_STATUS))return;
+ var a=compile(gl.VERTEX_SHADER,vs),b=compile(gl.FRAGMENT_SHADER,fs);if(!a||!b){c.style.display="none";return}
+ var pr=gl.createProgram();gl.attachShader(pr,a);gl.attachShader(pr,b);gl.linkProgram(pr);if(!gl.getProgramParameter(pr,gl.LINK_STATUS)){c.style.display="none";return}fallback.style.display="none";
  gl.useProgram(pr);var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
  var pos=gl.getAttribLocation(pr,"p");gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
  var rr=gl.getUniformLocation(pr,"r"),tt=gl.getUniformLocation(pr,"t"),last=0,start=performance.now(),raf=0;
