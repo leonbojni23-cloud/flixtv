@@ -69,14 +69,15 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       float filaments=1.0-abs(detail);
       float plume=smoothstep(-0.95,0.05,p.y)* (1.0-smoothstep(0.95,1.65,p.y));
       float sideFade=smoothstep(-1.0,-0.25,p.x)*(1.0-smoothstep(1.15,1.9,p.x));
-      float density=smoothstep(-0.08,0.52,broad+filaments*0.14)*plume*sideFade;
-      float wisps=smoothstep(0.22,0.78,filaments)*density;
-      float glow=exp(-length((vUv-vec2(0.52,0.48))*vec2(1.0,0.78))*2.2);
-      vec3 palette=mix(uColorA,uColorB,smoothstep(-0.38,0.42,broad));
-      palette=mix(palette,uColorC,smoothstep(0.2,0.82,detail)*0.34);
-      vec3 smoke=palette*(0.42+density*0.85)+uColorB*wisps*0.24;
-      smoke+=palette*glow*density*0.12;
-      float alpha=clamp(density*0.34+wisps*0.13,0.0,0.34)*uOpacity;
+      float density=smoothstep(-0.38,0.18,broad+filaments*0.20)*plume*sideFade;
+      float wisps=smoothstep(0.10,0.72,filaments)*density;
+      float glow=exp(-length((vUv-vec2(0.52,0.48))*vec2(0.82,0.62))*1.75);
+      vec3 palette=mix(uColorA,uColorB,smoothstep(-0.52,0.30,broad));
+      palette=mix(palette,uColorC,smoothstep(0.02,0.72,detail)*0.42);
+      vec3 lifted=mix(palette,vec3(0.22,0.25,0.42),0.18);
+      vec3 smoke=lifted*(0.72+density*1.25)+uColorB*wisps*0.34;
+      smoke+=mix(uColorC,uColorB,0.35)*glow*density*0.20;
+      float alpha=clamp(density*0.58+wisps*0.20+glow*density*0.05,0.0,0.62)*uOpacity;
       gl_FragColor=vec4(smoke,alpha);
     }
   `;
