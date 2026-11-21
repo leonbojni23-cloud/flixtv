@@ -516,9 +516,9 @@ html.bf-inner-route #hero{display:none!important}
 }
 
 #home-page .top10-card {
-  flex: 0 0 260px !important;
-  width: 260px !important;
-  min-width: 260px !important;
+  flex: 0 0 290px !important;
+  width: 290px !important;
+  min-width: 290px !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 8px !important;
@@ -531,7 +531,7 @@ html.bf-inner-route #hero{display:none!important}
   justify-content: flex-start !important;
   gap: 0 !important;
   width: 100% !important;
-  height: 280px !important;
+  height: 310px !important;
 }
 
 /* Rank */
@@ -570,11 +570,11 @@ html.bf-inner-route #hero{display:none!important}
   position: relative !important;
   z-index: 2 !important;
   align-self: flex-start !important;
-  flex: 0 0 168px !important;
-  width: 168px !important;
-  height: 252px !important;
-  min-width: 168px !important;
-  margin-left: -34px !important;
+  flex: 0 0 188px !important;
+  width: 188px !important;
+  height: 282px !important;
+  min-width: 188px !important;
+  margin-left: -38px !important;
   border-radius: 11px !important;
   overflow: hidden !important;
   background: #191b21 !important;
@@ -603,13 +603,13 @@ html.bf-inner-route #hero{display:none!important}
   }
 
   #home-page .top10-card {
-    flex-basis: 210px !important;
-    width: 210px !important;
-    min-width: 210px !important;
+    flex-basis: 230px !important;
+    width: 230px !important;
+    min-width: 230px !important;
   }
 
   #home-page .top10-media {
-    height: 224px !important;
+    height: 244px !important;
   }
 
   #home-page .top10-rank {
@@ -629,10 +629,10 @@ html.bf-inner-route #hero{display:none!important}
   }
 
   #home-page .top10-art {
-    flex-basis: 136px !important;
-    width: 136px !important;
-    height: 204px !important;
-    min-width: 136px !important;
-    margin-left: -28px !important;
+    flex-basis: 152px !important;
+    width: 152px !important;
+    height: 228px !important;
+    min-width: 152px !important;
+    margin-left: -32px !important;
   }
 }
