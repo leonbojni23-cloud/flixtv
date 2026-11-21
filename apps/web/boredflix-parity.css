@@ -2118,9 +2118,9 @@ body.bf-reference-mode #title-page{background:transparent!important}
     height:96%!important;
     inset:0 0 auto!important;
     background-color:#0b0e14!important;
-    background-size:100% auto!important;
+    background-size:cover!important;
     background-repeat:no-repeat!important;
-    background-position:center top!important;
+    background-position:center 34%!important;
     opacity:1!important;
     filter:brightness(1.08) saturate(1.08) contrast(1.035)!important;
     -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 76%,rgba(0,0,0,.88) 88%,rgba(0,0,0,.30) 97%,transparent 100%)!important;
