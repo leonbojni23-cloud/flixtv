@@ -2673,6 +2673,7 @@ $("service-results-back").onclick=()=>{
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
  requestAnimationFrame(updateDesktopNavPill);
  window.addEventListener("resize",()=>requestAnimationFrame(updateDesktopNavPill),{passive:true});
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>requestAnimationFrame(updateDesktopNavPill)).catch(()=>{});
  document.querySelectorAll("[data-close]").forEach(e=>{if(e.dataset.close==="sports-settings")e.onclick=()=>modal("sports-settings",false)});
 $("hero-prev").onclick=()=>{if(heroItems.length>1){showHero(heroIndex-1);startHeroTimer()}};
 $("hero-next").onclick=()=>{if(heroItems.length>1){showHero(heroIndex+1);startHeroTimer()}};
