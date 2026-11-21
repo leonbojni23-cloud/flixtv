@@ -76,6 +76,44 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 })();
 let selected=null,searchTimer=null,searchRequest=0,introTimer=null,controlsTimer=null,heroItems=[],heroIndex=0,heroTimer=null,heroLayer=0,ambientLayer=0,heroBusy=false;
 const ambientPaletteCache=new Map();
+function paintAmbientCanvas(){
+ const canvas=$("ambient-canvas");
+ if(!canvas)return;
+ const context=canvas.getContext("2d",{alpha:true});
+ if(!context)return;
+ const width=320,height=180;
+ canvas.width=width;canvas.height=height;
+ const pixels=context.createImageData(width,height);
+ let seed=0x5f3759df;
+ for(let i=0;i<pixels.data.length;i+=4){
+  seed=(seed*1664525+1013904223)>>>0;
+  const grain=188+((seed>>>24)&67);
+  pixels.data[i]=grain;
+  pixels.data[i+1]=grain;
+  pixels.data[i+2]=grain;
+  pixels.data[i+3]=((seed>>>16)&31)+8;
+ }
+ context.putImageData(pixels,0,0);
+}
+function restartHeroProgress(){
+ const fill=$("hero-progress-fill");
+ if(!fill)return;
+ fill.style.animation="none";
+ void fill.offsetWidth;
+ fill.style.animation="v3-hero-progress 8s linear forwards";
+}
+function updateDesktopNavPill(){
+ const nav=document.querySelector(".desktop-nav");
+ if(!nav)return;
+ const pill=nav.querySelector(".nav-pill");
+ const active=nav.querySelector(".nav-link.active");
+ if(!pill||!active||getComputedStyle(nav).display==="none")return;
+ const navRect=nav.getBoundingClientRect(),activeRect=active.getBoundingClientRect();
+ pill.style.width=activeRect.width+"px";
+ pill.style.transform="translate3d("+(activeRect.left-navRect.left-5)+"px,0,0)";
+ pill.style.opacity="1";
+}
+paintAmbientCanvas();
 let homeDataPromise=null,homeDataLoadedAt=0,serviceBrowseRequest=0;
 function notice(m){const e=$("notice");e.textContent=m;e.hidden=false;clearTimeout(notice.timer);notice.timer=setTimeout(()=>e.hidden=true,3600)}
 function modal(id,on){$(id).classList.toggle("open",on);$(id).setAttribute("aria-hidden",String(!on));document.body.classList.toggle("no-scroll",on||$("player-modal").classList.contains("open"))}
@@ -87,12 +125,29 @@ function card(x){
  const b=document.createElement("button");b.className="poster-card";b.type="button";
  b.setAttribute("aria-label","Shiko detajet: "+title(x));
  const src=poster(x),rating=Number(x.vote_average);
- b.innerHTML=(src?'<img loading="lazy" decoding="async" fetchpriority="low" alt="">':'<div class="placeholder">FLIXTV</div>')+
-  (Number.isFinite(rating)&&rating>0?'<span class="poster-rating" aria-label="Vlerësimi '+rating.toFixed(1)+'"><span aria-hidden="true">★</span> '+rating.toFixed(1)+'</span>':"")+
-  '<span class="poster-title"></span><span class="poster-year"></span>';
- if(src)b.querySelector("img").src=src;
- b.querySelector(".poster-title").textContent=title(x);
- b.querySelector(".poster-year").textContent=year(x)+(kind(x)==="tv"?" · TV":"");
+ const art=document.createElement("span");art.className="poster-art";
+ if(src){
+  const image=document.createElement("img");
+  image.loading="lazy";image.decoding="async";image.fetchPriority="low";image.alt="";
+  image.src=src;art.append(image);
+ }else{
+  const placeholder=document.createElement("span");
+  placeholder.className="placeholder";placeholder.textContent="FLIXTV";art.append(placeholder);
+ }
+ if(Number.isFinite(rating)&&rating>0){
+  const ratingBadge=document.createElement("span");
+  ratingBadge.className="poster-rating";
+  ratingBadge.setAttribute("aria-label","Vlerësimi "+rating.toFixed(1));
+  ratingBadge.innerHTML='<span aria-hidden="true">★</span> '+rating.toFixed(1);
+  art.append(ratingBadge);
+ }
+ const hover=document.createElement("span");hover.className="poster-hover";
+ const playIcon=document.createElement("span");playIcon.className="poster-play-icon";
+ playIcon.innerHTML='<i class="bi bi-play-fill" aria-hidden="true"></i>';
+ const name=document.createElement("strong");name.className="poster-title";name.textContent=title(x);
+ const meta=document.createElement("small");meta.className="poster-year";
+ meta.textContent=year(x)+(kind(x)==="tv"?" · TV":"");
+ hover.append(playIcon,name,meta);art.append(hover);b.append(art);
  const warm=()=>prefetchTitle(x);
  b.addEventListener("pointerenter",warm,{once:true,passive:true});
  b.addEventListener("touchstart",warm,{once:true,passive:true});
@@ -457,6 +512,9 @@ async function updateAmbientScene(imageUrl,paletteUrl,request){
  next.style.setProperty("--ambient-c1",colors.c1);
  next.style.setProperty("--ambient-c2",colors.c2);
  next.style.setProperty("--ambient-c3",colors.c3);
+ next.style.setProperty("--ambient-color-one","rgb("+colors.c1+")");
+ next.style.setProperty("--ambient-color-two","rgb("+colors.c2+")");
+ next.style.setProperty("--ambient-color-three","rgb("+colors.c3+")");
  const art=next.querySelector(".ambient-scene-art");
  if(art)art.style.backgroundImage=imageUrl?'url("'+imageUrl+'")':'linear-gradient(135deg,#303b27,#171b11)';
  requestAnimationFrame(()=>{
@@ -472,6 +530,7 @@ function showHero(index){
  heroIndex=(index+heroItems.length)%heroItems.length;
  const item=heroItems[heroIndex];
  const request=++showHero.requestId;
+ restartHeroProgress();
  const nextLayer=heroLayer===0?1:0;
  const next=$(nextLayer===0?"hero-bg-a":"hero-bg-b");
  const current=$(heroLayer===0?"hero-bg-a":"hero-bg-b");
@@ -545,7 +604,8 @@ showHero.requestId=0;
 function startHeroTimer(){
  clearInterval(heroTimer);
  if(heroItems.length<2)return;
- heroTimer=setInterval(()=>{if(!document.hidden&&!$("hero").hidden&&!$("player-modal").classList.contains("open"))showHero(heroIndex+1)},6500);
+ restartHeroProgress();
+ heroTimer=setInterval(()=>{if(!document.hidden&&!$("hero").hidden&&!$("player-modal").classList.contains("open"))showHero(heroIndex+1)},8000);
 }
 
 const WATCH_PROGRESS_KEY="flxtv:watch-progress:v2",LEGACY_WATCH_PROGRESS_KEY="flxtv:watch-progress:v1";
@@ -1020,26 +1080,24 @@ function createTop10Card(item,rank){
  button.type="button";
  button.className="top10-card";
  button.setAttribute("aria-label","Numri "+rank+": "+title(item));
+ const media=document.createElement("span");media.className="top10-media";
  const number=document.createElement("span");
- number.className="top10-rank";
- number.setAttribute("aria-hidden","true");
- number.textContent=String(rank);
+ number.className="top10-rank";number.setAttribute("aria-hidden","true");number.textContent=String(rank);
+ const art=document.createElement("span");art.className="top10-art";
  const image=document.createElement("img");
- image.className="top10-poster";
- image.loading="lazy";
- image.decoding="async";
- image.fetchPriority="low";
- image.alt="";
- image.src=IMG+"w342"+item.poster_path;
- const caption=document.createElement("span");
- caption.className="top10-caption";
- const name=document.createElement("strong");
- name.textContent=title(item);
+ image.className="top10-poster";image.loading="lazy";image.decoding="async";
+ image.fetchPriority="low";image.alt="";image.src=IMG+"w342"+item.poster_path;
+ const overlay=document.createElement("span");overlay.className="top10-overlay";
+ const playIcon=document.createElement("span");playIcon.className="top10-play";
+ playIcon.innerHTML='<i class="bi bi-play-fill" aria-hidden="true"></i>';
+ const name=document.createElement("strong");name.textContent=title(item);
  const meta=document.createElement("small");
  const rating=Number(item.vote_average);
  meta.textContent=[year(item),rating>0?"★ "+rating.toFixed(1):""].filter(Boolean).join(" · ");
- caption.append(name,meta);
- button.append(number,image,caption);
+ overlay.append(playIcon,name,meta);art.append(image,overlay);media.append(number,art);
+ const caption=document.createElement("span");caption.className="top10-caption";
+ caption.textContent=title(item);
+ button.append(media,caption);
  button.onclick=()=>openTitlePage(item,true,false,button);
  return button;
 }
@@ -1048,7 +1106,7 @@ async function loadHomeTop10(){
  if(!container)return [];
  container.innerHTML='<div class="service-loading">Po ngarkohet renditja ditore…</div>';
  try{
-  const data=await tmdb("/trending/movie/day?language=en-US");
+  const data=await tmdb("/trending/all/day?language=sq-AL");
   const ranked=(data.results||[]).slice(0,10).map((item,index)=>({item,rank:index+1}));
   const visible=ranked.filter(entry=>entry.item&&entry.item.poster_path);
   if(!visible.length){
@@ -2566,6 +2624,8 @@ const loadedPages=new Set();
 async function openPage(page,updateHistory=true){
   if(updateHistory){const target=page==="sports"?"/sports":page==="home"?"/":location.pathname;if(target!==location.pathname)history.pushState({page},"",target)}
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+ requestAnimationFrame(updateDesktopNavPill);
+ const appScroller=$("app");if(appScroller)appScroller.scrollTo({top:0,behavior:"instant"});
  $("search-page").hidden=true;
  $("sports-page").hidden=page!=="sports";
  $("catalog").hidden=page==="sports";
@@ -2611,6 +2671,8 @@ $("service-results-back").onclick=()=>{
  $("browse-services-section").scrollIntoView({behavior:"smooth",block:"start"});
 };
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
+ requestAnimationFrame(updateDesktopNavPill);
+ window.addEventListener("resize",()=>requestAnimationFrame(updateDesktopNavPill),{passive:true});
  document.querySelectorAll("[data-close]").forEach(e=>{if(e.dataset.close==="sports-settings")e.onclick=()=>modal("sports-settings",false)});
 $("hero-prev").onclick=()=>{if(heroItems.length>1){showHero(heroIndex-1);startHeroTimer()}};
 $("hero-next").onclick=()=>{if(heroItems.length>1){showHero(heroIndex+1);startHeroTimer()}};
