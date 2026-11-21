@@ -1,7 +1,7 @@
 
 :root{--bf-bg:#08090d;--bf-panel:#14161d;--bf-line:rgba(255,255,255,.105);--bf-muted:rgba(255,255,255,.56);--bf-amber:#fbbf24;--bf-gutter:20px}
 @media(min-width:768px){:root{--bf-gutter:56px}}
-html{background:var(--bf-bg);scroll-behavior:smooth}body{background:var(--bf-bg)!important;color:#fff!important;overflow-x:hidden}
+html,body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;background:var(--bf-bg)!important}html{scroll-behavior:smooth}body{position:relative!important;color:#fff!important}
 body.bf-reference-mode{font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 body.bf-reference-mode #app-ambient{display:none!important}
 body.bf-reference-mode .topbar{position:fixed!important;inset:0 0 auto!important;height:auto!important;min-height:64px;padding:15px var(--bf-gutter)!important;display:flex;align-items:center;gap:18px;z-index:80;background:linear-gradient(180deg,rgba(8,9,13,.92),rgba(8,9,13,.5))!important;border:0!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
