@@ -68,7 +68,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       float detail=fbm(p*5.2+warp*2.2+vec2(4.4,t*0.28));
       float filaments=1.0-abs(detail);
       float plume=smoothstep(-0.95,0.05,p.y)* (1.0-smoothstep(0.95,1.65,p.y));
-      float sideFade=smoothstep(-0.25,0.18,p.x)*(1.0-smoothstep(p.x,1.85,2.35));
+      float sideFade=smoothstep(-1.0,-0.25,p.x)*(1.0-smoothstep(1.15,1.9,p.x));
       float density=smoothstep(-0.08,0.52,broad+filaments*0.14)*plume*sideFade;
       float wisps=smoothstep(0.22,0.78,filaments)*density;
       float glow=exp(-length((vUv-vec2(0.52,0.48))*vec2(1.0,0.78))*2.2);
