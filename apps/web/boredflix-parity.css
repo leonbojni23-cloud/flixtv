@@ -2108,3 +2108,14 @@ body.bf-reference-mode #title-page{background:transparent!important}
 @media(prefers-reduced-motion:reduce){
  body.bf-reference-mode #app-ambient .page-smoke-canvas{opacity:.72!important}
 }
+
+
+/* Cover-only zoom: enlarge the Hero artwork without moving or resizing its content. */
+body.bf-reference-mode #hero .hero-backdrop{
+  background-size:112% 112%!important;
+}
+@media(max-width:767px){
+  body.bf-reference-mode #hero .hero-backdrop{
+    background-size:116% 116%!important;
+  }
+}
