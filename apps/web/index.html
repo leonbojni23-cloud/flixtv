@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="/style.css?v=20261121-boredflix-redesign-1">
+  <link rel="stylesheet" href="/style.css?v=20261121-boredflix-redesign-2">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.css">
   <script src="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.js" defer></script>
 </head>
@@ -103,18 +103,6 @@
     </section>
     <div id="catalog">
       <div id="home-page">
-        <section class="content-section continue-watching-section" id="continue-watching-section" hidden>
-          <div class="section-heading continue-section-heading">
-            <h2 class="continue-section-title">
-              <button class="section-heading-link" id="continue-library-open" type="button" aria-label="Shfaq të gjithë historikun e shikimit">
-                <span class="continue-heading-title">Continue Watching</span><i class="bi bi-chevron-right" aria-hidden="true"></i>
-              </button>
-            </h2>
-            <button class="section-edit-button" id="continue-edit" type="button" aria-pressed="false">Edit</button>
-          </div>
-          <div class="poster-row continue-watching-row" id="continue-watching"></div>
-        </section>
-
         <section class="content-section service-section" id="browse-services-section">
           <div class="section-heading"><h2>Browse by Service</h2><span class="section-kicker">STREAMING PLATFORMS</span></div>
           <div class="service-row" id="browse-services" aria-label="Shërbimet streaming">
@@ -140,6 +128,19 @@
             <div class="service-loading">Po ngarkohet renditja ditore…</div>
           </div>
         </section>
+
+<section class="content-section continue-watching-section" id="continue-watching-section" hidden>
+          <div class="section-heading continue-section-heading">
+            <h2 class="continue-section-title">
+              <button class="section-heading-link" id="continue-library-open" type="button" aria-label="Shfaq të gjithë historikun e shikimit">
+                <span class="continue-heading-title">Continue Watching</span><i class="bi bi-chevron-right" aria-hidden="true"></i>
+              </button>
+            </h2>
+            <button class="section-edit-button" id="continue-edit" type="button" aria-pressed="false">Edit</button>
+          </div>
+          <div class="poster-row continue-watching-row" id="continue-watching"></div>
+        </section>
+
 
         <section class="content-section trending-movies-section" id="trending-movies-section">
           <div class="section-heading">
@@ -259,6 +260,6 @@
     <video id="resolved-video" controls playsinline webkit-playsinline preload="none" hidden></video>
   </section>
 
-  <script src="/app.js?v=20261121-boredflix-redesign-1"></script>
+  <script src="/app.js?v=20261121-boredflix-redesign-2"></script>
 </body>
 </html>
