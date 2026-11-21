@@ -2703,6 +2703,9 @@ window.FLIXTV_BRIDGE={
  library:function(){return {profileId:activeWatchProfile&&activeWatchProfile.id||"main",saved:readHeroSavedItems(),progress:readWatchProgress()}},
  markWatched:function(item){try{var key="flxtv:watched:v1:"+(activeWatchProfile&&activeWatchProfile.id||"main");var list=JSON.parse(localStorage.getItem(key)||"[]");if(!Array.isArray(list))list=[];var id=String(item&&item.id||"");list=list.filter(function(x){return !(String(x.id)===id&&kind(x)===kind(item))});list.unshift({id:item.id,media_type:kind(item),title:title(item),name:title(item),poster_path:item.poster_path||"",backdrop_path:item.backdrop_path||"",watchedAt:Date.now(),vote_average:item.vote_average||0});localStorage.setItem(key,JSON.stringify(list.slice(0,500)))}catch(error){console.warn("[FLIXTV] Could not store watched title",error)}},
  removeSaved:function(item){var list=readHeroSavedItems().filter(function(x){return !(String(x.id)===String(item.id)&&kind(x)===kind(item))});try{localStorage.setItem(heroListKey(),JSON.stringify(list));if(heroItems[heroIndex])renderHeroSaveButton(heroItems[heroIndex])}catch(error){notice("Nuk u ndryshua lista personale.")}},
+ clearSaved:function(){try{localStorage.setItem(heroListKey(),"[]");if(heroItems[heroIndex])renderHeroSaveButton(heroItems[heroIndex])}catch(error){notice("Lista nuk u pastrua.")}},
+ clearProgress:function(){writeWatchProgress({});renderContinueWatching()},
+ removeProgress:function(item){if(!item)return;var data=readWatchProgress();delete data[progressId(item)];writeWatchProgress(data);renderContinueWatching()},
  openContinueEntry:function(entry){var item=continueEntryItem(entry);var panel=document.getElementById("bf-route-page");if(panel)panel.hidden=true;history.pushState({titlePage:true},"",continueWatchUrl(item,entry));return openTitlePage(item,false,true)}
 };
 
