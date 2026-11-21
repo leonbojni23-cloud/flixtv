@@ -5636,3 +5636,30 @@ button,input,select,textarea{font-family:var(--font-ui)}
 @supports not (mix-blend-mode:screen){
   #app-ambient .ambient-cloud{mix-blend-mode:normal!important;opacity:.46!important}
 }
+
+
+/* Older Safari fallback where color-mix() is unavailable. */
+@supports not (background:color-mix(in srgb,red,transparent)){
+  #app-ambient .ambient-scene{
+    background:
+      radial-gradient(ellipse at 18% 8%,rgba(var(--ambient-c1),.24),transparent 54%),
+      radial-gradient(ellipse at 82% 36%,rgba(var(--ambient-c2),.19),transparent 56%),
+      radial-gradient(ellipse at 48% 92%,rgba(var(--ambient-c3),.17),transparent 60%),
+      #05060b!important;
+  }
+  #app-ambient .ambient-cloud-one{
+    background:
+      radial-gradient(ellipse at 32% 42%,rgba(var(--ambient-c1),.72) 0%,rgba(var(--ambient-c1),.24) 36%,transparent 72%),
+      radial-gradient(ellipse at 68% 70%,rgba(var(--ambient-c2),.30),transparent 65%)!important;
+  }
+  #app-ambient .ambient-cloud-two{
+    background:
+      radial-gradient(ellipse at 68% 40%,rgba(var(--ambient-c2),.70) 0%,rgba(var(--ambient-c2),.23) 38%,transparent 72%),
+      radial-gradient(ellipse at 32% 70%,rgba(var(--ambient-c3),.34),transparent 65%)!important;
+  }
+  #app-ambient .ambient-cloud-three{
+    background:
+      radial-gradient(ellipse at 38% 42%,rgba(var(--ambient-c3),.62) 0%,transparent 69%),
+      radial-gradient(ellipse at 70% 38%,rgba(var(--ambient-c1),.46),transparent 68%)!important;
+  }
+}
