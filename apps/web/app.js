@@ -545,44 +545,40 @@ function readAmbientPalette(imageUrl){
   image.onload=()=>{
    try{
     const canvas=document.createElement("canvas");
-    canvas.width=32;canvas.height=32;
+    canvas.width=64;canvas.height=64;
     const context=canvas.getContext("2d",{willReadFrequently:true});
     if(!context){resolve(null);return}
-    context.drawImage(image,0,0,32,32);
-    const pixels=context.getImageData(0,0,32,32).data;
-    const bins=Array.from({length:18},()=>({weight:0,r:0,g:0,b:0}));
+    context.drawImage(image,0,0,64,64);
+    const pixels=context.getImageData(0,0,64,64).data;
+    const bins=Array.from({length:24},()=>({weight:0,r:0,g:0,b:0,count:0}));
     for(let i=0;i<pixels.length;i+=4){
      const r=pixels[i],g=pixels[i+1],b=pixels[i+2],alpha=pixels[i+3];
      if(alpha<180)continue;
      const high=Math.max(r,g,b),low=Math.min(r,g,b);
-     if(high<28||high>249)continue;
+     if(high<24||high>252)continue;
      const saturation=high===0?0:(high-low)/high;
-     if(saturation<.16)continue;
+     if(saturation<.12)continue;
      let hue=0;
      if(high===r)hue=((g-b)/(high-low))%6;
      else if(high===g)hue=(b-r)/(high-low)+2;
      else hue=(r-g)/(high-low)+4;
      hue=(hue*60+360)%360;
-     const weight=saturation*(.48+.52*Math.min(high,220)/220);
-     const bin=bins[Math.floor(hue/20)%18];
-     bin.weight+=weight;bin.r+=r*weight;bin.g+=g*weight;bin.b+=b*weight;
+     // Favor colors that are both vivid and genuinely common in the artwork.
+     const weight=(.35+saturation*.65)*(.55+.45*Math.min(high,230)/230);
+     const bin=bins[Math.floor(hue/15)%24];
+     bin.weight+=weight;bin.r+=r*weight;bin.g+=g*weight;bin.b+=b*weight;bin.count++;
     }
-    const ranked=bins.filter(bin=>bin.weight>0).sort((a,b)=>b.weight-a.weight);
-    const selected=[];
-    for(const bin of ranked){
-     const avg=ambientRgbToHsl(bin.r/bin.weight,bin.g/bin.weight,bin.b/bin.weight);
-     if(selected.every(entry=>Math.abs(((avg.h-entry.hsl.h+540)%360)-180)>28))selected.push({hsl:avg});
-     if(selected.length===3)break;
-    }
-    if(!selected.length){resolve(null);return}
-    const base=selected[0].hsl;
-    const second=selected[1]?.hsl||{h:(base.h+34)%360,s:base.s,l:base.l-4};
-    const third=selected[2]?.hsl||{h:(base.h+158)%360,s:base.s*.86,l:base.l+5};
-    resolve({
-     c1:ambientPaletteColor(base,2),
-     c2:ambientPaletteColor(second,-1),
-     c3:ambientPaletteColor(third,3)
-    });
+    const dominant=bins.filter(bin=>bin.weight>0).sort((a,b)=>b.weight-a.weight)[0];
+    if(!dominant){resolve(null);return}
+    const raw=ambientRgbToHsl(dominant.r/dominant.weight,dominant.g/dominant.weight,dominant.b/dominant.weight);
+    // One dominant cover hue, strengthened but retaining its actual color identity.
+    const hue=raw.h;
+    const saturation=ambientClamp(Math.max(raw.s,72),72,100);
+    const light=ambientClamp(raw.l,42,62);
+    const c1=ambientHslToRgb(hue,saturation,ambientClamp(light+5,46,68)).join(",");
+    const c2=ambientHslToRgb(hue,saturation*.92,ambientClamp(light-5,35,58)).join(",");
+    const c3=ambientHslToRgb(hue+((hue<180)?-7:7),saturation*.78,ambientClamp(light+13,52,74)).join(",");
+    resolve({c1,c2,c3,dominantHue:hue});
    }catch(_){resolve(null)}
   };
   image.onerror=()=>resolve(null);
@@ -594,9 +590,9 @@ function readAmbientPalette(imageUrl){
 }
 async function updateAmbientScene(imageUrl,paletteUrl,request){
  let palette=null;
- // Try the exact image URL first; same-origin proxy is the CORS-safe fallback.
- if(imageUrl){try{palette=await readAmbientPalette(imageUrl)}catch(_){}}
- if(!palette&&paletteUrl&&paletteUrl!==imageUrl){try{palette=await readAmbientPalette(paletteUrl)}catch(_){}}
+ // The same-origin TMDB proxy is the reliable CORS-safe source for pixel sampling.
+ if(paletteUrl){try{palette=await readAmbientPalette(paletteUrl)}catch(_){}}
+ if(!palette&&imageUrl&&imageUrl!==paletteUrl){try{palette=await readAmbientPalette(imageUrl)}catch(_){}}
  if(request!==showHero.requestId)return;
  const colors=palette||ambientFallbackPalette();
  updateHeroSmoke(colors,request);
