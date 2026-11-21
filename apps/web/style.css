@@ -5676,3 +5676,46 @@ button,input,select,textarea{font-family:var(--font-ui)}
   right:auto!important;
   bottom:auto!important;
 }
+
+
+/* Canvas grain sits above ambient art/clouds and below the final scene shade. */
+#app-ambient .ambient-scene{z-index:1}
+#app-ambient #ambient-canvas{
+  position:absolute!important;
+  z-index:2!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+}
+@media(prefers-reduced-transparency:reduce){
+  #app-ambient #ambient-canvas{opacity:.06}
+}
+
+/* Compact tablet header: preserve the centered glass navigation without crowding. */
+@media(min-width:768px) and (max-width:1020px){
+  .topbar{
+    grid-template-columns:auto minmax(0,1fr) auto;
+    gap:12px!important;
+    padding-left:18px!important;
+    padding-right:18px!important;
+  }
+  .topbar .desktop-nav{gap:0!important}
+  .topbar .desktop-nav .nav-link{padding-left:11px!important;padding-right:11px!important;font-size:12px!important}
+  .topbar .searchbox{
+    width:42px!important;
+    flex:0 0 42px!important;
+    justify-content:center;
+    padding:0!important;
+  }
+  .topbar .searchbox input{display:none!important}
+  .topbar .searchbox.expanded{
+    position:absolute!important;
+    right:68px!important;
+    width:min(250px,35vw)!important;
+    padding:0 12px!important;
+    justify-content:flex-start;
+    border-radius:999px!important;
+    background:rgba(12,14,21,.96)!important;
+  }
+  .topbar .searchbox.expanded input{display:block!important}
+}
