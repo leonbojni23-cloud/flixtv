@@ -141,8 +141,8 @@ function populateLibrary(){
    clear.textContent=current.tab==="continue"?"Clear all":current.tab==="saved"?"Clear saved":"Clear history";
    clear.onclick=function(){
     var message=current.tab==="continue"?"Remove all titles from Continue Watching?":current.tab==="saved"?"Remove all saved titles?":"Clear the watched history?";
-    if(!window.confirm(message))return;
-    var b=bridge();
+    if(clear.dataset.confirm!=="yes"){clear.dataset.confirm="yes";clear.classList.add("confirm");clear.textContent="Click again to clear";clear.__resetTimer=window.setTimeout(function(){if(clear.isConnected){clear.dataset.confirm="";clear.classList.remove("confirm");clear.textContent=current.tab==="continue"?"Clear all":current.tab==="saved"?"Clear saved":"Clear history"}},3000);return}
+    window.clearTimeout(clear.__resetTimer);var b=bridge();
     if(current.tab==="continue"&&b&&b.clearProgress)b.clearProgress();
     else if(current.tab==="saved"&&b&&b.clearSaved)b.clearSaved();
     else if(current.tab==="watched")writeWatched([]);
