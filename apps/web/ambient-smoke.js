@@ -72,18 +72,19 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
       // Wide feathered envelope. Avoid sharp cellular edges and dark outlines.
       float envelope=smoothstep(-0.88,-0.08,p.y)*(1.0-smoothstep(0.88,1.48,p.y));
-      float density=smoothstep(-0.54,0.34,cloud)*envelope;
+      float density=smoothstep(-0.66,0.26,cloud)*envelope;
       density=clamp(density,0.0,1.0);
 
-      // Preserve the dominant cover hue, but shape it as light, translucent vapor.
-      vec3 shade=mix(uColorB,uColorC,smoothstep(-0.32,0.38,cloudB));
-      vec3 palette=mix(uColorA,shade,0.07+0.08*smoothstep(-0.3,0.45,cloudA));
-      palette=mix(palette,vec3(0.78,0.80,0.88),0.09);
-      float softGlow=exp(-length((vUv-vec2(0.52,0.46))*vec2(0.72,0.62))*1.18);
-      vec3 smoke=palette*(1.18+0.34*density)+uColorC*softGlow*density*0.10;
+      // Strongly tint every smoke wisp with the current Hero's dominant cover color.
+      vec3 shade=mix(uColorB,uColorC,smoothstep(-0.30,0.36,cloudB));
+      vec3 palette=mix(uColorA,shade,0.035+0.055*smoothstep(-0.3,0.45,cloudA));
+      palette=mix(palette,vec3(0.88,0.88,0.92),0.055);
+      float softGlow=exp(-length((vUv-vec2(0.52,0.46))*vec2(0.72,0.62))*1.12);
+      float vaporLight=0.88+0.42*smoothstep(-0.35,0.55,cloudA);
+      vec3 smoke=palette*vaporLight+uColorA*softGlow*0.16;
 
-      // The hue stays vivid, while lower opacity prevents a heavy muddy blanket.
-      float alpha=density*(0.40+softGlow*0.075)*uOpacity;
+      // A visible colored vapor body replaces the near-black gaps and muddy shadows.
+      float alpha=(0.22+0.46*density+softGlow*0.035)*envelope*uOpacity;
       gl_FragColor=vec4(smoke,alpha);
     }
   `;
@@ -97,7 +98,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const parseColor = (value, fallback) => {
     const parts = String(value || "").split(",").map(Number);
     if (parts.length !== 3 || parts.some(n => !Number.isFinite(n))) return new THREE.Color(fallback);
-    return new THREE.Color(parts[0] / 255, parts[1] / 255, parts[2] / 255);
+    return new THREE.Color().setRGB(parts[0] / 255, parts[1] / 255, parts[2] / 255, THREE.SRGBColorSpace);
   };
   const paletteTargets = {
     a: new THREE.Color("#a05a42"),
