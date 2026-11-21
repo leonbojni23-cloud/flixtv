@@ -2051,3 +2051,60 @@ body.bf-reference-mode #title-page{
 @media(prefers-reduced-motion:reduce){
   body.bf-reference-mode #app-ambient .page-smoke-canvas{opacity:.62!important}
 }
+
+
+/* Refined ambient v4: bring Hero back to a balanced height and let the film palette travel through the page. */
+body.bf-reference-mode #hero.hero{
+  height:92svh!important;min-height:660px!important;max-height:1020px!important;
+  padding-bottom:clamp(92px,12vh,150px)!important;
+}
+body.bf-reference-mode #hero .hero-backdrop{
+  opacity:1!important;filter:none!important;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 76%,rgba(0,0,0,.88) 88%,rgba(0,0,0,.30) 97%,transparent 100%)!important;
+  mask-image:linear-gradient(to bottom,#000 0%,#000 76%,rgba(0,0,0,.88) 88%,rgba(0,0,0,.30) 97%,transparent 100%)!important;
+}
+body.bf-reference-mode #hero .hero-backdrop::after{
+  background:
+    linear-gradient(90deg,rgba(5,7,11,.13),rgba(5,7,11,.06) 35%,transparent 78%),
+    linear-gradient(180deg,transparent 58%,rgba(8,9,13,.06) 78%,rgba(8,9,13,.28) 100%)!important;
+}
+body.bf-reference-mode #hero:before{
+  background:
+    linear-gradient(90deg,rgba(7,8,12,.14),rgba(7,8,12,.05) 38%,transparent 78%),
+    linear-gradient(0deg,rgba(8,9,13,.36) 0%,rgba(8,9,13,.08) 22%,transparent 58%)!important;
+}
+body.bf-reference-mode #app-ambient{
+  background:
+    radial-gradient(ellipse at 12% 10%,rgb(var(--hero-smoke-one,190,104,69) / .48),transparent 54%),
+    radial-gradient(ellipse at 88% 35%,rgb(var(--hero-smoke-two,76,111,94) / .40),transparent 56%),
+    radial-gradient(ellipse at 48% 82%,rgb(var(--hero-smoke-three,121,91,151) / .36),transparent 60%),
+    radial-gradient(ellipse at 52% 48%,rgb(var(--hero-smoke-one,190,104,69) / .13),transparent 72%),
+    #11131b!important;
+  transition:background 1.8s ease!important;
+}
+body.bf-reference-mode #app-ambient .page-smoke-canvas{
+  opacity:1!important;
+  filter:saturate(1.95) brightness(1.28) contrast(1.08)!important;
+  mix-blend-mode:screen!important;
+}
+body.bf-reference-mode #hero .hero-smoke-stage{opacity:.78!important}
+body.bf-reference-mode #hero .hero-smoke-layer{filter:blur(20px) saturate(1.9)!important}
+body.bf-reference-mode #catalog,
+body.bf-reference-mode #home-page,
+body.bf-reference-mode #movies-page,
+body.bf-reference-mode #shows-page,
+body.bf-reference-mode #sports-page,
+body.bf-reference-mode #title-page{background:transparent!important}
+@media(max-width:767px){
+ body.bf-reference-mode #hero.hero{
+  height:90svh!important;min-height:680px!important;max-height:900px!important;
+  padding-bottom:clamp(100px,14vh,150px)!important;
+ }
+ body.bf-reference-mode #hero .hero-backdrop{background-position:center 26%!important}
+ body.bf-reference-mode #app-ambient .page-smoke-canvas{
+  opacity:.98!important;filter:saturate(1.85) brightness(1.22) contrast(1.06)!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body.bf-reference-mode #app-ambient .page-smoke-canvas{opacity:.72!important}
+}
