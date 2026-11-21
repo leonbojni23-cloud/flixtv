@@ -75,17 +75,19 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       float density=smoothstep(-0.66,0.26,cloud)*envelope;
       density=clamp(density,0.0,1.0);
 
-      // Strongly tint every smoke wisp with the current Hero's dominant cover color.
-      vec3 shade=mix(uColorB,uColorC,smoothstep(-0.30,0.36,cloudB));
-      vec3 palette=mix(uColorA,shade,0.035+0.055*smoothstep(-0.3,0.45,cloudA));
-      palette=mix(palette,vec3(0.88,0.88,0.92),0.055);
+      // Full-frame chromatic base: keep the Hero hue present even between smoke plumes.
+      float cloudLight=smoothstep(-0.62,0.52,cloudA*0.78+cloudB*0.22);
+      float plumeLight=smoothstep(-0.42,0.62,cloud);
+      vec3 deepHue=uColorA*0.24;
+      vec3 midHue=mix(uColorA*0.42,uColorA*0.78,cloudLight);
+      vec3 smoke=mix(deepHue,midHue,0.72);
+      smoke=mix(smoke,uColorA*(0.92+0.18*cloudLight),plumeLight*0.62);
+      smoke=mix(smoke,uColorC*0.72,cloudLight*0.08);
       float softGlow=exp(-length((vUv-vec2(0.52,0.46))*vec2(0.72,0.62))*1.12);
-      float vaporLight=0.88+0.42*smoothstep(-0.35,0.55,cloudA);
-      vec3 smoke=palette*vaporLight+uColorA*softGlow*0.16;
+      smoke+=uColorA*softGlow*0.08;
 
-      // A visible colored vapor body replaces the near-black gaps and muddy shadows.
-      float alpha=(0.22+0.46*density+softGlow*0.035)*envelope*uOpacity;
-      gl_FragColor=vec4(smoke,alpha);
+      // Opaque color atmosphere eliminates black transparent gaps; FBM still animates the smoke.
+      gl_FragColor=vec4(smoke,1.0);
     }
   `;
 
@@ -127,7 +129,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     material = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
-      transparent: true,
+      transparent: false,
       depthWrite: false,
       uniforms: {
         uTime: { value: 0 },
