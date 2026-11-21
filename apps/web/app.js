@@ -573,11 +573,12 @@ function readAmbientPalette(imageUrl){
     const raw=ambientRgbToHsl(dominant.r/dominant.weight,dominant.g/dominant.weight,dominant.b/dominant.weight);
     // One dominant cover hue, strengthened but retaining its actual color identity.
     const hue=raw.h;
-    const saturation=ambientClamp(Math.max(raw.s,72),72,100);
-    const light=ambientClamp(raw.l,42,62);
-    const c1=ambientHslToRgb(hue,saturation,ambientClamp(light+5,46,68)).join(",");
-    const c2=ambientHslToRgb(hue,saturation*.92,ambientClamp(light-5,35,58)).join(",");
-    const c3=ambientHslToRgb(hue+((hue<180)?-7:7),saturation*.78,ambientClamp(light+13,52,74)).join(",");
+    const saturation=ambientClamp(Math.max(raw.s*1.18,94),94,100);
+    const light=ambientClamp(raw.l,48,62);
+    // Keep all three tones in the same strong dominant hue family.
+    const c1=ambientHslToRgb(hue,saturation,ambientClamp(light+9,56,70)).join(",");
+    const c2=ambientHslToRgb(hue,saturation*.96,ambientClamp(light-8,38,52)).join(",");
+    const c3=ambientHslToRgb(hue+(hue<180?-4:4),saturation*.90,ambientClamp(light+18,64,78)).join(",");
     resolve({c1,c2,c3,dominantHue:hue});
    }catch(_){resolve(null)}
   };
