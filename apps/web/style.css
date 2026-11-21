@@ -5663,3 +5663,16 @@ button,input,select,textarea{font-family:var(--font-ui)}
       radial-gradient(ellipse at 70% 38%,rgba(var(--ambient-c1),.46),transparent 68%)!important;
   }
 }
+
+
+/* Remove the legacy mobile Hero spacer; the V3 Hero owns its full-height frame. */
+#hero::before{
+  content:none!important;
+  display:none!important;
+  padding:0!important;
+}
+#hero .hero-content{
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+}
