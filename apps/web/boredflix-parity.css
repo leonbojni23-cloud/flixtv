@@ -2301,3 +2301,76 @@ body.bf-reference-mode #hero #hero-overview{
   max-width:760px!important;
   text-align:left!important;
 }
+
+
+/* iPhone header controls: remove the nested blue capsule and keep two matching glass buttons. */
+@media(max-width:767px){
+  body.bf-reference-mode .topbar .top-actions{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:9px!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    background-image:none!important;
+    box-shadow:none!important;
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+  }
+  body.bf-reference-mode .topbar .searchbox{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:42px!important;
+    height:42px!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:50%!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  body.bf-reference-mode .topbar .search-trigger,
+  body.bf-reference-mode .topbar .header-glass-button{
+    -webkit-appearance:none!important;
+    appearance:none!important;
+    display:grid!important;
+    place-items:center!important;
+    flex:0 0 42px!important;
+    width:42px!important;
+    min-width:42px!important;
+    height:42px!important;
+    min-height:42px!important;
+    padding:0!important;
+    margin:0!important;
+    border:1px solid rgba(255,255,255,.24)!important;
+    border-radius:50%!important;
+    background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.055))!important;
+    color:#fff!important;
+    box-shadow:0 4px 16px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.22)!important;
+    -webkit-backdrop-filter:blur(18px) saturate(175%)!important;
+    backdrop-filter:blur(18px) saturate(175%)!important;
+    outline:0!important;
+  }
+  body.bf-reference-mode .topbar .search-trigger svg{
+    width:21px!important;
+    height:21px!important;
+    stroke:#fff!important;
+    fill:none!important;
+  }
+  body.bf-reference-mode .topbar .header-glass-button{
+    font-size:19px!important;
+  }
+  body.bf-reference-mode .topbar .search-trigger:focus,
+  body.bf-reference-mode .topbar .search-trigger:active,
+  body.bf-reference-mode .topbar .header-glass-button:focus,
+  body.bf-reference-mode .topbar .header-glass-button:active{
+    background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.055))!important;
+    color:#fff!important;
+    outline:0!important;
+    box-shadow:0 4px 16px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.22)!important;
+  }
+}
