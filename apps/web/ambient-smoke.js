@@ -61,22 +61,34 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       vec2 aspect=vec2(uResolution.x/max(uResolution.y,1.0),1.0);
       vec2 p=vUv*aspect;
 
-      // A little faster, with several independent currents moving at different angles.
+      // Build slow-moving vortices so the vapor gathers into shapes, curls, then releases.
+      float formationTime=uTime*0.052;
+      vec2 centerA=vec2(aspect.x*(0.30+0.11*sin(formationTime)),0.48+0.15*cos(formationTime*0.72));
+      vec2 centerB=vec2(aspect.x*(0.72+0.09*cos(formationTime*0.63+1.4)),0.54+0.13*sin(formationTime*0.82+1.1));
+      vec2 deltaA=p-centerA;
+      vec2 deltaB=p-centerB;
+      float vortexA=exp(-dot(deltaA,deltaA)*2.7)*sin(formationTime*0.85);
+      float vortexB=exp(-dot(deltaB,deltaB)*3.2)*cos(formationTime*0.72+0.8);
+      vec2 formedP=p
+        +vec2(-deltaA.y,deltaA.x)*vortexA*0.34
+        +vec2(deltaB.y,-deltaB.x)*vortexB*0.27;
+
+      // Several independent currents move at different angles.
       float t=uTime*0.024;
       vec2 driftA=vec2(t*0.52,-t*0.38);
       vec2 driftB=vec2(-t*0.34,t*0.46);
       vec2 driftC=vec2(t*0.18,t*0.22);
       vec2 flow=vec2(
-        fbm(p*0.72+driftA+vec2(1.7,2.4)),
-        fbm(p*0.72+driftB+vec2(5.3,1.1))
+        fbm(formedP*0.72+driftA+vec2(1.7,2.4)),
+        fbm(formedP*0.72+driftB+vec2(5.3,1.1))
       );
       vec2 flow2=vec2(
-        fbm(p*1.05+flow*0.52+driftC+vec2(0.0,-t*0.30)),
-        fbm(p*1.05+flow*0.52-driftB*0.42+vec2(3.8,t*0.24))
+        fbm(formedP*1.05+flow*0.52+driftC+vec2(0.0,-t*0.30)),
+        fbm(formedP*1.05+flow*0.52-driftB*0.42+vec2(3.8,t*0.24))
       );
-      float broad=fbm(p*0.92+flow*0.78+flow2*0.24+driftA);
-      float middle=fbm(p*1.42+flow2*0.58+driftB+vec2(2.2,-1.6));
-      float fine=fbm(p*2.65+flow*0.42+driftC+vec2(-1.3,4.1));
+      float broad=fbm(formedP*0.92+flow*0.78+flow2*0.24+driftA);
+      float middle=fbm(formedP*1.42+flow2*0.58+driftB+vec2(2.2,-1.6));
+      float fine=fbm(formedP*2.65+flow*0.42+driftC+vec2(-1.3,4.1));
       float cloud=broad*0.68+middle*0.24+fine*0.08;
 
       // Layered vapor fields drift at different speeds to suggest depth.
@@ -86,15 +98,15 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       float vaporShape=clamp(cloudA*0.62+cloudB*0.23+vapor*0.15,0.0,1.0);
 
       // Approximate a height field and its normal for soft volumetric lighting.
-      float h=fbm(p*1.18+flow*0.72+driftA)*0.62
-             +fbm(p*2.15+flow2*0.62+driftB)*0.24
+      float h=fbm(formedP*1.18+flow*0.72+driftA)*0.62
+             +fbm(formedP*2.15+flow2*0.62+driftB)*0.24
              +fine*0.14;
-      float hx=fbm((p+vec2(0.012,0.0))*1.18+flow*0.72+driftA)*0.62
-              +fbm((p+vec2(0.012,0.0))*2.15+flow2*0.62+driftB)*0.24
-              +fbm((p+vec2(0.012,0.0))*2.65+flow*0.42+driftC+vec2(-1.3,4.1))*0.14;
-      float hy=fbm((p+vec2(0.0,0.012))*1.18+flow*0.72+driftA)*0.62
-              +fbm((p+vec2(0.0,0.012))*2.15+flow2*0.62+driftB)*0.24
-              +fbm((p+vec2(0.0,0.012))*2.65+flow*0.42+driftC+vec2(-1.3,4.1))*0.14;
+      float hx=fbm((formedP+vec2(0.012,0.0))*1.18+flow*0.72+driftA)*0.62
+              +fbm((formedP+vec2(0.012,0.0))*2.15+flow2*0.62+driftB)*0.24
+              +fbm((formedP+vec2(0.012,0.0))*2.65+flow*0.42+driftC+vec2(-1.3,4.1))*0.14;
+      float hy=fbm((formedP+vec2(0.0,0.012))*1.18+flow*0.72+driftA)*0.62
+              +fbm((formedP+vec2(0.0,0.012))*2.15+flow2*0.62+driftB)*0.24
+              +fbm((formedP+vec2(0.0,0.012))*2.65+flow*0.42+driftC+vec2(-1.3,4.1))*0.14;
       vec3 normal=normalize(vec3((h-hx)*8.0,(h-hy)*8.0,0.72));
       vec3 lightDir=normalize(vec3(-0.42,0.58,0.82));
       float diffuse=0.5+0.5*max(dot(normal,lightDir),0.0);
