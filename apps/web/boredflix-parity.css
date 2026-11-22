@@ -2935,3 +2935,13 @@ body.bf-movies-route #hero .hero-content{
   top:-26px!important;
  }
 }
+
+
+/* Movies catalogue: show clean poster cards only, without ratings or extra card overlays. */
+body.bf-movies-route .bf-movies-grid .bf-grid-rating,
+body.bf-movies-route .bf-movies-grid .bf-grid-rating-inline,
+body.bf-movies-route .bf-movies-grid .bf-grid-hover,
+body.bf-movies-route .bf-movies-grid .bf-grid-title,
+body.bf-movies-route .bf-movies-grid .bf-grid-meta{
+ display:none!important;
+}
