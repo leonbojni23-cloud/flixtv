@@ -1537,8 +1537,9 @@ function formatMovieEndTime(runtime){
  const end=new Date(Date.now()+runtime*60000);
  return " · Ends "+end.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
 }
-async function hydrateMovieDetailExtras(item,d){
+async function hydrateMovieDetailExtras(item,d,videosPromise){
  const id=Number(item.id);
+ if(videosPromise)await videosPromise;
  const [images,releaseDates,recommendations]=await Promise.all([
   tmdb("/movie/"+id+"/images?include_image_language=en,null").catch(()=>({logos:[]})),
   tmdb("/movie/"+id+"/release_dates").catch(()=>({results:[]})),
@@ -1598,7 +1599,7 @@ async function hydrateTitlePage(item,push=false,playMode=false){
  if(!item||!item.id)return;
  try{
   const k=kind(item),d=await prefetchTitle(item);
-  loadTitleVideos(item,d).catch(error=>console.warn("Trailer lookup failed",error));
+  const titleVideosPromise=loadTitleVideos(item,d).catch(error=>{console.warn("Trailer lookup failed",error);return d});
   const imdbId=d.external_ids?.imdb_id;
   if(imdbId){
    fetch("/api/imdb-videos.js?id="+encodeURIComponent(imdbId)).then(response=>response.ok?response.json():null).then(imdbData=>{
@@ -1637,7 +1638,7 @@ async function hydrateTitlePage(item,push=false,playMode=false){
   const isMovieDetail=k==="movie";
   document.body.classList.toggle("flxtv-movie-detail",isMovieDetail);
   syncMovieDetailHeader(isMovieDetail);
-  if(isMovieDetail)hydrateMovieDetailExtras(titlePageItem,d).catch(error=>console.warn("Movie detail extras failed",error));
+  if(isMovieDetail)hydrateMovieDetailExtras(titlePageItem,d,titleVideosPromise).catch(error=>console.warn("Movie detail extras failed",error));
   initTitleYoutubeControls();
   document.body.classList.remove("no-scroll");
   if(k==="tv")loadTitleEpisodes();
@@ -2924,6 +2925,7 @@ async function loadSports(){
 
 const loadedPages=new Set();
 async function openPage(page,updateHistory=true){
+ document.body.classList.remove("flxtv-movie-detail");syncMovieDetailHeader(false);
   if(updateHistory){const target=page==="sports"?"/sports":page==="home"?"/":location.pathname;if(target!==location.pathname)history.pushState({page},"",target)}
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
  requestAnimationFrame(updateDesktopNavPill);
