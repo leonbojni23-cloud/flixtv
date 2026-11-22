@@ -5960,3 +5960,19 @@ body.flxtv-movie-detail .movie-detail-facts,
 body.flxtv-movie-detail .movie-detail-studios{position:relative!important;z-index:2!important}
 body.flxtv-movie-detail .movie-detail-facts{margin-top:30px!important}
 body.flxtv-movie-detail .movie-detail-studios{z-index:2!important}
+
+/* Final movie-header brand reset: the original sofa SVG must remain unframed. */
+body.flxtv-movie-detail .topbar a.brand,
+body.flxtv-movie-detail .topbar a.brand svg.brand-mark{
+ border:0!important;
+ outline:0!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+body.flxtv-movie-detail .topbar a.brand svg.brand-mark{
+ display:block!important;
+ width:92px!important;height:58px!important;
+ min-width:92px!important;min-height:58px!important;
+ padding:0!important;
+}
