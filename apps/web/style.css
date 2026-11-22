@@ -5754,3 +5754,52 @@ button,input,select,textarea{font-family:var(--font-ui)}
   #hero .hero-title-logo.is-flickering,
   #hero #hero-title.is-flickering{animation:none!important}
 }
+
+
+/* Home poster rows: one shared card size and treatment.
+   "Popular This Week" (#trending-movies) intentionally keeps its own sizing. */
+#home-page .poster-row:not(#trending-movies){
+  grid-auto-columns:clamp(160px,15vw,200px)!important;
+  gap:18px!important;
+}
+#home-page .poster-row:not(#trending-movies)>.poster-card{
+  width:100%!important;
+  min-width:0!important;
+}
+#home-page .poster-row:not(#trending-movies) .poster-card .poster-art{
+  width:100%!important;
+  aspect-ratio:2/3!important;
+  border-radius:13px!important;
+}
+#home-page .poster-row:not(#trending-movies) .poster-card img,
+#home-page .poster-row:not(#trending-movies) .poster-card .placeholder{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  border-radius:inherit!important;
+}
+#home-page .poster-row:not(#trending-movies) .poster-card .poster-title{
+  font-size:12px!important;
+  line-height:1.28!important;
+  font-weight:720!important;
+}
+#home-page .poster-row:not(#trending-movies) .poster-card .poster-year{
+  font-size:10px!important;
+  line-height:1.25!important;
+}
+@media(max-width:767px){
+  #home-page .poster-row:not(#trending-movies){
+    grid-auto-columns:clamp(145px,38vw,158px)!important;
+    gap:13px!important;
+  }
+  #home-page .poster-row:not(#trending-movies) .poster-card .poster-art{
+    border-radius:11px!important;
+  }
+  #home-page .poster-row:not(#trending-movies) .poster-card .poster-title{
+    font-size:11px!important;
+    line-height:1.2!important;
+  }
+  #home-page .poster-row:not(#trending-movies) .poster-card .poster-year{
+    font-size:9.5px!important;
+  }
+}
