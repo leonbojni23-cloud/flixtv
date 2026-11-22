@@ -2923,3 +2923,15 @@ body.bf-movies-route #bf-route-page.bf-page{
    linear-gradient(180deg,transparent 40%,rgba(9,11,16,.08) 59%,rgba(9,11,16,.25) 76%,rgba(9,11,16,.42) 100%)!important;
  }
 }
+
+
+/* Movies only: lift Hero text/actions without moving or resizing the backdrop artwork. */
+body.bf-movies-route #hero .hero-content{
+ position:relative!important;
+ top:-20px!important;
+}
+@media(max-width:760px){
+ body.bf-movies-route #hero .hero-content{
+  top:-26px!important;
+ }
+}
