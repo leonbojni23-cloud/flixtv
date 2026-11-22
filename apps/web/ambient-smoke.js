@@ -121,7 +121,9 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       smoke=mix(smoke,vec3(0.025,0.028,0.038),0.07);
       // Darker vapor valleys add visible black/charcoal smoke without flattening the whole image.
       float darkPockets=smoothstep(0.30,0.76,1.0-vaporShape+(0.48-h)*0.28);
-      smoke=mix(smoke,vec3(0.012,0.015,0.023),darkPockets*0.28);
+      // Let some charcoal pockets inherit the artwork's secondary hue, heavily darkened.
+      vec3 secondaryCharcoal=mix(vec3(0.010,0.012,0.018),uColorB*0.30,0.48);
+      smoke=mix(smoke,secondaryCharcoal,darkPockets*0.34);
       smoke*=depthShade;
 
       // Broad highlights slide over the vapor, creating occasional 3D-like depth.
