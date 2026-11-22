@@ -2768,3 +2768,21 @@ body.bf-movies-route .bf-movies-grid .bf-grid-card{border-radius:12px}
  body.bf-movies-route .bf-catalog-inner{padding:0 var(--bf-gutter)}
  body.bf-movies-route .bf-movies-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:24px 18px}
 }
+
+/* Movies route reuses the real Home hero carousel, not a static duplicate. */
+body.bf-movies-route #hero[hidden]{display:none!important}
+body.bf-movies-route #hero{display:flex!important;position:relative!important;isolation:isolate;height:74svh!important;min-height:520px!important;max-height:760px!important;margin:0!important;padding:0 var(--bf-gutter) 10vh!important}
+body.bf-movies-route #hero-overview{display:none!important}
+body.bf-movies-route #hero-content{transform:translateY(-5px)}
+body.bf-movies-route #hero .hero-progress,body.bf-movies-route #hero .hero-dots,body.bf-movies-route #hero .hero-controls{display:none!important}
+body.bf-movies-route #hero .hero-meta{margin-bottom:16px!important}
+body.bf-movies-route #hero .hero-actions{margin-top:0!important}
+body.bf-movies-route .bf-catalog-inner{margin-top:0!important;padding:0 var(--bf-gutter)!important}
+body.bf-movies-route .bf-page-title{margin-top:0!important}
+@media(max-width:767px){
+ body.bf-movies-route #hero{height:72svh!important;min-height:510px!important;max-height:690px!important;padding:0 var(--bf-gutter) 9vh!important}
+ body.bf-movies-route #hero-content{transform:translateY(-8px)}
+ body.bf-movies-route #hero .hero-title-logo{max-width:min(82vw,390px)!important;max-height:92px!important}
+ body.bf-movies-route #hero .hero-meta{gap:10px!important;margin-bottom:16px!important}
+ body.bf-movies-route .bf-catalog-inner{padding:0 var(--bf-gutter)!important}
+}
