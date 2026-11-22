@@ -2374,3 +2374,164 @@ body.bf-reference-mode #hero #hero-overview{
     box-shadow:0 4px 16px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.22)!important;
   }
 }
+
+
+/* TOP 10: match the BoredFlix rank-behind-poster composition. This block is
+   intentionally last so older responsive experiments cannot override it. */
+body.bf-reference-mode #home-page .top10-row{
+  display:flex!important;
+  flex-flow:row nowrap!important;
+  align-items:stretch!important;
+  gap:18px!important;
+  padding:10px 0 18px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scroll-snap-type:x mandatory!important;
+  scroll-padding-inline:var(--bf-gutter)!important;
+}
+body.bf-reference-mode #home-page .top10-card{
+  display:flex!important;
+  flex:0 0 310px!important;
+  width:310px!important;
+  min-width:310px!important;
+  flex-direction:column!important;
+  gap:8px!important;
+  scroll-snap-align:start!important;
+}
+body.bf-reference-mode #home-page .top10-media{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:flex-end!important;
+  justify-content:flex-start!important;
+  gap:0!important;
+  width:100%!important;
+  height:318px!important;
+  min-height:318px!important;
+}
+body.bf-reference-mode #home-page .top10-rank{
+  position:relative!important;
+  z-index:1!important;
+  display:flex!important;
+  flex:0 0 108px!important;
+  width:108px!important;
+  min-width:108px!important;
+  max-width:108px!important;
+  height:100%!important;
+  align-items:flex-end!important;
+  justify-content:flex-start!important;
+  margin:0 -42px 0 0!important;
+  padding:0 0 7px 0!important;
+  transform:none!important;
+  color:transparent!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:clamp(174px,12vw,190px)!important;
+  font-weight:900!important;
+  line-height:.72!important;
+  letter-spacing:-.105em!important;
+  -webkit-text-fill-color:transparent!important;
+  -webkit-text-stroke:2.8px rgba(235,238,246,.48)!important;
+  text-shadow:0 5px 18px rgba(0,0,0,.30)!important;
+  pointer-events:none!important;
+}
+body.bf-reference-mode #home-page .top10-rank.is-double-digit{
+  flex-basis:108px!important;
+  width:108px!important;
+  min-width:108px!important;
+  max-width:108px!important;
+  font-size:clamp(96px,7vw,112px)!important;
+  letter-spacing:-.14em!important;
+  -webkit-text-stroke:2.7px rgba(235,238,246,.48)!important;
+}
+body.bf-reference-mode #home-page .top10-art{
+  position:relative!important;
+  z-index:2!important;
+  display:block!important;
+  flex:0 0 212px!important;
+  width:212px!important;
+  min-width:212px!important;
+  height:318px!important;
+  align-self:flex-end!important;
+  margin:0!important;
+  overflow:hidden!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  border-radius:14px!important;
+  background:#15171d!important;
+  box-shadow:0 12px 30px rgba(0,0,0,.32)!important;
+}
+body.bf-reference-mode #home-page .top10-poster{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  border-radius:inherit!important;
+}
+body.bf-reference-mode #home-page .top10-caption{
+  padding:0 0 0 66px!important;
+  margin:0!important;
+  font-size:11px!important;
+}
+@media(max-width:767px){
+  body.bf-reference-mode #home-page .top10-row{
+    gap:10px!important;
+    padding:8px 0 16px!important;
+    scroll-padding-inline:var(--bf-gutter)!important;
+  }
+  body.bf-reference-mode #home-page .top10-card{
+    flex:0 0 166px!important;
+    width:166px!important;
+    min-width:166px!important;
+    gap:6px!important;
+  }
+  body.bf-reference-mode #home-page .top10-media{
+    height:198px!important;
+    min-height:198px!important;
+  }
+  body.bf-reference-mode #home-page .top10-rank{
+    flex:0 0 62px!important;
+    width:62px!important;
+    min-width:62px!important;
+    max-width:62px!important;
+    margin:0 -28px 0 0!important;
+    padding:0 0 5px 0!important;
+    font-size:clamp(122px,32vw,138px)!important;
+    line-height:.70!important;
+    -webkit-text-stroke:2.2px rgba(235,238,246,.50)!important;
+    text-shadow:0 4px 14px rgba(0,0,0,.30)!important;
+  }
+  body.bf-reference-mode #home-page .top10-rank.is-double-digit{
+    flex-basis:62px!important;
+    width:62px!important;
+    min-width:62px!important;
+    max-width:62px!important;
+    font-size:clamp(65px,17vw,76px)!important;
+    letter-spacing:-.14em!important;
+    -webkit-text-stroke:2px rgba(235,238,246,.50)!important;
+  }
+  body.bf-reference-mode #home-page .top10-art{
+    flex:0 0 132px!important;
+    width:132px!important;
+    min-width:132px!important;
+    height:198px!important;
+    border-radius:13px!important;
+    box-shadow:0 9px 23px rgba(0,0,0,.30)!important;
+  }
+  body.bf-reference-mode #home-page .top10-caption{
+    padding-left:36px!important;
+    font-size:10px!important;
+  }
+}
+@media(max-width:360px){
+  body.bf-reference-mode #home-page .top10-row{gap:8px!important}
+  body.bf-reference-mode #home-page .top10-card{
+    flex-basis:158px!important;width:158px!important;min-width:158px!important;
+  }
+  body.bf-reference-mode #home-page .top10-art{
+    flex-basis:124px!important;width:124px!important;min-width:124px!important;height:186px!important;
+  }
+  body.bf-reference-mode #home-page .top10-media{height:186px!important;min-height:186px!important}
+  body.bf-reference-mode #home-page .top10-rank{
+    flex-basis:58px!important;width:58px!important;min-width:58px!important;max-width:58px!important;
+    margin-right:-26px!important;font-size:116px!important;
+  }
+  body.bf-reference-mode #home-page .top10-rank.is-double-digit{font-size:61px!important}
+}
