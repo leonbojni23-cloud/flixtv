@@ -121,7 +121,7 @@ function title(x){return x.title||x.name||x.original_title||x.original_name||"Pa
 function kind(x){if(x&&x.media_type==="movie")return"movie";if(x&&x.media_type==="tv")return"tv";if(x&&x.release_date)return"movie";if(x&&x.first_air_date)return"tv";return"movie"}
 function year(x){return(x.release_date||x.first_air_date||"").slice(0,4)}
 function poster(x){return x.poster_path?IMG+"w342"+x.poster_path:""}
-function card(x){
+function card(x,keepArtworkOverlay=false){
  const b=document.createElement("button");b.className="poster-card";b.type="button";
  b.setAttribute("aria-label","Shiko detajet: "+title(x));
  const src=poster(x),rating=Number(x.vote_average);
@@ -147,7 +147,12 @@ function card(x){
  const name=document.createElement("strong");name.className="poster-title";name.textContent=title(x);
  const meta=document.createElement("small");meta.className="poster-year";
  meta.textContent=year(x)+(kind(x)==="tv"?" · TV":"");
- hover.append(playIcon,name,meta);art.append(hover);b.append(art);
+ hover.append(playIcon);
+ if(keepArtworkOverlay){
+  hover.append(name,meta);art.append(hover);b.append(art);
+ }else{
+  art.append(hover);b.append(art,name,meta);
+ }
  const warm=()=>prefetchTitle(x);
  b.addEventListener("pointerenter",warm,{once:true,passive:true});
  b.addEventListener("touchstart",warm,{once:true,passive:true});
@@ -162,7 +167,7 @@ function card(x){
  return b
 }
 function createTrendingMovieCard(item){
- const element=card(item);
+ const element=card(item,true);
  element.classList.add("trending-movie-card");
  return element;
 }
@@ -1240,43 +1245,17 @@ async function browseServiceProvider(provider){
  }
 }
 function createTop10Card(item,rank){
- const button=document.createElement("button");
- button.type="button";
- button.className="top10-card";
+ const button=card(item);
+ button.classList.add("top10-card");
  button.setAttribute("aria-label","Numri "+rank+": "+title(item));
- const media=document.createElement("span");media.className="top10-media";
- const number=document.createElement("span");
- number.className="top10-rank"+(rank>=10?" is-double-digit":"");number.setAttribute("aria-hidden","true");number.textContent=String(rank);
- const art=document.createElement("span");art.className="top10-art";
- const image=document.createElement("img");
- image.className="top10-poster";image.loading="lazy";image.decoding="async";
- image.fetchPriority="low";image.alt="";image.src=IMG+"w342"+item.poster_path;
- const overlay=document.createElement("span");overlay.className="top10-overlay";
- const playIcon=document.createElement("span");playIcon.className="top10-play";
- playIcon.innerHTML='<i class="bi bi-play-fill" aria-hidden="true"></i>';
- const name=document.createElement("strong");name.textContent=title(item);
- const meta=document.createElement("small");
- meta.textContent=year(item);
- const rating=Number(item.vote_average);
- if(Number.isFinite(rating)&&rating>0){
-  const ratingBadge=document.createElement("span");
-  ratingBadge.className="poster-rating";
-  ratingBadge.setAttribute("aria-label","Vlerësimi "+rating.toFixed(1));
-  ratingBadge.innerHTML='<span aria-hidden="true">★</span> '+rating.toFixed(1);
-  art.append(ratingBadge);
+ const art=button.querySelector(".poster-art");
+ if(art){
+  const rankBadge=document.createElement("span");
+  rankBadge.className="top10-rank-badge";
+  rankBadge.textContent=String(rank);
+  rankBadge.setAttribute("aria-label","Renditja "+rank);
+  art.append(rankBadge);
  }
- overlay.append(playIcon,name,meta);art.append(image,overlay);media.append(number,art);
- const caption=document.createElement("span");caption.className="top10-caption";
- caption.textContent=title(item);
- button.append(media,caption);
- button.onclick=event=>{
-  if(event.target&&event.target.closest&&event.target.closest(".top10-play")){
-   try{const result=play(item);if(result&&typeof result.catch==="function")result.catch(error=>notice(error.message||"Nuk u hap player-i."))}
-   catch(error){notice(error.message||"Nuk u hap player-i.")}
-   return;
-  }
-  openTitlePage(item,true,false,button);
- };
  return button;
 }
 async function loadHomeTop10(){
