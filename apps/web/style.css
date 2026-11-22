@@ -5756,8 +5756,9 @@ button,input,select,textarea{font-family:var(--font-ui)}
 }
 
 
-/* Home poster rows: one shared card size and treatment.
-   "Popular This Week" (#trending-movies) intentionally keeps its own sizing. */
+
+/* Shared poster treatment for every Home movie/series row except Popular This Week.
+   Top 10 Today and Continue Watching retain their dedicated original components. */
 #home-page .poster-row:not(#trending-movies){
   grid-auto-columns:clamp(160px,15vw,200px)!important;
   gap:18px!important;
@@ -5766,270 +5767,26 @@ button,input,select,textarea{font-family:var(--font-ui)}
   width:100%!important;
   min-width:0!important;
 }
-#home-page .poster-row:not(#trending-movies) .poster-card .poster-art{
+#home-page .poster-row:not(#trending-movies)>.poster-card .poster-art{
   width:100%!important;
   aspect-ratio:2/3!important;
   border-radius:13px!important;
 }
-#home-page .poster-row:not(#trending-movies) .poster-card img,
-#home-page .poster-row:not(#trending-movies) .poster-card .placeholder{
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  border-radius:inherit!important;
-}
-#home-page .poster-row:not(#trending-movies) .poster-card .poster-title{
-  font-size:12px!important;
-  line-height:1.28!important;
-  font-weight:720!important;
-}
-#home-page .poster-row:not(#trending-movies) .poster-card .poster-year{
-  font-size:10px!important;
-  line-height:1.25!important;
+#home-page .poster-row:not(#trending-movies)>.poster-card .poster-rating{
+  position:absolute!important;
+  top:8px!important;
+  right:8px!important;
+  left:auto!important;
+  z-index:5!important;
+  border-radius:999px!important;
+  background:rgba(5,7,12,.68)!important;
 }
 @media(max-width:767px){
   #home-page .poster-row:not(#trending-movies){
     grid-auto-columns:clamp(145px,38vw,158px)!important;
     gap:13px!important;
   }
-  #home-page .poster-row:not(#trending-movies) .poster-card .poster-art{
+  #home-page .poster-row:not(#trending-movies)>.poster-card .poster-art{
     border-radius:11px!important;
   }
-  #home-page .poster-row:not(#trending-movies) .poster-card .poster-title{
-    font-size:11px!important;
-    line-height:1.2!important;
-  }
-  #home-page .poster-row:not(#trending-movies) .poster-card .poster-year{
-    font-size:9.5px!important;
-  }
-}
-
-
-/* One rating treatment across every homepage poster: badge anchored inside
-   the top-right corner, never in the metadata line below the artwork. */
-#home-page .poster-card .poster-rating,
-#home-page .top10-art .poster-rating{
-  position:absolute!important;
-  top:9px!important;
-  right:9px!important;
-  bottom:auto!important;
-  left:auto!important;
-  z-index:5!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  gap:4px!important;
-  padding:5px 8px!important;
-  border:1px solid rgba(255,255,255,.16)!important;
-  border-radius:999px!important;
-  background:rgba(5,7,12,.68)!important;
-  color:#fff!important;
-  font-size:11px!important;
-  font-weight:800!important;
-  line-height:1.15!important;
-  white-space:nowrap!important;
-  -webkit-backdrop-filter:blur(12px);
-  backdrop-filter:blur(12px);
-  box-shadow:0 3px 10px rgba(0,0,0,.22)!important;
-}
-#home-page .poster-card .poster-rating>span,
-#home-page .top10-art .poster-rating>span{
-  color:#ffc94a!important;
-  font-size:12px!important;
-}
-#home-page .top10-art{position:relative!important}
-
-
-/* HOME MEDIA CARD SYSTEM: every film/series poster shares one component.
-   The Trending Movies / Popular This Week carousel is deliberately excluded. */
-#home-page .poster-row:not(#trending-movies)>.poster-card,
-#home-page .top10-row>.top10-card{
-  display:flex!important;
-  flex-direction:column!important;
-  align-items:stretch!important;
-  justify-content:flex-start!important;
-  gap:0!important;
-  width:100%!important;
-  min-width:0!important;
-  padding:0!important;
-  border:0!important;
-  border-radius:0!important;
-  background:transparent!important;
-  color:#fff!important;
-  text-align:left!important;
-  box-shadow:none!important;
-}
-#home-page .poster-row:not(#trending-movies)>.poster-card .poster-art,
-#home-page .top10-row>.top10-card .poster-art{
-  position:relative!important;
-  display:block!important;
-  width:100%!important;
-  aspect-ratio:2/3!important;
-  overflow:hidden!important;
-  border:1px solid rgba(255,255,255,.10)!important;
-  border-radius:13px!important;
-  background:#151922!important;
-  box-shadow:0 10px 25px rgba(0,0,0,.28)!important;
-}
-#home-page .poster-row:not(#trending-movies)>.poster-card .poster-art>img,
-#home-page .top10-row>.top10-card .poster-art>img,
-#home-page .poster-row:not(#trending-movies)>.poster-card .poster-art>.placeholder,
-#home-page .top10-row>.top10-card .poster-art>.placeholder{
-  position:absolute!important;
-  inset:0!important;
-  display:block!important;
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  border-radius:inherit!important;
-}
-#home-page .poster-row:not(#trending-movies)>.poster-card .poster-hover,
-#home-page .top10-row>.top10-card .poster-hover{display:none!important}
-#home-page .poster-row:not(#trending-movies)>.poster-card>.poster-title,
-#home-page .top10-row>.top10-card>.poster-title{
-  display:block!important;
-  width:100%!important;
-  margin:9px 0 0!important;
-  padding:0!important;
-  overflow:hidden!important;
-  color:#f7f7f8!important;
-  font-size:12px!important;
-  font-weight:750!important;
-  line-height:1.25!important;
-  text-overflow:ellipsis!important;
-  white-space:nowrap!important;
-}
-#home-page .poster-row:not(#trending-movies)>.poster-card>.poster-year,
-#home-page .top10-row>.top10-card>.poster-year{
-  display:block!important;
-  width:100%!important;
-  margin:4px 0 0!important;
-  color:rgba(235,239,246,.62)!important;
-  font-size:10px!important;
-  font-weight:550!important;
-  line-height:1.25!important;
-  text-align:left!important;
-}
-#home-page .poster-row:not(#trending-movies) .poster-rating,
-#home-page .top10-row .poster-rating{
-  position:absolute!important;
-  top:8px!important;
-  right:8px!important;
-  left:auto!important;
-  z-index:6!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  gap:4px!important;
-  padding:5px 8px!important;
-  border:1px solid rgba(255,255,255,.16)!important;
-  border-radius:999px!important;
-  background:rgba(5,7,12,.68)!important;
-  color:#fff!important;
-  font-size:11px!important;
-  font-weight:800!important;
-  line-height:1.1!important;
-  white-space:nowrap!important;
-  -webkit-backdrop-filter:blur(12px);
-  backdrop-filter:blur(12px);
-}
-#home-page .poster-row:not(#trending-movies) .poster-rating>span,
-#home-page .top10-row .poster-rating>span{color:#ffc94a!important}
-#home-page .top10-row{
-  grid-auto-columns:clamp(160px,15vw,200px)!important;
-  gap:18px!important;
-  padding:3px 2px 17px!important;
-}
-#home-page .top10-row .top10-rank-badge{
-  position:absolute!important;
-  top:8px!important;
-  left:8px!important;
-  z-index:6!important;
-  display:grid!important;
-  place-items:center!important;
-  min-width:24px!important;
-  height:24px!important;
-  padding:0 7px!important;
-  border:1px solid rgba(255,255,255,.2)!important;
-  border-radius:999px!important;
-  background:rgba(5,7,12,.68)!important;
-  color:#fff!important;
-  font-size:11px!important;
-  font-weight:850!important;
-  -webkit-backdrop-filter:blur(12px);
-  backdrop-filter:blur(12px);
-}
-@media(max-width:767px){
- #home-page .poster-row:not(#trending-movies),
- #home-page .top10-row{grid-auto-columns:clamp(145px,38vw,158px)!important;gap:13px!important}
- #home-page .poster-row:not(#trending-movies)>.poster-card .poster-art,
- #home-page .top10-row>.top10-card .poster-art{border-radius:11px!important}
- #home-page .poster-row:not(#trending-movies)>.poster-card>.poster-title,
- #home-page .top10-row>.top10-card>.poster-title{font-size:11px!important}
-}
-
-
-/* Continue Watching joins the same portrait media-card geometry while
-   retaining its playback progress and episode details. */
-#home-page #continue-watching.continue-watching-row{
-  display:grid!important;
-  grid-auto-flow:column!important;
-  grid-auto-columns:clamp(145px,38vw,158px)!important;
-  grid-template-columns:none!important;
-  gap:13px!important;
-  align-items:start!important;
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
-  padding:3px 2px 17px!important;
-}
-#home-page #continue-watching .continue-card-shell{
-  flex:initial!important;
-  width:100%!important;
-  min-width:0!important;
-}
-#home-page #continue-watching .continue-card-shell .continue-card{
-  display:flex!important;
-  flex-direction:column!important;
-  width:100%!important;
-  height:auto!important;
-  overflow:visible!important;
-  padding:0!important;
-  border:0!important;
-  border-radius:0!important;
-  background:transparent!important;
-  box-shadow:none!important;
-}
-#home-page #continue-watching .continue-card-shell .continue-card>img{
-  width:100%!important;
-  height:auto!important;
-  aspect-ratio:2/3!important;
-  object-fit:cover!important;
-  border:1px solid rgba(255,255,255,.10)!important;
-  border-radius:13px!important;
-  box-shadow:0 10px 25px rgba(0,0,0,.28)!important;
-}
-#home-page #continue-watching .continue-card-shell .continue-card-copy{
-  display:flex!important;
-  gap:5px!important;
-  padding:9px 0 0!important;
-}
-#home-page #continue-watching .continue-card-copy strong{
-  font-size:11px!important;
-  font-weight:750!important;
-  line-height:1.25!important;
-}
-#home-page #continue-watching .continue-card-copy small{
-  font-size:9px!important;
-  line-height:1.2!important;
-}
-#home-page #continue-watching .continue-card-copy .continue-progress{
-  margin:2px 0!important;
-  height:3px!important;
-  min-height:3px!important;
-  max-height:3px!important;
-}
-#home-page #continue-watching .continue-card-remove{
-  top:5px!important;
-  right:5px!important;
-}
-@media(max-width:370px){
- #home-page #continue-watching.continue-watching-row{grid-auto-columns:clamp(132px,38vw,145px)!important}
 }
