@@ -606,7 +606,7 @@ async function updateAmbientScene(imageUrl,paletteUrl,request){
  if(!palette&&imageUrl&&imageUrl!==paletteUrl){try{palette=await readAmbientPalette(imageUrl)}catch(_){}}
  if(request!==showHero.requestId)return;
  const colors=palette||ambientFallbackPalette();
- updatePageSmokePalette(colors);
+ // The legacy 2D page-smoke canvas is hidden by the active WebGL design; skip its CPU animation.
  const root=document.documentElement;
  const toRgb=value=>String(value||"").split(",").map(channel=>Math.max(0,Math.min(255,Number(channel)||0)));
  const primary=toRgb(colors.c1),secondary=toRgb(colors.c2),tertiary=toRgb(colors.c3);
