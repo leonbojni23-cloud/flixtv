@@ -101,14 +101,15 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       float rim=pow(1.0-max(normal.z,0.0),2.0);
       float depthShade=0.88+0.24*diffuse+rim*0.12;
 
-      // Keep the whole screen in the Hero's dominant hue family and lift shadows.
-      vec3 base=mix(uColorA,uColorB,0.18+cloudA*0.08);
-      vec3 highlight=mix(uColorA,uColorC,0.16+cloudB*0.08);
-      vec3 smoke=mix(base*0.82,highlight*1.02,vaporShape*0.62+0.12);
-      smoke=mix(smoke,uColorA*1.08,cloudA*0.14);
-      smoke=max(smoke,uColorA*0.58);
-      // Slightly desaturate the whole field so it feels atmospheric, not neon.
-      smoke=mix(smoke,vec3(0.34,0.36,0.43),0.20);
+      // Keep the Hero hue restrained, with deeper charcoal pockets inside the vapor.
+      vec3 base=mix(uColorA,uColorB,0.22+cloudA*0.08);
+      vec3 highlight=mix(uColorA,uColorC,0.14+cloudB*0.07);
+      vec3 smoke=mix(base*0.76,highlight*0.94,vaporShape*0.58+0.10);
+      smoke=mix(smoke,uColorA*0.96,cloudA*0.12);
+      smoke=mix(smoke,vec3(0.025,0.028,0.038),0.12);
+      // Darker vapor valleys add visible black/charcoal smoke without flattening the whole image.
+      float darkPockets=smoothstep(0.30,0.76,1.0-vaporShape+(0.48-h)*0.28);
+      smoke=mix(smoke,vec3(0.012,0.015,0.023),darkPockets*0.46);
       smoke*=depthShade;
 
       // Broad highlights slide over the vapor, creating occasional 3D-like depth.
