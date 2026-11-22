@@ -2721,45 +2721,9 @@ body.bf-provider-route .bf-provider-scroll-sentinel{display:block;width:100%;hei
 body.bf-provider-route .bf-provider-load-error{grid-column:1/-1;padding:14px 0;color:rgba(255,255,255,.65);text-align:center;font-size:13px}
 
 
-/* Movies page: reuse the exact Home hero components, only compact its frame and hide its synopsis. */
+/* Movies route: preserve the exact Home hero composition; only hide synopsis and reduce its height slightly. */
 body.bf-movies-route #hero[hidden]{display:none!important}
-body.bf-movies-route #hero.hero{
- display:flex!important;position:relative!important;isolation:isolate;overflow:hidden!important;
- height:56svh!important;min-height:430px!important;max-height:500px!important;
- margin:0!important;padding:0 22px 26px!important;align-items:flex-end!important;
- background:#090b10!important;
-}
-body.bf-movies-route #hero.hero:before{display:none!important;content:none!important}
-body.bf-movies-route #hero .hero-backdrop{background-position:center 30%!important}
-body.bf-movies-route #hero .hero-backdrop:after{
- background:
-  linear-gradient(90deg,rgba(5,7,12,.40) 0%,rgba(5,7,12,.10) 58%,rgba(5,7,12,.02) 100%),
-  linear-gradient(180deg,rgba(9,11,16,.02) 0%,rgba(9,11,16,.04) 38%,rgba(9,11,16,.30) 62%,rgba(9,11,16,.80) 88%,#090b10 100%)!important;
-}
-body.bf-movies-route #hero:after{
- content:"";position:absolute;z-index:-1;pointer-events:none;left:0;right:0;bottom:-1px;height:48%;
- background:linear-gradient(180deg,transparent 0%,rgba(9,11,16,.18) 24%,rgba(9,11,16,.66) 68%,#090b10 100%);
-}
-body.bf-movies-route #hero .hero-content{
- position:absolute!important;left:22px!important;right:22px!important;bottom:26px!important;
- width:auto!important;max-width:none!important;padding:0!important;z-index:1!important;
-}
-body.bf-movies-route #hero .hero-title-wrap{margin:0 0 13px!important}
-body.bf-movies-route #hero .hero-title-logo{max-width:min(82vw,390px)!important;max-height:88px!important}
-body.bf-movies-route #hero #hero-title{font-size:clamp(36px,9vw,48px)!important;line-height:.98!important;margin:0!important}
 body.bf-movies-route #hero #hero-overview{display:none!important}
-body.bf-movies-route #hero .hero-meta{margin:0 0 17px!important;gap:13px!important}
-body.bf-movies-route #hero .hero-actions{margin:0!important;gap:12px!important;flex-wrap:nowrap!important}
-body.bf-movies-route #hero .hero-play{min-width:106px!important;height:44px!important;padding:0 19px!important;font-size:15px!important}
-body.bf-movies-route #hero .hero-play .bi{font-size:19px!important}
-body.bf-movies-route #hero .hero-utility-group{height:44px!important;min-height:44px!important;padding:0 4px!important}
-body.bf-movies-route #hero .hero-utility-button{width:46px!important;height:42px!important}
-body.bf-movies-route #hero .hero-utility-divider{height:26px!important}
-body.bf-movies-route #hero .hero-controls,
-body.bf-movies-route #hero .hero-progress,
-body.bf-movies-route #hero .hero-dots{display:none!important}
-
-/* The Movies heading and filters rise into the hero fade, rather than starting as a separate block. */
 body.bf-movies-route #bf-route-page.bf-page{
  position:relative!important;z-index:2!important;margin-top:-34px!important;
  padding:0 0 110px!important;min-height:100dvh!important;
@@ -2809,34 +2773,19 @@ body.bf-movies-route .bf-movies-grid .bf-grid-media{aspect-ratio:2/3!important;b
 body.bf-movies-route .bf-movies-grid .bf-grid-title,
 body.bf-movies-route .bf-movies-grid .bf-grid-meta{display:none!important}
 body.bf-movies-route .bf-movies-grid .bf-grid-card{border-radius:11px!important}
-@media(min-width:761px){
- body.bf-movies-route #hero.hero{height:min(66vh,650px)!important;min-height:520px!important;max-height:650px!important;padding:0 clamp(32px,6vw,90px) 42px!important}
- body.bf-movies-route #hero .hero-content{left:clamp(32px,6vw,90px)!important;right:clamp(32px,6vw,90px)!important;bottom:42px!important}
- body.bf-movies-route #bf-route-page.bf-page{margin-top:-48px!important}
- body.bf-movies-route .bf-catalog-inner{padding:0 clamp(32px,6vw,90px)!important}
- body.bf-movies-route .bf-movies-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:24px 18px!important}
-}
-
-/* Movies route fixes: keep all filter pills compact on iPhone and prevent hero controls/title overlap. */
 @media(max-width:760px){
  body.bf-movies-route #hero.hero{
-  height:52svh!important;min-height:390px!important;max-height:520px!important;
-  padding:0 22px 22px!important;
+  height:min(82svh,760px)!important;min-height:620px!important;max-height:760px!important;
+  padding:0 22px 58px!important;
  }
- body.bf-movies-route #hero .hero-content{left:22px!important;right:22px!important;bottom:22px!important}
- body.bf-movies-route #hero .hero-title-wrap{min-height:42px!important;margin-bottom:11px!important}
- body.bf-movies-route #hero .hero-title-logo{max-height:70px!important}
- body.bf-movies-route #hero #hero-title{font-size:clamp(31px,8vw,42px)!important}
- body.bf-movies-route #hero .hero-meta{margin-bottom:13px!important;font-size:13px!important;gap:10px!important}
- body.bf-movies-route #hero .hero-actions{margin:0!important}
- body.bf-movies-route #bf-route-page.bf-page{margin-top:-12px!important}
+ body.bf-movies-route #bf-route-page.bf-page{margin-top:-34px!important}
  body.bf-movies-route .bf-page-title{margin-bottom:25px!important}
  body.bf-movies-route .bf-filterbar{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;overflow-x:auto!important}
  body.bf-movies-route .bf-filterbar .bf-filter-action,
  body.bf-movies-route .bf-filterbar .bf-filter-select{
-  display:inline-flex!important;flex:0 0 auto!important;
-  width:auto!important;min-width:max-content!important;height:38px!important;
-  padding:0 14px!important;border-radius:999px!important;font-size:13px!important;
+  display:inline-flex!important;flex:0 0 auto!important;width:auto!important;
+  min-width:max-content!important;height:38px!important;padding:0 14px!important;
+  border-radius:999px!important;font-size:13px!important;
  }
  body.bf-movies-route .bf-filterbar .bf-filter-action{height:40px!important;padding:0 17px!important}
  body.bf-movies-route .bf-filterbar #bf-genre{min-width:92px!important}
@@ -2846,7 +2795,16 @@ body.bf-movies-route .bf-movies-grid .bf-grid-card{border-radius:11px!important}
  body.bf-movies-route .bf-filterbar #bf-votes{min-width:78px!important}
 }
 @media(max-width:380px){
- body.bf-movies-route #hero.hero{height:54svh!important;min-height:390px!important}
+ body.bf-movies-route #hero.hero{height:min(84svh,760px)!important;min-height:620px!important}
  body.bf-movies-route .bf-filterbar .bf-filter-action,
  body.bf-movies-route .bf-filterbar .bf-filter-select{padding-left:12px!important;padding-right:12px!important}
+}
+@media(min-width:761px){
+ body.bf-movies-route #hero.hero{
+  height:min(82vh,820px)!important;min-height:620px!important;max-height:820px!important;
+  padding:0 clamp(28px,6vw,86px) 58px!important;
+ }
+ body.bf-movies-route #bf-route-page.bf-page{margin-top:-48px!important}
+ body.bf-movies-route .bf-catalog-inner{padding:0 clamp(32px,6vw,90px)!important}
+ body.bf-movies-route .bf-movies-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:24px 18px!important}
 }
