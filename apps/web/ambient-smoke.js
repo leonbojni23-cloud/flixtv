@@ -63,15 +63,17 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
       // Factory-like plume motion: buoyant upward lift, shifting crosswind and irregular eddies.
       // Avoid neat circular vortices; large smoke masses should swell, shear and break apart.
-      float formationTime=uTime*0.052;
+      float formationTime=uTime*0.068;
       float height=p.y;
       // The plume rises continuously, widens as it climbs and bends with slow industrial crosswinds.
-      float plumeCenter=aspect.x*(0.50+0.075*sin(height*2.1-formationTime*0.34)
-                         +0.035*sin(height*5.2+formationTime*0.22));
+      float plumeCenter=aspect.x*(0.50+0.088*sin(height*2.1-formationTime*0.38)
+                         +0.044*sin(height*5.2+formationTime*0.27)
+                         +0.018*sin(height*8.4-formationTime*0.52));
       float plumeWidth=0.16+0.13*smoothstep(0.04,0.92,height);
-      float crossWind=sin(height*1.65-formationTime*0.42)*0.12
-                    +sin(height*3.8+formationTime*0.25)*0.045;
-      float gust=sin(formationTime*0.23+height*1.1)*0.075;
+      float crossWind=sin(height*1.65-formationTime*0.48)*0.14
+                    +sin(height*3.8+formationTime*0.31)*0.055
+                    +sin(height*6.1-formationTime*0.24)*0.022;
+      float gust=sin(formationTime*0.28+height*1.1)*0.088;
       vec2 formedP=vec2(
         p.x+crossWind+gust,
         p.y-uTime*0.032
@@ -85,7 +87,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       formedP+=vec2(eddyB.y,-eddyB.x)*vortexB*0.21;
 
       // Several independent turbulent currents move at different speeds and angles.
-      float t=uTime*0.024;
+      float t=uTime*0.032;
       vec2 driftA=vec2(t*0.52,-t*0.38);
       vec2 driftB=vec2(-t*0.34,t*0.46);
       vec2 driftC=vec2(t*0.18,t*0.22);
@@ -109,11 +111,11 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       float localX=abs(p.x-plumeCenter);
       float plumeEnvelope=1.0-smoothstep(plumeWidth*0.62,plumeWidth*1.75,localX);
       float billowNoise=fbm(vec2(formedP.x*2.7,formedP.y*1.65)+flow*0.42+vec2(0.0,-uTime*0.014));
-      float billowRidges=0.5+0.5*sin(formedP.y*8.0+billowNoise*4.2+sin(formedP.x*5.0+formationTime*0.2));
+      float billowRidges=0.5+0.5*sin(formedP.y*9.2+billowNoise*4.8+sin(formedP.x*5.8+formationTime*0.28));
       float density=cloud*0.78+billowNoise*0.17+billowRidges*0.12;
       float cloudA=smoothstep(-0.54,0.34,density+plumeEnvelope*0.34-0.18);
       float cloudB=smoothstep(-0.30,0.52,middle*0.62+broad*0.28+wisps*0.10+plumeEnvelope*0.20);
-      float vapor=0.5+0.5*sin((broad-middle)*2.7+wisps*1.5+billowNoise+uTime*0.06);
+      float vapor=0.5+0.5*sin((broad-middle)*3.0+wisps*1.8+billowNoise+uTime*0.085);
       float edgeFray=smoothstep(-0.38,0.30,wisps*0.72+fine*0.42);
       float vaporShape=clamp(cloudA*0.57+cloudB*0.24+vapor*0.10+edgeFray*0.09,0.0,1.0);
 
@@ -133,25 +135,32 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       float rim=pow(1.0-max(normal.z,0.0),2.0);
       float depthShade=0.88+0.24*diffuse+rim*0.12;
 
-      // Keep the Hero hue restrained, with deeper charcoal pockets inside the vapor.
-      vec3 base=mix(uColorA,uColorB,0.22+cloudA*0.08);
-      vec3 highlight=mix(uColorA,uColorC,0.14+cloudB*0.07);
-      vec3 smoke=mix(base*0.76,highlight*0.94,vaporShape*0.58+0.10);
-      smoke=mix(smoke,uColorA*0.96,cloudA*0.12);
-      smoke=mix(smoke,vec3(0.025,0.028,0.038),0.07);
-      // Darker vapor valleys add visible black/charcoal smoke without flattening the whole image.
-      float darkPockets=smoothstep(0.30,0.76,1.0-vaporShape+(0.48-h)*0.28);
-      // Let some charcoal pockets inherit the artwork's secondary hue, heavily darkened.
-      vec3 secondaryCharcoal=mix(vec3(0.010,0.012,0.018),uColorB*0.30,0.48);
-      smoke=mix(smoke,secondaryCharcoal,darkPockets*0.34);
+      // Artwork-reactive colour: keep the smoke dark overall, but let selected folds catch the Hero palette.
+      vec3 base=mix(uColorA,uColorB,0.28+cloudA*0.12);
+      vec3 highlight=mix(uColorA,uColorC,0.22+cloudB*0.12);
+      vec3 smoke=mix(base*0.72,highlight*1.02,vaporShape*0.62+0.08);
+      smoke=mix(smoke,uColorA*1.02,cloudA*0.18);
+      smoke=mix(smoke,vec3(0.018,0.021,0.030),0.10);
+      // Deep folds borrow a stronger, darker version of the film's secondary colour.
+      float darkPockets=smoothstep(0.26,0.72,1.0-vaporShape+(0.50-h)*0.34);
+      vec3 secondaryCharcoal=mix(vec3(0.008,0.010,0.016),uColorB*0.48,0.68);
+      smoke=mix(smoke,secondaryCharcoal,darkPockets*0.48);
+      // Thin rolling wave crests catch the primary and tertiary artwork colours.
+      float waveMask=smoothstep(0.48,0.82,billowRidges)*smoothstep(-0.34,0.22,density)*vaporShape;
+      float wavePulse=0.78+0.22*sin(uTime*0.22+formedP.y*2.4+flow.x*2.0);
+      vec3 waveTint=mix(uColorA,uColorC,0.28+0.22*cloudB);
+      smoke=mix(smoke,waveTint*1.18,waveMask*0.30*wavePulse);
+      // Soft coloured side-light travels through the folds instead of tinting the whole frame.
+      float colourRibbons=smoothstep(0.38,0.78,0.5+0.5*sin(formedP.y*5.4+flow.x*3.2+flow2.y*2.4+uTime*0.12));
+      smoke+=uColorB*colourRibbons*vaporShape*0.075;
       smoke*=depthShade;
 
-      // Broad highlights slide over the vapor, creating occasional 3D-like depth.
-      float glow1=exp(-length((vUv-vec2(0.34+0.045*sin(uTime*0.062),0.48+0.035*cos(uTime*0.050)))*vec2(0.72,0.58))*1.35);
-      float glow2=exp(-length((vUv-vec2(0.72+0.035*cos(uTime*0.045),0.62+0.04*sin(uTime*0.054)))*vec2(0.82,0.68))*1.55);
-      float highlightPulse=0.94+0.06*sin(uTime*0.155+cloud*2.0);
-      smoke+=uColorA*(glow1*0.12+glow2*0.085)*highlightPulse;
-      smoke+=uColorC*rim*0.035;
+      // Highlights drift a little faster, giving the plume subtle moving depth.
+      float glow1=exp(-length((vUv-vec2(0.34+0.055*sin(uTime*0.078),0.48+0.045*cos(uTime*0.064)))*vec2(0.72,0.58))*1.35);
+      float glow2=exp(-length((vUv-vec2(0.72+0.045*cos(uTime*0.061),0.62+0.05*sin(uTime*0.071)))*vec2(0.82,0.68))*1.55);
+      float highlightPulse=0.90+0.10*sin(uTime*0.19+cloud*2.4);
+      smoke+=uColorA*(glow1*0.15+glow2*0.10)*highlightPulse;
+      smoke+=uColorC*rim*0.055;
 
       gl_FragColor=vec4(smoke,1.0);
     }
