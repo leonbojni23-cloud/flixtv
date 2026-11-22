@@ -231,7 +231,8 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       if (!force && width === renderWidth && height === renderHeight) return;
       renderWidth = width;
       renderHeight = height;
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, isMobile ? 1.25 : 1.6);
+      // Keep the full-viewport shader light enough for mobile GPUs while preserving sharp UI and posters.
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, isMobile ? 0.9 : 1.25);
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(width, height, false);
       material.uniforms.uResolution.value.set(width * pixelRatio, height * pixelRatio);
