@@ -5837,3 +5837,131 @@ button,input,select,textarea{font-family:var(--font-ui)}
   font-size:12px!important;
 }
 #home-page .top10-art{position:relative!important}
+
+
+/* HOME MEDIA CARD SYSTEM: every film/series poster shares one component.
+   The Trending Movies / Popular This Week carousel is deliberately excluded. */
+#home-page .poster-row:not(#trending-movies)>.poster-card,
+#home-page .top10-row>.top10-card{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:0!important;
+  width:100%!important;
+  min-width:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#fff!important;
+  text-align:left!important;
+  box-shadow:none!important;
+}
+#home-page .poster-row:not(#trending-movies)>.poster-card .poster-art,
+#home-page .top10-row>.top10-card .poster-art{
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  aspect-ratio:2/3!important;
+  overflow:hidden!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  border-radius:13px!important;
+  background:#151922!important;
+  box-shadow:0 10px 25px rgba(0,0,0,.28)!important;
+}
+#home-page .poster-row:not(#trending-movies)>.poster-card .poster-art>img,
+#home-page .top10-row>.top10-card .poster-art>img,
+#home-page .poster-row:not(#trending-movies)>.poster-card .poster-art>.placeholder,
+#home-page .top10-row>.top10-card .poster-art>.placeholder{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  border-radius:inherit!important;
+}
+#home-page .poster-row:not(#trending-movies)>.poster-card .poster-hover,
+#home-page .top10-row>.top10-card .poster-hover{display:none!important}
+#home-page .poster-row:not(#trending-movies)>.poster-card>.poster-title,
+#home-page .top10-row>.top10-card>.poster-title{
+  display:block!important;
+  width:100%!important;
+  margin:9px 0 0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  color:#f7f7f8!important;
+  font-size:12px!important;
+  font-weight:750!important;
+  line-height:1.25!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+#home-page .poster-row:not(#trending-movies)>.poster-card>.poster-year,
+#home-page .top10-row>.top10-card>.poster-year{
+  display:block!important;
+  width:100%!important;
+  margin:4px 0 0!important;
+  color:rgba(235,239,246,.62)!important;
+  font-size:10px!important;
+  font-weight:550!important;
+  line-height:1.25!important;
+  text-align:left!important;
+}
+#home-page .poster-row:not(#trending-movies) .poster-rating,
+#home-page .top10-row .poster-rating{
+  position:absolute!important;
+  top:8px!important;
+  right:8px!important;
+  left:auto!important;
+  z-index:6!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:4px!important;
+  padding:5px 8px!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  border-radius:999px!important;
+  background:rgba(5,7,12,.68)!important;
+  color:#fff!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  line-height:1.1!important;
+  white-space:nowrap!important;
+  -webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px);
+}
+#home-page .poster-row:not(#trending-movies) .poster-rating>span,
+#home-page .top10-row .poster-rating>span{color:#ffc94a!important}
+#home-page .top10-row{
+  grid-auto-columns:clamp(160px,15vw,200px)!important;
+  gap:18px!important;
+  padding:3px 2px 17px!important;
+}
+#home-page .top10-row .top10-rank-badge{
+  position:absolute!important;
+  top:8px!important;
+  left:8px!important;
+  z-index:6!important;
+  display:grid!important;
+  place-items:center!important;
+  min-width:24px!important;
+  height:24px!important;
+  padding:0 7px!important;
+  border:1px solid rgba(255,255,255,.2)!important;
+  border-radius:999px!important;
+  background:rgba(5,7,12,.68)!important;
+  color:#fff!important;
+  font-size:11px!important;
+  font-weight:850!important;
+  -webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px);
+}
+@media(max-width:767px){
+ #home-page .poster-row:not(#trending-movies),
+ #home-page .top10-row{grid-auto-columns:clamp(145px,38vw,158px)!important;gap:13px!important}
+ #home-page .poster-row:not(#trending-movies)>.poster-card .poster-art,
+ #home-page .top10-row>.top10-card .poster-art{border-radius:11px!important}
+ #home-page .poster-row:not(#trending-movies)>.poster-card>.poster-title,
+ #home-page .top10-row>.top10-card>.poster-title{font-size:11px!important}
+}
