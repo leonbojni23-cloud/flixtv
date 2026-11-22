@@ -2195,3 +2195,53 @@ body.bf-reference-mode #app-ambient .webgl-smoke-canvas{
   -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 46%,rgba(0,0,0,.96) 62%,rgba(0,0,0,.88) 82%,rgba(0,0,0,.80) 100%)!important;
   mask-image:linear-gradient(180deg,#000 0%,#000 46%,rgba(0,0,0,.96) 62%,rgba(0,0,0,.88) 82%,rgba(0,0,0,.80) 100%)!important;
 }
+
+
+/* Navigation glass refresh: transparent frosted rail with a clear white active capsule. */
+body.bf-reference-mode .desktop-nav{
+  padding:5px!important;
+  gap:4px!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.075)!important;
+  box-shadow:0 10px 34px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.10)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(165%)!important;
+  backdrop-filter:blur(26px) saturate(165%)!important;
+}
+body.bf-reference-mode .desktop-nav .nav-link{
+  background:transparent!important;
+  color:rgba(255,255,255,.76)!important;
+  border-radius:999px!important;
+}
+body.bf-reference-mode .desktop-nav .nav-link:hover{
+  background:rgba(255,255,255,.12)!important;
+  color:#fff!important;
+}
+body.bf-reference-mode .desktop-nav .nav-link.active{
+  background:#fff!important;
+  color:#111318!important;
+  box-shadow:0 2px 12px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+@media(max-width:767px){
+  body.bf-reference-mode .mobile-nav{
+    background:rgba(18,20,27,.40)!important;
+    border:1px solid rgba(255,255,255,.20)!important;
+    box-shadow:0 12px 38px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.12)!important;
+    -webkit-backdrop-filter:blur(30px) saturate(175%)!important;
+    backdrop-filter:blur(30px) saturate(175%)!important;
+  }
+  body.bf-reference-mode .mobile-nav button{
+    background:transparent!important;
+    color:rgba(255,255,255,.72)!important;
+    transition:background .22s ease,color .22s ease,box-shadow .22s ease!important;
+  }
+  body.bf-reference-mode .mobile-nav button.active{
+    background:#fff!important;
+    color:#111318!important;
+    box-shadow:0 2px 12px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.92)!important;
+  }
+  body.bf-reference-mode .mobile-nav button.active .nav-icon,
+  body.bf-reference-mode .mobile-nav button.active .nav-label{
+    color:#111318!important;
+  }
+}
