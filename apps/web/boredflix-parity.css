@@ -2601,3 +2601,48 @@ body.bf-reference-mode .topbar .header-glass-button{font-size:17px!important}
 @media(max-width:767px){
   body.bf-reference-mode .topbar .top-actions{gap:9px!important}
 }
+
+
+/* Remove the actual shared header-controls capsule around Search and Settings. */
+body.bf-reference-mode .topbar .header-controls{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  width:auto!important;
+  max-width:none!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:0!important;
+  margin-left:auto!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+body.bf-reference-mode .topbar .header-controls::before,
+body.bf-reference-mode .topbar .header-controls::after{
+  content:none!important;
+  display:none!important;
+  border:0!important;
+  background:none!important;
+  box-shadow:none!important;
+}
+@media(max-width:767px){
+  body.bf-reference-mode .topbar .header-controls{
+    position:absolute!important;
+    top:50%!important;
+    right:var(--bf-gutter)!important;
+    transform:translateY(-50%)!important;
+    gap:9px!important;
+    padding:0!important;
+    height:auto!important;
+    min-height:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+}
