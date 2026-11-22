@@ -65,19 +65,24 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       // Avoid neat circular vortices; large smoke masses should swell, shear and break apart.
       float formationTime=uTime*0.052;
       float height=p.y;
-      float crossWind=sin(height*2.15-formationTime*0.72)*0.105
-                    +sin(height*4.7+formationTime*0.39)*0.035;
-      float gust=sin(formationTime*0.31+height*1.35)*0.055;
+      // The plume rises continuously, widens as it climbs and bends with slow industrial crosswinds.
+      float plumeCenter=aspect.x*(0.50+0.075*sin(height*2.1-formationTime*0.34)
+                         +0.035*sin(height*5.2+formationTime*0.22));
+      float plumeWidth=0.16+0.13*smoothstep(0.04,0.92,height);
+      float crossWind=sin(height*1.65-formationTime*0.42)*0.12
+                    +sin(height*3.8+formationTime*0.25)*0.045;
+      float gust=sin(formationTime*0.23+height*1.1)*0.075;
       vec2 formedP=vec2(
         p.x+crossWind+gust,
-        p.y+uTime*0.018
+        p.y-uTime*0.032
       );
-      vec2 eddyA=formedP-vec2(aspect.x*(0.28+0.12*sin(formationTime*0.54)),0.42+0.19*cos(formationTime*0.37));
-      vec2 eddyB=formedP-vec2(aspect.x*(0.73+0.10*cos(formationTime*0.43+1.4)),0.57+0.16*sin(formationTime*0.49+1.1));
-      float vortexA=exp(-dot(eddyA,eddyA)*2.0)*sin(formationTime*0.58+0.7);
-      float vortexB=exp(-dot(eddyB,eddyB)*2.5)*cos(formationTime*0.47+0.8);
-      formedP+=vec2(-eddyA.y,eddyA.x)*vortexA*0.22;
-      formedP+=vec2(eddyB.y,-eddyB.x)*vortexB*0.18;
+      // Large, wandering eddies roll the plume edges rather than spinning the whole image.
+      vec2 eddyA=formedP-vec2(plumeCenter-aspect.x*0.20,0.40+0.18*cos(formationTime*0.27));
+      vec2 eddyB=formedP-vec2(plumeCenter+aspect.x*0.19,0.58+0.16*sin(formationTime*0.31+1.1));
+      float vortexA=exp(-dot(eddyA*vec2(1.0,0.72),eddyA*vec2(1.0,0.72))*2.2)*sin(formationTime*0.39+0.7);
+      float vortexB=exp(-dot(eddyB*vec2(1.0,0.78),eddyB*vec2(1.0,0.78))*2.6)*cos(formationTime*0.34+0.8);
+      formedP+=vec2(-eddyA.y,eddyA.x)*vortexA*0.25;
+      formedP+=vec2(eddyB.y,-eddyB.x)*vortexB*0.21;
 
       // Several independent turbulent currents move at different speeds and angles.
       float t=uTime*0.024;
@@ -100,12 +105,17 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       float wisps=fbm(formedP*vec2(3.8,2.4)+flow2*0.34+driftC*1.4);
       float cloud=broad*0.62+middle*0.25+fine*0.09+wisps*0.04;
 
-      // Uneven density thresholds create rolling cauliflower-like billows, not smooth ribbons.
-      float cloudA=smoothstep(-0.62,0.43,cloud);
-      float cloudB=smoothstep(-0.28,0.58,middle*0.68+broad*0.32+wisps*0.12);
-      float vapor=0.5+0.5*sin((broad-middle)*2.4+wisps*1.3+uTime*0.075);
-      float edgeFray=smoothstep(-0.42,0.34,wisps*0.72+fine*0.38);
-      float vaporShape=clamp(cloudA*0.58+cloudB*0.25+vapor*0.10+edgeFray*0.07,0.0,1.0);
+      // Lumpy density envelope: broad stacked billows gather around a shifting central column.
+      float localX=abs(p.x-plumeCenter);
+      float plumeEnvelope=1.0-smoothstep(plumeWidth*0.62,plumeWidth*1.75,localX);
+      float billowNoise=fbm(vec2(formedP.x*2.7,formedP.y*1.65)+flow*0.42+vec2(0.0,-uTime*0.014));
+      float billowRidges=0.5+0.5*sin(formedP.y*8.0+billowNoise*4.2+sin(formedP.x*5.0+formationTime*0.2));
+      float density=cloud*0.78+billowNoise*0.17+billowRidges*0.12;
+      float cloudA=smoothstep(-0.54,0.34,density+plumeEnvelope*0.34-0.18);
+      float cloudB=smoothstep(-0.30,0.52,middle*0.62+broad*0.28+wisps*0.10+plumeEnvelope*0.20);
+      float vapor=0.5+0.5*sin((broad-middle)*2.7+wisps*1.5+billowNoise+uTime*0.06);
+      float edgeFray=smoothstep(-0.38,0.30,wisps*0.72+fine*0.42);
+      float vaporShape=clamp(cloudA*0.57+cloudB*0.24+vapor*0.10+edgeFray*0.09,0.0,1.0);
 
       // Approximate a height field and its normal for soft volumetric lighting.
       float h=fbm(formedP*1.18+flow*0.72+driftA)*0.62
