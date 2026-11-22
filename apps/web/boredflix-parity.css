@@ -2289,61 +2289,15 @@ body.bf-reference-mode .header-glass-button:focus-visible{
 body.bf-reference-mode .search-trigger svg{color:#fff!important;stroke:currentColor!important;}
 
 
-/* Hero synopsis: fixed right-side anchor, independent from the changing title/meta stack. */
-body.bf-reference-mode #hero #hero-content{
-  position:static!important;
-  width:100%!important;
-  max-width:none!important;
-}
-body.bf-reference-mode #hero .hero-title-wrap,
-body.bf-reference-mode #hero .hero-meta,
-body.bf-reference-mode #hero .hero-actions{
-  position:relative!important;
-  z-index:4!important;
-}
+/* Keep the Hero synopsis in its original layout position; align the text to the left. */
 body.bf-reference-mode #hero #hero-overview{
-  position:absolute!important;
-  z-index:4!important;
-  top:49%!important;
-  right:clamp(34px,5.2vw,88px)!important;
+  position:static!important;
+  top:auto!important;
+  right:auto!important;
   left:auto!important;
   bottom:auto!important;
-  transform:translateY(-50%)!important;
-  width:clamp(280px,33vw,455px)!important;
-  max-width:clamp(280px,33vw,455px)!important;
-  margin:0!important;
-  padding:0!important;
-  text-align:right!important;
-  color:rgba(255,255,255,.94)!important;
-  font-size:clamp(15px,1.25vw,18px)!important;
-  line-height:1.62!important;
-  font-weight:450!important;
-  letter-spacing:.005em!important;
-  text-shadow:0 2px 18px rgba(0,0,0,.72),0 1px 4px rgba(0,0,0,.65)!important;
-  display:-webkit-box!important;
-  -webkit-box-orient:vertical!important;
-  -webkit-line-clamp:4!important;
-  overflow:hidden!important;
-  pointer-events:none!important;
-}
-@media(max-width:767px){
-  body.bf-reference-mode #hero #hero-overview{
-    top:48%!important;
-    right:18px!important;
-    width:min(44vw,190px)!important;
-    max-width:min(44vw,190px)!important;
-    font-size:12.5px!important;
-    line-height:1.52!important;
-    letter-spacing:0!important;
-    -webkit-line-clamp:5!important;
-    text-shadow:0 2px 14px rgba(0,0,0,.82),0 1px 3px rgba(0,0,0,.8)!important;
-  }
-}
-@media(min-width:768px) and (max-width:1099px){
-  body.bf-reference-mode #hero #hero-overview{
-    right:4vw!important;
-    width:34vw!important;
-    max-width:34vw!important;
-    font-size:15px!important;
-  }
+  transform:none!important;
+  width:auto!important;
+  max-width:760px!important;
+  text-align:left!important;
 }
