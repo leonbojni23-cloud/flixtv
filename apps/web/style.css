@@ -5719,3 +5719,22 @@ button,input,select,textarea{font-family:var(--font-ui)}
   }
   .topbar .searchbox.expanded input{display:block!important}
 }
+
+/* FLIXTV Hero title: brief, irregular neon-style flicker after scroll settles. */
+@keyframes flix-hero-title-flicker{
+  0%,100%{opacity:1;filter:brightness(1)}
+  8%{opacity:.48;filter:brightness(.62)}
+  14%{opacity:.96;filter:brightness(1.12)}
+  22%{opacity:.38;filter:brightness(.58)}
+  29%{opacity:1;filter:brightness(1.08)}
+  39%{opacity:.72;filter:brightness(.82)}
+  47%{opacity:1;filter:brightness(1.14)}
+  55%{opacity:.58;filter:brightness(.7)}
+  64%{opacity:1;filter:brightness(1)}
+}
+#hero .hero-title-wrap.is-flickering{
+  animation:flix-hero-title-flicker 560ms steps(1,end) both;
+}
+@media(prefers-reduced-motion:reduce){
+  #hero .hero-title-wrap.is-flickering{animation:none!important}
+}
