@@ -2419,7 +2419,7 @@ body.bf-reference-mode #home-page .top10-rank{
   height:100%!important;
   align-items:flex-end!important;
   justify-content:flex-start!important;
-  margin:0 -42px 0 0!important;
+  margin:0 -24px 0 0!important;
   padding:0 0 7px 0!important;
   transform:none!important;
   color:transparent!important;
@@ -2491,7 +2491,7 @@ body.bf-reference-mode #home-page .top10-caption{
     width:62px!important;
     min-width:62px!important;
     max-width:62px!important;
-    margin:0 -28px 0 0!important;
+    margin:0 -14px 0 0!important;
     padding:0 0 5px 0!important;
     font-size:clamp(122px,32vw,138px)!important;
     line-height:.70!important;
@@ -2531,7 +2531,7 @@ body.bf-reference-mode #home-page .top10-caption{
   body.bf-reference-mode #home-page .top10-media{height:186px!important;min-height:186px!important}
   body.bf-reference-mode #home-page .top10-rank{
     flex-basis:58px!important;width:58px!important;min-width:58px!important;max-width:58px!important;
-    margin-right:-26px!important;font-size:116px!important;
+    margin-right:-12px!important;font-size:116px!important;
   }
   body.bf-reference-mode #home-page .top10-rank.is-double-digit{font-size:61px!important}
 }
