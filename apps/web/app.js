@@ -550,38 +550,47 @@ function readAmbientPalette(imageUrl){
     if(!context){resolve(null);return}
     context.drawImage(image,0,0,64,64);
     const pixels=context.getImageData(0,0,64,64).data;
-    const bins=Array.from({length:24},()=>({weight:0,r:0,g:0,b:0,count:0}));
+    // Build a hue histogram from the whole cover, retaining two genuinely different artwork colors.
+    const bins=Array.from({length:36},()=>({weight:0,r:0,g:0,b:0,count:0}));
     for(let i=0;i<pixels.length;i+=4){
      const r=pixels[i],g=pixels[i+1],b=pixels[i+2],alpha=pixels[i+3];
-     if(alpha<180)continue;
+     if(alpha<170)continue;
      const high=Math.max(r,g,b),low=Math.min(r,g,b);
-     if(high<24||high>252)continue;
+     if(high<18||low>248)continue;
      const saturation=high===0?0:(high-low)/high;
-     if(saturation<.12)continue;
-     let hue=0;
-     if(high===r)hue=((g-b)/(high-low))%6;
-     else if(high===g)hue=(b-r)/(high-low)+2;
-     else hue=(r-g)/(high-low)+4;
-     hue=(hue*60+360)%360;
-     // Favor colors that are both vivid and genuinely common in the artwork.
-     const weight=(.35+saturation*.65)*(.55+.45*Math.min(high,230)/230);
-     const bin=bins[Math.floor(hue/15)%24];
+     const hsl=ambientRgbToHsl(r,g,b);
+     // Keep muted film colors in the mix, but prioritize visible chromatic areas over black bars/highlights.
+     if(saturation<.075)continue;
+     let hue=hsl.h;
+     const luminance=hsl.l/100;
+     const chromaWeight=.24+saturation*.76;
+     const midtoneWeight=.58+.42*(1-Math.min(1,Math.abs(luminance-.50)/.50));
+     const weight=chromaWeight*midtoneWeight;
+     const bin=bins[Math.min(35,Math.floor(hue/10))];
      bin.weight+=weight;bin.r+=r*weight;bin.g+=g*weight;bin.b+=b*weight;bin.count++;
     }
-    const dominant=bins.filter(bin=>bin.weight>0).sort((a,b)=>b.weight-a.weight)[0];
-    if(!dominant){resolve(null);return}
-    const raw=ambientRgbToHsl(dominant.r/dominant.weight,dominant.g/dominant.weight,dominant.b/dominant.weight);
-    // One dominant cover hue, strengthened but retaining its actual color identity.
-    const hue=raw.h;
-    // Keep the cover's hue recognizable, but soften saturation for a cinematic atmosphere.
-    // Lower saturation and brightness further for a darker, more cinematic backdrop.
-    const saturation=ambientClamp(Math.max(raw.s*.62,46),46,64);
-    const light=ambientClamp(raw.l,38,52);
-    const c1=ambientHslToRgb(hue,saturation,ambientClamp(light+1,40,54)).join(",");
-    const c2=ambientHslToRgb(hue,saturation*.72,ambientClamp(light-9,28,40)).join(",");
-    const c3=ambientHslToRgb(hue+(hue<180?-5:5),saturation*.58,ambientClamp(light+8,48,60)).join(",");
-    resolve({c1,c2,c3,dominantHue:hue});
-   }catch(_){resolve(null)}
+    const ranked=bins.filter(bin=>bin.weight>0).sort((a,b)=>b.weight-a.weight);
+    if(!ranked.length){resolve(null);return}
+    const colorFromBin=bin=>({
+     rgb:[bin.r/bin.weight,bin.g/bin.weight,bin.b/bin.weight],
+     hsl:ambientRgbToHsl(bin.r/bin.weight,bin.g/bin.weight,bin.b/bin.weight),
+     weight:bin.weight
+    });
+    const first=colorFromBin(ranked[0]);
+    const hueDistance=(a,b)=>{const d=Math.abs(a-b)%360;return Math.min(d,360-d)};
+    // Prefer the strongest second hue that is visually distinct from the primary.
+    const secondBin=ranked.find(bin=>hueDistance(colorFromBin(bin).hsl.h,first.hsl.h)>=24)||
+      ranked.find(bin=>bin!==ranked[0])||ranked[0];
+    const second=colorFromBin(secondBin);
+    const makeCinematic=color=>{
+     const saturation=ambientClamp(color.hsl.s*.72,34,68);
+     const light=ambientClamp(color.hsl.l,34,54);
+     return ambientHslToRgb(color.hsl.h,saturation,light).join(",");
+    };
+    const c1=makeCinematic(first);
+    const c2=makeCinematic(second);
+    // c3 intentionally repeats the secondary: the smoke palette is driven by two cover colors, not invented tints.
+    resolve({c1,c2,c3:c2,dominantHue:first.hsl.h,secondaryHue:second.hsl.h});   }catch(_){resolve(null)}
   };
   image.onerror=()=>resolve(null);
   image.src=imageUrl;
