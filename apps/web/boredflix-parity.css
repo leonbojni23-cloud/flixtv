@@ -2703,3 +2703,14 @@ body.bf-provider-route .bf-load-more{margin:26px auto 0!important;border-radius:
  body.bf-provider-route .bf-provider-grid .bf-grid-media{border-radius:11px!important}
 }
 @media(min-width:768px){body.bf-provider-route #bf-route-page.bf-page{padding-top:126px!important}body.bf-provider-route .bf-provider-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:22px 18px!important}}
+
+
+/* Provider filters: visible chevrons and compact single-line pills like the reference. */
+body.bf-provider-route .bf-provider-filterbar .bf-filter-select{
+  padding-right:31px!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m2.5 4.5 3.5 3 3.5-3' fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;
+  background-position:right 12px center!important;
+}
+body.bf-provider-route .bf-provider-filterbar #bf-sort{min-width:112px!important}
+body.bf-provider-route .bf-provider-tabs .bf-provider-count:empty{display:none!important}
