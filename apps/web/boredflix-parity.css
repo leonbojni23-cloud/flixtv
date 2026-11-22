@@ -2245,3 +2245,22 @@ body.bf-reference-mode .desktop-nav .nav-link.active{
     color:#111318!important;
   }
 }
+
+
+/* Remove the soft dark strip/shadow behind the FLIXTV top header. */
+body.bf-reference-mode .topbar{
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  border:0!important;
+}
+body.bf-reference-mode .topbar::before,
+body.bf-reference-mode .topbar::after{
+  content:none!important;
+  display:none!important;
+  opacity:0!important;
+  box-shadow:none!important;
+  background:none!important;
+}
