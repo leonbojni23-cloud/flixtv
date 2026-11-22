@@ -2423,13 +2423,13 @@ body.bf-reference-mode #home-page .top10-rank{
   padding:0 0 7px 0!important;
   transform:none!important;
   color:transparent!important;
-  font-family:Arial,Helvetica,sans-serif!important;
+  font-family:'Montserrat',Inter,sans-serif!important;
   font-size:clamp(174px,12vw,190px)!important;
-  font-weight:900!important;
+  font-weight:800!important;
   line-height:.72!important;
-  letter-spacing:-.105em!important;
+  letter-spacing:-.075em!important;
   -webkit-text-fill-color:transparent!important;
-  -webkit-text-stroke:2.8px rgba(235,238,246,.48)!important;
+  -webkit-text-stroke:2.35px rgba(235,238,246,.52)!important;
   text-shadow:0 5px 18px rgba(0,0,0,.30)!important;
   pointer-events:none!important;
 }
@@ -2439,8 +2439,8 @@ body.bf-reference-mode #home-page .top10-rank.is-double-digit{
   min-width:108px!important;
   max-width:108px!important;
   font-size:clamp(96px,7vw,112px)!important;
-  letter-spacing:-.14em!important;
-  -webkit-text-stroke:2.7px rgba(235,238,246,.48)!important;
+  letter-spacing:-.10em!important;
+  -webkit-text-stroke:2.2px rgba(235,238,246,.52)!important;
 }
 body.bf-reference-mode #home-page .top10-art{
   position:relative!important;
@@ -2495,7 +2495,7 @@ body.bf-reference-mode #home-page .top10-caption{
     padding:0 0 5px 0!important;
     font-size:clamp(122px,32vw,138px)!important;
     line-height:.70!important;
-    -webkit-text-stroke:2.2px rgba(235,238,246,.50)!important;
+    -webkit-text-stroke:1.95px rgba(235,238,246,.54)!important;
     text-shadow:0 4px 14px rgba(0,0,0,.30)!important;
   }
   body.bf-reference-mode #home-page .top10-rank.is-double-digit{
@@ -2505,7 +2505,7 @@ body.bf-reference-mode #home-page .top10-caption{
     max-width:62px!important;
     font-size:clamp(65px,17vw,76px)!important;
     letter-spacing:-.14em!important;
-    -webkit-text-stroke:2px rgba(235,238,246,.50)!important;
+    -webkit-text-stroke:1.85px rgba(235,238,246,.54)!important;
   }
   body.bf-reference-mode #home-page .top10-art{
     flex:0 0 132px!important;
