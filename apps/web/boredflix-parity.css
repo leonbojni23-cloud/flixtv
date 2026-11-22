@@ -2812,3 +2812,14 @@ body.bf-movies-route .bf-movies-grid .bf-grid-card{border-radius:11px!important}
 /* Ensure the Movies route displays the same active Home artwork crossfade layer. */
 body.bf-movies-route #hero .hero-backdrop{opacity:0!important}
 body.bf-movies-route #hero .hero-backdrop.active{opacity:1!important}
+
+/* Critical: inner-route base CSS hides the Home hero. Re-enable it only on Movies. */
+html.bf-inner-route body.bf-movies-route #hero:not([hidden]){
+ display:flex!important;
+ visibility:visible!important;
+ opacity:1!important;
+}
+html.bf-inner-route body.bf-movies-route #hero:not([hidden]) .hero-backdrop.active{
+ opacity:1!important;
+ visibility:visible!important;
+}
