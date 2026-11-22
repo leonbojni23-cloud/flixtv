@@ -2175,4 +2175,4 @@ body.bf-reference-mode #app-ambient .ambient-shade{display:none!important}
 /* WebGL is the sole page-wide smoke renderer. Disable the previous low-resolution 2D canvas. */
 body.bf-reference-mode #app-ambient .page-smoke-canvas,
 body.bf-reference-mode #app-ambient #ambient-canvas{display:none!important;opacity:0!important;visibility:hidden!important}
-body.bf-reference-mode #app-ambient .webgl-smoke-canvas{z-index:2!important;opacity:1!important;filter:blur(1.25px)!important;transform:scale(1.006)!important;transform-origin:center center!important}
+body.bf-reference-mode #app-ambient .webgl-smoke-canvas{z-index:2!important;opacity:1!important;filter:blur(2px)!important;transform:scale(1.012)!important;transform-origin:center center!important}
