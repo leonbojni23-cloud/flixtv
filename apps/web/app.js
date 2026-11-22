@@ -574,11 +574,12 @@ function readAmbientPalette(imageUrl){
     // One dominant cover hue, strengthened but retaining its actual color identity.
     const hue=raw.h;
     // Keep the cover's hue recognizable, but soften saturation for a cinematic atmosphere.
-    const saturation=ambientClamp(Math.max(raw.s*.78,62),62,76);
-    const light=ambientClamp(raw.l,44,58);
-    const c1=ambientHslToRgb(hue,saturation,ambientClamp(light+4,48,62)).join(",");
-    const c2=ambientHslToRgb(hue,saturation*.78,ambientClamp(light-7,34,46)).join(",");
-    const c3=ambientHslToRgb(hue+(hue<180?-5:5),saturation*.68,ambientClamp(light+12,56,68)).join(",");
+    // Lower saturation and brightness further for a darker, more cinematic backdrop.
+    const saturation=ambientClamp(Math.max(raw.s*.62,46),46,64);
+    const light=ambientClamp(raw.l,38,52);
+    const c1=ambientHslToRgb(hue,saturation,ambientClamp(light+1,40,54)).join(",");
+    const c2=ambientHslToRgb(hue,saturation*.72,ambientClamp(light-9,28,40)).join(",");
+    const c3=ambientHslToRgb(hue+(hue<180?-5:5),saturation*.58,ambientClamp(light+8,48,60)).join(",");
     resolve({c1,c2,c3,dominantHue:hue});
    }catch(_){resolve(null)}
   };
