@@ -62,7 +62,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       vec2 p=vUv*aspect;
 
       // A little faster, with several independent currents moving at different angles.
-      float t=uTime*0.040;
+      float t=uTime*0.032;
       vec2 driftA=vec2(t*0.52,-t*0.38);
       vec2 driftB=vec2(-t*0.34,t*0.46);
       vec2 driftC=vec2(t*0.18,t*0.22);
@@ -82,7 +82,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       // Layered vapor fields drift at different speeds to suggest depth.
       float cloudA=smoothstep(-0.72,0.48,cloud);
       float cloudB=smoothstep(-0.36,0.60,middle*0.72+broad*0.28);
-      float vapor=0.5+0.5*sin((broad-middle)*2.1+uTime*0.15);
+      float vapor=0.5+0.5*sin((broad-middle)*2.1+uTime*0.12);
       float vaporShape=clamp(cloudA*0.62+cloudB*0.23+vapor*0.15,0.0,1.0);
 
       // Approximate a height field and its normal for soft volumetric lighting.
@@ -113,9 +113,9 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       smoke*=depthShade;
 
       // Broad highlights slide over the vapor, creating occasional 3D-like depth.
-      float glow1=exp(-length((vUv-vec2(0.34+0.045*sin(uTime*0.095),0.48+0.035*cos(uTime*0.07)))*vec2(0.72,0.58))*1.35);
-      float glow2=exp(-length((vUv-vec2(0.72+0.035*cos(uTime*0.075),0.62+0.04*sin(uTime*0.06)))*vec2(0.82,0.68))*1.55);
-      float highlightPulse=0.94+0.06*sin(uTime*0.22+cloud*2.0);
+      float glow1=exp(-length((vUv-vec2(0.34+0.045*sin(uTime*0.0566),0.48+0.035*cos(uTime*0.07)))*vec2(0.72,0.58))*1.35);
+      float glow2=exp(-length((vUv-vec2(0.72+0.035*cos(uTime*0.0480),0.62+0.04*sin(uTime*0.06)))*vec2(0.82,0.68))*1.55);
+      float highlightPulse=0.94+0.06*sin(uTime*0.176+cloud*2.0);
       smoke+=uColorA*(glow1*0.12+glow2*0.085)*highlightPulse;
       smoke+=uColorC*rim*0.035;
 
