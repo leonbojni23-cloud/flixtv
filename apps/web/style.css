@@ -5720,21 +5720,22 @@ button,input,select,textarea{font-family:var(--font-ui)}
   .topbar .searchbox.expanded input{display:block!important}
 }
 
-/* FLIXTV Hero title: brief, irregular neon-style flicker after scroll settles. */
-@keyframes flix-hero-title-flicker{
-  0%,100%{opacity:1;filter:brightness(1)}
-  8%{opacity:.48;filter:brightness(.62)}
-  14%{opacity:.96;filter:brightness(1.12)}
-  22%{opacity:.38;filter:brightness(.58)}
-  29%{opacity:1;filter:brightness(1.08)}
-  39%{opacity:.72;filter:brightness(.82)}
-  47%{opacity:1;filter:brightness(1.14)}
-  55%{opacity:.58;filter:brightness(.7)}
-  64%{opacity:1;filter:brightness(1)}
+/* Artwork title gently loses and regains light. It never switches off. */
+@keyframes flix-hero-artwork-breath{
+  0%{opacity:1;filter:brightness(1)}
+  18%{opacity:.88;filter:brightness(.88)}
+  31%{opacity:.94;filter:brightness(.94)}
+  48%{opacity:.84;filter:brightness(.84)}
+  66%{opacity:.93;filter:brightness(.93)}
+  82%{opacity:.97;filter:brightness(.98)}
+  100%{opacity:1;filter:brightness(1)}
 }
-#hero .hero-title-wrap.is-flickering{
-  animation:flix-hero-title-flicker 560ms steps(1,end) both;
+#hero .hero-title-logo.is-flickering,
+#hero #hero-title.is-flickering{
+  animation:flix-hero-artwork-breath 410ms ease-out both;
+  will-change:opacity,filter;
 }
 @media(prefers-reduced-motion:reduce){
-  #hero .hero-title-wrap.is-flickering{animation:none!important}
+  #hero .hero-title-logo.is-flickering,
+  #hero #hero-title.is-flickering{animation:none!important}
 }
