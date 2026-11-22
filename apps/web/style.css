@@ -5929,3 +5929,34 @@ body.flxtv-movie-detail .mobile-nav button.active .nav-icon{color:#080b11!import
  body.flxtv-movie-detail .movie-detail-studios{gap:17px}
  body.flxtv-movie-detail .movie-detail-studios img{max-width:92px}
 }
+
+/* Movie detail corrections: restore the original FLIXTV brand mark and keep the
+   actual film backdrop above the page background instead of hiding it behind
+   the isolated hero stacking context. */
+body.flxtv-movie-detail .topbar .brand{
+ position:absolute!important;left:50%!important;top:50%!important;
+ transform:translate(-50%,-50%)!important;width:92px!important;height:58px!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;
+}
+body.flxtv-movie-detail .topbar .brand-mark{
+ display:block!important;width:92px!important;height:58px!important;
+ min-width:92px!important;min-height:58px!important;max-width:none!important;
+ padding:0!important;border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;filter:none!important;
+}
+body.flxtv-movie-detail .movie-detail-hero{position:relative!important;isolation:isolate!important}
+body.flxtv-movie-detail .movie-detail-backdrop{
+ z-index:0!important;inset:0!important;display:block!important;opacity:1!important;
+ background-size:cover!important;background-position:center 16%!important;
+}
+body.flxtv-movie-detail .movie-detail-shade{
+ z-index:1!important;inset:0!important;display:block!important;
+ background:linear-gradient(180deg,rgba(5,9,18,.04) 0%,rgba(5,9,18,.02) 30%,rgba(5,9,18,.2) 54%,rgba(5,9,18,.76) 82%,#080d17 100%),
+ linear-gradient(90deg,rgba(4,8,15,.12),transparent 72%)!important;
+}
+body.flxtv-movie-detail .movie-detail-copy,
+body.flxtv-movie-detail .movie-detail-facts,
+body.flxtv-movie-detail .movie-detail-studios{position:relative!important;z-index:2!important}
+body.flxtv-movie-detail .movie-detail-facts{margin-top:30px!important}
+body.flxtv-movie-detail .movie-detail-studios{z-index:2!important}
