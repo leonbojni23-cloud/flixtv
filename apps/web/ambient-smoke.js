@@ -208,11 +208,21 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     });
     scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material));
 
-    const resize = () => {
+    // Keep a stable render surface while iOS Safari expands/collapses its browser bars.
+    // Scrolling must never resize or restart the smoke simulation.
+    let renderWidth = 0;
+    let renderHeight = 0;
+    const resize = (force = false) => {
       if (!renderer) return;
-      const width = Math.max(1, host.clientWidth || window.innerWidth);
+      const width = Math.max(1, document.documentElement.clientWidth || window.innerWidth);
       const height = Math.max(1, host.clientHeight || window.innerHeight);
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, window.innerWidth < 768 ? 1.25 : 1.6);
+      const isMobile = window.matchMedia("(max-width: 767px)").matches;
+      // iOS may fire resize while its address/tab bars move. Ignore height-only changes there.
+      if (!force && isMobile && renderWidth && Math.abs(width - renderWidth) < 2) return;
+      if (!force && width === renderWidth && height === renderHeight) return;
+      renderWidth = width;
+      renderHeight = height;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, isMobile ? 1.25 : 1.6);
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(width, height, false);
       material.uniforms.uResolution.value.set(width * pixelRatio, height * pixelRatio);
@@ -234,12 +244,10 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     resize();
     readPalette();
     window.addEventListener("resize", resize, { passive: true });
-    window.addEventListener("orientationchange", () => setTimeout(resize, 180), { passive: true });
+    window.addEventListener("orientationchange", () => setTimeout(() => resize(true), 220), { passive: true });
     document.addEventListener("visibilitychange", () => { if (!document.hidden) last = 0; });
     window.addEventListener("flxtv:ambient-palette", readPalette);
-    const observer = new ResizeObserver(resize);
-    observer.observe(host);
-    canvas.addEventListener("webglcontextlost", event => {
+        canvas.addEventListener("webglcontextlost", event => {
       event.preventDefault();
       cancelAnimationFrame(raf);
     });
@@ -251,8 +259,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     window.__FLIXTV_WEBGL_SMOKE__ = { renderer, canvas, dispose() {
       disposed = true;
       cancelAnimationFrame(raf);
-      observer.disconnect();
-      window.removeEventListener("resize", resize);
+            window.removeEventListener("resize", resize);
       material.dispose();
       renderer.dispose();
       canvas.remove();
