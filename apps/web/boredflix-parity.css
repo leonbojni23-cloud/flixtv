@@ -2823,3 +2823,30 @@ html.bf-inner-route body.bf-movies-route #hero:not([hidden]) .hero-backdrop.acti
  opacity:1!important;
  visibility:visible!important;
 }
+
+/* Movies: slightly shorter Home-style hero and reveal the same animated ambient background as Home. */
+body.bf-movies-route #bf-route-page.bf-page{
+ background:linear-gradient(180deg,rgba(9,11,16,0) 0%,rgba(9,11,16,.16) 24%,rgba(9,11,16,.52) 100%)!important;
+}
+body.bf-movies-route #hero.hero{
+ height:min(74vh,760px)!important;
+ min-height:560px!important;
+ max-height:760px!important;
+}
+@media(max-width:760px){
+ body.bf-movies-route #hero.hero{
+  height:min(70svh,660px)!important;
+  min-height:530px!important;
+  max-height:660px!important;
+  padding:0 22px 48px!important;
+ }
+ body.bf-movies-route #bf-route-page.bf-page{
+  background:linear-gradient(180deg,rgba(9,11,16,0) 0%,rgba(9,11,16,.10) 18%,rgba(9,11,16,.42) 100%)!important;
+ }
+}
+@media(max-width:380px){
+ body.bf-movies-route #hero.hero{
+  height:min(72svh,660px)!important;
+  min-height:530px!important;
+ }
+}
