@@ -3172,3 +3172,46 @@ body.bf-shows-route .bf-grid .bf-grid-title,
 body.bf-shows-route .bf-grid .bf-grid-meta{
  display:none!important;
 }
+
+
+/* Append catalogue pages without replacing existing cards or shifting the reader's scroll position. */
+body.bf-movies-route .bf-grid .bf-grid-media,
+body.bf-shows-route .bf-grid .bf-grid-media{
+ display:block!important;
+ width:100%!important;
+ aspect-ratio:2/3!important;
+}
+body.bf-movies-route .bf-grid-card,
+body.bf-shows-route .bf-grid-card{align-self:start!important}
+.bf-card-entering{
+ opacity:0;
+ transform:translate3d(0,12px,0);
+ animation:bf-catalog-card-in .42s cubic-bezier(.2,.7,.25,1) forwards;
+ animation-delay:var(--bf-card-enter-delay,0ms);
+}
+@keyframes bf-catalog-card-in{
+ to{opacity:1;transform:translate3d(0,0,0)}
+}
+@media(prefers-reduced-motion:reduce){
+ .bf-card-entering{animation:none!important;opacity:1!important;transform:none!important}
+}
+
+/* The dice inside Surprise me roll continuously while results are being fetched. */
+#bf-surprise .bf-surprise-icon svg{
+ transform-origin:50% 50%;
+}
+#bf-surprise.is-spinning .bf-surprise-icon svg{
+ animation:bf-dice-roll .48s cubic-bezier(.35,.05,.2,.95) infinite;
+}
+#bf-surprise.is-spinning .bf-surprise-icon{
+ animation:bf-dice-bounce .48s ease-in-out infinite;
+}
+@keyframes bf-dice-roll{
+ 0%{transform:rotate(0deg) scale(1)}
+ 45%{transform:rotate(190deg) scale(1.13)}
+ 100%{transform:rotate(360deg) scale(1)}
+}
+@keyframes bf-dice-bounce{
+ 0%,100%{transform:translateY(0)}
+ 50%{transform:translateY(-3px)}
+}
