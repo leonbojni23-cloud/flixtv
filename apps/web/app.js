@@ -2836,6 +2836,25 @@ document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dat
  window.addEventListener("resize",()=>requestAnimationFrame(updateDesktopNavPill),{passive:true});
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>requestAnimationFrame(updateDesktopNavPill)).catch(()=>{});
  document.querySelectorAll("[data-close]").forEach(e=>{if(e.dataset.close==="sports-settings")e.onclick=()=>modal("sports-settings",false)});
+/* Hero title light flicker: trigger once after the page scroll settles. */
+let heroTitleFlickerTimer=null;
+function triggerHeroTitleFlicker(){
+ const titleWrap=document.querySelector("#hero .hero-title-wrap");
+ const hero=document.getElementById("hero");
+ if(!titleWrap||!hero||titleWrap.hidden||!titleWrap.getClientRects().length)return;
+ const rect=hero.getBoundingClientRect();
+ if(rect.bottom<=0||rect.top>=window.innerHeight)return;
+ titleWrap.classList.remove("is-flickering");
+ void titleWrap.offsetWidth;
+ titleWrap.classList.add("is-flickering");
+ clearTimeout(triggerHeroTitleFlicker.cleanupTimer);
+ triggerHeroTitleFlicker.cleanupTimer=setTimeout(()=>titleWrap.classList.remove("is-flickering"),650);
+}
+window.addEventListener("scroll",()=>{
+ clearTimeout(heroTitleFlickerTimer);
+ heroTitleFlickerTimer=setTimeout(triggerHeroTitleFlicker,190);
+},{passive:true});
+
 $("hero-prev").onclick=()=>{if(heroItems.length>1){showHero(heroIndex-1);startHeroTimer()}};
 $("hero-next").onclick=()=>{if(heroItems.length>1){showHero(heroIndex+1);startHeroTimer()}};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
