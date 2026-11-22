@@ -2535,3 +2535,69 @@ body.bf-reference-mode #home-page .top10-caption{
   }
   body.bf-reference-mode #home-page .top10-rank.is-double-digit{font-size:61px!important}
 }
+
+
+/* Header actions: two independent compact glass circles, no shared capsule. */
+body.bf-reference-mode .topbar .top-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  padding:0!important;
+  margin-left:auto!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+body.bf-reference-mode .topbar .searchbox{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex:0 0 36px!important;
+  width:36px!important;
+  min-width:36px!important;
+  height:36px!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+body.bf-reference-mode .topbar .search-trigger,
+body.bf-reference-mode .topbar .header-glass-button{
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 36px!important;
+  width:36px!important;
+  min-width:36px!important;
+  height:36px!important;
+  min-height:36px!important;
+  padding:0!important;
+  margin:0!important;
+  border:1px solid rgba(255,255,255,.25)!important;
+  border-radius:50%!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.055))!important;
+  color:#fff!important;
+  box-shadow:0 4px 14px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.23)!important;
+  -webkit-backdrop-filter:blur(17px) saturate(175%)!important;
+  backdrop-filter:blur(17px) saturate(175%)!important;
+  outline:0!important;
+}
+body.bf-reference-mode .topbar .search-trigger svg{
+  width:19px!important;
+  height:19px!important;
+  stroke:currentColor!important;
+  fill:none!important;
+}
+body.bf-reference-mode .topbar .header-glass-button{font-size:17px!important}
+@media(max-width:767px){
+  body.bf-reference-mode .topbar .top-actions{gap:9px!important}
+}
