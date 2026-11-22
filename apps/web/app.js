@@ -1256,8 +1256,15 @@ function createTop10Card(item,rank){
  playIcon.innerHTML='<i class="bi bi-play-fill" aria-hidden="true"></i>';
  const name=document.createElement("strong");name.textContent=title(item);
  const meta=document.createElement("small");
+ meta.textContent=year(item);
  const rating=Number(item.vote_average);
- meta.textContent=[year(item),rating>0?"★ "+rating.toFixed(1):""].filter(Boolean).join(" · ");
+ if(Number.isFinite(rating)&&rating>0){
+  const ratingBadge=document.createElement("span");
+  ratingBadge.className="poster-rating";
+  ratingBadge.setAttribute("aria-label","Vlerësimi "+rating.toFixed(1));
+  ratingBadge.innerHTML='<span aria-hidden="true">★</span> '+rating.toFixed(1);
+  art.append(ratingBadge);
+ }
  overlay.append(playIcon,name,meta);art.append(image,overlay);media.append(number,art);
  const caption=document.createElement("span");caption.className="top10-caption";
  caption.textContent=title(item);
