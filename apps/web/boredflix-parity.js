@@ -24,7 +24,7 @@ function showOnly(page){
  doc.documentElement.classList.toggle("bf-inner-route",innerRoute);
  doc.body.classList.toggle("bf-provider-route",page==="provider");
  doc.body.classList.toggle("bf-movies-route",page==="movies");
- if($("hero"))$("hero").hidden=page!=="home";
+ if($("hero"))$("hero").hidden=page!=="home"&&page!=="movies";
  if($("catalog"))$("catalog").hidden=page!=="home";
  if($("search-page"))$("search-page").hidden=true;
  if($("sports-page"))$("sports-page").hidden=page!=="sports";
@@ -79,8 +79,7 @@ function createWide(item){
 function filterMarkup(){var gs=GENRES[current.media]||GENRES.movie;return '<div class="bf-filterbar"><button type="button" class="bf-filter-action" id="bf-surprise"><span class="bf-surprise-icon" aria-hidden="true">✦</span><span class="bf-surprise-label">Surprise me</span></button><select class="bf-filter-select" id="bf-genre" aria-label="Genre"><option value="">Genre</option>'+gs.map(function(g){return'<option value="'+g[0]+'">'+safe(g[1])+'</option>'}).join("")+'</select><select class="bf-filter-select" id="bf-year" aria-label="Year"><option value="">Year</option>'+Array.from({length:47},function(_,i){return 2026-i}).map(function(y){return'<option value="'+y+'">'+y+'</option>'}).join("")+'</select><select class="bf-filter-select" id="bf-sort" aria-label="Sort by"><option value="popularity.desc">Popular</option><option value="vote_average.desc">Rating</option><option value="vote_count.desc">Votes</option><option value="primary_release_date.desc">Newest</option></select><select class="bf-filter-select" id="bf-rating" aria-label="Minimum rating"><option value="">Min rating</option><option value="6">6.0+</option><option value="7">7.0+</option><option value="8">8.0+</option><option value="9">9.0+</option></select><select class="bf-filter-select" id="bf-votes" aria-label="Minimum votes"><option value="">Votes</option><option value="100">100+</option><option value="500">500+</option><option value="1000">1,000+</option><option value="5000">5,000+</option></select><span class="bf-result-count" id="bf-result-count"></span></div>'}
 function browseMarkup(page){
  var tv=page==="shows";
- var hero=tv?"":'<section class="bf-catalog-hero" id="bf-catalog-hero"><div class="bf-catalog-hero-backdrop" id="bf-catalog-hero-backdrop"></div><div class="bf-catalog-hero-shade"></div><div class="bf-catalog-hero-copy"><div class="bf-catalog-hero-art" id="bf-catalog-hero-art"><h2 id="bf-catalog-hero-title">Discover something great</h2></div><div class="bf-catalog-hero-meta" id="bf-catalog-hero-meta"></div><p class="bf-catalog-hero-overview" id="bf-catalog-hero-overview"></p><div class="bf-catalog-hero-actions"><button class="bf-catalog-play" id="bf-catalog-play" type="button"><span>▶</span> Play</button><div class="bf-catalog-utility"><button id="bf-catalog-add" type="button" aria-label="Add to My List">＋</button><i></i><button id="bf-catalog-info" type="button" aria-label="More information">ⓘ</button></div></div></div></section>';
- return hero+'<div class="bf-page-inner bf-catalog-inner"><div class="bf-page-kicker">'+(tv?"TV SERIES":"MOVIE COLLECTION")+'</div><h1 class="bf-page-title">'+(tv?'TV <span class="bf-accent">Shows</span>':'Movies')+'</h1>'+filterMarkup()+'<div class="bf-surprise-result" id="bf-surprise-result" hidden aria-live="polite"></div><div class="bf-grid '+(tv?"":"bf-movies-grid")+'" id="bf-grid"><div class="bf-loading">Loading titles…</div></div><div class="bf-provider-scroll-sentinel" id="bf-provider-scroll-sentinel" aria-hidden="true"></div></div>'
+ return '<div class="bf-page-inner bf-catalog-inner"><div class="bf-page-kicker">'+(tv?"TV SERIES":"MOVIE COLLECTION")+'</div><h1 class="bf-page-title">'+(tv?'TV <span class="bf-accent">Shows</span>':'Movies')+'</h1>'+filterMarkup()+'<div class="bf-surprise-result" id="bf-surprise-result" hidden aria-live="polite"></div><div class="bf-grid '+(tv?"":"bf-movies-grid")+'" id="bf-grid"><div class="bf-loading">Loading titles…</div></div><div class="bf-provider-scroll-sentinel" id="bf-provider-scroll-sentinel" aria-hidden="true"></div></div>'
 }
 function filterPath(page){var q=new URLSearchParams();q.set("include_adult","false");q.set("sort_by",current.filters.sort==="primary_release_date.desc"&&current.media==="tv"?"first_air_date.desc":current.filters.sort||"popularity.desc");q.set("page",String(page));if(current.filters.genre)q.set("with_genres",current.filters.genre);if(current.filters.year)q.set(current.media==="movie"?"primary_release_year":"first_air_date_year",current.filters.year);if(current.filters.rating)q.set("vote_average.gte",current.filters.rating);if(current.filters.votes)q.set("vote_count.gte",current.filters.votes);return"/discover/"+current.media+"?"+q.toString()}
 function clearSurprisePick(){var zone=$("bf-surprise-result");if(zone){zone.hidden=true;zone.classList.remove("is-visible");zone.replaceChildren()}}
@@ -150,34 +149,6 @@ async function loadDiscover(reset,forced){
  catch(e){if(grid&&reset)grid.innerHTML='<div class="bf-empty">'+safe(e.message)+'</div>';if(more){more.disabled=false;more.textContent="Try again"}}
  finally{if(req===current.request)current.loading=false}
 }
-async function loadMoviesCatalogHero(){
- var hero=$("bf-catalog-hero"),backdrop=$("bf-catalog-hero-backdrop");if(!hero||!backdrop)return;
- var request=++loadMoviesCatalogHero.requestId;
- try{
-  var data=await tmdb("/trending/movie/week?language=en-US");
-  if(request!==loadMoviesCatalogHero.requestId||current.page!=="movies")return;
-  var item=(data.results||[]).find(function(x){return x&&x.backdrop_path})||(data.results||[]).find(function(x){return x&&x.poster_path});
-  if(!item)return;
-  item.media_type="movie";hero.__item=item;
-  if(item.backdrop_path)backdrop.style.backgroundImage='url("'+IMG+"w1280"+item.backdrop_path+'")';
-  var art=$("bf-catalog-hero-art"),title=$("bf-catalog-hero-title");title.textContent=name(item);
-  var year=yr(item),rating=Number(item.vote_average||0).toFixed(1);
-  var genreIds=item.genre_ids||[],genreNames=genreIds.map(function(id){var found=GENRES.movie.find(function(g){return g[0]===id});return found&&found[1]}).filter(Boolean).slice(0,2);
-  $("bf-catalog-hero-meta").innerHTML='<span>★ '+rating+'</span>'+(year?'<span>▦ '+safe(year)+'</span>':'')+(genreNames.length?'<span>✧ '+safe(genreNames.join(" · "))+'</span>':'');
-  $("bf-catalog-hero-overview").textContent=item.overview||"";
-  $("bf-catalog-play").onclick=function(){playTitle(item)};
-  $("bf-catalog-info").onclick=function(){openTitle(item)};
-  $("bf-catalog-add").onclick=function(){var b=bridge();if(b&&b.toggleSaved)b.toggleSaved(item);else openTitle(item)};
-  try{
-   var images=await tmdb("/movie/"+item.id+"/images?include_image_language=en,null");
-   if(request!==loadMoviesCatalogHero.requestId||current.page!=="movies")return;
-   var logos=(images.logos||[]).filter(function(x){return x&&x.file_path});
-   logos.sort(function(a,b){var score=function(x){return (x.iso_639_1==="en"?3:x.iso_639_1===null?2:0)+(Number(x.width)||0)/100000};return score(b)-score(a)});
-   if(logos.length){var img=doc.createElement("img");img.src=IMG+"w500"+logos[0].file_path;img.alt=name(item);img.decoding="async";img.onerror=function(){img.remove()};art.replaceChildren(img)}
-  }catch(_){}
- }catch(e){if(request===loadMoviesCatalogHero.requestId)hero.classList.add("is-fallback")}
-}
-loadMoviesCatalogHero.requestId=0;
 function observeBrowseScroll(){
  if(current.browseObserver){current.browseObserver.disconnect();current.browseObserver=null}
  var sentinel=$("bf-provider-scroll-sentinel");if(!sentinel||!window.IntersectionObserver)return;
@@ -186,7 +157,7 @@ function observeBrowseScroll(){
  },{root:null,rootMargin:"500px 0px 500px 0px",threshold:0});
  current.browseObserver.observe(sentinel);
 }
-function renderBrowse(page,sortBy){current.page=page;current.media=page==="shows"?"tv":"movie";current.pageNo=0;current.totalPages=1;resetFilters();current.filters.sort=sortBy||new URLSearchParams(location.search).get("sortBy")||"popularity.desc";setPanel(browseMarkup(page));connectFilters(false);if(page==="movies"){loadMoviesCatalogHero();observeBrowseScroll()}loadDiscover(true)}
+function renderBrowse(page,sortBy){current.page=page;current.media=page==="shows"?"tv":"movie";current.pageNo=0;current.totalPages=1;resetFilters();current.filters.sort=sortBy||new URLSearchParams(location.search).get("sortBy")||"popularity.desc";setPanel(browseMarkup(page));connectFilters(false);if(page==="movies"){if(bridge()&&bridge().ensureHeroCarousel)bridge().ensureHeroCarousel();observeBrowseScroll()}loadDiscover(true)}
 function navigateBrowse(page,sortBy){clearTimeout(current.searchTimer);var url=routeUrl(page)+(sortBy?"?sortBy="+encodeURIComponent(sortBy):"");if(location.pathname+location.search!==url){var legacy=page==="movies"?"movies":"shows";history.pushState({flixView:{page:legacy,sports:false,search:false,scrollY:0},bfRoute:{page:page,provider:null}},"",url)}current.page=page;showOnly(page);navActive(page);scrollTop();renderBrowse(page,sortBy)}
 function slug(p){var s=String(p.provider_name||"").toLowerCase().replace(/\+/g," plus ").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");if(s.indexOf("netflix")>=0)return"netflix";if(s.indexOf("hbo")>=0||s==="max")return"max";if(s.indexOf("disney")>=0)return"disney-plus";if(s.indexOf("prime")>=0||s.indexOf("amazon")>=0)return"prime-video";if(s.indexOf("hulu")>=0)return"hulu";if(s.indexOf("apple")>=0)return"apple-tv";if(s.indexOf("paramount")>=0)return"paramount-plus";if(s.indexOf("peacock")>=0)return"peacock";if(s.indexOf("crunchyroll")>=0)return"crunchyroll";return s}
 async function loadProviders(){var lists=await Promise.all([tmdb("/watch/providers/movie?watch_region=AL&language=sq-AL"),tmdb("/watch/providers/tv?watch_region=AL&language=sq-AL")]),map=new Map();[["movie",lists[0]],["tv",lists[1]]].forEach(function(pair){(pair[1].results||[]).forEach(function(p){if(!p.provider_id||!p.provider_name)return;var x=map.get(String(p.provider_id))||Object.assign({},p,{mediaTypes:[]});x.mediaTypes.push(pair[0]);map.set(String(p.provider_id),x)})});var order=["netflix","max","disney-plus","prime-video","hulu","apple-tv","paramount-plus","peacock","crunchyroll"];return Array.from(map.values()).filter(function(p){return !/^justwatch/i.test(p.provider_name)}).sort(function(a,b){var ai=order.indexOf(slug(a)),bi=order.indexOf(slug(b));if(ai<0)ai=90;if(bi<0)bi=90;return ai-bi||(Number(a.display_priority)||999)-(Number(b.display_priority)||999)}).slice(0,20)}
