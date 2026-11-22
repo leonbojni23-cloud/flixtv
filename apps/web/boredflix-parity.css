@@ -2472,7 +2472,7 @@ body.bf-reference-mode #home-page .top10-caption{
 }
 @media(max-width:767px){
   body.bf-reference-mode #home-page .top10-row{
-    gap:10px!important;
+    gap:18px!important;
     padding:8px 0 16px!important;
     scroll-padding-inline:var(--bf-gutter)!important;
   }
