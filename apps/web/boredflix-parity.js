@@ -288,7 +288,7 @@ function render(page,provider,query){
  current.page=page||"home";showOnly(current.page);scrollTop();
  if(page==="home"){ensurePanel().hidden=true;return}
  if(page==="sports"){renderSports();return}
- if(page==="movies"||page==="shows"){renderBrowse(page,query);return}
+ if(page==="movies"){if(bridge()&&bridge().ensureHeroCarousel)bridge().ensureHeroCarousel();renderBrowse(page,query);return}if(page==="shows"){renderBrowse(page,query);return}
  if(page==="library"){renderLibrary(current.tab||"continue");return}
  if(page==="search"){renderSearch(query!=null?query:current.query);return}
  if(page==="provider"){renderProvider(provider);return}
