@@ -5720,30 +5720,33 @@ button,input,select,textarea{font-family:var(--font-ui)}
   .topbar .searchbox.expanded input{display:block!important}
 }
 
-/* Two quick, subtle power dips followed by a clean return of light. */
+/* Two distinct, quick electrical dips with a crisp return between them. */
 @keyframes flix-hero-artwork-breath{
-  0%,35%,70%,100%{
+  0%,32%,64%,100%{
     opacity:1;
     filter:brightness(1) saturate(1) drop-shadow(0 4px 22px rgba(0,0,0,.44));
   }
-  9%,44%{
-    opacity:.95;
-    filter:brightness(.86) saturate(.95) drop-shadow(0 3px 16px rgba(0,0,0,.4));
+  10%,42%{
+    opacity:.90;
+    filter:brightness(.78) saturate(.92) drop-shadow(0 2px 13px rgba(0,0,0,.38));
   }
-  17%,52%{
-    opacity:.99;
-    filter:brightness(.97) saturate(.99) drop-shadow(0 3px 20px rgba(0,0,0,.42));
-  }
-  25%,61%{
+  18%,50%{
     opacity:1;
-    filter:brightness(1.055) saturate(1.02)
-      drop-shadow(0 0 7px rgba(255,255,255,.16))
+    filter:brightness(1.04) saturate(1.01)
+      drop-shadow(0 0 5px rgba(255,255,255,.13))
+      drop-shadow(0 4px 22px rgba(0,0,0,.44));
+  }
+  25%,57%{
+    opacity:1;
+    filter:brightness(1.075) saturate(1.025)
+      drop-shadow(0 0 9px rgba(255,255,255,.2))
+      drop-shadow(0 0 15px rgba(220,235,255,.12))
       drop-shadow(0 4px 22px rgba(0,0,0,.44));
   }
 }
 #hero .hero-title-logo.is-flickering,
 #hero #hero-title.is-flickering{
-  animation:flix-hero-artwork-breath 280ms ease-out both;
+  animation:flix-hero-artwork-breath 420ms linear both;
   transform-origin:left center;
   will-change:opacity,filter;
 }
