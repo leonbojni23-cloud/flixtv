@@ -2721,68 +2721,98 @@ body.bf-provider-route .bf-provider-scroll-sentinel{display:block;width:100%;hei
 body.bf-provider-route .bf-provider-load-error{grid-column:1/-1;padding:14px 0;color:rgba(255,255,255,.65);text-align:center;font-size:13px}
 
 
-/* Movies catalogue: BoredFlix-style cinematic feature, compact filters and poster grid. */
-body.bf-movies-route #bf-route-page.bf-page{padding:0 0 110px!important;min-height:100dvh}
-body.bf-movies-route .bf-catalog-hero{position:relative;isolation:isolate;display:flex;align-items:flex-end;height:86svh;min-height:590px;max-height:900px;overflow:hidden;padding:0 var(--bf-gutter) 12vh;background:#090a0d}
-body.bf-movies-route .bf-catalog-hero-backdrop{position:absolute;inset:0;z-index:-2;background:#17191f center 28%/cover no-repeat;transform:scale(1.015)}
-body.bf-movies-route .bf-catalog-hero-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,8,12,.18),rgba(8,8,12,0) 75%),linear-gradient(0deg,#08090d 0%,rgba(8,9,13,.72) 15%,rgba(8,9,13,.08) 66%,rgba(8,9,13,.1) 100%)}
-body.bf-movies-route .bf-catalog-hero-copy{width:min(680px,100%);padding-top:90px}
-body.bf-movies-route .bf-catalog-hero-art{min-height:62px;display:flex;align-items:flex-end;margin:0 0 14px}
-body.bf-movies-route .bf-catalog-hero-art h2{font-family:Montserrat,Inter,sans-serif;font-size:clamp(32px,7vw,58px);line-height:1;font-weight:850;letter-spacing:-.055em;text-shadow:0 4px 28px #0008;margin:0}
-body.bf-movies-route .bf-catalog-hero-art img{display:block;width:auto;max-width:min(78vw,440px);max-height:108px;object-fit:contain;object-position:left bottom;filter:drop-shadow(0 4px 14px #0008)}
-body.bf-movies-route .bf-catalog-hero-meta{display:flex;align-items:center;gap:15px;flex-wrap:wrap;margin:0 0 20px;color:rgba(255,255,255,.92);font-size:15px;font-weight:650;text-shadow:0 2px 12px #000}
-body.bf-movies-route .bf-catalog-hero-overview{display:none}
-body.bf-movies-route .bf-catalog-hero-actions{display:flex;align-items:center;gap:12px}
-body.bf-movies-route .bf-catalog-play{height:48px;min-width:118px;padding:0 25px;border:0;border-radius:999px;background:#fff;color:#090a0d;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:9px}
-body.bf-movies-route .bf-catalog-play span{font-size:18px}
-body.bf-movies-route .bf-catalog-utility{height:48px;min-width:116px;padding:0 15px;display:flex;align-items:center;justify-content:space-around;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(35,37,40,.58);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-body.bf-movies-route .bf-catalog-utility button{width:38px;height:42px;border:0;background:transparent;color:#fff;font-size:25px}
-body.bf-movies-route .bf-catalog-utility i{height:28px;width:1px;background:rgba(255,255,255,.24)}
-body.bf-movies-route .bf-catalog-inner{position:relative;margin-top:-2px;padding:0 var(--bf-gutter)}
-body.bf-movies-route .bf-page-kicker{display:none}
-body.bf-movies-route .bf-page-title{font-size:clamp(48px,11vw,68px);margin:0 0 32px;letter-spacing:-.065em}
-body.bf-movies-route .bf-filterbar{gap:9px;padding:0 0 14px;margin:0 0 16px;overflow-x:auto;flex-wrap:nowrap}
-body.bf-movies-route .bf-filter-select,body.bf-movies-route .bf-filter-action{height:38px;padding:0 16px;border-radius:999px;font-size:14px;font-weight:600}
-body.bf-movies-route .bf-filter-action{height:40px;padding:0 19px;border-color:rgba(251,191,36,.48);background:rgba(251,191,36,.13);color:#f9df88;font-size:15px}
-body.bf-movies-route .bf-filter-select{font-size:14px}
-body.bf-movies-route .bf-movies-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 12px}
-body.bf-movies-route .bf-movies-grid .bf-grid-media{aspect-ratio:2/3;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.24)}
-body.bf-movies-route .bf-movies-grid .bf-grid-title,body.bf-movies-route .bf-movies-grid .bf-grid-meta{display:none!important}
-body.bf-movies-route .bf-movies-grid .bf-grid-rating{top:8px;right:8px;left:auto;padding:5px 9px;border-radius:999px;background:rgba(24,25,29,.76);color:#ffd36b;font-size:12px;font-weight:750}
-body.bf-movies-route .bf-movies-grid .bf-grid-card{border-radius:12px}
-@media(max-width:767px){
- body.bf-movies-route .bf-catalog-hero{height:86svh;min-height:620px;max-height:820px;padding:0 var(--bf-gutter) 12vh}
- body.bf-movies-route .bf-catalog-hero-copy{padding-top:100px}
- body.bf-movies-route .bf-catalog-hero-art{min-height:52px;margin-bottom:13px}
- body.bf-movies-route .bf-catalog-hero-art img{max-width:86vw;max-height:82px}
- body.bf-movies-route .bf-catalog-hero-meta{gap:10px;font-size:14px;margin-bottom:20px}
- body.bf-movies-route .bf-catalog-play{height:48px;min-width:118px}
- body.bf-movies-route .bf-catalog-utility{height:48px}
- body.bf-movies-route .bf-catalog-inner{margin-top:-1px;padding:0 var(--bf-gutter)}
- body.bf-movies-route .bf-page-title{font-size:clamp(48px,12vw,62px);margin-bottom:32px}
- body.bf-movies-route .bf-movies-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 12px}
- body.bf-movies-route .bf-movies-grid .bf-grid-media{border-radius:11px}
-}
-@media(min-width:768px){
- body.bf-movies-route .bf-catalog-hero{height:82svh;min-height:650px;padding-bottom:100px}
- body.bf-movies-route .bf-catalog-inner{padding:0 var(--bf-gutter)}
- body.bf-movies-route .bf-movies-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:24px 18px}
-}
-
-/* Movies route reuses the real Home hero carousel, not a static duplicate. */
+/* Movies page: reuse the exact Home hero components, only compact its frame and hide its synopsis. */
 body.bf-movies-route #hero[hidden]{display:none!important}
-body.bf-movies-route #hero{display:flex!important;position:relative!important;isolation:isolate;height:74svh!important;min-height:520px!important;max-height:760px!important;margin:0!important;padding:0 var(--bf-gutter) 10vh!important}
-body.bf-movies-route #hero-overview{display:none!important}
-body.bf-movies-route #hero-content{transform:translateY(-5px)}
-body.bf-movies-route #hero .hero-progress,body.bf-movies-route #hero .hero-dots,body.bf-movies-route #hero .hero-controls{display:none!important}
-body.bf-movies-route #hero .hero-meta{margin-bottom:16px!important}
-body.bf-movies-route #hero .hero-actions{margin-top:0!important}
-body.bf-movies-route .bf-catalog-inner{margin-top:0!important;padding:0 var(--bf-gutter)!important}
-body.bf-movies-route .bf-page-title{margin-top:0!important}
-@media(max-width:767px){
- body.bf-movies-route #hero{height:72svh!important;min-height:510px!important;max-height:690px!important;padding:0 var(--bf-gutter) 9vh!important}
- body.bf-movies-route #hero-content{transform:translateY(-8px)}
- body.bf-movies-route #hero .hero-title-logo{max-width:min(82vw,390px)!important;max-height:92px!important}
- body.bf-movies-route #hero .hero-meta{gap:10px!important;margin-bottom:16px!important}
- body.bf-movies-route .bf-catalog-inner{padding:0 var(--bf-gutter)!important}
+body.bf-movies-route #hero.hero{
+ display:flex!important;position:relative!important;isolation:isolate;overflow:hidden!important;
+ height:56svh!important;min-height:430px!important;max-height:500px!important;
+ margin:0!important;padding:0 22px 26px!important;align-items:flex-end!important;
+ background:#090b10!important;
+}
+body.bf-movies-route #hero.hero:before{display:none!important;content:none!important}
+body.bf-movies-route #hero .hero-backdrop{background-position:center 30%!important}
+body.bf-movies-route #hero .hero-backdrop:after{
+ background:
+  linear-gradient(90deg,rgba(5,7,12,.40) 0%,rgba(5,7,12,.10) 58%,rgba(5,7,12,.02) 100%),
+  linear-gradient(180deg,rgba(9,11,16,.02) 0%,rgba(9,11,16,.04) 38%,rgba(9,11,16,.30) 62%,rgba(9,11,16,.80) 88%,#090b10 100%)!important;
+}
+body.bf-movies-route #hero:after{
+ content:"";position:absolute;z-index:-1;pointer-events:none;left:0;right:0;bottom:-1px;height:48%;
+ background:linear-gradient(180deg,transparent 0%,rgba(9,11,16,.18) 24%,rgba(9,11,16,.66) 68%,#090b10 100%);
+}
+body.bf-movies-route #hero .hero-content{
+ position:absolute!important;left:22px!important;right:22px!important;bottom:26px!important;
+ width:auto!important;max-width:none!important;padding:0!important;z-index:1!important;
+}
+body.bf-movies-route #hero .hero-title-wrap{margin:0 0 13px!important}
+body.bf-movies-route #hero .hero-title-logo{max-width:min(82vw,390px)!important;max-height:88px!important}
+body.bf-movies-route #hero #hero-title{font-size:clamp(36px,9vw,48px)!important;line-height:.98!important;margin:0!important}
+body.bf-movies-route #hero #hero-overview{display:none!important}
+body.bf-movies-route #hero .hero-meta{margin:0 0 17px!important;gap:13px!important}
+body.bf-movies-route #hero .hero-actions{margin:0!important;gap:12px!important;flex-wrap:nowrap!important}
+body.bf-movies-route #hero .hero-play{min-width:106px!important;height:44px!important;padding:0 19px!important;font-size:15px!important}
+body.bf-movies-route #hero .hero-play .bi{font-size:19px!important}
+body.bf-movies-route #hero .hero-utility-group{height:44px!important;min-height:44px!important;padding:0 4px!important}
+body.bf-movies-route #hero .hero-utility-button{width:46px!important;height:42px!important}
+body.bf-movies-route #hero .hero-utility-divider{height:26px!important}
+body.bf-movies-route #hero .hero-controls,
+body.bf-movies-route #hero .hero-progress,
+body.bf-movies-route #hero .hero-dots{display:none!important}
+
+/* The Movies heading and filters rise into the hero fade, rather than starting as a separate block. */
+body.bf-movies-route #bf-route-page.bf-page{
+ position:relative!important;z-index:2!important;margin-top:-34px!important;
+ padding:0 0 110px!important;min-height:100dvh!important;
+ background:linear-gradient(180deg,rgba(9,11,16,0) 0,#090b10 42px,#090b10 100%)!important;
+}
+body.bf-movies-route .bf-catalog-inner{position:relative!important;margin:0 auto!important;padding:0 22px!important;max-width:1600px}
+body.bf-movies-route .bf-page-kicker{display:none!important}
+body.bf-movies-route .bf-page-title{
+ margin:0 0 34px!important;font-size:clamp(48px,12vw,62px)!important;
+ line-height:1!important;letter-spacing:-.065em!important;
+}
+body.bf-movies-route .bf-filterbar{
+ display:flex!important;align-items:center!important;flex-wrap:nowrap!important;
+ gap:8px!important;overflow-x:auto!important;scrollbar-width:none!important;
+ padding:0 0 14px!important;margin:0 0 16px!important;
+}
+body.bf-movies-route .bf-filterbar::-webkit-scrollbar{display:none!important}
+body.bf-movies-route .bf-filter-action,
+body.bf-movies-route .bf-filter-select{
+ flex:0 0 auto!important;height:36px!important;min-height:36px!important;
+ border:1px solid rgba(255,255,255,.16)!important;border-radius:999px!important;
+ background:rgba(255,255,255,.075)!important;color:rgba(255,255,255,.94)!important;
+ padding:0 15px!important;font-size:14px!important;font-weight:550!important;
+ white-space:nowrap!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.055)!important;
+}
+body.bf-movies-route .bf-filter-action{
+ height:40px!important;min-height:40px!important;padding:0 18px!important;
+ border-color:rgba(239,190,55,.56)!important;background:rgba(126,91,13,.22)!important;
+ color:#f5d878!important;font-size:15px!important;font-weight:650!important;
+ display:inline-flex!important;align-items:center!important;gap:9px!important;
+}
+body.bf-movies-route .bf-surprise-icon{display:grid!important;place-items:center!important;width:19px!important;height:19px!important}
+body.bf-movies-route .bf-surprise-icon svg{display:block!important;width:19px!important;height:19px!important}
+body.bf-movies-route .bf-filter-select{
+ appearance:none!important;-webkit-appearance:none!important;
+ padding:0 31px 0 15px!important;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23e8e8e8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E")!important;
+ background-repeat:no-repeat!important;background-position:right 11px center!important;
+}
+body.bf-movies-route #bf-genre{min-width:92px!important}
+body.bf-movies-route #bf-year{min-width:80px!important}
+body.bf-movies-route #bf-sort{min-width:104px!important}
+body.bf-movies-route #bf-rating{min-width:92px!important}
+body.bf-movies-route #bf-votes{min-width:82px!important}
+body.bf-movies-route .bf-movies-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px 11px!important}
+body.bf-movies-route .bf-movies-grid .bf-grid-media{aspect-ratio:2/3!important;border-radius:11px!important}
+body.bf-movies-route .bf-movies-grid .bf-grid-title,
+body.bf-movies-route .bf-movies-grid .bf-grid-meta{display:none!important}
+body.bf-movies-route .bf-movies-grid .bf-grid-card{border-radius:11px!important}
+@media(min-width:761px){
+ body.bf-movies-route #hero.hero{height:min(66vh,650px)!important;min-height:520px!important;max-height:650px!important;padding:0 clamp(32px,6vw,90px) 42px!important}
+ body.bf-movies-route #hero .hero-content{left:clamp(32px,6vw,90px)!important;right:clamp(32px,6vw,90px)!important;bottom:42px!important}
+ body.bf-movies-route #bf-route-page.bf-page{margin-top:-48px!important}
+ body.bf-movies-route .bf-catalog-inner{padding:0 clamp(32px,6vw,90px)!important}
+ body.bf-movies-route .bf-movies-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:24px 18px!important}
 }
