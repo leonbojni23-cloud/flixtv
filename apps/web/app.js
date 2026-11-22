@@ -874,7 +874,7 @@ function createContinueWatchingCard(entry,editing=false){
  image.loading="lazy";
  image.decoding="async";
  image.alt="";
- image.src=entry.poster_path?IMG+"w342"+entry.poster_path:(entry.backdrop_path?IMG+"w500"+entry.backdrop_path:"");
+ image.src=entry.backdrop_path?IMG+"w500"+entry.backdrop_path:(entry.poster_path?IMG+"w342"+entry.poster_path:"");
  const body=document.createElement("span");
  body.className="continue-card-copy";
  const name=document.createElement("strong");
@@ -1245,17 +1245,36 @@ async function browseServiceProvider(provider){
  }
 }
 function createTop10Card(item,rank){
- const button=card(item);
- button.classList.add("top10-card");
+ const button=document.createElement("button");
+ button.type="button";
+ button.className="top10-card";
  button.setAttribute("aria-label","Numri "+rank+": "+title(item));
- const art=button.querySelector(".poster-art");
- if(art){
-  const rankBadge=document.createElement("span");
-  rankBadge.className="top10-rank-badge";
-  rankBadge.textContent=String(rank);
-  rankBadge.setAttribute("aria-label","Renditja "+rank);
-  art.append(rankBadge);
- }
+ const media=document.createElement("span");media.className="top10-media";
+ const number=document.createElement("span");
+ number.className="top10-rank"+(rank>=10?" is-double-digit":"");number.setAttribute("aria-hidden","true");number.textContent=String(rank);
+ const art=document.createElement("span");art.className="top10-art";
+ const image=document.createElement("img");
+ image.className="top10-poster";image.loading="lazy";image.decoding="async";
+ image.fetchPriority="low";image.alt="";image.src=IMG+"w342"+item.poster_path;
+ const overlay=document.createElement("span");overlay.className="top10-overlay";
+ const playIcon=document.createElement("span");playIcon.className="top10-play";
+ playIcon.innerHTML='<i class="bi bi-play-fill" aria-hidden="true"></i>';
+ const name=document.createElement("strong");name.textContent=title(item);
+ const meta=document.createElement("small");
+ const rating=Number(item.vote_average);
+ meta.textContent=[year(item),rating>0?"★ "+rating.toFixed(1):""].filter(Boolean).join(" · ");
+ overlay.append(playIcon,name,meta);art.append(image,overlay);media.append(number,art);
+ const caption=document.createElement("span");caption.className="top10-caption";
+ caption.textContent=title(item);
+ button.append(media,caption);
+ button.onclick=event=>{
+  if(event.target&&event.target.closest&&event.target.closest(".top10-play")){
+   try{const result=play(item);if(result&&typeof result.catch==="function")result.catch(error=>notice(error.message||"Nuk u hap player-i."))}
+   catch(error){notice(error.message||"Nuk u hap player-i.")}
+   return;
+  }
+  openTitlePage(item,true,false,button);
+ };
  return button;
 }
 async function loadHomeTop10(){
