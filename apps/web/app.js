@@ -1455,7 +1455,48 @@ function initTitleYoutubeControls(){
  if(customElements.get("lite-youtube"))activate();
  else customElements.whenDefined("lite-youtube").then(activate);
 }
+function movieTitlePageMarkup(d){
+ const genres=(d.genres||[]).slice(0,4);
+ const director=(d.credits?.crew||[]).find(person=>person.job==="Director");
+ const cast=(d.credits?.cast||[]).slice(0,12);
+ const companies=(d.production_companies||[]).filter(company=>company.logo_path).slice(0,4);
+ const runtime=Number(d.runtime)||0;
+ const hours=Math.floor(runtime/60),minutes=runtime%60;
+ const duration=runtime?(hours?hours+"h ":"")+minutes+"m":"—";
+ const release=d.release_date?new Date(d.release_date+"T12:00:00").toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}):"—";
+ const backdrop=d.backdrop_path?IMG+"original"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:"");
+ const certification=""; 
+ const logoFallback='<span class="movie-detail-title-fallback">'+escapeHtml(title(d))+'</span>';
+ return '<div class="movie-detail-page">'+
+  '<section class="movie-detail-hero">'+
+   '<div class="movie-detail-backdrop" style="'+(backdrop?'background-image:url("'+backdrop+'")':'')+'"></div>'+
+   '<div class="movie-detail-shade"></div>'+
+   '<div class="movie-detail-copy">'+
+    '<div class="movie-detail-logo-wrap" id="movie-detail-logo">'+logoFallback+'</div>'+
+    '<div class="movie-detail-genres">'+genres.map(g=>'<span>'+escapeHtml(g.name)+'</span>').join('<i>·</i>')+'</div>'+
+    '<div class="movie-detail-actions">'+
+     '<button class="movie-detail-play" id="title-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L19 12z" fill="currentColor"/></svg><span>Play</span></button>'+
+     '<button class="movie-detail-round" id="movie-detail-save" aria-label="Add to My List"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>'+
+     '<button class="movie-detail-round" id="movie-detail-trailer" aria-label="Watch trailer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h16v11H4zM4 8.5l3-5 4 5 3-5 4 5 2-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>'+
+    '</div>'+
+    '<div class="movie-detail-meta"><span>'+escapeHtml(String(d.release_date||"").slice(0,4)||"—")+'</span><span>'+escapeHtml(duration)+'</span><span class="movie-detail-cert" id="movie-detail-cert">—</span><span class="movie-detail-rating"><b>★</b> '+(d.vote_average?Number(d.vote_average).toFixed(1):"—")+'</span></div>'+
+    (director?'<div class="movie-detail-director"><span>Director:</span> '+escapeHtml(director.name)+'</div>':'')+
+    '<div class="movie-detail-overview-wrap"><p class="movie-detail-overview collapsed" id="title-overview">'+escapeHtml(d.overviewSq||d.overview||"")+'</p><button type="button" class="movie-detail-readmore" id="overview-more" aria-expanded="false">Read more</button></div>'+
+   '</div>'+
+   '<div class="movie-detail-facts" aria-label="Movie information">'+
+    '<div><span>Runtime</span><strong>'+escapeHtml(duration)+' <i id="movie-detail-endtime"></i></strong></div>'+
+    '<div><span>Language</span><strong id="movie-detail-language">'+escapeHtml((d.original_language||"en").toUpperCase()==="EN"?"English":String(d.original_language||"").toUpperCase())+'</strong></div>'+
+    '<div><span>Release Date</span><strong>'+escapeHtml(release)+'</strong></div>'+
+   '</div>'+
+   '<div class="movie-detail-studios" id="movie-detail-studios">'+companies.map(company=>'<img loading="lazy" src="'+IMG+'w300'+company.logo_path+'" alt="'+escapeHtml(company.name)+'">').join("")+'</div>'+
+  '</section>'+
+  '<section class="movie-detail-section movie-detail-cast-section" id="movie-detail-cast-section"><h2>Cast</h2><div class="movie-detail-cast-row">'+cast.map(person=>'<article class="movie-detail-cast-card">'+(person.profile_path?'<img loading="lazy" decoding="async" src="'+IMG+'w185'+person.profile_path+'" alt="'+escapeHtml(person.name)+'">':'<div class="movie-detail-cast-placeholder"></div>')+'<strong>'+escapeHtml(person.name||"")+'</strong><span>'+escapeHtml(person.character||"")+'</span></article>').join("")+'</div></section>'+
+  '<section class="movie-detail-section movie-detail-trailers-section" id="movie-trailers"><h2>Trailers</h2><div class="movie-detail-trailer-row" id="movie-detail-trailer-row"><div class="movie-detail-loading">Loading trailers…</div></div></section>'+
+  '<section class="movie-detail-section movie-detail-similar-section" id="movie-similar"><h2>You Might Also Like</h2><div class="movie-detail-similar-row" id="movie-detail-similar-row"><div class="movie-detail-loading">Loading recommendations…</div></div></section>'+
+ '</div>';
+}
 function titlePageMarkup(item,d,playMode=false){
+ if(kind(d)!=="tv")return movieTitlePageMarkup(d);
  const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:""),posterPath=d.poster_path?IMG+"w500"+d.poster_path:"";
  const meta=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1)+"/10":"",d.runtime?d.runtime+" min":tv?(d.number_of_seasons||0)+" sezone":""].filter(Boolean);
  const genres=(d.genres||[]).slice(0,5),cast=(d.credits?.cast||[]).slice(0,6);
@@ -1477,6 +1518,82 @@ function titlePageMarkup(item,d,playMode=false){
  (cast.length?'<div class="title-page-cast-head"><h2>Interpretojnë</h2><span>KASTI KRYESOR</span></div><div class="title-page-cast">'+cast.map(p=>'<div class="title-page-cast-card">'+(p.profile_path?'<img loading="lazy" src="'+IMG+'w185'+p.profile_path+'" alt="">':'<div class="cast-placeholder">FLIXTV</div>')+'<strong>'+escapeHtml(p.name||"")+'</strong><small>'+escapeHtml(p.character||"")+'</small></div>').join("")+'</div>':"")+'</section>';
 }
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function syncMovieDetailHeader(enabled){
+ const topbar=document.querySelector(".topbar");
+ if(!topbar)return;
+ let back=topbar.querySelector(".movie-detail-back");
+ if(enabled){
+  if(!back){
+   back=document.createElement("button");back.type="button";back.className="movie-detail-back";back.setAttribute("aria-label","Go back");
+   back.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+   back.addEventListener("click",()=>{if(history.length>1)history.back();else{history.replaceState({},"","/");home()}});
+   topbar.insertBefore(back,topbar.firstChild);
+  }
+  const nav=document.querySelector(".mobile-nav [data-page=movies]");if(nav){document.querySelectorAll(".mobile-nav button").forEach(b=>b.classList.remove("active"));nav.classList.add("active")}
+ }else if(back)back.remove();
+}
+function formatMovieEndTime(runtime){
+ if(!runtime)return "";
+ const end=new Date(Date.now()+runtime*60000);
+ return " · Ends "+end.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+}
+async function hydrateMovieDetailExtras(item,d){
+ const id=Number(item.id);
+ const [images,releaseDates,recommendations]=await Promise.all([
+  tmdb("/movie/"+id+"/images?include_image_language=en,null").catch(()=>({logos:[]})),
+  tmdb("/movie/"+id+"/release_dates").catch(()=>({results:[]})),
+  tmdb("/movie/"+id+"/recommendations?page=1").catch(()=>({results:[]}))
+ ]);
+ if(!titlePageItem||Number(titlePageItem.id)!==id||kind(titlePageItem)!=="movie")return;
+ const logo=(images.logos||[]).filter(x=>x.file_path).sort((a,b)=>{
+  const preferred=x=>x.iso_639_1==="en"?0:x.iso_639_1===null?1:2;
+  return preferred(a)-preferred(b)||(b.vote_average||0)-(a.vote_average||0);
+ })[0];
+ const logoHost=$("movie-detail-logo");
+ if(logoHost&&logo){logoHost.innerHTML='<img class="movie-detail-title-logo" src="'+IMG+'w500'+logo.file_path+'" alt="'+escapeHtml(title(d))+'">'}
+ const countries=releaseDates.results||[];
+ const country=countries.find(x=>x.iso_3166_1==="US")||countries.find(x=>x.iso_3166_1==="AL")||countries[0];
+ const cert=(country?.release_dates||[]).find(x=>x.certification)?.certification||"NR";
+ const certNode=$("movie-detail-cert");if(certNode)certNode.textContent=cert;
+ const endNode=$("movie-detail-endtime");if(endNode)endNode.textContent=formatMovieEndTime(Number(d.runtime)||0);
+ const langNode=$("movie-detail-language");
+ if(langNode){
+  try{langNode.textContent=new Intl.DisplayNames(["en"],{type:"language"}).of(d.original_language||"en")}catch(_){langNode.textContent=String(d.original_language||"en").toUpperCase()}
+ }
+ const studios=$("movie-detail-studios");
+ if(studios){
+  const companies=(d.production_companies||[]).filter(x=>x.logo_path).slice(0,4);
+  studios.innerHTML=companies.map(x=>'<img loading="lazy" src="'+IMG+'w300'+x.logo_path+'" alt="'+escapeHtml(x.name)+'">').join("");
+  studios.hidden=!companies.length;
+ }
+ const trailerRows=(d.videos?.results||[]).filter(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser")&&v.key);
+ const trailerRow=$("movie-detail-trailer-row");
+ if(trailerRow){
+  const videos=trailerRows.slice(0,8);
+  trailerRow.innerHTML=videos.length?videos.map((v,i)=>'<button type="button" class="movie-detail-trailer-card" data-trailer-key="'+escapeHtml(v.key)+'"><span class="movie-detail-trailer-thumb"><img loading="lazy" src="https://img.youtube.com/vi/'+encodeURIComponent(v.key)+'/hqdefault.jpg" alt=""><i><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></i></span><span>Trailer '+(i+1)+'</span></button>').join(""):'<div class="movie-detail-empty">No trailers available.</div>';
+  trailerRow.querySelectorAll("[data-trailer-key]").forEach(button=>button.addEventListener("click",()=>window.open("https://www.youtube.com/watch?v="+button.dataset.trailerKey,"_blank","noopener")));
+ }
+ const similarRow=$("movie-detail-similar-row");
+ if(similarRow){
+  const rows=(recommendations.results||[]).filter(x=>x.poster_path).slice(0,16);
+  similarRow.innerHTML=rows.length?rows.map(x=>'<button type="button" class="movie-detail-similar-card" data-similar-id="'+x.id+'"><img loading="lazy" decoding="async" src="'+IMG+'w342'+x.poster_path+'" alt="'+escapeHtml(title(x))+'"></button>').join(""):'<div class="movie-detail-empty">No recommendations available.</div>';
+  similarRow.querySelectorAll("[data-similar-id]").forEach((button,index)=>button.addEventListener("click",()=>openTitlePage(rows[index],true,false)));
+ }
+ const save=$("movie-detail-save");
+ if(save){
+  const saved=readHeroSavedItems().some(x=>String(x.id)===String(item.id)&&kind(x)==="movie");
+  save.classList.toggle("saved",saved);
+  save.innerHTML=saved?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  save.onclick=()=>{toggleHeroSaved(item);const now=readHeroSavedItems().some(x=>String(x.id)===String(item.id)&&kind(x)==="movie");save.classList.toggle("saved",now);save.setAttribute("aria-label",now?"Remove from My List":"Add to My List");save.innerHTML=now?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'};
+ }
+ const trailerButton=$("movie-detail-trailer");
+ if(trailerButton)trailerButton.onclick=()=>{const section=$("movie-trailers");if(section)section.scrollIntoView({behavior:"smooth",block:"start"})};
+ const more=$("overview-more"),overview=$("title-overview");
+ if(more&&overview){
+  more.hidden=String(d.overviewSq||d.overview||"").length<=130;
+  more.onclick=()=>{const expanded=overview.classList.toggle("expanded");overview.classList.toggle("collapsed",!expanded);more.textContent=expanded?"Read less":"Read more";more.setAttribute("aria-expanded",String(expanded))};
+ }
+}
 async function hydrateTitlePage(item,push=false,playMode=false){
  if(!item||!item.id)return;
  try{
@@ -1517,6 +1634,10 @@ async function hydrateTitlePage(item,push=false,playMode=false){
   if(push)history.pushState({titlePage:true,play:playMode},"",pageUrl(titlePageItem,playMode));
   $("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;$("search-page").hidden=true;
   $("title-page").innerHTML=titlePageMarkup(titlePageItem,d,playMode);
+  const isMovieDetail=k==="movie";
+  document.body.classList.toggle("flxtv-movie-detail",isMovieDetail);
+  syncMovieDetailHeader(isMovieDetail);
+  if(isMovieDetail)hydrateMovieDetailExtras(titlePageItem,d).catch(error=>console.warn("Movie detail extras failed",error));
   initTitleYoutubeControls();
   document.body.classList.remove("no-scroll");
   if(k==="tv")loadTitleEpisodes();
