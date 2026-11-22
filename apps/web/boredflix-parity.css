@@ -2850,3 +2850,76 @@ body.bf-movies-route #hero.hero{
   min-height:530px!important;
  }
 }
+
+
+/* Movies Hero polish: remove the timed progress track and dissolve artwork into the live page background. */
+body.bf-movies-route #hero .hero-progress,
+body.bf-movies-route #hero .hero-progress span{
+ display:none!important;
+ visibility:hidden!important;
+ opacity:0!important;
+}
+body.bf-movies-route #hero .hero-backdrop{
+ -webkit-mask-image:linear-gradient(
+  to bottom,
+  #000 0%,
+  #000 61%,
+  rgba(0,0,0,.96) 69%,
+  rgba(0,0,0,.78) 78%,
+  rgba(0,0,0,.42) 89%,
+  transparent 100%
+ )!important;
+ mask-image:linear-gradient(
+  to bottom,
+  #000 0%,
+  #000 61%,
+  rgba(0,0,0,.96) 69%,
+  rgba(0,0,0,.78) 78%,
+  rgba(0,0,0,.42) 89%,
+  transparent 100%
+ )!important;
+}
+body.bf-movies-route #hero .hero-backdrop::after{
+ background:
+  linear-gradient(90deg,rgba(5,7,11,.22) 0%,rgba(5,7,11,.08) 38%,transparent 78%),
+  linear-gradient(180deg,transparent 48%,rgba(9,11,16,.10) 67%,rgba(9,11,16,.30) 82%,rgba(9,11,16,.52) 100%)!important;
+}
+body.bf-movies-route #hero.hero,
+body.bf-movies-route #bf-route-page.bf-page{
+ background:transparent!important;
+}
+body.bf-movies-route #bf-route-page.bf-page{
+ background:linear-gradient(
+  180deg,
+  rgba(9,11,16,0) 0%,
+  rgba(9,11,16,.08) 18%,
+  rgba(9,11,16,.20) 48%,
+  rgba(9,11,16,.42) 100%
+ )!important;
+}
+@media(max-width:760px){
+ body.bf-movies-route #hero .hero-backdrop{
+  -webkit-mask-image:linear-gradient(
+   to bottom,
+   #000 0%,
+   #000 57%,
+   rgba(0,0,0,.97) 66%,
+   rgba(0,0,0,.82) 76%,
+   rgba(0,0,0,.48) 88%,
+   transparent 100%
+  )!important;
+  mask-image:linear-gradient(
+   to bottom,
+   #000 0%,
+   #000 57%,
+   rgba(0,0,0,.97) 66%,
+   rgba(0,0,0,.82) 76%,
+   rgba(0,0,0,.48) 88%,
+   transparent 100%
+  )!important;
+ }
+ body.bf-movies-route #hero .hero-backdrop::after{
+  background:
+   linear-gradient(180deg,transparent 40%,rgba(9,11,16,.08) 59%,rgba(9,11,16,.25) 76%,rgba(9,11,16,.42) 100%)!important;
+ }
+}
