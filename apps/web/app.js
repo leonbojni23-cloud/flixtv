@@ -395,22 +395,31 @@ async function resolveHeroLogo(item){
 async function applyHeroLogo(item,request){
  const image=$("hero-title-logo"),fallback=$("hero-title");
  if(!image||!fallback)return;
+ // Keep the title area blank while artwork is being resolved. Never flash the
+ // plain-text fallback before the actual logo has had a chance to load.
+ image.hidden=true;
+ fallback.hidden=true;
  try{
   const path=await resolveHeroLogo(item);
   if(request!==showHero.requestId)return;
-  if(!path){image.hidden=true;image.removeAttribute("src");fallback.hidden=false;return}
-  image.onload=()=>{
+  if(!path){image.removeAttribute("src");fallback.hidden=false;return}
+  const source=IMG+"w500"+path;
+  const preload=new Image();
+  preload.decoding="async";
+  preload.onload=()=>{
    if(request!==showHero.requestId)return;
+   image.onload=null;
+   image.onerror=null;
    image.alt=title(item);
+   image.src=source;
    image.hidden=false;
-   fallback.hidden=true;
   };
-  image.onerror=()=>{
+  preload.onerror=()=>{
    if(request!==showHero.requestId)return;
-   image.hidden=true;
+   image.removeAttribute("src");
    fallback.hidden=false;
   };
-  image.src=IMG+"w500"+path;
+  preload.src=source;
  }catch(_){
   if(request===showHero.requestId){image.hidden=true;fallback.hidden=false}
  }
@@ -720,7 +729,9 @@ function showHero(index){
    if(request!==showHero.requestId)return;
    const heading=$("hero-title"),logo=$("hero-title-logo");
    heading.textContent=title(item);
-   heading.hidden=false;
+   // Artwork is the primary title treatment. The plain-text fallback stays
+   // hidden until logo lookup confirms this title has no usable artwork.
+   heading.hidden=true;
    logo.hidden=true;
    logo.removeAttribute("src");
    if(item.vote_average&&Number(item.vote_average)>0){
@@ -2836,23 +2847,24 @@ document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dat
  window.addEventListener("resize",()=>requestAnimationFrame(updateDesktopNavPill),{passive:true});
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>requestAnimationFrame(updateDesktopNavPill)).catch(()=>{});
  document.querySelectorAll("[data-close]").forEach(e=>{if(e.dataset.close==="sports-settings")e.onclick=()=>modal("sports-settings",false)});
-/* Hero title light flicker: trigger once after the page scroll settles. */
+/* Subtle electrical fade/recharge after scrolling stops. */
 let heroTitleFlickerTimer=null;
 function triggerHeroTitleFlicker(){
- const titleWrap=document.querySelector("#hero .hero-title-wrap");
  const hero=document.getElementById("hero");
- if(!titleWrap||!hero||titleWrap.hidden||!titleWrap.getClientRects().length)return;
+ const titleWrap=hero&&hero.querySelector(".hero-title-wrap");
+ const visibleTitle=titleWrap&&titleWrap.querySelector("#hero-title-logo:not([hidden]),#hero-title:not([hidden])");
+ if(!visibleTitle||!hero||!titleWrap.getClientRects().length)return;
  const rect=hero.getBoundingClientRect();
  if(rect.bottom<=0||rect.top>=window.innerHeight)return;
- titleWrap.classList.remove("is-flickering");
- void titleWrap.offsetWidth;
- titleWrap.classList.add("is-flickering");
+ visibleTitle.classList.remove("is-flickering");
+ void visibleTitle.offsetWidth;
+ visibleTitle.classList.add("is-flickering");
  clearTimeout(triggerHeroTitleFlicker.cleanupTimer);
- triggerHeroTitleFlicker.cleanupTimer=setTimeout(()=>titleWrap.classList.remove("is-flickering"),650);
+ triggerHeroTitleFlicker.cleanupTimer=setTimeout(()=>visibleTitle.classList.remove("is-flickering"),440);
 }
 window.addEventListener("scroll",()=>{
  clearTimeout(heroTitleFlickerTimer);
- heroTitleFlickerTimer=setTimeout(triggerHeroTitleFlicker,190);
+ heroTitleFlickerTimer=setTimeout(triggerHeroTitleFlicker,170);
 },{passive:true});
 
 $("hero-prev").onclick=()=>{if(heroItems.length>1){showHero(heroIndex-1);startHeroTimer()}};
