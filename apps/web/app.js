@@ -405,7 +405,11 @@ async function applyHeroLogo(item,request){
  image.hidden=true;
  fallback.hidden=true;
  try{
-  const path=await resolveHeroLogo(item);
+  // Do not leave the hero title blank if TMDB's artwork endpoint stalls.
+  const path=await Promise.race([
+   resolveHeroLogo(item),
+   new Promise(resolve=>setTimeout(()=>resolve(""),1400))
+  ]);
   if(request!==showHero.requestId)return;
   if(!path){image.removeAttribute("src");fallback.hidden=false;return}
   const source=IMG+"w500"+path;
