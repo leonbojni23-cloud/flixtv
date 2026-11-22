@@ -1529,7 +1529,11 @@ function syncMovieDetailHeader(enabled){
    back.addEventListener("click",()=>{if(history.length>1)history.back();else{history.replaceState({},"","/");home()}});
    topbar.insertBefore(back,topbar.firstChild);
   }
-  const nav=document.querySelector(".mobile-nav [data-page=movies]");if(nav){document.querySelectorAll(".mobile-nav button").forEach(b=>b.classList.remove("active"));nav.classList.add("active")}
+  const activateMovies=()=>{
+   const nav=document.querySelector('.mobile-nav [data-page="movies"]');
+   if(nav){document.querySelectorAll(".mobile-nav button").forEach(button=>button.classList.toggle("active",button===nav))}
+  };
+  activateMovies();requestAnimationFrame(activateMovies);
  }else if(back)back.remove();
 }
 function formatMovieEndTime(runtime){
@@ -1571,7 +1575,11 @@ async function hydrateMovieDetailExtras(item,d,videosPromise){
  const trailerRow=$("movie-detail-trailer-row");
  if(trailerRow){
   const videos=trailerRows.slice(0,8);
-  trailerRow.innerHTML=videos.length?videos.map((v,i)=>'<button type="button" class="movie-detail-trailer-card" data-trailer-key="'+escapeHtml(v.key)+'"><span class="movie-detail-trailer-thumb"><img loading="lazy" src="https://img.youtube.com/vi/'+encodeURIComponent(v.key)+'/hqdefault.jpg" alt=""><i><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></i></span><span>Trailer '+(i+1)+'</span></button>').join(""):'<div class="movie-detail-empty">No trailers available.</div>';
+  trailerRow.innerHTML=videos.length?videos.map((v,i)=>'<button type="button" class="movie-detail-trailer-card" data-trailer-key="'+escapeHtml(v.key)+'"><span class="movie-detail-trailer-thumb"><img loading="lazy" src="https://img.youtube.com/vi/'+encodeURIComponent(v.key)+'/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/'+encodeURIComponent(v.key)+'/hqdefault.jpg" data-poster-fallback="'+escapeHtml(d.backdrop_path?IMG+'w780'+d.backdrop_path:(d.poster_path?IMG+'w500'+d.poster_path:''))+'" alt=""><i><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></i></span><span>Trailer '+(i+1)+'</span></button>').join(""):'<div class="movie-detail-empty">No trailers available.</div>';
+  trailerRow.querySelectorAll(".movie-detail-trailer-thumb img").forEach(image=>image.addEventListener("error",()=>{
+   if(image.dataset.fallback){image.src=image.dataset.fallback;image.dataset.fallback="";return}
+   if(image.dataset.posterFallback){image.src=image.dataset.posterFallback;image.dataset.posterFallback=""}
+  }));
   trailerRow.querySelectorAll("[data-trailer-key]").forEach(button=>button.addEventListener("click",()=>window.open("https://www.youtube.com/watch?v="+button.dataset.trailerKey,"_blank","noopener")));
  }
  const similarRow=$("movie-detail-similar-row");
