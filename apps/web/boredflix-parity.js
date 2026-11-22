@@ -48,11 +48,17 @@ function navigate(page,provider,query,replace){
  }
  render(page,provider,query);
 }
-function renderGrid(container,items){
- container.replaceChildren();
+function renderGrid(container,items,append){
  var valid=items.filter(function(x){return x&&x.poster_path});
- if(!valid.length){var empty=doc.createElement("div");empty.className="bf-empty";empty.textContent="No titles found. Try changing the filters.";container.appendChild(empty);return}
- valid.forEach(function(item){container.appendChild(createPoster(item))});
+ if(!append)container.replaceChildren();
+ if(!valid.length){if(!append){var empty=doc.createElement("div");empty.className="bf-empty";empty.textContent="No titles found. Try changing the filters.";container.appendChild(empty)}return}
+ var fragment=doc.createDocumentFragment();
+ valid.forEach(function(item,index){
+  var card=createPoster(item);
+  if(append){card.classList.add("bf-card-entering");card.style.setProperty("--bf-card-enter-delay",Math.min(index,8)*32+"ms")}
+  fragment.appendChild(card);
+ });
+ container.appendChild(fragment);
 }
 function createPoster(item,onOpen){
  var b=doc.createElement("button");b.type="button";b.className="bf-grid-card";b.setAttribute("aria-label","Open "+name(item));
@@ -107,6 +113,8 @@ function showSurprisePick(item){
 }
 async function runSurprise(providerMode){
  var button=$("bf-surprise");if(!button||button.disabled)return;
+ var startedAt=Date.now(),minimumSpinMs=1550;
+ var waitForDice=function(){var remaining=minimumSpinMs-(Date.now()-startedAt);return remaining>0?new Promise(function(resolve){window.setTimeout(resolve,remaining)}):Promise.resolve()};
  var label=button.querySelector(".bf-surprise-label"),original=label?label.textContent:button.textContent;
  button.disabled=true;button.classList.add("is-spinning");button.setAttribute("aria-busy","true");
  if(label)label.textContent="Po zgjedh…";
@@ -124,11 +132,13 @@ async function runSurprise(providerMode){
   if(!unique.length)throw new Error("Nuk u gjet një titull i përshtatshëm me këto filtra. Provo të heqësh një filtër.");
   unique.sort(function(a,b){return (Number(b.vote_average)-Number(a.vote_average))*2+Math.log1p(Number(b.vote_count)||0)-Math.log1p(Number(a.vote_count)||0)});
   var shortlist=unique.slice(0,Math.min(24,unique.length)),choice=shortlist[Math.floor(Math.random()*shortlist.length)];
+  await waitForDice();
   showSurprisePick(choice);
   if(label)label.textContent="U zgjodh!";
   button.classList.add("has-pick");
   window.setTimeout(function(){if(label&&label.isConnected)label.textContent=original;if(button.isConnected)button.classList.remove("has-pick")},2600);
  }catch(error){
+  await waitForDice();
   if(label)label.textContent=original;
   var zone=$("bf-surprise-result");if(zone){var message=doc.createElement("div");message.className="bf-surprise-error";message.textContent=error&&error.message?error.message:"Surprise Me nuk arriti të zgjedhë një titull.";zone.appendChild(message);zone.hidden=false}
  }finally{
@@ -146,7 +156,7 @@ async function loadDiscover(reset,forced){
  if(current.loading&&!reset)return;if(reset){current.results=[];current.pageNo=0;current.totalPages=1}
  var p=forced||current.pageNo+1,req=++current.request,grid=$("bf-grid"),more=$("bf-load-more");current.loading=true;
  if(more){more.disabled=true;more.textContent="Loading…"}if(grid&&reset)grid.innerHTML='<div class="bf-loading">Loading titles…</div>';
- try{var d=await tmdb(filterPath(p));if(req!==current.request)return;var items=(d.results||[]).filter(function(x){return x.poster_path}).map(function(x){return Object.assign({},x,{media_type:current.media})});current.results=reset?items:current.results.concat(items);current.pageNo=p;current.totalPages=Math.min(Number(d.total_pages)||1,500);if(grid)renderGrid(grid,current.results);setCount(d.total_results||current.results.length);if(more){more.hidden=p>=current.totalPages;more.disabled=false;more.textContent="Load more"}}
+ try{var d=await tmdb(filterPath(p));if(req!==current.request)return;var items=(d.results||[]).filter(function(x){return x.poster_path}).map(function(x){return Object.assign({},x,{media_type:current.media})});current.results=reset?items:current.results.concat(items);current.pageNo=p;current.totalPages=Math.min(Number(d.total_pages)||1,500);if(grid)renderGrid(grid,reset?current.results:items,!reset);setCount(d.total_results||current.results.length);if(more){more.hidden=p>=current.totalPages;more.disabled=false;more.textContent="Load more"}}
  catch(e){if(grid&&reset)grid.innerHTML='<div class="bf-empty">'+safe(e.message)+'</div>';if(more){more.disabled=false;more.textContent="Try again"}}
  finally{if(req===current.request)current.loading=false}
 }
