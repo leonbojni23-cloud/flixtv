@@ -5720,55 +5720,43 @@ button,input,select,textarea{font-family:var(--font-ui)}
   .topbar .searchbox.expanded input{display:block!important}
 }
 
-/* A polished electric-light pulse: the artwork stays visible while a bright
-   white bloom travels through it, then settles back to its normal glow. */
+/* A restrained power dip followed by a soft return of light. */
 @keyframes flix-hero-artwork-breath{
-  0%{
+  0%,100%{
     opacity:1;
     filter:brightness(1) saturate(1) drop-shadow(0 4px 22px rgba(0,0,0,.44));
-    transform:scale(1);
+  }
+  13%{
+    opacity:.96;
+    filter:brightness(.88) saturate(.96) drop-shadow(0 3px 17px rgba(0,0,0,.4));
   }
   22%{
-    opacity:1;
-    filter:brightness(1.2) saturate(1.08)
-      drop-shadow(0 0 5px rgba(255,255,255,.42))
-      drop-shadow(0 0 17px rgba(220,235,255,.34));
-    transform:scale(1.006);
+    opacity:.98;
+    filter:brightness(.94) saturate(.98) drop-shadow(0 3px 19px rgba(0,0,0,.42));
   }
-  39%{
+  42%{
     opacity:1;
-    filter:brightness(1.72) saturate(1.2)
-      drop-shadow(0 0 8px rgba(255,255,255,.92))
-      drop-shadow(0 0 25px rgba(220,235,255,.78))
-      drop-shadow(0 0 48px rgba(180,205,255,.42));
-    transform:scale(1.012);
+    filter:brightness(1.035) saturate(1.015)
+      drop-shadow(0 0 5px rgba(255,255,255,.12))
+      drop-shadow(0 4px 22px rgba(0,0,0,.44));
   }
-  54%{
+  58%{
     opacity:1;
-    filter:brightness(1.22) saturate(1.08)
-      drop-shadow(0 0 5px rgba(255,255,255,.5))
-      drop-shadow(0 0 18px rgba(220,235,255,.38));
-    transform:scale(1.004);
-  }
-  72%{
-    opacity:1;
-    filter:brightness(1.42) saturate(1.13)
-      drop-shadow(0 0 7px rgba(255,255,255,.72))
-      drop-shadow(0 0 22px rgba(220,235,255,.56))
-      drop-shadow(0 0 38px rgba(180,205,255,.28));
-    transform:scale(1.008);
+    filter:brightness(1.07) saturate(1.025)
+      drop-shadow(0 0 8px rgba(255,255,255,.18))
+      drop-shadow(0 0 16px rgba(220,235,255,.12))
+      drop-shadow(0 4px 22px rgba(0,0,0,.44));
   }
   100%{
     opacity:1;
     filter:brightness(1) saturate(1) drop-shadow(0 4px 22px rgba(0,0,0,.44));
-    transform:scale(1);
   }
 }
 #hero .hero-title-logo.is-flickering,
 #hero #hero-title.is-flickering{
-  animation:flix-hero-artwork-breath 520ms cubic-bezier(.2,.7,.25,1) both;
+  animation:flix-hero-artwork-breath 430ms ease-out both;
   transform-origin:left center;
-  will-change:filter,transform;
+  will-change:opacity,filter;
 }
 @media(prefers-reduced-motion:reduce){
   #hero .hero-title-logo.is-flickering,
