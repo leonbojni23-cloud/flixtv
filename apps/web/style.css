@@ -6631,3 +6631,23 @@ body.flxtv-movie-detail .movie-detail-page{
 body.flxtv-movie-detail .movie-detail-section{
  background:transparent!important;
 }
+
+
+/* Hard isolation: no global app wallpaper is allowed behind movie details.
+   The app-ambient node is also detached by app.js while a movie is open. */
+html:has(body.flxtv-movie-detail),
+body.flxtv-movie-detail,
+body.flxtv-movie-detail #app,
+body.flxtv-movie-detail #title-page,
+body.flxtv-movie-detail .movie-detail-page{
+ background:#080d17!important;
+ background-image:none!important;
+}
+body.flxtv-movie-detail #app-ambient{
+ display:none!important;
+ visibility:hidden!important;
+ opacity:0!important;
+}
+body.flxtv-movie-detail .movie-detail-page{
+ min-height:100%!important;
+}
