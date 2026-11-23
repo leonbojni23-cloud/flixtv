@@ -186,18 +186,18 @@ async function loadProviderResults(reset,forced){
   var d=await tmdb(providerPath(p));if(req!==current.request)return;
   var items=(d.results||[]).filter(function(x){return x.poster_path}).map(function(x){return Object.assign({},x,{media_type:current.media})});
   current.results=reset?items:current.results.concat(items);current.pageNo=p;current.totalPages=Math.min(Number(d.total_pages)||1,500);
-  if(grid)renderGrid(grid,current.results);setCount(d.total_results||current.results.length);
+  if(grid)renderGrid(grid,reset?current.results:items,!reset);setCount(d.total_results||current.results.length);
  }catch(e){
   if(grid&&reset)grid.innerHTML='<div class="bf-empty">'+safe(e.message)+'</div>';
   else if(grid){var error=doc.createElement("div");error.className="bf-empty bf-provider-load-error";error.textContent="Could not load more titles. Scroll again to retry.";grid.appendChild(error)}
- }finally{if(req===current.request)current.loading=false}
+ }finally{if(req===current.request){current.loading=false;if(current.page==="provider"&&current.pageNo<current.totalPages)observeProviderScroll()}}
 }
 function observeProviderScroll(){
  if(current.providerObserver){current.providerObserver.disconnect();current.providerObserver=null}
  var sentinel=$("bf-provider-scroll-sentinel");if(!sentinel||!window.IntersectionObserver)return;
  current.providerObserver=new IntersectionObserver(function(entries){
   if(entries.some(function(entry){return entry.isIntersecting})&&!current.loading&&current.pageNo<current.totalPages)loadProviderResults(false);
- },{root:null,rootMargin:"700px 0px 700px 0px",threshold:0});
+ },{root:null,rootMargin:"500px 0px 500px 0px",threshold:0});
  current.providerObserver.observe(sentinel);
 }
 async function renderProvider(s){
