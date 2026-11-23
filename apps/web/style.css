@@ -7529,3 +7529,63 @@ body.flxtv-series-detail .series-episode-card.is-seen .series-episode-thumb::aft
  #home-page #continue-watching .continue-card-copy{padding-top:10px!important}
  #home-page .continue-section-heading{margin-bottom:20px!important}
 }
+
+
+/* Home poster system: every Home carousel follows the poster-only reference.
+   Deliberately scoped to #home-page; Movies, Shows and detail pages are unchanged. */
+#home-page .poster-row:not(#continue-watching){
+ display:grid!important;
+ grid-auto-flow:column!important;
+ grid-auto-columns:clamp(160px,15vw,200px)!important;
+ gap:18px!important;
+ align-items:start!important;
+}
+#home-page .poster-row:not(#continue-watching)>.poster-card{
+ display:block!important;
+ width:100%!important;
+ min-width:0!important;
+ padding:0!important;
+ border:0!important;
+ border-radius:13px!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ overflow:hidden!important;
+ text-align:left!important;
+}
+#home-page .poster-row:not(#continue-watching)>.poster-card>.poster-art{
+ position:relative!important;
+ display:block!important;
+ width:100%!important;
+ aspect-ratio:2/3!important;
+ overflow:hidden!important;
+ border-radius:13px!important;
+ background:#151515!important;
+}
+#home-page .poster-row:not(#continue-watching)>.poster-card>.poster-art>img{
+ display:block!important;
+ width:100%!important;
+ height:100%!important;
+ aspect-ratio:2/3!important;
+ object-fit:cover!important;
+ border-radius:13px!important;
+}
+#home-page .poster-row:not(#continue-watching)>.poster-card>.poster-title,
+#home-page .poster-row:not(#continue-watching)>.poster-card>.poster-year,
+#home-page .poster-row:not(#continue-watching)>.poster-card>.poster-art>.poster-rating,
+#home-page .poster-row:not(#continue-watching)>.poster-card>.poster-art>.poster-hover{
+ display:none!important;
+}
+#home-page .poster-row:not(#continue-watching)>.poster-card:active{
+ transform:scale(.985)!important;
+}
+@media(max-width:767px){
+ #home-page .poster-row:not(#continue-watching){
+  grid-auto-columns:clamp(145px,38vw,158px)!important;
+  gap:13px!important;
+ }
+ #home-page .poster-row:not(#continue-watching)>.poster-card,
+ #home-page .poster-row:not(#continue-watching)>.poster-card>.poster-art,
+ #home-page .poster-row:not(#continue-watching)>.poster-card>.poster-art>img{
+  border-radius:11px!important;
+ }
+}
