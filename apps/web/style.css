@@ -7421,13 +7421,20 @@ body.flxtv-series-detail .series-episode-card.is-seen .series-episode-thumb::aft
  border-radius:clamp(14px,2.2vw,26px)!important;
  background:#171717!important;
 }
+#home-page #continue-watching .continue-card-art{
+ position:relative!important;
+ display:block!important;
+ width:100%!important;
+ overflow:hidden!important;
+ border-radius:clamp(14px,2.2vw,26px)!important;
+}
 #home-page #continue-watching .continue-card .continue-progress-on-poster{
  position:absolute!important;
  z-index:2!important;
  left:0!important;
  right:0!important;
- bottom:auto!important;
- top:calc((100% - 0px) * 0)!important;
+ bottom:0!important;
+ top:auto!important;
  transform:none!important;
  width:100%!important;
  height:4px!important;
