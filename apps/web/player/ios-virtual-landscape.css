@@ -73,30 +73,19 @@
   -webkit-transform-origin:center center!important;
 }
 
-/* Keep the video centered. Only shorten the viewport along its local width,
-   which becomes the screen's top/bottom axis after the 90deg rotation.
-   A 24px reduction creates equal 12px margins at both ends. Its local height
-   (screen left/right axis) remains full width and is not modified. */
+/* Symmetric iPhone virtual-landscape viewport.
+   The wrapper is centered on the physical screen. After rotation, its local
+   width maps to screen height and its local height maps to screen width.
+   Reducing both dimensions by 24px leaves exactly 12px of black margin on
+   every physical edge, without moving or scaling the video inside the frame. */
 @media (orientation:portrait){
   #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape{
-    width:calc(var(--flxtv-ios-vv-height,100dvh) - 24px)!important;
+    top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2)!important;
     left:calc(var(--flxtv-ios-vv-left,0px) + var(--flxtv-ios-vv-width,100vw)/2)!important;
-  }
-}
-
-/* Change only the two marked ends (top and bottom in the phone screenshot).
-   Keep the viewport's full width/height dimensions and keep the video image
-   centered: shift the rotated viewport 12px along its long axis, then
-   counter-shift the media by 12px inside it. The left/right edges remain full. */
-@media (orientation:portrait){
-  #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape{
-    left:calc(var(--flxtv-ios-vv-left,0px) + var(--flxtv-ios-vv-width,100vw)/2 + 12px)!important;
-  }
-  #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape #cinesrc-frame,
-  #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape #resolved-video{
-    left:-12px!important;
-    right:auto!important;
-    width:var(--flxtv-ios-vv-height,100dvh)!important;
+    width:calc(var(--flxtv-ios-vv-height,100dvh) - 24px)!important;
+    height:calc(var(--flxtv-ios-vv-width,100vw) - 24px)!important;
+    transform:translate(-50%,-50%) rotate(90deg)!important;
+    -webkit-transform:translate(-50%,-50%) rotate(90deg)!important;
   }
 }
 
