@@ -6651,3 +6651,60 @@ body.flxtv-movie-detail #app-ambient{
 body.flxtv-movie-detail .movie-detail-page{
  min-height:100%!important;
 }
+
+
+/* Final movie background fix:
+   Keep the same movie artwork blurred behind the ENTIRE scrolling detail page.
+   The previous fixed 2200px/2450px ambient height ended before the page did,
+   exposing the solid dark page background as a black strip at the bottom. */
+html:has(body.flxtv-movie-detail),
+body.flxtv-movie-detail,
+body.flxtv-movie-detail #app,
+body.flxtv-movie-detail #title-page,
+body.flxtv-movie-detail .movie-detail-page{
+ background:transparent!important;
+ background-color:transparent!important;
+ background-image:none!important;
+}
+body.flxtv-movie-detail .movie-detail-page{
+ position:relative!important;
+ isolation:isolate!important;
+}
+body.flxtv-movie-detail .movie-detail-ambient{
+ position:fixed!important;
+ z-index:0!important;
+ inset:0!important;
+ width:100vw!important;
+ height:100vh!important;
+ height:100dvh!important;
+ min-height:0!important;
+ max-height:none!important;
+ overflow:hidden!important;
+ opacity:1!important;
+ pointer-events:none!important;
+}
+body.flxtv-movie-detail .movie-detail-ambient-image{
+ position:absolute!important;
+ inset:-48px!important;
+ width:calc(100% + 96px)!important;
+ height:calc(100% + 96px)!important;
+ object-fit:cover!important;
+ object-position:center 18%!important;
+ filter:blur(42px) saturate(1.85) brightness(.98)!important;
+ opacity:1!important;
+ transform:scale(1.08)!important;
+}
+body.flxtv-movie-detail .movie-detail-ambient:after{
+ display:none!important;
+ content:none!important;
+}
+body.flxtv-movie-detail .movie-detail-section{
+ position:relative!important;
+ z-index:1!important;
+ background:transparent!important;
+}
+body.flxtv-movie-detail .movie-detail-shade{
+ background:
+  linear-gradient(180deg,rgba(5,9,18,.025) 0%,rgba(5,9,18,.025) 58%,rgba(5,9,18,.075) 100%),
+  linear-gradient(90deg,rgba(4,8,15,.08),transparent 72%)!important;
+}
