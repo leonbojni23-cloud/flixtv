@@ -885,6 +885,8 @@ function createContinueWatchingCard(entry,editing=false){
  name.textContent=entry.title||"Pa titull";
  const detail=document.createElement("small");
  detail.textContent=entry.mediaType==="tv"?"Sezoni "+(entry.season||1)+" · Episodi "+(entry.episode||1):"Vazhdo filmin";
+ const artwork=document.createElement("span");
+ artwork.className="continue-card-art";
  const progress=document.createElement("span");
  progress.className="continue-progress continue-progress-on-poster";
  progress.setAttribute("role","progressbar");
@@ -896,8 +898,9 @@ function createContinueWatchingCard(entry,editing=false){
  progress.setAttribute("aria-valuemax","100");
  progress.setAttribute("aria-valuenow",String(Math.round(percent)));
  progress.append(fill);
+ artwork.append(image,progress);
  body.append(name,detail);
- button.append(image,progress,body);
+ button.append(artwork,body);
  button.onclick=()=>{
   if(continueEditMode)return;
   window.location.assign(continueWatchUrl(item,entry));
