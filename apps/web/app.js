@@ -1603,15 +1603,19 @@ async function toggleSeasonWatched(item,season){
 async function hydrateSeriesDetailExtras(item,d,videosPromise){
  const id=Number(item.id);
  if(videosPromise)await videosPromise;
- const [images,recommendations]=await Promise.all([
+ const [images,recommendations,ratings]=await Promise.all([
   tmdb("/tv/"+id+"/images?include_image_language=en,null").catch(()=>({logos:[]})),
-  tmdb("/tv/"+id+"/recommendations?page=1").catch(()=>({results:[]}))
+  tmdb("/tv/"+id+"/recommendations?page=1").catch(()=>({results:[]})),
+  tmdb("/tv/"+id+"/content_ratings").catch(()=>({results:[]}))
  ]);
  if(!titlePageItem||Number(titlePageItem.id)!==id||kind(titlePageItem)!=="tv")return;
  const logo=(images.logos||[]).filter(x=>x.file_path).sort((a,b)=>{
   const preferred=x=>x.iso_639_1==="en"?0:x.iso_639_1===null?1:2;
   return preferred(a)-preferred(b)||(b.vote_average||0)-(a.vote_average||0);
  })[0];
+ const usRating=(ratings.results||[]).find(x=>x.iso_3166_1==="US")?.rating;
+ const certNode=document.querySelector(".series-detail-hero .movie-detail-cert");
+ if(certNode&&usRating)certNode.textContent=usRating;
  const logoHost=$("series-detail-logo");
  if(logoHost&&logo)logoHost.innerHTML='<img class="movie-detail-title-logo" src="'+IMG+'w500'+logo.file_path+'" alt="'+escapeHtml(title(d))+'">';
  const networkHost=$("series-detail-networks");
