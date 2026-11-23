@@ -3218,3 +3218,50 @@ body.bf-shows-route .bf-grid-card{align-self:start!important}
  0%,100%{transform:translateY(0)}
  50%{transform:translateY(-3px)}
 }
+
+
+/* Unified FLIXTV control language: transparent liquid-glass buttons.
+   Content cards remain untouched; this targets interactive controls only. */
+body button:not(.poster-card):not(.bf-grid-card):not(.sports-card):not(.service-card):not(.continue-card):not(.nav-link){
+  background-color:rgba(255,255,255,.075)!important;
+  background-image:linear-gradient(135deg,rgba(255,255,255,.105),rgba(255,255,255,.025) 52%,rgba(255,255,255,.065))!important;
+  border:1px solid rgba(255,255,255,.19)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(175%)!important;
+  backdrop-filter:blur(20px) saturate(175%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 5px 18px rgba(0,0,0,.13)!important;
+  color:rgba(255,255,255,.92)!important;
+  transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease!important;
+}
+body button:not(.poster-card):not(.bf-grid-card):not(.sports-card):not(.service-card):not(.continue-card):not(.nav-link):hover{
+  background-color:rgba(255,255,255,.13)!important;
+  border-color:rgba(255,255,255,.28)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 7px 22px rgba(0,0,0,.18)!important;
+}
+body button:not(.poster-card):not(.bf-grid-card):not(.sports-card):not(.service-card):not(.continue-card):not(.nav-link):active{
+  background-color:rgba(255,255,255,.17)!important;
+  transform:scale(.975);
+}
+body button:not(.poster-card):not(.bf-grid-card):not(.sports-card):not(.service-card):not(.continue-card):not(.nav-link):disabled{
+  opacity:.42!important;
+  box-shadow:none!important;
+}
+body button:not(.poster-card):not(.bf-grid-card):not(.sports-card):not(.service-card):not(.continue-card):not(.nav-link):focus-visible{
+  outline:2px solid rgba(255,255,255,.68)!important;
+  outline-offset:3px!important;
+}
+/* Selected states stay visible but use a brighter translucent glass, never a solid fill. */
+body button.active:not(.poster-card):not(.nav-link),
+body button[aria-pressed="true"]:not(.poster-card),
+body button[aria-selected="true"]:not(.poster-card){
+  background-color:rgba(255,255,255,.19)!important;
+  background-image:linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.055))!important;
+  border-color:rgba(255,255,255,.29)!important;
+  color:#fff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 5px 18px rgba(0,0,0,.16)!important;
+}
+@media(prefers-reduced-transparency:reduce){
+ body button:not(.poster-card):not(.bf-grid-card):not(.sports-card):not(.service-card):not(.continue-card):not(.nav-link){
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  background-color:rgba(35,39,48,.92)!important;
+ }
+}
