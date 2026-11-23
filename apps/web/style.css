@@ -6426,9 +6426,55 @@ body.flxtv-movie-detail .movie-detail-shade{
 }
 
 
-/* Extend the sharp movie artwork a little farther below the hero.
-   Keep the existing dissolve mask, but give the artwork layer an extra 110px
-   of vertical reach so its fade blends farther down into the ambient backdrop. */
+
+/* Refined movie hero dissolve: keep the sharp artwork clean, then let it
+   gradually reveal the same movie's static blurred ambient layer underneath. */
+body.flxtv-movie-detail .movie-detail-hero{
+ overflow:visible!important;
+ background:transparent!important;
+}
+body.flxtv-movie-detail .movie-detail-backdrop{
+ top:0!important;
+ bottom:-110px!important;
+ height:calc(100% + 110px)!important;
+ overflow:hidden!important;
+ background:transparent!important;
+ -webkit-mask-image:none!important;
+ mask-image:none!important;
+}
+body.flxtv-movie-detail .movie-detail-backdrop-image{
+ width:100%!important;
+ height:100%!important;
+ object-fit:cover!important;
+ -webkit-mask-image:linear-gradient(to bottom,
+  #000 0%,
+  #000 52%,
+  rgba(0,0,0,.96) 62%,
+  rgba(0,0,0,.78) 72%,
+  rgba(0,0,0,.48) 82%,
+  rgba(0,0,0,.18) 92%,
+  transparent 100%)!important;
+ mask-image:linear-gradient(to bottom,
+  #000 0%,
+  #000 52%,
+  rgba(0,0,0,.96) 62%,
+  rgba(0,0,0,.78) 72%,
+  rgba(0,0,0,.48) 82%,
+  rgba(0,0,0,.18) 92%,
+  transparent 100%)!important;
+}
+body.flxtv-movie-detail .movie-detail-backdrop::after{
+ content:none!important;
+ display:none!important;
+}
+body.flxtv-movie-detail .movie-detail-shade{
+ background:linear-gradient(to bottom,
+  rgba(5,9,18,.025) 0%,
+  rgba(5,9,18,.018) 58%,
+  rgba(8,13,23,.035) 82%,
+  rgba(8,13,23,.08) 100%)!important;
+}
+
 body.flxtv-movie-detail .movie-detail-hero{
  overflow:visible!important;
 }
