@@ -1550,6 +1550,7 @@ function seriesTitlePageMarkup(d,playMode=false){
   (cast.length?'<section class="movie-detail-section movie-detail-cast-section" id="movie-detail-cast-section"><h2>Cast</h2><div class="movie-detail-cast-row">'+cast.map(person=>'<article class="movie-detail-cast-card">'+(person.profile_path?'<img loading="lazy" decoding="async" src="'+IMG+'w185'+person.profile_path+'" alt="'+escapeHtml(person.name)+'">':'<div class="movie-detail-cast-placeholder"></div>')+'<strong>'+escapeHtml(person.name||"")+'</strong><span>'+escapeHtml(person.character||"")+'</span></article>').join('')+'</div></section>':'')+
   '<section class="movie-detail-section movie-detail-trailers-section" id="series-trailers"><h2>Trailer</h2><div class="movie-detail-trailer-row" id="series-detail-trailer-row"><div class="movie-detail-loading">Loading trailer…</div></div></section>'+
   '<section class="movie-detail-section movie-detail-similar-section" id="series-similar"><h2>You Might Also Like</h2><div class="movie-detail-similar-row" id="series-detail-similar-row"><div class="movie-detail-loading">Loading recommendations…</div></div></section>'+
+  '<section class="movie-detail-section series-quick-navigation"><h2>'+escapeHtml(title(d))+' Seasons & Episodes</h2><div class="series-episode-jump" id="series-episode-jump"></div><div class="series-season-jump" id="series-season-jump">'+seasons.filter(x=>Number(x.season_number)>0).map(x=>'<button type="button" data-season-nav="'+Number(x.season_number)+'">Season '+Number(x.season_number)+'</button>').join('')+'</div></section>'+
  '</div>';
 }
 function languageDisplayName(code){
@@ -1791,6 +1792,11 @@ async function hydrateTitlePage(item,push=false,playMode=false){
     await loadTitleEpisodes();
    };
    if(seenAll)seenAll.onclick=()=>toggleSeasonWatched(titlePageItem,titlePageSeason);
+   $("series-season-jump")?.querySelectorAll("[data-season-nav]").forEach(button=>button.onclick=()=>{
+    seasonSelect.value=String(Number(button.dataset.seasonNav));seasonSelect.dispatchEvent(new Event("change",{bubbles:true}));
+    $("series-season-jump").querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===button));
+    $("series-season-section")?.scrollIntoView({behavior:"smooth",block:"start"});
+   });
   }
   if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1);loadTitleEpisodes()}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
   window.scrollTo(0,0);
@@ -1812,6 +1818,11 @@ async function loadTitleEpisodes(){
    const seen=getSeriesSeenEpisodes(titlePageItem,season),isSeen=seen.has(epNo);
    return '<article class="series-episode-card '+(epNo===titlePageEpisode?'selected ':'')+(isSeen?'is-seen':'')+'" data-episode="'+epNo+'" role="button" tabindex="0"><span class="series-episode-thumb">'+(ep.still_path?'<img loading="lazy" decoding="async" src="'+IMG+'w780'+ep.still_path+'" alt="">':'<span>FLIXTV</span>')+'<b>E'+epNo+'</b><button type="button" class="series-episode-seen" aria-label="'+(isSeen?'Mark unwatched':'Mark watched')+'">'+(isSeen?'<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>')+'</button>'+(ep.runtime?'<i>'+Number(ep.runtime)+'m</i>':'')+'</span><span class="series-episode-copy"><strong>'+escapeHtml(ep.name||("Episode "+epNo))+'</strong>'+(overview?'<span class="series-episode-overview">'+escapeHtml(overview)+'</span>':'')+'</span></article>'
   }).join("");
+  const jump=$("series-episode-jump");
+  if(jump){
+   jump.innerHTML=episodes.map(ep=>'<button type="button" data-jump-episode="'+Number(ep.episode_number)+'">E'+Number(ep.episode_number)+'</button>').join("");
+   jump.querySelectorAll("[data-jump-episode]").forEach(button=>button.onclick=()=>{const ep=Number(button.dataset.jumpEpisode);titlePageEpisode=ep;const savedProgress=getSavedProgress(titlePageItem),resume=savedProgress&&Number(savedProgress.season)===season&&Number(savedProgress.episode)===ep?Number(savedProgress.currentTime)||0:0;startTitlePlayback(season,ep,resume)});
+  }
   list.querySelectorAll("[data-episode]").forEach(card=>{
    const play=()=>{const ep=Number(card.dataset.episode)||1;titlePageEpisode=ep;const resume=savedCanResume&&Number(saved.season)===season&&Number(saved.episode)===ep?Number(saved.currentTime):0;startTitlePlayback(season,ep,resume)};
    card.addEventListener("click",event=>{if(event.target.closest(".series-episode-seen"))return;play()});
