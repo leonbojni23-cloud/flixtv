@@ -7,8 +7,8 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/flixtv-home-icon-v4.png",
-      "sizes": "180x180",
+      "src": "/flixtv-icon.PNG?v=20261123-icon5",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
     }
