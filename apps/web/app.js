@@ -166,6 +166,7 @@ function card(x,keepArtworkOverlay=false){
  };
  return b
 }
+window.FLIXTV_HOME_CARD=card;
 function createTrendingMovieCard(item){
  const element=card(item,true);
  element.classList.add("trending-movie-card");
