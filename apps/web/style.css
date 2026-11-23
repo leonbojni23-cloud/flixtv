@@ -6743,3 +6743,69 @@ body.flxtv-movie-detail .movie-detail-page{
  background:transparent!important;
  background-color:transparent!important;
 }
+
+
+/* Animated movie backdrop: keep natural page scrolling and let the film
+   atmosphere glide subtly behind the content instead of freezing scroll. */
+html:has(body.flxtv-movie-detail){
+ background-color:#080d17!important;
+ background-image:var(--movie-root-artwork)!important;
+ background-position:center top!important;
+ background-size:cover!important;
+ background-repeat:no-repeat!important;
+ background-attachment:scroll!important;
+ overscroll-behavior-y:auto!important;
+}
+body.flxtv-movie-detail{
+ background:transparent!important;
+ overscroll-behavior-y:auto!important;
+}
+body.flxtv-movie-detail::before{
+ content:none!important;
+ display:none!important;
+}
+body.flxtv-movie-detail .movie-detail-page{
+ position:relative!important;
+ isolation:isolate!important;
+ background:transparent!important;
+}
+body.flxtv-movie-detail .movie-detail-ambient{
+ position:sticky!important;
+ top:0!important;
+ z-index:0!important;
+ width:100%!important;
+ height:100svh!important;
+ min-height:100vh!important;
+ margin-bottom:-100svh!important;
+ overflow:hidden!important;
+ pointer-events:none!important;
+ opacity:1!important;
+}
+body.flxtv-movie-detail .movie-detail-ambient-image{
+ position:absolute!important;
+ inset:-5%!important;
+ width:110%!important;
+ height:110%!important;
+ display:block!important;
+ object-fit:cover!important;
+ object-position:center 18%!important;
+ filter:blur(42px) saturate(1.85) brightness(.98)!important;
+ opacity:1!important;
+ transform:scale(1.04)!important;
+ animation:movieAmbientDrift 34s ease-in-out infinite alternate!important;
+ will-change:transform!important;
+}
+@keyframes movieAmbientDrift{
+ 0%{transform:scale(1.04) translate3d(-.5%,0,0)}
+ 50%{transform:scale(1.09) translate3d(.35%,-.45%,0)}
+ 100%{transform:scale(1.06) translate3d(.6%,.35%,0)}
+}
+body.flxtv-movie-detail .movie-detail-hero,
+body.flxtv-movie-detail .movie-detail-section{
+ position:relative!important;
+ z-index:1!important;
+ background:transparent!important;
+}
+@media(prefers-reduced-motion:reduce){
+ body.flxtv-movie-detail .movie-detail-ambient-image{animation:none!important}
+}
