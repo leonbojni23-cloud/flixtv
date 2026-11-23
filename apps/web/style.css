@@ -6805,3 +6805,71 @@ body.flxtv-movie-detail .movie-detail-page{
  background:transparent!important;
  background-color:transparent!important;
 }
+
+/* Movie detail viewport wallpaper: #app is the actual iOS scroll container.
+   A fixed descendant inside that scrolling layer can drift on iOS Safari.
+   Use a sticky viewport-sized first layer instead, so the wallpaper stays
+   pinned to the scrollport while #app content moves independently. */
+body.flxtv-movie-detail #app{
+ position:fixed!important;
+ isolation:isolate!important;
+ background:transparent!important;
+}
+body.flxtv-movie-detail #app::before{
+ content:""!important;
+ display:block!important;
+ position:sticky!important;
+ top:0!important;
+ z-index:0!important;
+ width:100%!important;
+ height:100vh!important;
+ height:100dvh!important;
+ min-height:100vh!important;
+ min-height:100dvh!important;
+ margin-bottom:-100vh!important;
+ margin-bottom:-100dvh!important;
+ pointer-events:none!important;
+ background-image:var(--movie-root-artwork)!important;
+ background-position:center 18%!important;
+ background-size:cover!important;
+ background-repeat:no-repeat!important;
+ filter:blur(42px) saturate(1.85) brightness(.98)!important;
+ transform:scale(1.08)!important;
+}
+body.flxtv-movie-detail #title-page{
+ position:relative!important;
+ z-index:1!important;
+ isolation:isolate!important;
+ background:transparent!important;
+ background-color:transparent!important;
+}
+body.flxtv-movie-detail .movie-detail-page{
+ position:relative!important;
+ z-index:1!important;
+ isolation:isolate!important;
+ background:transparent!important;
+ background-color:transparent!important;
+}
+body.flxtv-movie-detail .movie-detail-ambient{
+ display:none!important;
+}
+body.flxtv-movie-detail .movie-detail-hero{
+ overflow:visible!important;
+ background:transparent!important;
+}
+body.flxtv-movie-detail .movie-detail-backdrop{
+ top:0!important;
+ bottom:-420px!important;
+ height:calc(100% + 420px)!important;
+ overflow:visible!important;
+ -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 48%,rgba(0,0,0,.96) 58%,rgba(0,0,0,.78) 70%,rgba(0,0,0,.42) 84%,rgba(0,0,0,.12) 95%,transparent 100%)!important;
+ mask-image:linear-gradient(to bottom,#000 0%,#000 48%,rgba(0,0,0,.96) 58%,rgba(0,0,0,.78) 70%,rgba(0,0,0,.42) 84%,rgba(0,0,0,.12) 95%,transparent 100%)!important;
+}
+body.flxtv-movie-detail .movie-detail-backdrop-image{
+ height:100%!important;
+ -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 46%,rgba(0,0,0,.96) 58%,rgba(0,0,0,.78) 72%,rgba(0,0,0,.38) 88%,transparent 100%)!important;
+ mask-image:linear-gradient(to bottom,#000 0%,#000 46%,rgba(0,0,0,.96) 58%,rgba(0,0,0,.78) 72%,rgba(0,0,0,.38) 88%,transparent 100%)!important;
+}
+body.flxtv-movie-detail .movie-detail-shade{
+ background:linear-gradient(to bottom,rgba(5,9,18,.025) 0%,rgba(5,9,18,.02) 46%,rgba(5,9,18,.035) 68%,rgba(8,13,23,.06) 100%)!important;
+}
