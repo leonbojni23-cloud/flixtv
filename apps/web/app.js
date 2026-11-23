@@ -1489,7 +1489,7 @@ function movieTitlePageMarkup(d){
     '<div><span>Language</span><strong id="movie-detail-language">'+escapeHtml((d.original_language||"en").toUpperCase()==="EN"?"English":String(d.original_language||"").toUpperCase())+'</strong></div>'+
     '<div><span>Release Date</span><strong>'+escapeHtml(release)+'</strong></div>'+
    '</div>'+
-   '<div class="movie-detail-studios" id="movie-detail-studios">'+companies.map(company=>'<img loading="lazy" src="'+IMG+'w300'+company.logo_path+'" alt="'+escapeHtml(company.name)+'">').join("")+'</div>'+
+   '<div class="movie-detail-studios" id="movie-detail-studios">'+companies.slice(0,3).map(company=>'<img loading="lazy" src="'+IMG+'w300'+company.logo_path+'" alt="'+escapeHtml(company.name)+'">').join("")+'</div>'+
   '</section>'+
   '<section class="movie-detail-section movie-detail-cast-section" id="movie-detail-cast-section"><h2>Cast</h2><div class="movie-detail-cast-row">'+cast.map(person=>'<article class="movie-detail-cast-card">'+(person.profile_path?'<img loading="lazy" decoding="async" src="'+IMG+'w185'+person.profile_path+'" alt="'+escapeHtml(person.name)+'">':'<div class="movie-detail-cast-placeholder"></div>')+'<strong>'+escapeHtml(person.name||"")+'</strong><span>'+escapeHtml(person.character||"")+'</span></article>').join("")+'</div></section>'+
   '<section class="movie-detail-section movie-detail-trailers-section" id="movie-trailers"><h2>Trailers</h2><div class="movie-detail-trailer-row" id="movie-detail-trailer-row"><div class="movie-detail-loading">Loading trailers…</div></div></section>'+
