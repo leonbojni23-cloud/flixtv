@@ -1190,6 +1190,138 @@ function serviceDisplayName(provider){
  const names={"Amazon Prime Video":"Prime Video","Disney Plus":"Disney+"};
  return names[provider&&provider.provider_name]||provider&&provider.provider_name||"Shërbim";
 }
+function createServiceCard(provider){
+ const button=document.createElement("button");
+ button.type="button";
+ button.className="service-card";
+ const displayName=serviceDisplayName(provider);
+ button.setAttribute("aria-label","Shfleto në "+displayName);
+ const tile=document.createElement("span");
+ tile.className="service-logo-tile";
+ if(provider.logo_path){
+  const image=document.createElement("img");
+  image.loading="lazy";
+  image.decoding="async";
+  image.alt="";
+  image.src=IMG+"w185"+provider.logo_path;
+  tile.append(image);
+ }else{
+  const fallback=document.createElement("span");
+  fallback.className="service-logo-fallback";
+  fallback.textContent=displayName.trim().slice(0,2).toUpperCase();
+  tile.append(fallback);
+ }
+ const label=document.createElement("span");
+ label.className="service-card-label";
+ label.textContent=displayName;
+ button.append(tile,label);
+ button.onclick=()=>{
+  // Render the selected provider in the current page instead of reloading FLIXTV.
+  browseServiceProvider(provider);
+ };
+ return button;
+}
+async function loadBrowseServices(){
+ const rowNode=$("browse-services"),note=$("browse-services-note");
+ if(!rowNode)return [];
+ rowNode.replaceChildren();
+ rowNode.innerHTML='<div class="service-loading">Po ngarkohen shërbimet…</div>';
+ try{
+  const [movies,tv]=await Promise.all([
+   tmdb("/watch/providers/movie?watch_region=AL&language=sq-AL"),
+   tmdb("/watch/providers/tv?watch_region=AL&language=sq-AL")
+  ]);
+  const merged=new Map();
+  const add=(provider,type)=>{
+   if(!provider||!provider.provider_id||!provider.provider_name)return;
+   const key=String(provider.provider_id);
+   const existing=merged.get(key)||{...provider,mediaTypes:[],provider_id:Number(provider.provider_id)};
+   if(!existing.logo_path&&provider.logo_path)existing.logo_path=provider.logo_path;
+   if(!existing.mediaTypes.includes(type))existing.mediaTypes.push(type);
+   existing.display_priority=Math.min(Number(existing.display_priority??999),Number(provider.display_priority??999));
+   merged.set(key,existing);
+  };
+  (movies.results||[]).forEach(provider=>add(provider,"movie"));
+  (tv.results||[]).forEach(provider=>add(provider,"tv"));
+  const preferred=new Map(preferredServiceProviderIds.map((id,index)=>[id,index]));
+  const providers=[...merged.values()]
+   .filter(provider=>!/^justwatch(?:\\s|$)/i.test(String(provider.provider_name||"")))
+   .sort((a,b)=>{
+    const aPreferred=preferred.has(String(a.provider_id))?preferred.get(String(a.provider_id)):-1;
+    const bPreferred=preferred.has(String(b.provider_id))?preferred.get(String(b.provider_id)):-1;
+    if(aPreferred>=0||bPreferred>=0){
+     if(aPreferred<0)return 1;
+     if(bPreferred<0)return -1;
+     return aPreferred-bPreferred;
+    }
+    return (Number(a.display_priority)||999)-(Number(b.display_priority)||999)||
+      String(a.provider_name||"").localeCompare(String(b.provider_name||""));
+   })
+   .slice(0,20);
+  homeServiceProviders.clear();
+  providers.forEach(provider=>homeServiceProviders.set(String(provider.provider_id),provider));
+  if(!providers.length){
+   rowNode.replaceChildren();
+   if(note){note.hidden=false;note.textContent="TMDB nuk kthen aktualisht ofrues streaming për rajonin e Shqipërisë."}
+   return [];
+  }
+  if(note)note.hidden=true;
+  rowNode.replaceChildren(...providers.map(createServiceCard));
+  return providers;
+ }catch(error){
+  rowNode.replaceChildren();
+  if(note){note.hidden=false;note.textContent="Shërbimet streaming nuk u ngarkuan. Provo sërish më vonë."}
+  console.warn("[FLIXTV] Browse services failed",error);
+  return [];
+ }
+}
+async function browseServiceProvider(provider){
+ if(!provider||!provider.provider_id)return;
+ const request=++serviceBrowseRequest;
+ const section=$("service-results-section"),rowNode=$("service-results-row");
+ const titleNode=$("service-results-title"),note=$("service-results-note");
+ if(!section||!rowNode)return;
+ $("service-results-section").hidden=false;
+ titleNode.textContent=provider.provider_name;
+ note.textContent="Përmbajtje e disponueshme sipas të dhënave të TMDB për Shqipërinë.";
+ rowNode.replaceChildren();
+ const loader=document.createElement("p");
+ loader.className="service-loading";
+ loader.textContent="Po ngarkohet katalogu…";
+ rowNode.append(loader);
+ section.scrollIntoView({behavior:"smooth",block:"start"});
+ try{
+  const requests=(provider.mediaTypes||["movie","tv"]).map(async type=>{
+   const query=new URLSearchParams({
+    with_watch_providers:String(provider.provider_id),
+    watch_region:"AL",
+    with_watch_monetization_types:"flatrate|free|ads",
+    sort_by:"popularity.desc",
+    page:"1"
+   });
+   const data=await tmdb("/discover/"+type+"?"+query.toString());
+   return (data.results||[]).map(item=>({...item,media_type:type}));
+  });
+  const groups=await Promise.all(requests);
+  if(request!==serviceBrowseRequest)return;
+  const combined=groups.flat().filter(item=>item.poster_path);
+  const unique=[...new Map(combined.map(item=>[kind(item)+":"+item.id,item])).values()]
+   .sort((a,b)=>(Number(b.popularity)||0)-(Number(a.popularity)||0))
+   .slice(0,40);
+  if(!unique.length){
+   rowNode.replaceChildren();
+   note.textContent="Nuk u gjetën filma ose seriale për këtë shërbim në rajonin e Shqipërisë.";
+   return;
+  }
+  note.textContent=unique.length+" tituj të gjetur · Disponueshmëria mund të ndryshojë sipas planit dhe vendit.";
+  rowNode.replaceChildren(...unique.map(createTrendingMovieCard));
+ }catch(error){
+  if(request!==serviceBrowseRequest)return;
+  rowNode.replaceChildren();
+  note.textContent="Katalogu i këtij shërbimi nuk u ngarkua."
+  console.warn("[FLIXTV] Provider catalogue failed",provider,error);
+ }
+}
 function createTop10Card(item,rank){
  const button=document.createElement("button");
  button.type="button";
@@ -3144,6 +3276,11 @@ $("continue-library-modal").addEventListener("keydown",event=>{
 $("continue-edit").onclick=toggleContinueEdit;
 $("continue-library-edit").onclick=toggleContinueEdit;
 $("trending-movies-more").onclick=()=>scrollHomeCarousel("trending-movies",1);
+$("service-results-back").onclick=()=>{
+ serviceBrowseRequest++;
+ $("service-results-section").hidden=true;
+ $("browse-services-section").scrollIntoView({behavior:"smooth",block:"start"});
+};
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
  requestAnimationFrame(updateDesktopNavPill);
  window.addEventListener("resize",()=>requestAnimationFrame(updateDesktopNavPill),{passive:true});
