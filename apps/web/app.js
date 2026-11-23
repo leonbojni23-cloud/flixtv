@@ -899,7 +899,8 @@ function createContinueWatchingCard(entry,editing=false){
  progress.setAttribute("aria-valuenow",String(Math.round(percent)));
  progress.append(fill);
  artwork.append(image,progress);
- body.append(name,detail);
+ body.append(name);
+ if(entry.mediaType==="tv")body.append(detail);
  button.append(artwork,body);
  button.onclick=()=>{
   if(continueEditMode)return;
