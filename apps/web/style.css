@@ -6329,3 +6329,41 @@ body.flxtv-movie-detail .movie-detail-section{
 @media(min-width:761px){
  body.flxtv-movie-detail .movie-detail-ambient{height:2450px!important}
 }
+
+
+/* Seam fix: the hard horizontal line came from the movie hero's own shade,
+   which ended in solid #080d17 before the blurred ambient layer could show.
+   Let the artwork and its blurred color continuation cross-fade into each other. */
+body.flxtv-movie-detail .movie-detail-shade{
+ background:
+  linear-gradient(180deg,
+   rgba(5,9,18,.035) 0%,
+   rgba(5,9,18,.015) 25%,
+   rgba(5,9,18,.06) 43%,
+   rgba(5,9,18,.14) 61%,
+   rgba(5,9,18,.20) 82%,
+   rgba(8,13,23,.12) 100%),
+  linear-gradient(90deg,rgba(4,8,15,.12),transparent 72%)!important;
+}
+body.flxtv-movie-detail .movie-detail-backdrop::after{
+ height:58%!important;
+ backdrop-filter:blur(34px) saturate(1.5)!important;
+ -webkit-backdrop-filter:blur(34px) saturate(1.5)!important;
+ background:linear-gradient(180deg,
+  rgba(8,13,23,0) 0%,
+  rgba(8,13,23,.025) 35%,
+  rgba(8,13,23,.07) 68%,
+  rgba(8,13,23,.12) 100%)!important;
+ -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.18) 25%,rgba(0,0,0,.62) 72%,#000 100%)!important;
+ mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.18) 25%,rgba(0,0,0,.62) 72%,#000 100%)!important;
+}
+body.flxtv-movie-detail .movie-detail-ambient:after{
+ background:
+  linear-gradient(180deg,
+   rgba(8,13,23,.015) 0%,
+   rgba(8,13,23,.035) 42%,
+   rgba(8,13,23,.10) 68%,
+   rgba(8,13,23,.34) 88%,
+   rgba(8,13,23,.72) 100%),
+  linear-gradient(90deg,rgba(8,13,23,.10),rgba(8,13,23,.015) 50%,rgba(8,13,23,.12))!important;
+}
