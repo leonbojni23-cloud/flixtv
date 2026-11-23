@@ -1,0 +1,8 @@
+(function(){"use strict";
+const allowed=new Set(["idle","loading","ready","playing","paused","ended","error"]);let state={status:"idle",currentTime:0,duration:0,volume:1,muted:false,paused:true,playbackRate:1,updatedAt:0};
+function publish(){window.dispatchEvent(new CustomEvent("flxtv:playback-state",{detail:{...state}}));return {...state}}
+function setStatus(status){if(!allowed.has(status))return {...state};state={...state,status,updatedAt:Date.now()};return publish()}
+function apply(type,d){d=d||{};const p={updatedAt:Date.now()};if(Number.isFinite(Number(d.currentTime))&&Number(d.currentTime)>=0)p.currentTime=Number(d.currentTime);if(Number.isFinite(Number(d.duration))&&Number(d.duration)>0)p.duration=Number(d.duration);if(Number.isFinite(Number(d.volume)))p.volume=Math.max(0,Math.min(1,Number(d.volume)));if(typeof d.muted==="boolean")p.muted=d.muted;if(Number.isFinite(Number(d.playbackRate))&&Number(d.playbackRate)>0)p.playbackRate=Number(d.playbackRate);if(type==="ready")p.status="ready";if(type==="play"){p.status="playing";p.paused=false}if(type==="pause"){p.status="paused";p.paused=true}if(type==="ended"){p.status="ended";p.paused=true}if(type==="error")p.status="error";state={...state,...p};return publish()}
+function reset(status="idle"){state={status:"idle",currentTime:0,duration:0,volume:1,muted:false,paused:true,playbackRate:1,updatedAt:Date.now()};if(status!=="idle")setStatus(status);return {...state}}
+window.FlixPlaybackState={get:()=>({...state}),setStatus,apply,reset};
+})();

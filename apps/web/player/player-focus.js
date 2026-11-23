@@ -1,0 +1,4 @@
+(function(){"use strict";
+let snapshot=[],active=false;function setActive(on){const p=document.getElementById("player-modal");if(!p)return;if(on){if(active)return;active=true;let branch=p;while(branch&&branch!==document.body){const parent=branch.parentElement;if(!parent)break;for(const sibling of parent.children){if(sibling===branch)continue;snapshot.push({node:sibling,inert:!!sibling.inert});sibling.inert=true}branch=parent}document.documentElement.classList.add("flxtv-player-active");document.body.classList.add("flxtv-player-active","no-scroll")}else{snapshot.forEach(x=>{if(x.node)x.node.inert=x.inert});snapshot=[];active=false;document.documentElement.classList.remove("flxtv-player-active");document.body.classList.remove("flxtv-player-active","no-scroll")}}
+window.FlixPlayerFocus={setActive,isActive:()=>active};
+})();

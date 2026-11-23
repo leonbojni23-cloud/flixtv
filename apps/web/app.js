@@ -784,7 +784,7 @@ function startHeroTimer(){
 
 const WATCH_PROGRESS_KEY="flxtv:watch-progress:v2",LEGACY_WATCH_PROGRESS_KEY="flxtv:watch-progress:v1";
 const WATCH_DB_NAME="flxtv-persistence",WATCH_DB_STORE="watch-progress";
-let watchDbPromise=null,latestPlaybackTime=0,latestPlaybackDuration=0,lastProgressWrite=0,progressPollTimer=null;
+let watchDbPromise=null,latestPlaybackTime=0,latestPlaybackDuration=0,lastProgressWrite=0;
 function openWatchDb(){
  if(!("indexedDB" in window))return Promise.resolve(null);
  if(!watchDbPromise)watchDbPromise=new Promise(resolve=>{
@@ -977,40 +977,33 @@ function renderContinueWatching(){
   button.setAttribute("aria-pressed",String(continueEditMode));
  });
 }
-function startProgressPolling(){
- clearInterval(progressPollTimer);
- progressPollTimer=setInterval(()=>{
-  if(!$("player-modal").classList.contains("open")||!currentPlayback)return;
-  const video=$("resolved-video");
-  if(video&&!video.hidden&&Number.isFinite(video.currentTime)){
-   latestPlaybackTime=Number(video.currentTime)||0;
-   latestPlaybackDuration=Number(video.duration)||latestPlaybackDuration;
-   renderExternalSubtitle(latestPlaybackTime);
-   savePlaybackProgress(false);
-  }
- },2000);
+/* Event-driven progress bridge. CineSRC emits playback events; no polling loop is needed. */
+function startPlaybackProgressTracking(){
+  window.FlixPlaybackProgress?.start({
+    onTimeUpdate(data,force){
+      const time=Number(data?.currentTime),duration=Number(data?.duration);
+      if(Number.isFinite(time)&&time>=0)latestPlaybackTime=time;
+      if(Number.isFinite(duration)&&duration>0)latestPlaybackDuration=duration;
+      renderExternalSubtitle(latestPlaybackTime);savePlaybackProgress(!!force);
+    },
+    onFlush(){savePlaybackProgress(true)},
+    onEnded(){if(latestPlaybackDuration>0)latestPlaybackTime=latestPlaybackDuration;savePlaybackProgress(true)},
+    onMetadata(data){const duration=Number(data?.duration);if(Number.isFinite(duration)&&duration>0)latestPlaybackDuration=duration}
+  });
 }
-function handleCineSrcMessage(event){
- const frame=$("cinesrc-frame");
- if(event.origin!=="https://cinesrc.st"||!frame||event.source!==frame.contentWindow||!currentPlayback)return;
- const data=event.data;
- if(!data||typeof data!=="object"||typeof data.type!=="string"||!data.type.startsWith("cinesrc:"))return;
- const type=data.type.replace("cinesrc:","");
- if(Number.isFinite(Number(data.currentTime))&&Number(data.currentTime)>=0)latestPlaybackTime=Number(data.currentTime);
- if(Number.isFinite(Number(data.duration))&&Number(data.duration)>0)latestPlaybackDuration=Number(data.duration);
- if(type==="timeupdate"||type==="seeked"||type==="pause"||type==="ended"){
-  savePlaybackProgress(type!=="timeupdate");
- }
- if(type==="timeupdate"||type==="seeked")renderExternalSubtitle(latestPlaybackTime);
- if(type==="ended")savePlaybackProgress(true);
- if(type==="nextepisode"&&data.internalNavigation){
-  savePlaybackProgress(true);
-  currentPlayback.season=Number(data.season||currentPlayback.season||1);
-  currentPlayback.episode=Number(data.episode||1);
-  latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
- }
-}
-window.addEventListener("message",handleCineSrcMessage);
+window.addEventListener("flxtv:cinesrc-event",event=>{
+  const {type,data={}}=event.detail||{};if(!currentPlayback)return;
+  if(type==="ready"){$("player-modal").dataset.playerState="ready";setPlayerStatus("")}
+  else if(type==="play"){$("player-modal").dataset.playerState="playing";clearPlayerStatus()}
+  else if(type==="pause")$("player-modal").dataset.playerState="paused";
+  else if(type==="loadedmetadata"){const d=Number(data.duration);if(Number.isFinite(d)&&d>0)latestPlaybackDuration=d}
+  else if(type==="error"){$("player-modal").dataset.playerState="error";setPlayerStatus(window.FlixPlayerErrors?.message(data)||"CineSRC raportoi një gabim gjatë riprodhimit.",true)}
+});
+window.addEventListener("flxtv:player-error",event=>{
+  if(!currentPlayback)return;$("player-modal").dataset.playerState="error";
+  setPlayerStatus(event.detail?.message||"Nuk mund të lidhemi me CineSRC.",true);
+});
+
 
  const WATCH_PROFILES_KEY="flxtv:profiles:v1",ACTIVE_PROFILE_KEY="flxtv:active-profile:v1";
  const DEFAULT_PROFILES=[
@@ -2590,130 +2583,31 @@ function isIOSDevice(){
   return /iPad|iPhone|iPod/.test(navigator.userAgent)||
     (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 }
-let playerIsolationSnapshot=[];
-function isolatePageForPlayer(active){
- const player=$("player-modal");
- if(!player)return;
- if(active){
-  if(playerIsolationSnapshot.length)return;
-  let branch=player;
-  while(branch&&branch!==document.body){
-   const parent=branch.parentElement;
-   if(!parent)break;
-   for(const sibling of parent.children){
-    if(sibling===branch)continue;
-    playerIsolationSnapshot.push({node:sibling,inert:!!sibling.inert});
-    sibling.inert=true;
-   }
-   branch=parent;
-  }
- }else{
-  playerIsolationSnapshot.forEach(entry=>{if(entry.node)entry.node.inert=entry.inert});
-  playerIsolationSnapshot=[];
- }
-}
-function syncPlayerOrientation(){
-  const player=$("player-modal");
-  const wrapper=$("cinesrc-video-wrapper");
-  if(!player||!wrapper)return;
-
-  // Home Screen follows the device's real orientation, like 111movies.
-  // Never fake landscape by rotating the iframe while the phone is portrait.
-  const isHomeScreen=window.navigator.standalone===true||
-    (window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches);
-  if(isHomeScreen){
-    player.classList.remove("ios-landscape-layout");
-    wrapper.classList.remove("force-landscape");
-    return;
-  }
-
-  // Preserve the existing Safari web-player behavior unchanged.
-  const portrait=window.matchMedia("(orientation: portrait)").matches;
-  const forceLandscape=isIOSDevice()&&portrait;
-  player.classList.toggle("ios-landscape-layout",forceLandscape);
-  wrapper.classList.toggle("force-landscape",forceLandscape);
-}
-function requestPlayerFullscreen(){
-  const player=$("player-modal");
-  if(!player)return;
-  // Native element fullscreen is not available for a normal container in iPhone Safari.
-  // Use it only where the browser actually exposes the standard API.
-  if(typeof player.requestFullscreen==="function"){
-    try{
-      const request=player.requestFullscreen({navigationUI:"hide"});
-      if(request&&typeof request.then==="function"){
-        request.then(()=>{
-          if(screen.orientation&&typeof screen.orientation.lock==="function"){
-            screen.orientation.lock("landscape").catch(()=>{});
-          }
-        }).catch(error=>console.info("[FLIXTV] Native fullscreen unavailable:",error));
-      }
-    }catch(error){console.info("[FLIXTV] Native fullscreen unavailable:",error)}
-  }
-}
+function isolatePageForPlayer(active){window.FlixPlayerFocus?.setActive(!!active)}
+function syncPlayerOrientation(){window.FlixPlayerOrientation?.sync()}
+function requestPlayerFullscreen(){window.FlixPlayerOrientation?.requestFullscreen()}
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
   if(!item||!item.id)return null;
-  const mediaType=kind(item)==="tv"?"tv":"movie";
-  const embedUrl=new URL("https://cinesrc.st/embed/"+mediaType+"/"+encodeURIComponent(String(item.id)));
-  if(mediaType==="tv"){
-    embedUrl.searchParams.set("s",String(Number(season||1)));
-    embedUrl.searchParams.set("e",String(Number(episode||1)));
-  }
-  if(Number(resumeTime)>5){
-    embedUrl.searchParams.set("t",String(Math.floor(Number(resumeTime))));
-    embedUrl.searchParams.set("continueprompt","false");
-  }
-  const playbackId=++playbackOpenId;
-  clearTimeout(introTimer);
-  $("content-intro").classList.remove("show");
-  $("content-intro").setAttribute("aria-hidden","true");
+  const mediaType=kind(item)==="tv"?"tv":"movie",playbackId=++playbackOpenId;
+  clearTimeout(introTimer);$("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");
   $("details-modal").classList.remove("open");
   playbackReturnToTitlePage=!$("title-page").hidden;
   currentPlayback={item,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null};
   latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
-  stopResolvedVideo({preserveCineSrcFrame:true});
-  clearExternalSubtitles();
-  const frame=$("cinesrc-frame");
-  if(!frame)throw new Error("CineSRC iframe mungon në player-in FLIXTV.");
-  embedUrl.searchParams.set("autoplay","1");
-  embedUrl.searchParams.set("playsinline","1");
-  frame.hidden=false;
-  frame.setAttribute("loading","eager");
-  frame.setAttribute("fetchpriority","high");
-  frame.setAttribute("allow","fullscreen *; autoplay *; picture-in-picture; encrypted-media");
-  $("resolved-video").hidden=true;
-  $("player-quality-select").hidden=true;
-
-  // Make the player visible and request fullscreen before starting the
-  // cross-origin navigation, keeping the click's user activation intact.
-  modal("player-modal",true);
-  document.documentElement.classList.add("flxtv-player-active");
-  document.body.classList.add("flxtv-player-active");
-  isolatePageForPlayer(true);
-  clearInterval(heroTimer);heroTimer=null;
-  requestPlayerFullscreen();
-  syncPlayerOrientation();
-  $("player-modal").dataset.playerState="embedded";
-  setPlayerStatus("");
-  frame.onload=()=>{if(playbackId===playbackOpenId)setPlayerStatus("")};
-  frame.onerror=()=>{if(playbackId===playbackOpenId)setPlayerStatus("CineSRC nuk u ngarkua. Kontrollo nëse burimi lejon iframe.",true)};
-  startProgressPolling();
-  const navigationStarted=performance.now();
-  frame.src=embedUrl.href;
-  console.info("[FLIXTV] CineSRC iframe navigation started",{
-    title:title(item),mediaType,tmdbId:item.id,
-    navigationStartMs:Math.round(navigationStarted),
-    embedHost:embedUrl.host
-  });
-  frame.addEventListener("load",()=>{
-    if(playbackId===playbackOpenId){
-      console.info("[FLIXTV] CineSRC iframe document loaded",{
-        title:title(item),elapsedMs:Math.round(performance.now()-navigationStarted)
-      });
-    }
-  },{once:true});
-  console.info("[FLIXTV] CineSRC iframe playback opened",{title:title(item),mediaType,tmdbId:item.id,embedUrl:embedUrl.href});
-  return {provider:"cinesrc",format:"iframe",embedUrl:embedUrl.href};
+  stopResolvedVideo({preserveCineSrcFrame:true});clearExternalSubtitles();
+  const frame=$("cinesrc-frame");if(!frame)throw new Error("CineSRC iframe mungon në player-in FLIXTV.");
+  frame.hidden=false;frame.setAttribute("loading","eager");frame.setAttribute("fetchpriority","high");
+  frame.setAttribute("allow","fullscreen *; autoplay *; picture-in-picture; encrypted-media; orientation-lock");
+  $("resolved-video").hidden=true;$("player-quality-select").hidden=true;
+  modal("player-modal",true);document.documentElement.classList.add("flxtv-player-active");document.body.classList.add("flxtv-player-active");
+  isolatePageForPlayer(true);clearInterval(heroTimer);heroTimer=null;
+  $("player-modal").dataset.playerState="loading";setPlayerStatus("Po lidhet me CineSRC…");
+  requestPlayerFullscreen();syncPlayerOrientation();startPlaybackProgressTracking();
+  frame.onerror=()=>{if(playbackId!==playbackOpenId)return;$("player-modal").dataset.playerState="error";setPlayerStatus("CineSRC nuk u ngarkua. Kontrollo lidhjen ose burimin.",true)};
+  const opened=window.FlixCineSRC?.open({mediaType,tmdbId:item.id,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null,resumeTime:Number(resumeTime)||0});
+  if(!opened)throw new Error("Moduli i ri CineSRC nuk u inicializua.");
+  console.info("[FLIXTV] CineSRC playback opened",{title:title(item),mediaType,tmdbId:item.id,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null,resumeTime:Number(resumeTime)||0,embedUrl:opened.embedUrl});
+  return opened;
 }
 function play(item,season,episode){
   if(!item||!item.id)return;
@@ -2723,21 +2617,23 @@ function play(item,season,episode){
   const resume=sameEpisode?Number(saved?.currentTime)||0:0;
   return openResolvedPlayback(item,season,episode,null,resume);
 }
-function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}let playerOrientationTimer=0;
-function schedulePlayerOrientation(delay=140){
- clearTimeout(playerOrientationTimer);
- playerOrientationTimer=setTimeout(()=>{
-  playerOrientationTimer=0;
-  requestAnimationFrame(()=>requestAnimationFrame(syncPlayerOrientation));
- },delay);
+function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}
+function closePlayer(){
+  if(!$("player-modal").classList.contains("open"))return;
+  window.FlixPlaybackProgress?.flush();savePlaybackProgress(true);renderContinueWatching();
+  $("player-modal").classList.remove("ios-landscape-layout");
+  playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;
+  window.FlixPlaybackProgress?.stop();window.FlixCineSRC?.close();window.FlixPlayerOrientation?.exitFullscreen();
+  $("player-modal").classList.remove("css-fullscreen");clearTimeout(controlsTimer);clearTimeout(introTimer);
+  stopResolvedVideo();currentPlayback=null;
+  if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false}
+  $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");
+  $("player-modal").classList.remove("attention-active","open");$("player-modal").setAttribute("aria-hidden","true");
+  ["--flxtv-vv-width","--flxtv-vv-height","--flxtv-vv-left","--flxtv-vv-top"].forEach(name=>$("player-modal").style.removeProperty(name));
+  document.documentElement.classList.remove("flxtv-player-active");document.body.classList.remove("flxtv-player-active","no-scroll");
+  isolatePageForPlayer(false);syncPlayerOrientation();if(heroItems.length>1)startHeroTimer();
 }
-window.addEventListener("resize",()=>schedulePlayerOrientation(160),{passive:true});
-window.addEventListener("orientationchange",()=>schedulePlayerOrientation(220),{passive:true});
-if(window.visualViewport){
- window.visualViewport.addEventListener("resize",()=>schedulePlayerOrientation(180),{passive:true});
- window.visualViewport.addEventListener("scroll",()=>schedulePlayerOrientation(180),{passive:true});
-}
-$("player-modal").addEventListener("mousemove",showPlayerControls);$("player-modal").addEventListener("pointerdown",showPlayerControls);$("player-modal").addEventListener("keydown",showPlayerControls);function closePlayer(){savePlaybackProgress(true);renderContinueWatching();$("player-modal").classList.remove("ios-landscape-layout");playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;if(document.fullscreenElement){document.exitFullscreen().catch(()=>{})}try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock()}catch(_){}$("player-modal").classList.remove("css-fullscreen");clearInterval(progressPollTimer);progressPollTimer=null;clearTimeout(controlsTimer);clearTimeout(introTimer);stopResolvedVideo();currentPlayback=null;if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false} $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");$("player-modal").classList.remove("attention-active");$("player-modal").classList.remove("open");$("player-modal").setAttribute("aria-hidden","true");$("player-modal").style.removeProperty("--flxtv-vv-width");$("player-modal").style.removeProperty("--flxtv-vv-height");$("player-modal").style.removeProperty("--flxtv-vv-left");$("player-modal").style.removeProperty("--flxtv-vv-top");document.documentElement.classList.remove("flxtv-player-active");document.body.classList.remove("flxtv-player-active","no-scroll");isolatePageForPlayer(false);schedulePlayerOrientation(80);if(heroItems.length>1)startHeroTimer()}
+
 
 /* FLIXTV external subtitle engine.
    Captions are rendered in the parent document and synchronized to CineSRC
