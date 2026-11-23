@@ -1445,7 +1445,16 @@ function pageUrl(item,play=false){const slug=titleSlug(title(item))||"title";con
 const titlePagePrefetches=new Map();
 const titlePageCache=new Map();
 const TITLE_PAGE_CACHE_TTL=6*60*60*1000;
+const TITLE_PAGE_MEMORY_LIMIT=24;
 function titleDetailsKey(item){return kind(item)+":"+String(item.id)}
+function cacheTitleDetails(key,data){
+ titlePageCache.delete(key);
+ titlePageCache.set(key,data);
+ while(titlePageCache.size>TITLE_PAGE_MEMORY_LIMIT){
+  titlePageCache.delete(titlePageCache.keys().next().value);
+ }
+ return data;
+}
 function readTitleDetailsCache(item){
  try{
   const cached=JSON.parse(localStorage.getItem("flxtv:title:"+titleDetailsKey(item))||"null");
@@ -1455,18 +1464,26 @@ function readTitleDetailsCache(item){
 }
 function storeTitleDetailsCache(item,data){
  const key=titleDetailsKey(item);
- titlePageCache.set(key,data);
+ cacheTitleDetails(key,data);
  try{localStorage.setItem("flxtv:title:"+key,JSON.stringify({savedAt:Date.now(),data}))}catch(_){}
 }
 function prefetchTitle(item){
  if(!item||!item.id)return Promise.resolve(null);
  const key=titleDetailsKey(item);
- if(titlePageCache.has(key))return Promise.resolve(titlePageCache.get(key));
+ if(titlePageCache.has(key)){
+  const cached=titlePageCache.get(key);
+  cacheTitleDetails(key,cached);
+  return Promise.resolve(cached);
+ }
  if(titlePagePrefetches.has(key))return titlePagePrefetches.get(key);
  const stored=readTitleDetailsCache(item);
- if(stored){titlePageCache.set(key,stored);return Promise.resolve(stored)}
+ if(stored)return Promise.resolve(cacheTitleDetails(key,stored));
  const request=tmdb("/"+kind(item)+"/"+item.id+"?append_to_response=videos,credits,external_ids&include_video_language=en,null")
-  .then(data=>{if(data&&data.id)storeTitleDetailsCache(item,data);return data})
+  .then(data=>{
+   if(data&&data.id)storeTitleDetailsCache(item,data);
+   titlePagePrefetches.delete(key);
+   return data;
+  })
   .catch(error=>{titlePagePrefetches.delete(key);throw error});
  titlePagePrefetches.set(key,request);
  return request;
