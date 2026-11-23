@@ -1339,7 +1339,6 @@ async function home(){
    row("trending-movies","/trending/movie/week",createTrendingMovieCard),
    loadHomeTop10(),
    loadBrowseServices(),
-   row("home-top-series","/tv/top_rated"),
    row("movies","/movie/popular"),
    row("shows","/tv/popular"),
    row("home-top-movies","/movie/top_rated"),
