@@ -6445,3 +6445,74 @@ body.flxtv-movie-detail .movie-detail-backdrop::after{
  bottom:0!important;
  height:62%!important;
 }
+
+
+/* Match the movie information panel to reference image 2.
+   The artwork/background layers are intentionally untouched. */
+body.flxtv-movie-detail .movie-detail-facts{
+ margin-top:28px!important;
+ border:1px solid rgba(255,255,255,.18)!important;
+ border-radius:12px!important;
+ background:rgba(225,225,225,.20)!important;
+ backdrop-filter:blur(28px) saturate(1.12)!important;
+ -webkit-backdrop-filter:blur(28px) saturate(1.12)!important;
+ box-shadow:0 8px 28px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.12)!important;
+}
+body.flxtv-movie-detail .movie-detail-facts>div{
+ min-height:37px!important;
+ height:37px!important;
+ padding:0 16px!important;
+ border-bottom:1px solid rgba(255,255,255,.13)!important;
+}
+body.flxtv-movie-detail .movie-detail-facts span{
+ font-size:13px!important;
+ color:rgba(238,240,244,.72)!important;
+}
+body.flxtv-movie-detail .movie-detail-facts strong{
+ font-size:13px!important;
+ font-weight:600!important;
+ color:rgba(255,255,255,.96)!important;
+}
+body.flxtv-movie-detail .movie-detail-facts i{
+ color:rgba(240,242,246,.72)!important;
+}
+body.flxtv-movie-detail .movie-detail-studios{
+ width:min(100%,390px)!important;
+ min-height:0!important;
+ margin:18px auto 0!important;
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ align-items:center!important;
+ justify-items:center!important;
+ column-gap:22px!important;
+ row-gap:16px!important;
+}
+body.flxtv-movie-detail .movie-detail-studios img{
+ display:block!important;
+ width:auto!important;
+ max-width:150px!important;
+ max-height:40px!important;
+ height:auto!important;
+ object-fit:contain!important;
+ filter:grayscale(1) brightness(0) invert(1)!important;
+ opacity:.84!important;
+}
+body.flxtv-movie-detail .movie-detail-studios img:nth-child(3){
+ grid-column:1/-1!important;
+}
+@media(max-width:390px){
+ body.flxtv-movie-detail .movie-detail-facts>div{
+  min-height:37px!important;
+  height:37px!important;
+  padding:0 14px!important;
+ }
+ body.flxtv-movie-detail .movie-detail-studios{
+  width:min(100%,350px)!important;
+  column-gap:16px!important;
+  row-gap:14px!important;
+ }
+ body.flxtv-movie-detail .movie-detail-studios img{
+  max-width:132px!important;
+  max-height:36px!important;
+ }
+}
