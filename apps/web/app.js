@@ -1953,22 +1953,7 @@ function setMovieGlobalAmbientSuppressed(suppress){
   if(current){window.__flixGlobalAmbientNode=current;current.remove()}
   const artwork=document.querySelector("#title-page .movie-detail-backdrop-image")?.getAttribute("src")
    ||document.querySelector("#title-page .movie-detail-ambient-image")?.getAttribute("src");
-  if(artwork){
-   const safeArtwork=artwork.replace(/["\\\\]/g,"\\\\function setMovieGlobalAmbientSuppressed(suppress){
- const current=document.getElementById("app-ambient");
- if(suppress){
-  if(current){window.__flixGlobalAmbientNode=current;current.remove()}
-  return;
- }
- const saved=window.__flixGlobalAmbientNode;
- if(saved&&!saved.isConnected){
-  const brandIntro=document.getElementById("brand-intro");
-  if(brandIntro?.parentNode)brandIntro.parentNode.insertBefore(saved,brandIntro);
-  else document.body.prepend(saved);
- }
-}");
-   root.style.setProperty("--movie-root-artwork",'url("'+safeArtwork+'")');
-  }
+  if(artwork)root.style.setProperty("--movie-root-artwork",'url("'+artwork.replace(/"/g,"%22")+'")');
   document.body.classList.add("flxtv-movie-overscroll-lock");
   bindMovieOverscrollGuard();
   return;
