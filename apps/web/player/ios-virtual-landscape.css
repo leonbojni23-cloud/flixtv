@@ -139,19 +139,3 @@
   display:none!important;
 }
 
-
-/* Portrait-held iPhone virtual landscape: move the viewport boundary along
-   the rotated long axis while counter-moving the media surface by the same
-   amount. This keeps the picture center fixed and changes only the crop:
-   one end gains 12px while the opposite end loses 12px. */
-@media (orientation:portrait){
-  #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape{
-    left:calc(var(--flxtv-ios-vv-left,0px) + var(--flxtv-ios-vv-width,100vw)/2 + 12px)!important;
-  }
-  #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape #cinesrc-frame,
-  #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape #resolved-video{
-    left:-12px!important;
-    right:auto!important;
-    width:var(--flxtv-ios-vv-height,100dvh)!important;
-  }
-}
