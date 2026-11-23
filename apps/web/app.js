@@ -2627,7 +2627,7 @@ function play(item,season,episode){
 function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}
 function closePlayer(){
   if(!$("player-modal").classList.contains("open"))return;
-  window.FlixPlaybackProgress?.flush();savePlaybackProgress(true);renderContinueWatching();
+  window.FlixPlaybackProgress?.flush();renderContinueWatching();
   $("player-modal").classList.remove("ios-landscape-layout");
   playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;
   window.FlixPlaybackProgress?.stop();window.FlixCineSRC?.close();window.FlixPlayerOrientation?.exitFullscreen();
