@@ -1816,7 +1816,7 @@ async function loadTitleEpisodes(){
    const play=()=>{const ep=Number(card.dataset.episode)||1;titlePageEpisode=ep;const resume=savedCanResume&&Number(saved.season)===season&&Number(saved.episode)===ep?Number(saved.currentTime):0;startTitlePlayback(season,ep,resume)};
    card.addEventListener("click",event=>{if(event.target.closest(".series-episode-seen"))return;play()});
    const seenButton=card.querySelector(".series-episode-seen");
-   if(seenButton)seenButton.addEventListener("click",event=>{event.stopPropagation();toggleSeriesEpisodeSeen(titlePageItem,season,epNo)});
+   if(seenButton)seenButton.addEventListener("click",event=>{event.stopPropagation();toggleSeriesEpisodeSeen(titlePageItem,season,Number(card.dataset.episode))});
    card.addEventListener("keydown",event=>{if(event.target===card&&(event.key==="Enter"||event.key===" ")){event.preventDefault();play()}});
    const more=card.querySelector(".episode-overview-more");
    if(more)more.addEventListener("click",event=>{
