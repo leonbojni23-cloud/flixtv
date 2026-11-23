@@ -886,16 +886,18 @@ function createContinueWatchingCard(entry,editing=false){
  const detail=document.createElement("small");
  detail.textContent=entry.mediaType==="tv"?"Sezoni "+(entry.season||1)+" · Episodi "+(entry.episode||1):"Vazhdo filmin";
  const progress=document.createElement("span");
- progress.className="continue-progress";
+ progress.className="continue-progress continue-progress-on-poster";
+ progress.setAttribute("role","progressbar");
+ progress.setAttribute("aria-label","Përparimi i shikimit");
  const fill=document.createElement("i");
  const percent=entry.duration>0?Math.min(100,Math.max(0,entry.currentTime/entry.duration*100)):0;
  fill.style.width=percent+"%";
+ progress.setAttribute("aria-valuemin","0");
+ progress.setAttribute("aria-valuemax","100");
+ progress.setAttribute("aria-valuenow",String(Math.round(percent)));
  progress.append(fill);
- const remaining=document.createElement("small");
- remaining.className="continue-remaining";
- remaining.textContent=entry.duration>0?"Mbeten "+formatPlaybackTime(Math.max(0,entry.duration-entry.currentTime)):"Vazhdo shikimin";
- body.append(name,detail,progress,remaining);
- button.append(image,body);
+ body.append(name,detail);
+ button.append(image,progress,body);
  button.onclick=()=>{
   if(continueEditMode)return;
   window.location.assign(continueWatchUrl(item,entry));
@@ -961,7 +963,12 @@ function renderContinueWatching(){
  if(empty)empty.hidden=entries.length>0;
  const editButtons=[$("continue-edit"),$("continue-library-edit")].filter(Boolean);
  editButtons.forEach(button=>{
-  button.textContent=continueEditMode?"Done":"Edit";
+  if(button.id==="continue-edit"){
+   button.innerHTML=continueEditMode?'<span>Done</span>':'<i class="bi bi-pencil" aria-hidden="true"></i>';
+   button.setAttribute("aria-label",continueEditMode?"Përfundo redaktimin":"Redakto Continue Watching");
+  }else{
+   button.textContent=continueEditMode?"Done":"Edit";
+  }
   button.setAttribute("aria-pressed",String(continueEditMode));
  });
 }
