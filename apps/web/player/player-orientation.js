@@ -1,0 +1,9 @@
+(function(){"use strict";
+let pending=false;function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)}
+function sync(){const p=document.getElementById("player-modal"),w=document.getElementById("cinesrc-video-wrapper");if(!p||!w)return;p.classList.remove("ios-landscape-layout");w.classList.remove("force-landscape");const v=window.visualViewport;if(v){p.style.setProperty("--flxtv-vv-width",Math.round(v.width)+"px");p.style.setProperty("--flxtv-vv-height",Math.round(v.height)+"px");p.style.setProperty("--flxtv-vv-left",Math.round(v.offsetLeft)+"px");p.style.setProperty("--flxtv-vv-top",Math.round(v.offsetTop)+"px")}}
+function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;sync()})}
+function requestFullscreen(){const p=document.getElementById("player-modal");if(!p||isIOS()||typeof p.requestFullscreen!=="function"||!document.fullscreenEnabled)return;try{const r=p.requestFullscreen({navigationUI:"hide"});if(r?.then)r.then(()=>{if(screen.orientation?.lock)screen.orientation.lock("landscape").catch(()=>{})}).catch(e=>console.info("[FLIXTV] Fullscreen unavailable:",e))}catch(e){console.info("[FLIXTV] Fullscreen unavailable:",e)}}
+function exitFullscreen(){if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{});try{if(screen.orientation?.unlock)screen.orientation.unlock()}catch(_){}}
+window.addEventListener("resize",schedule,{passive:true});window.addEventListener("orientationchange",schedule,{passive:true});if(window.visualViewport){window.visualViewport.addEventListener("resize",schedule,{passive:true});window.visualViewport.addEventListener("scroll",schedule,{passive:true})}
+window.FlixPlayerOrientation={sync,requestFullscreen,exitFullscreen,isIOS};
+})();

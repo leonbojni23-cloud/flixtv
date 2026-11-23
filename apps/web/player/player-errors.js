@@ -1,0 +1,5 @@
+(function(){"use strict";
+function message(d){const raw=String(d?.error||d?.message||"").trim();if(/network|fetch|offline|connection/i.test(raw))return "Lidhja me burimin e videos u ndërpre. Kontrollo internetin dhe provo përsëri.";if(/decode|codec|media|format/i.test(raw))return "Burimi dërgoi një format video që nuk mund të riprodhohet.";if(/source|server|404|403/i.test(raw))return "Serveri i videos nuk është i disponueshëm. Provo përsëri më vonë.";return raw?"CineSRC: "+raw:"CineSRC raportoi një gabim gjatë riprodhimit."}
+function report(data){const detail={message:message(data),raw:data||{},at:Date.now()};console.error("[FLIXTV] CineSRC playback error",detail);window.dispatchEvent(new CustomEvent("flxtv:player-error",{detail}));return detail}
+window.FlixPlayerErrors={message,report};
+})();

@@ -237,10 +237,11 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       renderer.setSize(width, height, false);
       material.uniforms.uResolution.value.set(width * pixelRatio, height * pixelRatio);
     };
+    let playerFocused = false;
     const render = now => {
-      if (disposed) return;
+      if (disposed || document.hidden || playerFocused) { raf = 0; return; }
       raf = requestAnimationFrame(render);
-      if (document.hidden || now - last < 32) return;
+      if (now - last < 32) return;
       const delta = last ? Math.min((now - last) / 1000, 0.06) : 0.032;
       last = now;
       if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) elapsed += delta;
@@ -255,7 +256,25 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     readPalette();
     window.addEventListener("resize", resize, { passive: true });
     window.addEventListener("orientationchange", () => setTimeout(() => resize(true), 220), { passive: true });
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) last = 0; });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden || playerFocused) {
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+      } else {
+        last = 0;
+        if (!raf && !disposed) raf = requestAnimationFrame(render);
+      }
+    });
+    window.addEventListener("flxtv:player-focus", event => {
+      playerFocused = !!event.detail?.active;
+      if (playerFocused || document.hidden) {
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+      } else if (!disposed && !raf) {
+        last = 0;
+        raf = requestAnimationFrame(render);
+      }
+    });
     window.addEventListener("flxtv:ambient-palette", readPalette);
         canvas.addEventListener("webglcontextlost", event => {
       event.preventDefault();
