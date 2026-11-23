@@ -6933,3 +6933,43 @@ body.flxtv-movie-detail .movie-detail-similar-card img{
   width:184px!important;
  }
 }
+
+
+/* Match the compact, translucent movie action controls from the reference.
+   Scoped exclusively to the movie detail page. */
+body.flxtv-movie-detail .movie-detail-actions{
+ gap:12px!important;
+ align-items:center!important;
+}
+body.flxtv-movie-detail .movie-detail-play{
+ width:auto!important;
+ min-width:0!important;
+ height:48px!important;
+ padding:0 22px!important;
+ gap:10px!important;
+ border-radius:999px!important;
+ background:#fff!important;
+ color:#080a0f!important;
+ font-size:16px!important;
+ font-weight:600!important;
+ box-shadow:none!important;
+}
+body.flxtv-movie-detail .movie-detail-play svg{
+ width:20px!important;
+ height:20px!important;
+}
+body.flxtv-movie-detail .movie-detail-round{
+ width:48px!important;
+ height:48px!important;
+ flex:0 0 48px!important;
+ border:1px solid rgba(255,255,255,.16)!important;
+ background:rgba(255,255,255,.12)!important;
+ color:#fff!important;
+ backdrop-filter:blur(18px)!important;
+ -webkit-backdrop-filter:blur(18px)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.10)!important;
+}
+body.flxtv-movie-detail .movie-detail-round svg{
+ width:23px!important;
+ height:23px!important;
+}
