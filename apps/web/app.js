@@ -2197,6 +2197,11 @@ window.addEventListener("popstate",event=>{
  if($("player-modal").classList.contains("open"))closePlayer();
  const view=event.state?.flixView;
  if(view){
+  // Leaving a movie/series detail through iOS Safari back must restore the
+  // original Home ambient node and clear detail-only body styling first.
+  document.body.classList.remove("flxtv-movie-detail","flxtv-series-detail","flxtv-movie-overscroll-lock");
+  setMovieGlobalAmbientSuppressed(false);
+  syncMovieDetailHeader(false);
   $("title-page").hidden=true;
   $("catalog").hidden=false;
   $("sports-page").hidden=!view.sports;
