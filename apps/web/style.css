@@ -7669,3 +7669,23 @@ body.flxtv-series-detail .movie-detail-play:active{
   0 0 26px rgba(255,255,255,.17),
   inset 0 1px 0 rgba(255,255,255,.95)!important;
 }
+
+
+/* Highest-specificity fix: the resume state is styled by #title-play.is-resume. */
+#title-play.is-resume,
+#title-play.is-resume:hover,
+#title-play.is-resume:focus,
+#title-play.is-resume:active{
+ background:#fff!important;
+ background-color:#fff!important;
+ background-image:none!important;
+ color:#080a0f!important;
+ border:1px solid rgba(255,255,255,.9)!important;
+ box-shadow:
+  0 0 0 1px rgba(255,255,255,.18),
+  0 0 10px rgba(255,255,255,.28),
+  0 0 21px rgba(255,255,255,.12),
+  inset 0 1px 0 rgba(255,255,255,.96)!important;
+}
+#title-play.is-resume svg,
+#title-play.is-resume svg path{color:#080a0f!important;fill:#080a0f!important}
