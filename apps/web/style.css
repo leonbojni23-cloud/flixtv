@@ -6601,3 +6601,33 @@ body.flxtv-movie-detail .movie-detail-studios img:nth-child(3){
   max-height:36px!important;
  }
 }
+
+
+/* Isolate movie detail from the catalog-wide ambient wallpaper.
+   The movie page must use only its own film artwork/blur layer; otherwise the
+   fixed app ambient canvas becomes visible when the local artwork fade ends. */
+html:has(body.flxtv-movie-detail),
+body.flxtv-movie-detail{
+ background:#080d17!important;
+}
+body.flxtv-movie-detail #app-ambient,
+body.flxtv-movie-detail #ambient-canvas,
+body.flxtv-movie-detail .app-ambient-scene,
+body.flxtv-movie-detail .ambient-scene{
+ display:none!important;
+}
+body.flxtv-movie-detail #title-page{
+ position:relative!important;
+ z-index:1!important;
+ isolation:isolate!important;
+ background:#080d17!important;
+}
+body.flxtv-movie-detail .movie-detail-page{
+ position:relative!important;
+ z-index:1!important;
+ isolation:isolate!important;
+ background:#080d17!important;
+}
+body.flxtv-movie-detail .movie-detail-section{
+ background:transparent!important;
+}
