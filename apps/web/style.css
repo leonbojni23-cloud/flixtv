@@ -7642,3 +7642,30 @@ body.flxtv-series-detail .movie-detail-play:active{
   0 0 26px rgba(255,255,255,.17),
   inset 0 1px 0 rgba(255,255,255,.95)!important;
 }
+
+
+/* Primary Play/Resume button: match the turquoise reference shown in the user's screenshot. */
+body.flxtv-movie-detail .movie-detail-play,
+body.flxtv-series-detail .movie-detail-play{
+ background:#087f9b!important;
+ color:#fff!important;
+ border:1px solid rgba(255,255,255,.72)!important;
+ box-shadow:
+  0 0 0 1px rgba(255,255,255,.14),
+  0 0 9px rgba(255,255,255,.24),
+  0 0 18px rgba(255,255,255,.10),
+  inset 0 1px 0 rgba(255,255,255,.22)!important;
+}
+body.flxtv-movie-detail .movie-detail-play svg,
+body.flxtv-series-detail .movie-detail-play svg{
+ color:#06151a!important;
+ fill:currentColor!important;
+}
+body.flxtv-movie-detail .movie-detail-play:active,
+body.flxtv-series-detail .movie-detail-play:active{
+ box-shadow:
+  0 0 0 1px rgba(255,255,255,.2),
+  0 0 12px rgba(255,255,255,.32),
+  0 0 22px rgba(255,255,255,.14),
+  inset 0 1px 0 rgba(255,255,255,.25)!important;
+}
