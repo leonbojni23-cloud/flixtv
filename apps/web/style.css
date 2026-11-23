@@ -7644,28 +7644,28 @@ body.flxtv-series-detail .movie-detail-play:active{
 }
 
 
-/* Primary Play/Resume button: match the turquoise reference shown in the user's screenshot. */
+/* Restore the original white Play/Resume button with a subtle white halo. */
 body.flxtv-movie-detail .movie-detail-play,
 body.flxtv-series-detail .movie-detail-play{
- background:#087f9b!important;
- color:#fff!important;
- border:1px solid rgba(255,255,255,.72)!important;
+ background:#fff!important;
+ color:#080a0f!important;
+ border:1px solid rgba(255,255,255,.88)!important;
  box-shadow:
-  0 0 0 1px rgba(255,255,255,.14),
-  0 0 9px rgba(255,255,255,.24),
-  0 0 18px rgba(255,255,255,.10),
-  inset 0 1px 0 rgba(255,255,255,.22)!important;
+  0 0 0 1px rgba(255,255,255,.20),
+  0 0 11px rgba(255,255,255,.30),
+  0 0 23px rgba(255,255,255,.13),
+  inset 0 1px 0 rgba(255,255,255,.95)!important;
 }
 body.flxtv-movie-detail .movie-detail-play svg,
 body.flxtv-series-detail .movie-detail-play svg{
- color:#06151a!important;
+ color:#080a0f!important;
  fill:currentColor!important;
 }
 body.flxtv-movie-detail .movie-detail-play:active,
 body.flxtv-series-detail .movie-detail-play:active{
  box-shadow:
-  0 0 0 1px rgba(255,255,255,.2),
-  0 0 12px rgba(255,255,255,.32),
-  0 0 22px rgba(255,255,255,.14),
-  inset 0 1px 0 rgba(255,255,255,.25)!important;
+  0 0 0 1px rgba(255,255,255,.25),
+  0 0 14px rgba(255,255,255,.38),
+  0 0 26px rgba(255,255,255,.17),
+  inset 0 1px 0 rgba(255,255,255,.95)!important;
 }
