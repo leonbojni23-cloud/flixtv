@@ -6281,16 +6281,15 @@ body.flxtv-movie-detail .movie-detail-section{
 }
 
 
-/* Movie artwork color continuation: stronger, visible color field.
-   The previous .34 image opacity combined with a dark overlay nearly erased
-   the artwork colors. Keep the same dynamic backdrop, but let its palette show. */
+/* Movie artwork continuation: slightly longer artwork and a seamless fade
+   into the page background. The fade is stretched so no hard image edge appears. */
 body.flxtv-movie-detail .movie-detail-ambient{
  position:absolute!important;
  z-index:0!important;
  top:0!important;
  left:0!important;
  right:0!important;
- height:1900px!important;
+ height:2200px!important;
  overflow:hidden!important;
  pointer-events:none!important;
  opacity:1!important;
@@ -6313,13 +6312,14 @@ body.flxtv-movie-detail .movie-detail-ambient:after{
  inset:0!important;
  background:
   linear-gradient(180deg,
-   rgba(8,13,23,.04) 0%,
-   rgba(8,13,23,.08) 28%,
-   rgba(8,13,23,.18) 52%,
-   rgba(8,13,23,.38) 72%,
-   rgba(8,13,23,.72) 90%,
+   rgba(8,13,23,.03) 0%,
+   rgba(8,13,23,.05) 34%,
+   rgba(8,13,23,.12) 55%,
+   rgba(8,13,23,.27) 72%,
+   rgba(8,13,23,.52) 86%,
+   rgba(8,13,23,.82) 96%,
    #080d17 100%),
-  linear-gradient(90deg,rgba(8,13,23,.12),rgba(8,13,23,.02) 50%,rgba(8,13,23,.14))!important;
+  linear-gradient(90deg,rgba(8,13,23,.10),rgba(8,13,23,.015) 50%,rgba(8,13,23,.12))!important;
 }
 body.flxtv-movie-detail .movie-detail-section{
  position:relative!important;
@@ -6327,5 +6327,5 @@ body.flxtv-movie-detail .movie-detail-section{
  background:transparent!important;
 }
 @media(min-width:761px){
- body.flxtv-movie-detail .movie-detail-ambient{height:2200px!important}
+ body.flxtv-movie-detail .movie-detail-ambient{height:2450px!important}
 }
