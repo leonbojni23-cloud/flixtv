@@ -335,7 +335,7 @@ function reorderHome(){
 async function loadHomeExtras(){
  try{var a=await Promise.all([tmdb("/trending/all/week"),tmdb("/tv/top_rated")]);var wide=$("bf-wide-row"),tv=$("bf-top-rated-tv-row");
   if(wide){wide.replaceChildren();(a[0].results||[]).filter(function(x){return x.backdrop_path}).slice(0,15).forEach(function(x){wide.appendChild(createWide(x))})}
-  if(tv){tv.replaceChildren();(a[1].results||[]).filter(function(x){return x.poster_path}).slice(0,20).forEach(function(x){tv.appendChild(createPoster(Object.assign({},x,{media_type:"tv"})))})}
+  if(tv){tv.replaceChildren();(a[1].results||[]).filter(function(x){return x.poster_path}).slice(0,20).forEach(function(x){var item=Object.assign({},x,{media_type:"tv"});tv.appendChild(typeof window.card==="function"?window.card(item):createPoster(item))})}
  }catch(e){console.warn("[FLIXTV] Added home rows unavailable",e)}
  try{renderHomeServices(await loadProviders())}catch(e){console.warn("[FLIXTV] Provider list unavailable",e)}
 }
