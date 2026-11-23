@@ -2683,6 +2683,9 @@ body.bf-provider-route .bf-provider-grid{display:grid!important;grid-template-co
 body.bf-provider-route .bf-provider-grid .bf-grid-card{display:block!important;width:100%!important;min-width:0!important;padding:0!important;border:0!important;background:transparent!important;color:#fff!important}
 body.bf-provider-route .bf-provider-grid .bf-grid-media{width:100%!important;aspect-ratio:2/3!important;overflow:hidden!important;border-radius:12px!important;background:rgba(255,255,255,.05)!important;box-shadow:0 8px 22px rgba(0,0,0,.22)!important}
 body.bf-provider-route .bf-provider-grid .bf-grid-media>img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important}
+body.bf-provider-route .bf-provider-grid .bf-grid-rating,
+body.bf-provider-route .bf-provider-grid .bf-grid-rating-inline{display:none!important}
+body.bf-provider-route .bf-provider-scroll-sentinel{grid-column:1/-1;width:100%;height:2px;pointer-events:none}
 body.bf-provider-route .bf-provider-grid .bf-grid-title,body.bf-provider-route .bf-provider-grid .bf-grid-meta{display:none!important}
 body.bf-provider-route .bf-provider-grid .bf-grid-hover{display:grid!important;place-items:center!important;background:rgba(0,0,0,.28)!important}
 body.bf-provider-route .bf-provider-grid .bf-grid-play{width:38px!important;height:38px!important}
