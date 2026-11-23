@@ -1484,7 +1484,7 @@ function movieTitlePageMarkup(d){
     '<div class="movie-detail-actions">'+
      '<button class="movie-detail-play" id="title-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L19 12z" fill="currentColor"/></svg><span>Play</span></button>'+
      '<button class="movie-detail-round" id="movie-detail-save" aria-label="Add to My List"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>'+
-     '<button class="movie-detail-round" id="movie-detail-trailer" aria-label="Watch trailer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h16v11H4zM4 8.5l3-5 4 5 3-5 4 5 2-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>'+
+     '<button class="movie-detail-round" id="movie-detail-trailer" aria-label="Watch trailer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="m10 8.5 5.5 3.5-5.5 3.5z" fill="currentColor" stroke="none"/></svg></button>'+
     '</div>'+
     '<div class="movie-detail-meta"><span>'+escapeHtml(String(d.release_date||"").slice(0,4)||"—")+'</span><span>'+escapeHtml(duration)+'</span><span class="movie-detail-cert" id="movie-detail-cert">—</span><span class="movie-detail-rating"><b>★</b> '+(d.vote_average?Number(d.vote_average).toFixed(1):"—")+'</span></div>'+
     (director?'<div class="movie-detail-director"><span>Director:</span> '+escapeHtml(director.name)+'</div>':'')+
@@ -1531,7 +1531,7 @@ function seriesTitlePageMarkup(d,playMode=false){
     '<div class="movie-detail-actions">'+
      '<button class="movie-detail-play" id="title-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L19 12z" fill="currentColor"/></svg><span>'+escapeHtml(resumeLabel)+'</span></button>'+
      '<button class="movie-detail-round" id="series-detail-save" aria-label="Add to My List"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>'+
-     '<button class="movie-detail-round" id="series-detail-trailer" aria-label="Watch trailer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h16v11H4zM4 8.5l3-5 4 5 3-5 4 5 2-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>'+
+     '<button class="movie-detail-round" id="series-detail-trailer" aria-label="Watch trailer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="m10 8.5 5.5 3.5-5.5 3.5z" fill="currentColor" stroke="none"/></svg></button>'+
     '</div>'+
     '<div class="movie-detail-meta"><span>'+escapeHtml(years||"—")+'</span><span class="movie-detail-cert">'+escapeHtml(d.content_ratings?.results?.find(x=>x.iso_3166_1==="US")?.rating||"TV")+'</span><span class="movie-detail-rating"><b>★</b> '+rating+'</span></div>'+
     (creators.length?'<div class="movie-detail-director"><span>Created by:</span> '+escapeHtml(creators.join(", "))+'</div>':'')+
