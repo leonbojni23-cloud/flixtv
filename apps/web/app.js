@@ -2870,7 +2870,15 @@ loadWatchProfiles();
 restoreWatchProgress();
 renderContinueWatching();
 ensureProfileUi();
-runBrandIntro();
+// A Continue Watching deep link already belongs to the previously selected
+// viewer. Keep that profile from localStorage and go straight to playback.
+const isDirectPlaybackRoute=location.pathname.split("/").filter(Boolean)[1]==="play";
+if(isDirectPlaybackRoute){
+ document.documentElement.classList.add("profile-ready");
+ const splash=$("brand-intro");if(splash)splash.remove();
+}else{
+ runBrandIntro();
+}
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);const playerCloseButton=$("player-close");if(playerCloseButton)playerCloseButton.onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
 let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
