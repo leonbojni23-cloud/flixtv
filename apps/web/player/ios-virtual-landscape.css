@@ -73,6 +73,17 @@
   -webkit-transform-origin:center center!important;
 }
 
+/* Keep the video centered. Only shorten the viewport along its local width,
+   which becomes the screen's top/bottom axis after the 90deg rotation.
+   A 24px reduction creates equal 12px margins at both ends. Its local height
+   (screen left/right axis) remains full width and is not modified. */
+@media (orientation:portrait){
+  #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape{
+    width:calc(var(--flxtv-ios-vv-height,100dvh) - 24px)!important;
+    left:calc(var(--flxtv-ios-vv-left,0px) + var(--flxtv-ios-vv-width,100vw)/2)!important;
+  }
+}
+
 /* Change only the two marked ends (top and bottom in the phone screenshot).
    Keep the viewport's full width/height dimensions and keep the video image
    centered: shift the rotated viewport 12px along its long axis, then
