@@ -1954,7 +1954,8 @@ function setMovieGlobalAmbientSuppressed(suppress){
   const artwork=document.querySelector("#title-page .movie-detail-backdrop-image")?.getAttribute("src")
    ||document.querySelector("#title-page .movie-detail-ambient-image")?.getAttribute("src");
   if(artwork)root.style.setProperty("--movie-root-artwork",'url("'+artwork.replace(/"/g,"%22")+'")');
-  document.body.classList.remove("flxtv-movie-overscroll-lock");
+  document.body.classList.add("flxtv-movie-overscroll-lock");
+  bindMovieOverscrollGuard();
   return;
  }
  document.body.classList.remove("flxtv-movie-overscroll-lock");
@@ -1965,6 +1966,25 @@ function setMovieGlobalAmbientSuppressed(suppress){
   if(brandIntro?.parentNode)brandIntro.parentNode.insertBefore(saved,brandIntro);
   else document.body.prepend(saved);
  }
+}
+function bindMovieOverscrollGuard(){
+ if(window.__flixMovieOverscrollGuardBound)return;
+ window.__flixMovieOverscrollGuardBound=true;
+ let lastTouchY=0;
+ document.addEventListener("touchstart",event=>{
+  if(!document.body.classList.contains("flxtv-movie-overscroll-lock")||event.touches.length!==1)return;
+  lastTouchY=event.touches[0].clientY;
+ },{passive:true});
+ document.addEventListener("touchmove",event=>{
+  if(!document.body.classList.contains("flxtv-movie-overscroll-lock")||event.touches.length!==1)return;
+  const currentY=event.touches[0].clientY;
+  const deltaY=currentY-lastTouchY;
+  lastTouchY=currentY;
+  const maxScroll=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+  const atTop=window.scrollY<=1;
+  const atBottom=window.scrollY>=maxScroll-2;
+  if((atTop&&deltaY>0)||(atBottom&&deltaY<0))event.preventDefault();
+ },{passive:false});
 }
 function openTitlePage(item,push=false,playMode=false,originCard=null){
  if(!item||!item.id)return Promise.resolve();
