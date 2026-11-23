@@ -140,12 +140,19 @@
 }
 
 
-/* Physical landscape on iPhone: keep the original centered alignment and
-   extend the video slightly farther on the right edge only. */
-@media (orientation:landscape) and (max-height:600px){
-  #player-modal.open.ios-player-active .cinesrc-video-wrapper:not(.ios-virtual-landscape){
-    left:0!important;
+/* Portrait-held iPhone: shift only the virtual viewport's crop window along
+   the rotated long axis. Counter-shift the iframe/video by the same amount,
+   keeping the actual picture centered while one edge gains space and the
+   opposite edge loses the same amount. The short axis is untouched, so the
+   remaining black bars stay equal on the left and right. */
+@media (orientation:portrait){
+  #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape{
+    left:calc(var(--flxtv-ios-vv-left,0px) + var(--flxtv-ios-vv-width,100vw)/2 + 12px)!important;
+  }
+  #player-modal.open.ios-player-active.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape #cinesrc-frame,
+  #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape #resolved-video{
+    left:-12px!important;
     right:auto!important;
-    width:calc(100% + 14px)!important;
+    width:var(--flxtv-ios-vv-height,100dvh)!important;
   }
 }
