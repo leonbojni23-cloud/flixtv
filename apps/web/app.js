@@ -2091,7 +2091,7 @@ function setMovieGlobalAmbientSuppressed(suppress){
  const current=document.getElementById("app-ambient");
  let wallpaper=document.getElementById("movie-viewport-wallpaper");
  if(suppress){
-  if(current){window.__flixGlobalAmbientNode=current;current.remove()}
+  if(current&&!window.__flixGlobalAmbientNode)window.__flixGlobalAmbientNode=current;
   const artwork=document.querySelector("#title-page .movie-detail-backdrop-image")?.getAttribute("src")
    ||document.querySelector("#title-page .movie-detail-ambient-image")?.getAttribute("src");
   if(artwork){
