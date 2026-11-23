@@ -1459,7 +1459,7 @@ function movieTitlePageMarkup(d){
  const genres=(d.genres||[]).slice(0,4);
  const director=(d.credits?.crew||[]).find(person=>person.job==="Director");
  const cast=(d.credits?.cast||[]).slice(0,12);
- const companies=(d.production_companies||[]).filter(company=>company.logo_path).slice(0,4);
+ const companies=(d.production_companies||[]).filter(company=>company.logo_path).slice(0,3);
  const runtime=Number(d.runtime)||0;
  const hours=Math.floor(runtime/60),minutes=runtime%60;
  const duration=runtime?(hours?hours+"h ":"")+minutes+"m":"—";
@@ -1568,7 +1568,7 @@ async function hydrateMovieDetailExtras(item,d,videosPromise){
  }
  const studios=$("movie-detail-studios");
  if(studios){
-  const companies=(d.production_companies||[]).filter(x=>x.logo_path).slice(0,4);
+  const companies=(d.production_companies||[]).filter(x=>x.logo_path).slice(0,3);
   studios.innerHTML=companies.map(x=>'<img loading="lazy" src="'+IMG+'w300'+x.logo_path+'" alt="'+escapeHtml(x.name)+'">').join("");
   studios.hidden=!companies.length;
  }
