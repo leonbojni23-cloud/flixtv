@@ -1498,25 +1498,62 @@ function movieTitlePageMarkup(d){
 }
 function titlePageMarkup(item,d,playMode=false){
  if(kind(d)!=="tv")return movieTitlePageMarkup(d);
- const tv=kind(d)==="tv",backdrop=d.backdrop_path?IMG+"w1280"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:""),posterPath=d.poster_path?IMG+"w500"+d.poster_path:"";
- const meta=[year(d),d.vote_average?"★ "+Number(d.vote_average).toFixed(1)+"/10":"",d.runtime?d.runtime+" min":tv?(d.number_of_seasons||0)+" sezone":""].filter(Boolean);
- const genres=(d.genres||[]).slice(0,5),cast=(d.credits?.cast||[]).slice(0,6);
- const seasons=tv?(d.seasons||[]).filter(x=>x.season_number>=0):[];
- const overview=d.overviewSq||d.overview||"Përshkrimi nuk është i disponueshëm.";
- const imdbVideo=(d.imdbVideos?.videos||[]).find(v=>(v.type||"").toLowerCase()==="trailer"&&Array.isArray(v.playback)&&v.playback.some(p=>p.url&&["MP4","M3U8"].includes(String(p.format||"").toUpperCase())));
- const imdbSource=imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="MP4"&&p.url)||imdbVideo?.playback?.find(p=>String(p.format||"").toUpperCase()==="M3U8"&&p.url);
- // IMDb is the only trailer source in both Safari and the installed PWA.
- // If IMDb has no playable clip, keep the poster instead of switching to YouTube.
- const preview=imdbSource?'<div class="title-page-preview" aria-hidden="true"><video class="title-page-imdb-video" autoplay muted playsinline loop controls preload="metadata" poster="'+escapeHtml(typeof imdbVideo.thumbnail==="string"?imdbVideo.thumbnail:"")+'"><source src="'+escapeHtml(imdbSource.url)+'" type="'+(String(imdbSource.format).toUpperCase()==="M3U8"?'application/vnd.apple.mpegurl':'video/mp4')+'"></video></div>':"";
-  const cover=preview||(backdrop?'<img class="title-page-cover-image" src="'+backdrop+'" alt="'+escapeHtml(title(d))+'">':posterPath?'<img class="title-page-cover-image" src="'+posterPath+'" alt="'+escapeHtml(title(d))+'">':'<div class="title-page-poster-placeholder">FLIXTV</div>');
- return '<div class="title-page-hero"><div class="title-page-backdrop" style="'+(backdrop?'background-image:linear-gradient(90deg,#080b11 0%,rgba(8,11,17,.92) 30%,rgba(8,11,17,.48) 66%,rgba(8,11,17,.25)),linear-gradient(0deg,#090b10 0%,transparent 52%),url("'+backdrop+'")':'')+'"></div>'+
- '<div class="title-page-inner"><a class="title-page-back" href="/" data-title-home aria-label="Kthehu në faqen kryesore"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a><div class="title-page-cover">'+cover+'</div><div class="title-page-layout"><div class="title-page-copy"><div class="title-page-kicker"><span class="title-page-kicker-dot"></span>'+(tv?"FLIXTV ORIGINAL SERIES":"FLIXTV FILM")+'</div><h1>'+escapeHtml(title(d))+'</h1>'+
- '<div class="title-page-meta">'+meta.map((x,i)=>'<span class="'+(i===1?'rating':'')+'">'+escapeHtml(x)+'</span>').join('<i></i>')+'</div>'+
- (genres.length?'<div class="title-page-genres">'+genres.map(g=>'<span>'+escapeHtml(g.name)+'</span>').join("")+'</div>':"")+
- '<div class="title-page-overview-wrap"><p class="title-page-overview collapsed" id="title-overview">'+escapeHtml(overview)+'</p>'+(overview.length>190?'<button type="button" class="overview-more" id="overview-more" aria-expanded="false">Më shumë</button>':"")+'</div>'+
- '<div class="title-page-actions"><button class="primary-btn" id="title-play">▶ <span>'+(tv?"Luaj S"+titlePageSeason+":E"+titlePageEpisode:"Luaj filmin")+'</span></button></div>'+'</div></div></div></div>'+(tv?'<section class="series-episode-section"><div class="series-section-tabs"><button type="button" class="active" id="series-episodes-tab">Episodet</button><button type="button" id="series-similar-tab">Më shumë si ky</button></div><div class="series-season-bar"><label for="title-season">Sezoni</label><select id="title-season">'+seasons.map(x=>'<option value="'+x.season_number+'" '+(Number(x.season_number)===titlePageSeason?'selected':'')+'>'+escapeHtml(x.name||("Sezoni "+x.season_number))+'</option>').join("")+'</select></div><div id="title-episode-list" class="series-episode-list"></div></section>':"")+
- '<section class="title-page-more"><div class="title-page-section-head"><div><span class="title-page-section-label">MË SHUMË INFORMACION</span><h2>Rreth titullit</h2></div><span class="title-page-index">FLIXTV / '+(tv?"SERIALE":"FILMA")+'</span></div><div class="title-page-info-grid"><article class="title-page-facts"><div><span>STATUSI</span><strong>'+escapeHtml(d.status||"Nuk dihet")+'</strong></div><div><span>TITULLI ORIGJINAL</span><strong>'+escapeHtml(d.original_title||d.original_name||title(d))+'</strong></div><div><span>GJUHA ORIGJINALE</span><strong>'+escapeHtml(String(d.original_language||"").toUpperCase())+'</strong></div>'+(d.release_date||d.first_air_date?'<div><span>DATA E PUBLIKIMIT</span><strong>'+escapeHtml(d.release_date||d.first_air_date)+'</strong></div>':"")+'</article></div>'+
- (cast.length?'<div class="title-page-cast-head"><h2>Interpretojnë</h2><span>KASTI KRYESOR</span></div><div class="title-page-cast">'+cast.map(p=>'<div class="title-page-cast-card">'+(p.profile_path?'<img loading="lazy" src="'+IMG+'w185'+p.profile_path+'" alt="">':'<div class="cast-placeholder">FLIXTV</div>')+'<strong>'+escapeHtml(p.name||"")+'</strong><small>'+escapeHtml(p.character||"")+'</small></div>').join("")+'</div>':"")+'</section>';
+ return seriesTitlePageMarkup(d,playMode);
+}
+function seriesTitlePageMarkup(d,playMode=false){
+ const backdrop=d.backdrop_path?IMG+"original"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:"");
+ const genres=(d.genres||[]).slice(0,4),cast=(d.credits?.cast||[]).slice(0,12);
+ const seasons=(d.seasons||[]).filter(x=>Number(x.season_number)>=0);
+ const firstAir=d.first_air_date?new Date(d.first_air_date+"T12:00:00").toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}):"—";
+ const lastAir=d.last_air_date?new Date(d.last_air_date+"T12:00:00").toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}):"—";
+ const years=(d.first_air_date||"").slice(0,4)+(d.last_air_date?"–"+String(d.last_air_date).slice(0,4):d.status==="Ended"?"":"–");
+ const rating=d.vote_average?Number(d.vote_average).toFixed(1):"—";
+ const runtime=(d.episode_run_time||[]).find(x=>Number(x)>0);
+ const creators=(d.created_by||[]).map(x=>x.name).filter(Boolean);
+ const network=(d.networks||[]).find(x=>x.logo_path);
+ const saved=getSavedProgress(titlePageItem||d);
+ const resumeLabel=saved&&Number(saved.currentTime)>5&&(!saved.duration||Number(saved.currentTime)<Number(saved.duration)*.92)?"Resume S"+(saved.season||titlePageSeason)+" E"+(saved.episode||titlePageEpisode):"Play S"+titlePageSeason+" E"+titlePageEpisode;
+ const logoFallback='<span class="movie-detail-title-fallback">'+escapeHtml(title(d))+'</span>';
+ return '<div class="series-detail-page movie-detail-page">'+
+  '<div class="movie-detail-ambient" aria-hidden="true"><img class="movie-detail-ambient-image" src="'+escapeHtml(backdrop)+'" alt="" loading="eager" decoding="async"></div>'+
+  '<section class="movie-detail-hero series-detail-hero">'+
+   '<div class="movie-detail-backdrop"><img class="movie-detail-backdrop-image" src="'+escapeHtml(backdrop)+'" alt="" aria-hidden="true" fetchpriority="high" decoding="async"></div>'+
+   '<div class="movie-detail-shade"></div>'+
+   '<div class="movie-detail-copy">'+
+    '<div class="movie-detail-logo-wrap" id="series-detail-logo">'+logoFallback+'</div>'+
+    '<div class="movie-detail-genres">'+genres.map(g=>'<span>'+escapeHtml(g.name)+'</span>').join('<i>·</i>')+'</div>'+
+    '<div class="movie-detail-actions">'+
+     '<button class="movie-detail-play" id="title-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L19 12z" fill="currentColor"/></svg><span>'+escapeHtml(resumeLabel)+'</span></button>'+
+     '<button class="movie-detail-round" id="series-detail-save" aria-label="Add to My List"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>'+
+     '<button class="movie-detail-round" id="series-detail-trailer" aria-label="Watch trailer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h16v11H4zM4 8.5l3-5 4 5 3-5 4 5 2-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>'+
+    '</div>'+
+    '<div class="movie-detail-meta"><span>'+escapeHtml(years||"—")+'</span><span class="movie-detail-cert">'+escapeHtml(d.content_ratings?.results?.find(x=>x.iso_3166_1==="US")?.rating||"TV")+'</span><span class="movie-detail-rating"><b>★</b> '+rating+'</span></div>'+
+    (creators.length?'<div class="movie-detail-director"><span>Created by:</span> '+escapeHtml(creators.join(", "))+'</div>':'')+
+    '<div class="movie-detail-overview-wrap"><p class="movie-detail-overview collapsed" id="title-overview">'+escapeHtml(d.overviewSq||d.overview||"Description unavailable.")+'</p><button type="button" class="movie-detail-readmore" id="overview-more" aria-expanded="false">Read more</button></div>'+
+   '</div>'+
+   '<div class="movie-detail-facts series-detail-facts" aria-label="Series information">'+
+    '<div><span>Status</span><strong>'+escapeHtml(d.status||"—")+'</strong></div>'+
+    '<div><span>Language</span><strong id="series-detail-language">'+escapeHtml(languageDisplayName(d.original_language))+'</strong></div>'+
+    '<div><span>First Aired</span><strong>'+escapeHtml(firstAir)+'</strong></div>'+
+    '<div><span>Last Aired</span><strong>'+escapeHtml(lastAir)+'</strong></div>'+
+    '<div><span>Seasons</span><strong>'+Number(d.number_of_seasons||seasons.length||0)+'</strong></div>'+
+    '<div><span>Episodes</span><strong>'+Number(d.number_of_episodes||0)+'</strong></div>'+
+   '</div>'+
+   '<div class="movie-detail-studios series-detail-networks" id="series-detail-networks">'+(network&&network.logo_path?'<img loading="lazy" src="'+IMG+'w300'+network.logo_path+'" alt="'+escapeHtml(network.name)+'">':'')+'</div>'+
+  '</section>'+
+  '<section class="movie-detail-section series-season-section" id="series-season-section">'+
+   '<div class="series-season-heading"><button type="button" class="series-season-trigger" id="series-season-trigger"><span id="series-season-label">Season '+titlePageSeason+'</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button type="button" class="movie-detail-round series-seen-all" id="series-seen-all" aria-label="Mark all episodes as watched"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button></div>'+
+   '<div class="series-season-menu" id="series-season-menu" hidden>'+seasons.map(x=>'<button type="button" class="series-season-option '+(Number(x.season_number)===Number(titlePageSeason)?'active':'')+'" data-season="'+Number(x.season_number)+'">'+(x.poster_path?'<img loading="lazy" src="'+IMG+'w92'+x.poster_path+'" alt="">':'<span class="series-season-poster-fallback">S'+Number(x.season_number)+'</span>')+'<span><strong>'+escapeHtml(x.name||("Season "+x.season_number))+'</strong><small>'+Number(x.episode_count||0)+' episodes</small></span>'+(Number(x.season_number)===Number(titlePageSeason)?'<b>✓</b>':'')+'</button>').join('')+'</div>'+
+   '<select id="title-season" class="series-season-native" aria-label="Choose season">'+seasons.map(x=>'<option value="'+x.season_number+'" '+(Number(x.season_number)===Number(titlePageSeason)?'selected':'')+'>'+escapeHtml(x.name||("Season "+x.season_number))+'</option>').join('')+'</select>'+
+   '<div id="title-episode-list" class="series-episode-list movie-detail-cast-row"><div class="movie-detail-loading">Loading episodes…</div></div>'+
+  '</section>'+
+  (cast.length?'<section class="movie-detail-section movie-detail-cast-section" id="movie-detail-cast-section"><h2>Cast</h2><div class="movie-detail-cast-row">'+cast.map(person=>'<article class="movie-detail-cast-card">'+(person.profile_path?'<img loading="lazy" decoding="async" src="'+IMG+'w185'+person.profile_path+'" alt="'+escapeHtml(person.name)+'">':'<div class="movie-detail-cast-placeholder"></div>')+'<strong>'+escapeHtml(person.name||"")+'</strong><span>'+escapeHtml(person.character||"")+'</span></article>').join('')+'</div></section>':'')+
+  '<section class="movie-detail-section movie-detail-trailers-section" id="series-trailers"><h2>Trailer</h2><div class="movie-detail-trailer-row" id="series-detail-trailer-row"><div class="movie-detail-loading">Loading trailer…</div></div></section>'+
+  '<section class="movie-detail-section movie-detail-similar-section" id="series-similar"><h2>You Might Also Like</h2><div class="movie-detail-similar-row" id="series-detail-similar-row"><div class="movie-detail-loading">Loading recommendations…</div></div></section>'+
+ '</div>';
+}
+function languageDisplayName(code){
+ try{return new Intl.DisplayNames(["en"],{type:"language"}).of(code||"en")}catch(_){return String(code||"en").toUpperCase()}
 }
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function syncMovieDetailHeader(enabled){
