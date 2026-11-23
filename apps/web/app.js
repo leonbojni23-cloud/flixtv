@@ -1144,7 +1144,13 @@ function createServiceCard(provider){
  label.className="service-card-label";
  label.textContent=displayName;
  button.append(tile,label);
- button.onclick=()=>browseServiceProvider(provider);
+ button.onclick=()=>{
+  const serviceSlug=String(provider.provider_name||"").toLowerCase()
+   .replace(/\\+/g," plus ")
+   .replace(/[^a-z0-9]+/g,"-")
+   .replace(/^-|-$/g,"");
+  location.href="/browse/provider/"+serviceSlug;
+ };
  return button;
 }
 async function loadBrowseServices(){
