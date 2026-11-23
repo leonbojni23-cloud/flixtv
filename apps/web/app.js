@@ -1473,9 +1473,9 @@ function prefetchTitle(item){
 }
 function navigateToTitle(item){
  if(!item||!item.id)return;
- const url=pageUrl(item);
- if(location.pathname!==url)history.pushState({titlePage:true},"",url);
- openTitlePage(item,false,false);
+ // Use the same navigation path as every in-app title card so the previous
+ // page, scroll position and active tab are saved for the detail Back button.
+ openTitlePage(item,location.pathname!==pageUrl(item),false);
 }
 let titleYoutubePlayer=null;
 function setTitleYoutubeButton(playing){
