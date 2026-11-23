@@ -2611,7 +2611,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   $("player-modal").dataset.playerState="loading";setPlayerStatus("Po lidhet me CineSRC…");
   requestPlayerFullscreen();syncPlayerOrientation();startPlaybackProgressTracking();
   frame.onerror=()=>{if(playbackId!==playbackOpenId)return;$("player-modal").dataset.playerState="error";setPlayerStatus("CineSRC nuk u ngarkua. Kontrollo lidhjen ose burimin.",true)};
-  const opened=window.FlixCineSRC?.open({mediaType,tmdbId:item.id,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null,resumeTime:Number(resumeTime)||0});
+  window.FlixParentalGuide?.open(item,season,episode).catch(error=>console.info("[FLIXTV] Parental guide unavailable:",error));\n  const opened=window.FlixCineSRC?.open({mediaType,tmdbId:item.id,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null,resumeTime:Number(resumeTime)||0});
   if(!opened)throw new Error("Moduli i ri CineSRC nuk u inicializua.");
   console.info("[FLIXTV] CineSRC playback opened",{title:title(item),mediaType,tmdbId:item.id,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null,resumeTime:Number(resumeTime)||0,embedUrl:opened.embedUrl});
   return opened;
@@ -2630,7 +2630,7 @@ function closePlayer(){
   window.FlixPlaybackProgress?.flush();renderContinueWatching();
   $("player-modal").classList.remove("ios-landscape-layout");
   playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;
-  window.FlixPlaybackProgress?.stop();window.FlixCineSRC?.close();window.FlixPlayerOrientation?.exitFullscreen();
+  window.FlixPlaybackProgress?.stop();window.FlixCineSRC?.close();window.FlixParentalGuide?.close();window.FlixPlayerOrientation?.exitFullscreen();
   $("player-modal").classList.remove("css-fullscreen");clearTimeout(controlsTimer);clearTimeout(introTimer);
   stopResolvedVideo();currentPlayback=null;
   if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false}
