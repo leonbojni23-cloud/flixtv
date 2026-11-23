@@ -7412,13 +7412,13 @@ body.flxtv-series-detail .series-episode-card.is-seen .series-episode-thumb::aft
  color:#fff!important;
  text-align:left!important;
 }
-#home-page #continue-watching .continue-card>img{
+#home-page #continue-watching .continue-card .continue-card-art>img{
  display:block!important;
  width:100%!important;
  height:auto!important;
  aspect-ratio:2.2/1!important;
  object-fit:cover!important;
- border-radius:clamp(14px,2.2vw,26px)!important;
+ border-radius:0!important;
  background:#171717!important;
 }
 #home-page #continue-watching .continue-card-art{
@@ -7468,7 +7468,7 @@ body.flxtv-series-detail .series-episode-card.is-seen .series-episode-thumb::aft
  display:block!important;
  overflow:hidden!important;
  color:rgba(255,255,255,.96)!important;
- font-size:clamp(14px,1.8vw,22px)!important;
+ font-size:clamp(17px,2.5vw,29px)!important;
  font-weight:500!important;
  line-height:1.2!important;
  letter-spacing:-.025em!important;
@@ -7489,7 +7489,7 @@ body.flxtv-series-detail .series-episode-card.is-seen .series-episode-thumb::aft
 #home-page .continue-section-title,
 #home-page .continue-heading-title{
  color:rgba(255,255,255,.98)!important;
- font-size:clamp(20px,2.8vw,32px)!important;
+ font-size:clamp(25px,3.6vw,42px)!important;
  font-weight:650!important;
  letter-spacing:-.035em!important;
 }
@@ -7525,7 +7525,7 @@ body.flxtv-series-detail .series-episode-card.is-seen .series-episode-thumb::aft
   flex-basis:78vw!important;
   width:78vw!important;
  }
- #home-page #continue-watching .continue-card>img{aspect-ratio:2.05/1!important}
+ #home-page #continue-watching .continue-card .continue-card-art>img{aspect-ratio:2.05/1!important}
  #home-page #continue-watching .continue-card-copy{padding-top:10px!important}
  #home-page .continue-section-heading{margin-bottom:20px!important}
 }
