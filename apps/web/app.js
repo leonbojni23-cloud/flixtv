@@ -1949,15 +1949,26 @@ function animatePosterFallback(sourceImage,targetPoster,sourceRect,sourceRadius)
 function setMovieGlobalAmbientSuppressed(suppress){
  const root=document.documentElement;
  const current=document.getElementById("app-ambient");
+ let wallpaper=document.getElementById("movie-viewport-wallpaper");
  if(suppress){
   if(current){window.__flixGlobalAmbientNode=current;current.remove()}
   const artwork=document.querySelector("#title-page .movie-detail-backdrop-image")?.getAttribute("src")
    ||document.querySelector("#title-page .movie-detail-ambient-image")?.getAttribute("src");
-  if(artwork)root.style.setProperty("--movie-root-artwork",'url("'+artwork.replace(/"/g,"%22")+'")');
+  if(artwork){
+   root.style.setProperty("--movie-root-artwork",'url("'+artwork.replace(/"/g,"%22")+'")');
+   if(!wallpaper){
+    wallpaper=document.createElement("div");
+    wallpaper.id="movie-viewport-wallpaper";
+    wallpaper.setAttribute("aria-hidden","true");
+    document.body.appendChild(wallpaper);
+   }
+   wallpaper.style.backgroundImage='url("'+artwork.replace(/"/g,"%22")+'")';
+  }
   document.body.classList.remove("flxtv-movie-overscroll-lock");
   return;
  }
  document.body.classList.remove("flxtv-movie-overscroll-lock");
+ wallpaper?.remove();
  root.style.removeProperty("--movie-root-artwork");
  const saved=window.__flixGlobalAmbientNode;
  if(saved&&!saved.isConnected){
