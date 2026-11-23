@@ -354,11 +354,15 @@ function shader(){
  var rr=gl.getUniformLocation(pr,"r"),tt=gl.getUniformLocation(pr,"t"),start=performance.now(),raf=0,timer=0;
  function resize(){var dpr=Math.min(devicePixelRatio||1,1.3),w=Math.max(1,Math.floor(innerWidth*dpr)),h=Math.max(1,Math.floor(innerHeight*dpr));if(c.width!==w||c.height!==h){c.width=w;c.height=h;gl.viewport(0,0,w,h)}}
  function stop(){if(timer)clearTimeout(timer);timer=0;if(raf)cancelAnimationFrame(raf);raf=0}
- function schedule(){if(doc.hidden||timer||raf)return;timer=window.setTimeout(function(){timer=0;raf=requestAnimationFrame(draw)},16)}
- function draw(now){raf=0;if(doc.hidden)return;resize();gl.uniform2f(rr,c.width,c.height);gl.uniform1f(tt,(now-start)/1000);gl.drawArrays(gl.TRIANGLES,0,6);schedule()}
- resize();schedule();doc.addEventListener("visibilitychange",function(){if(doc.hidden)stop();else schedule()});
+ function shouldRun(){return !doc.hidden&&c.isConnected&&doc.body&&!doc.body.classList.contains("bf-provider-route")&&getComputedStyle(c).display!=="none"}
+ function schedule(){if(!shouldRun()||timer||raf)return;timer=window.setTimeout(function(){timer=0;if(shouldRun())raf=requestAnimationFrame(draw)},16)}
+ function sync(){if(shouldRun())schedule();else stop()}
+ function draw(now){raf=0;if(!shouldRun())return;resize();gl.uniform2f(rr,c.width,c.height);gl.uniform1f(tt,(now-start)/1000);gl.drawArrays(gl.TRIANGLES,0,6);schedule()}
+ resize();sync();
+ doc.addEventListener("visibilitychange",sync);
+ if(window.MutationObserver&&doc.body){var routeObserver=new MutationObserver(sync);routeObserver.observe(doc.body,{attributes:true,attributeFilter:["class"]})}
  c.addEventListener("webglcontextlost",function(e){e.preventDefault();stop();c.style.display="none"});
- c.addEventListener("webglcontextrestored",function(){c.style.display="block";schedule()});
+ c.addEventListener("webglcontextrestored",function(){c.style.display="block";sync()});
 }
 function install(){
  doc.body.classList.add("bf-reference-mode");ensurePanel().hidden=true;installHeader();reorderHome();shader();
