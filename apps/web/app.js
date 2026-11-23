@@ -1468,6 +1468,7 @@ function movieTitlePageMarkup(d){
  const certification=""; 
  const logoFallback='<span class="movie-detail-title-fallback">'+escapeHtml(title(d))+'</span>';
  return '<div class="movie-detail-page">'+
+  '<div class="movie-detail-ambient" aria-hidden="true"><img class="movie-detail-ambient-image" src="'+escapeHtml(backdrop)+'" alt="" loading="eager" decoding="async"></div>'+
   '<section class="movie-detail-hero">'+
    '<div class="movie-detail-backdrop"><img class="movie-detail-backdrop-image" src="'+escapeHtml(backdrop)+'" alt="" aria-hidden="true" fetchpriority="high" decoding="async"></div>'+
    '<div class="movie-detail-shade"></div>'+
