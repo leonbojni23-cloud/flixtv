@@ -1798,7 +1798,7 @@ async function hydrateTitlePage(item,push=false,playMode=false){
   if(k==="tv")loadTitleEpisodes();
   const canResume=savedIsResumable&&(k==="movie"||(Number(savedForTitle.season)===titlePageSeason&&Number(savedForTitle.episode)===titlePageEpisode));
   const titlePlayLabel=$("title-play").querySelector("span");
-  if(titlePlayLabel)titlePlayLabel.textContent=canResume?(k==="tv"?"Resume S"+savedForTitle.season+" E"+savedForTitle.episode:"Vazhdo filmin"):(k==="tv"?"Play S"+titlePageSeason+" E"+titlePageEpisode:"Luaj filmin");
+  if(titlePlayLabel)titlePlayLabel.textContent=canResume?(k==="tv"?"Resume S"+savedForTitle.season+" E"+savedForTitle.episode:"Resume"):(k==="tv"?"Play S"+titlePageSeason+" E"+titlePageEpisode:"Play");
   $("title-play").classList.toggle("is-resume",!!canResume);
   $("title-play").onclick=()=>{
    const season=k==="tv"?(canResume?Number(savedForTitle.season):Number($("title-season").value)):undefined;
