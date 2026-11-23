@@ -6190,3 +6190,43 @@ body.flxtv-movie-detail .movie-detail-studios img{
   padding-top:180px!important;
  }
 }
+
+
+/* Color-matched blurred transition beneath the movie artwork.
+   backdrop-filter samples the current film image itself, so the tint changes
+   naturally with each title instead of using one generic brand color. */
+body.flxtv-movie-detail .movie-detail-backdrop{
+ isolation:isolate!important;
+}
+body.flxtv-movie-detail .movie-detail-backdrop::after{
+ content:"";
+ position:absolute;
+ z-index:1;
+ left:-4%;
+ right:-4%;
+ bottom:-2px;
+ height:48%;
+ pointer-events:none;
+ backdrop-filter:blur(30px) saturate(1.48);
+ -webkit-backdrop-filter:blur(30px) saturate(1.48);
+ background:linear-gradient(
+  180deg,
+  rgba(8,13,23,0) 0%,
+  rgba(8,13,23,.10) 24%,
+  rgba(8,13,23,.42) 62%,
+  rgba(8,13,23,.86) 100%
+ );
+ -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.42) 19%,#000 54%,#000 100%);
+ mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.42) 19%,#000 54%,#000 100%);
+}
+body.flxtv-movie-detail .movie-detail-shade{
+ background:
+  linear-gradient(180deg,
+   rgba(5,9,18,.035) 0%,
+   rgba(5,9,18,.015) 25%,
+   rgba(5,9,18,.08) 43%,
+   rgba(5,9,18,.23) 61%,
+   rgba(5,9,18,.58) 82%,
+   #080d17 100%),
+  linear-gradient(90deg,rgba(4,8,15,.12),transparent 72%)!important;
+}
