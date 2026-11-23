@@ -121,7 +121,7 @@ function title(x){return x.title||x.name||x.original_title||x.original_name||"Pa
 function kind(x){if(x&&x.media_type==="movie")return"movie";if(x&&x.media_type==="tv")return"tv";if(x&&x.release_date)return"movie";if(x&&x.first_air_date)return"tv";return"movie"}
 function year(x){return(x.release_date||x.first_air_date||"").slice(0,4)}
 function poster(x){return x.poster_path?IMG+"w342"+x.poster_path:""}
-function card(x,keepArtworkOverlay=false){
+function card(x,keepArtworkOverlay=false,showRating=true){
  const b=document.createElement("button");b.className="poster-card";b.type="button";
  b.setAttribute("aria-label","Shiko detajet: "+title(x));
  const src=poster(x),rating=Number(x.vote_average);
@@ -134,7 +134,7 @@ function card(x,keepArtworkOverlay=false){
   const placeholder=document.createElement("span");
   placeholder.className="placeholder";placeholder.textContent="FLIXTV";art.append(placeholder);
  }
- if(Number.isFinite(rating)&&rating>0){
+ if(showRating&&Number.isFinite(rating)&&rating>0){
   const ratingBadge=document.createElement("span");
   ratingBadge.className="poster-rating";
   ratingBadge.setAttribute("aria-label","Vlerësimi "+rating.toFixed(1));
@@ -2897,7 +2897,7 @@ function closeSearchPage(){
  openPage("home");
 }
 function renderSearchCards(items){
- $("search-grid").replaceChildren(...items.filter(x=>x.poster_path).map(card));
+ $("search-grid").replaceChildren(...items.filter(x=>x.poster_path).map(item=>card(item,false,false)));
  $("search-count").textContent=items.length+" titles";
  $("search-empty").hidden=items.length>0;
 }

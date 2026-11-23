@@ -7695,3 +7695,37 @@ body.flxtv-series-detail .movie-detail-play:active{
 .profile-flight-avatar{overflow:hidden;border-radius:7px!important;will-change:transform;backface-visibility:hidden;}
 .profile-flight-avatar img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit;}
 .profile-screen{transition:none!important}}
+
+
+/* Search results use the same poster-card component as Movies and Shows. */
+#search-page #search-grid{
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:22px 14px!important;
+ align-items:start;
+}
+#search-page #search-grid>.poster-card{
+ width:100%!important;
+ min-width:0!important;
+}
+#search-page #search-grid .poster-rating{display:none!important}
+#search-clear{
+ width:38px!important;height:38px!important;min-width:38px!important;
+ display:grid!important;place-items:center!important;
+ flex:0 0 38px!important;padding:0!important;margin:0!important;
+ border:1px solid rgba(255,255,255,.12)!important;
+ border-radius:50%!important;
+ background:rgba(255,255,255,.10)!important;
+ color:#fff!important;font-size:23px!important;line-height:1!important;
+ -webkit-appearance:none!important;appearance:none!important;
+ cursor:pointer;touch-action:manipulation;
+}
+#search-clear:active{transform:scale(.94);background:rgba(255,255,255,.18)!important}
+@media(max-width:760px){
+ #search-page #search-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px 10px!important}
+ #search-page #search-grid .poster-title{font-size:12px!important;line-height:1.35!important}
+ #search-clear{width:34px!important;height:34px!important;min-width:34px!important;flex-basis:34px!important}
+}
+@media(max-width:360px){
+ #search-page #search-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
