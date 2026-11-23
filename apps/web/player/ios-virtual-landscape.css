@@ -1,0 +1,133 @@
+/* iPhone-only virtual landscape. The modal stays in the physical viewport;
+   the playback surface gets a landscape layout viewport before it is rotated. */
+#player-modal.open.ios-player-active{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100vh!important;
+  height:100dvh!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:0!important;
+  background:#000!important;
+  transform:none!important;
+}
+#player-modal.open.ios-player-active .cinesrc-video-wrapper{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:#000!important;
+  transform:none!important;
+  -webkit-transform:none!important;
+}
+#player-modal.open.ios-player-active #cinesrc-frame,
+#player-modal.open.ios-player-active #resolved-video{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  border:0!important;
+  transform:none!important;
+  -webkit-transform:none!important;
+  transform-origin:center center!important;
+  -webkit-transform-origin:center center!important;
+}
+#player-modal.open.ios-player-active #cinesrc-frame[hidden],
+#player-modal.open.ios-player-active #resolved-video[hidden]{
+  display:none!important;
+}
+#player-modal.open.ios-player-active #resolved-video{
+  object-fit:contain!important;
+  background:#000!important;
+}
+
+/* Portrait-held iPhone: a landscape-sized iframe viewport is rotated as one
+   layer. CineSRC therefore lays itself out in landscape instead of being
+   stretched inside a portrait iframe. */
+#player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape{
+  inset:auto!important;
+  top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2)!important;
+  left:calc(var(--flxtv-ios-vv-left,0px) + var(--flxtv-ios-vv-width,100vw)/2)!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:var(--flxtv-ios-vv-height,100dvh)!important;
+  height:var(--flxtv-ios-vv-width,100vw)!important;
+  max-width:none!important;
+  max-height:none!important;
+  transform:translate(-50%,-50%) rotate(90deg)!important;
+  -webkit-transform:translate(-50%,-50%) rotate(90deg)!important;
+  transform-origin:center center!important;
+  -webkit-transform-origin:center center!important;
+}
+
+/* These parent-document layers travel with the rotated video viewport, so
+   external subtitles and the subtitle controls stay aligned with the film. */
+#player-modal.open.ios-player-active .external-subtitle-overlay{
+  position:absolute!important;
+  left:5%!important;
+  right:5%!important;
+  bottom:8.5%!important;
+  width:auto!important;
+  top:auto!important;
+  transform:none!important;
+  -webkit-transform:none!important;
+  z-index:2147483001!important;
+}
+#player-modal.open.ios-player-active .subtitle-toolbar{
+  position:absolute!important;
+  top:max(10px,env(safe-area-inset-left,0px))!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:max-content!important;
+  max-width:calc(100% - 120px)!important;
+  transform:translateX(-50%)!important;
+  -webkit-transform:translateX(-50%)!important;
+  z-index:2147483002!important;
+}
+#player-modal.open.ios-player-active #cinesrc-fullscreen-blocker{
+  position:absolute!important;
+  right:0!important;
+  bottom:0!important;
+  left:auto!important;
+  top:auto!important;
+  z-index:2147483004!important;
+}
+
+/* Keep FLIXTV's own exit control upright and reachable in the phone's
+   physical orientation. The provider viewport alone is rotated. */
+#player-modal.open.ios-player-active .player-actions{
+  position:absolute!important;
+  top:calc(env(safe-area-inset-top,0px) + 12px)!important;
+  left:calc(env(safe-area-inset-left,0px) + 12px)!important;
+  right:auto!important;
+  bottom:auto!important;
+  z-index:2147483005!important;
+}
+#player-modal.open.ios-player-active .player-close{
+  position:static!important;
+  top:auto!important;
+  left:auto!important;
+  min-width:42px!important;
+  min-height:42px!important;
+}
+@media(prefers-reduced-motion:no-preference){
+  #player-modal.open.ios-player-active,
+  #player-modal.open.ios-player-active *{
+    transition:none!important;
+    animation:none!important;
+  }
+}
