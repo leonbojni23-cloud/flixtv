@@ -6516,3 +6516,42 @@ body.flxtv-movie-detail .movie-detail-studios img:nth-child(3){
   max-height:36px!important;
  }
 }
+
+
+/* Final polish from the latest iPhone screenshot:
+   lighten the metadata glass and center the fourth studio logo beneath row one. */
+body.flxtv-movie-detail .movie-detail-facts{
+ background:rgba(225,225,225,.13)!important;
+ border-color:rgba(255,255,255,.16)!important;
+ backdrop-filter:blur(30px) saturate(1.16)!important;
+ -webkit-backdrop-filter:blur(30px) saturate(1.16)!important;
+ box-shadow:0 8px 26px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.10)!important;
+}
+body.flxtv-movie-detail .movie-detail-studios{
+ width:min(100%,390px)!important;
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ align-items:center!important;
+ justify-items:center!important;
+ column-gap:10px!important;
+ row-gap:14px!important;
+}
+body.flxtv-movie-detail .movie-detail-studios img{
+ max-width:100%!important;
+ width:auto!important;
+ max-height:38px!important;
+ justify-self:center!important;
+}
+body.flxtv-movie-detail .movie-detail-studios img:nth-child(4){
+ grid-column:2!important;
+}
+@media(max-width:390px){
+ body.flxtv-movie-detail .movie-detail-studios{
+  width:100%!important;
+  column-gap:7px!important;
+ }
+ body.flxtv-movie-detail .movie-detail-studios img{
+  max-width:100%!important;
+  max-height:34px!important;
+ }
+}
