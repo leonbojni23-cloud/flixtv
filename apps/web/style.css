@@ -6719,11 +6719,14 @@ html:has(body.flxtv-movie-detail){
  background-size:cover!important;
  background-repeat:no-repeat!important;
  background-attachment:fixed!important;
- overscroll-behavior-y:none!important;
+ overscroll-behavior-y:auto!important;
 }
 body.flxtv-movie-detail{
  background:transparent!important;
- overscroll-behavior-y:none!important;
+ overscroll-behavior-y:auto!important;
+}
+body.flxtv-movie-detail #app{
+ overscroll-behavior-y:auto!important;
 }
 body.flxtv-movie-detail::before{
  content:""!important;
