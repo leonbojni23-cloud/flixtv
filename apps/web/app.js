@@ -1064,33 +1064,52 @@ window.addEventListener("message",handleCineSrcMessage);
    if(profileManageMode){const edit=document.createElement("span");edit.className="profile-edit-badge";edit.setAttribute("aria-hidden","true");edit.textContent="✎";wrap.append(edit)}
    const activate=()=>{
     if(profileManageMode){manageOneProfile(p);return}
-    if(card.dataset.activating==="true")return;card.dataset.activating="true";
-    if(navigator.vibrate&&window.matchMedia("(pointer:coarse)").matches)navigator.vibrate(8);
-    const screen=$("profile-picker"),source=card.querySelector(".profile-avatar-art"),sourceRect=source?.getBoundingClientRect();
+    if(card.dataset.activating==="true")return;
+    card.dataset.activating="true";
+    const screen=$("profile-picker");
+    const source=card.querySelector(".profile-avatar-art");
+    const sourceRect=source?.getBoundingClientRect();
     const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let flight=null;
     if(source&&sourceRect&&!reduced){
-      flight=source.cloneNode(true);flight.classList.add("profile-flight-avatar");
+      flight=source.cloneNode(true);
+      flight.classList.add("profile-flight-avatar");
       Object.assign(flight.style,{position:"fixed",left:sourceRect.left+"px",top:sourceRect.top+"px",width:sourceRect.width+"px",height:sourceRect.height+"px",margin:"0",zIndex:"20003",pointerEvents:"none",transformOrigin:"top left"});
-      document.body.append(flight);source.style.visibility="hidden";
+      document.body.append(flight);
     }
-    activeWatchProfile=p;saveProfiles();profileManageMode=false;
-    const finish=()=>{if(flight)flight.remove();if(screen){screen.hidden=true;screen.classList.remove("profile-screen-exiting");}unlockProfileScreen();document.documentElement.classList.add("profile-ready");renderContinueWatching();restoreWatchProgress();};
-    const target=$("profile-switcher"),targetRect=target?.getBoundingClientRect();
+    activeWatchProfile=p;
+    profileManageMode=false;
+    saveProfiles();
+    // Reveal the app behind the picker before the picker starts fading.
+    // Otherwise the first-run visibility gate leaves a black screen underneath.
+    document.documentElement.classList.add("profile-ready");
+    const target=$("profile-switcher");
+    const targetRect=target?.getBoundingClientRect();
+    let finished=false;
+    const finish=()=>{
+      if(finished)return;
+      finished=true;
+      if(flight)flight.remove();
+      if(screen){screen.getAnimations().forEach(animation=>animation.cancel());screen.style.opacity="";screen.hidden=true;}
+      unlockProfileScreen();
+      renderContinueWatching();
+      restoreWatchProgress();
+    };
     if(flight&&targetRect){
-      const dx=targetRect.left-sourceRect.left,dy=targetRect.top-sourceRect.top,sx=targetRect.width/sourceRect.width,sy=targetRect.height/sourceRect.height;
-      const flightAnimation=flight.animate([
+      const dx=targetRect.left-sourceRect.left;
+      const dy=targetRect.top-sourceRect.top;
+      const sx=targetRect.width/sourceRect.width;
+      const sy=targetRect.height/sourceRect.height;
+      const travel=flight.animate([
         {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:0},
-        {transform:"translate3d("+Math.round(dx*.22)+"px,"+Math.round(dy*.18)+"px,0) scale(1.42)",opacity:1,offset:.34},
-        {transform:"translate3d("+Math.round(dx*.72)+"px,"+Math.round(dy*.76)+"px,0) scale("+Math.max(sx,sy)*1.08+")",opacity:1,offset:.78},
+        {transform:"translate3d("+Math.round(dx*.28)+"px,"+Math.round(dy*.22)+"px,0) scale(1.12)",opacity:1,offset:.38},
         {transform:"translate3d("+dx+"px,"+dy+"px,0) scale("+sx+","+sy+")",opacity:1,offset:1}
-      ],{duration:520,easing:"cubic-bezier(.2,.78,.22,1)",fill:"forwards"});
-      if(screen)screen.animate([{opacity:1},{opacity:0}],{duration:390,easing:"cubic-bezier(.22,1,.36,1)",fill:"forwards"});
-      flightAnimation.finished.then(finish).catch(finish);
-    }else{
-      if(screen&&!reduced)screen.animate([{opacity:1},{opacity:0}],{duration:180,easing:"ease-out",fill:"forwards"}).finished.then(finish).catch(finish);
-      else finish();
-    }
+      ],{duration:420,easing:"cubic-bezier(.22,.75,.25,1)",fill:"forwards"});
+      if(screen)screen.animate([{opacity:1},{opacity:0}],{duration:360,easing:"ease-out",fill:"forwards"});
+      travel.finished.then(finish,finish);
+    }else if(screen&&!reduced){
+      screen.animate([{opacity:1},{opacity:0}],{duration:220,easing:"ease-out",fill:"forwards"}).finished.then(finish,finish);
+    }else finish();
    };
    card.addEventListener("click",activate);card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate()}});
    list.append(card);
@@ -1127,7 +1146,22 @@ window.addEventListener("message",handleCineSrcMessage);
  function outsideProfileMenu(event){const menu=$("profile-menu"),button=$("header-settings")||$("profile-switcher");if(!menu)return;if(menu.contains(event.target)||button?.contains(event.target)){document.addEventListener("pointerdown",outsideProfileMenu,{once:true});return}closeProfileMenu()}
  function lockProfileScreen(){if(document.body.classList.contains("profile-screen-open"))return;const y=window.scrollY||window.pageYOffset||0;document.body.dataset.profileScrollY=String(y);document.body.style.top="-"+y+"px";document.body.classList.add("profile-screen-open")}
   function unlockProfileScreen(){if(!document.body.classList.contains("profile-screen-open"))return;const y=Number(document.body.dataset.profileScrollY||0);document.body.classList.remove("profile-screen-open");document.body.style.top="";delete document.body.dataset.profileScrollY;window.scrollTo(0,y)}
-  function openProfilePicker(){ensureProfileUi();profileManageMode=false;renderProfileCards();$("profile-picker").hidden=false;lockProfileScreen()}
+  function openProfilePicker(){
+   ensureProfileUi();
+   profileManageMode=false;
+   renderProfileCards();
+   const screen=$("profile-picker");
+   screen.getAnimations().forEach(animation=>animation.cancel());
+   screen.style.opacity="1";
+   screen.hidden=false;
+   lockProfileScreen();
+   if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    const stage=screen.querySelector(".profile-stage");
+    if(stage){
+     stage.animate([{opacity:0,transform:"translateY(8px)"},{opacity:1,transform:"translateY(0)"}],{duration:240,easing:"cubic-bezier(.2,.8,.2,1)"});
+    }
+   }
+  }
   function closeProfilePicker(){const p=$("profile-picker");if(p)p.hidden=true;unlockProfileScreen()}
   function toggleProfileManage(){profileManageMode=!profileManageMode;renderProfileCards()}
  function manageOneProfile(p){
