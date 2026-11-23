@@ -1571,7 +1571,21 @@ function syncMovieDetailHeader(enabled,activePage="movies"){
   if(!back){
    back=document.createElement("button");back.type="button";back.className="movie-detail-back";back.setAttribute("aria-label","Go back");
    back.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-   back.addEventListener("click",()=>{if(history.length>1)history.back();else{history.replaceState({},"","/");home()}});
+   back.addEventListener("click",event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    // Only use browser history when this title page was opened from inside FLIXTV.
+    // A direct/deep link has no saved flixView entry, so return to Home explicitly.
+    if(history.state?.titlePage&&history.length>1){
+     history.back();
+    }else{
+     history.replaceState({page:"home",flixView:{page:"home",scrollY:0,search:false,sports:false}},"","/");
+     document.body.classList.remove("flxtv-movie-detail","flxtv-series-detail","flxtv-movie-overscroll-lock");
+     setMovieGlobalAmbientSuppressed(false);
+     syncMovieDetailHeader(false);
+     openPage("home",false);
+    }
+   });
    topbar.insertBefore(back,topbar.firstChild);
   }
   const activateMovies=()=>{
