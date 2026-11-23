@@ -7443,17 +7443,17 @@ body.flxtv-series-detail .series-episode-card.is-seen .series-episode-thumb::aft
  margin:0!important;
  overflow:hidden!important;
  border:0!important;
- border-radius:0 0 3px 3px!important;
- background:rgba(255,255,255,.24)!important;
+ border-radius:0!important;
+ background:transparent!important;
  pointer-events:none!important;
 }
 #home-page #continue-watching .continue-card .continue-progress-on-poster i{
  display:block!important;
  width:0;
  height:100%!important;
- border-radius:0 3px 3px 0!important;
+ border-radius:0!important;
  background:#fff!important;
- box-shadow:0 0 5px rgba(255,255,255,.35)!important;
+ box-shadow:0 0 8px rgba(255,255,255,.35)!important;
 }
 #home-page #continue-watching .continue-card-copy{
  display:flex!important;
@@ -7468,7 +7468,7 @@ body.flxtv-series-detail .series-episode-card.is-seen .series-episode-thumb::aft
  display:block!important;
  overflow:hidden!important;
  color:rgba(255,255,255,.96)!important;
- font-size:clamp(17px,2.5vw,29px)!important;
+ font-size:clamp(14px,1.8vw,22px)!important;
  font-weight:500!important;
  line-height:1.2!important;
  letter-spacing:-.025em!important;
@@ -7489,7 +7489,7 @@ body.flxtv-series-detail .series-episode-card.is-seen .series-episode-thumb::aft
 #home-page .continue-section-title,
 #home-page .continue-heading-title{
  color:rgba(255,255,255,.98)!important;
- font-size:clamp(25px,3.6vw,42px)!important;
+ font-size:clamp(20px,2.8vw,32px)!important;
  font-weight:650!important;
  letter-spacing:-.035em!important;
 }
