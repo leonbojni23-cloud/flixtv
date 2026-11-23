@@ -1646,8 +1646,7 @@ async function hydrateTitlePage(item,push=false,playMode=false){
   $("title-page").innerHTML=titlePageMarkup(titlePageItem,d,playMode);
   const isMovieDetail=k==="movie";
   document.body.classList.toggle("flxtv-movie-detail",isMovieDetail);
-  const globalAmbient=document.getElementById("app-ambient");
-  if(globalAmbient)globalAmbient.style.display=isMovieDetail?"none":"";
+  setMovieGlobalAmbientSuppressed(isMovieDetail);
   syncMovieDetailHeader(isMovieDetail);
   if(isMovieDetail)hydrateMovieDetailExtras(titlePageItem,d,titleVideosPromise).catch(error=>console.warn("Movie detail extras failed",error));
   initTitleYoutubeControls();
@@ -1946,6 +1945,19 @@ function animatePosterFallback(sourceImage,targetPoster,sourceRect,sourceRadius)
   animation.onfinish=cleanup;animation.oncancel=cleanup;
  };
  requestAnimationFrame(()=>{run().catch(error=>console.warn("[FLIXTV] Poster fallback transition failed",error))});
+}
+function setMovieGlobalAmbientSuppressed(suppress){
+ const current=document.getElementById("app-ambient");
+ if(suppress){
+  if(current){window.__flixGlobalAmbientNode=current;current.remove()}
+  return;
+ }
+ const saved=window.__flixGlobalAmbientNode;
+ if(saved&&!saved.isConnected){
+  const brandIntro=document.getElementById("brand-intro");
+  if(brandIntro?.parentNode)brandIntro.parentNode.insertBefore(saved,brandIntro);
+  else document.body.prepend(saved);
+ }
 }
 function openTitlePage(item,push=false,playMode=false,originCard=null){
  if(!item||!item.id)return Promise.resolve();
@@ -2937,7 +2949,7 @@ async function loadSports(){
 const loadedPages=new Set();
 async function openPage(page,updateHistory=true){
  document.body.classList.remove("flxtv-movie-detail");
- const globalAmbient=document.getElementById("app-ambient");if(globalAmbient)globalAmbient.style.display="";
+ setMovieGlobalAmbientSuppressed(false);
  syncMovieDetailHeader(false);
   if(updateHistory){const target=page==="sports"?"/sports":page==="home"?"/":location.pathname;if(target!==location.pathname)history.pushState({page},"",target)}
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
