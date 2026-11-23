@@ -6424,3 +6424,24 @@ body.flxtv-movie-detail .movie-detail-shade{
   rgba(5,9,18,.018) 72%,
   rgba(8,13,23,0) 100%)!important;
 }
+
+
+/* Extend the sharp movie artwork a little farther below the hero.
+   Keep the existing dissolve mask, but give the artwork layer an extra 110px
+   of vertical reach so its fade blends farther down into the ambient backdrop. */
+body.flxtv-movie-detail .movie-detail-hero{
+ overflow:visible!important;
+}
+body.flxtv-movie-detail .movie-detail-backdrop{
+ top:0!important;
+ bottom:-110px!important;
+ height:calc(100% + 110px)!important;
+ overflow:visible!important;
+}
+body.flxtv-movie-detail .movie-detail-backdrop-image{
+ height:100%!important;
+}
+body.flxtv-movie-detail .movie-detail-backdrop::after{
+ bottom:0!important;
+ height:62%!important;
+}
