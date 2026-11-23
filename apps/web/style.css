@@ -6555,3 +6555,49 @@ body.flxtv-movie-detail .movie-detail-studios img:nth-child(4){
   max-height:34px!important;
  }
 }
+
+
+/* Final correction: exactly three studio logos, two on the first row and
+   the third centered below. Make the metadata glass lighter without losing text contrast. */
+body.flxtv-movie-detail .movie-detail-facts{
+ background:rgba(225,225,225,.085)!important;
+ border-color:rgba(255,255,255,.14)!important;
+ backdrop-filter:blur(32px) saturate(1.12)!important;
+ -webkit-backdrop-filter:blur(32px) saturate(1.12)!important;
+ box-shadow:0 7px 24px rgba(0,0,0,.07),inset 0 1px 0 rgba(255,255,255,.09)!important;
+}
+body.flxtv-movie-detail .movie-detail-facts span{
+ color:rgba(245,247,250,.78)!important;
+}
+body.flxtv-movie-detail .movie-detail-facts strong{
+ color:rgba(255,255,255,.98)!important;
+}
+body.flxtv-movie-detail .movie-detail-studios{
+ width:min(100%,390px)!important;
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ align-items:center!important;
+ justify-items:center!important;
+ column-gap:24px!important;
+ row-gap:16px!important;
+}
+body.flxtv-movie-detail .movie-detail-studios img{
+ width:auto!important;
+ max-width:145px!important;
+ max-height:38px!important;
+ object-fit:contain!important;
+ justify-self:center!important;
+}
+body.flxtv-movie-detail .movie-detail-studios img:nth-child(3){
+ grid-column:1/-1!important;
+}
+@media(max-width:390px){
+ body.flxtv-movie-detail .movie-detail-studios{
+  width:min(100%,350px)!important;
+  column-gap:18px!important;
+ }
+ body.flxtv-movie-detail .movie-detail-studios img{
+  max-width:132px!important;
+  max-height:36px!important;
+ }
+}
