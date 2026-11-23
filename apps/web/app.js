@@ -1646,6 +1646,8 @@ async function hydrateTitlePage(item,push=false,playMode=false){
   $("title-page").innerHTML=titlePageMarkup(titlePageItem,d,playMode);
   const isMovieDetail=k==="movie";
   document.body.classList.toggle("flxtv-movie-detail",isMovieDetail);
+  const globalAmbient=document.getElementById("app-ambient");
+  if(globalAmbient)globalAmbient.style.display=isMovieDetail?"none":"";
   syncMovieDetailHeader(isMovieDetail);
   if(isMovieDetail)hydrateMovieDetailExtras(titlePageItem,d,titleVideosPromise).catch(error=>console.warn("Movie detail extras failed",error));
   initTitleYoutubeControls();
@@ -2934,7 +2936,9 @@ async function loadSports(){
 
 const loadedPages=new Set();
 async function openPage(page,updateHistory=true){
- document.body.classList.remove("flxtv-movie-detail");syncMovieDetailHeader(false);
+ document.body.classList.remove("flxtv-movie-detail");
+ const globalAmbient=document.getElementById("app-ambient");if(globalAmbient)globalAmbient.style.display="";
+ syncMovieDetailHeader(false);
   if(updateHistory){const target=page==="sports"?"/sports":page==="home"?"/":location.pathname;if(target!==location.pathname)history.pushState({page},"",target)}
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
  requestAnimationFrame(updateDesktopNavPill);
