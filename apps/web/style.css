@@ -7307,3 +7307,73 @@ body.flxtv-series-detail .series-episode-overview{
  body.flxtv-series-detail .series-season-poster-fallback{width:38px!important;height:52px!important;flex-basis:38px!important}
  body.flxtv-series-detail .series-episode-card{flex-basis:82vw!important;width:82vw!important;max-width:82vw!important}
 }
+
+
+/* Refined compact season popover and smaller episode cards. */
+body.flxtv-series-detail .series-season-menu{
+ left:0!important;
+ width:min(82vw,350px)!important;
+ max-height:34svh!important;
+ max-height:34dvh!important;
+ padding:7px!important;
+ border-radius:18px!important;
+ border:1px solid rgba(255,255,255,.19)!important;
+ background:rgba(24,22,29,.48)!important;
+ -webkit-backdrop-filter:blur(30px) saturate(145%)!important;
+ backdrop-filter:blur(30px) saturate(145%)!important;
+ box-shadow:0 12px 36px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.1)!important;
+}
+body.flxtv-series-detail .series-season-option{
+ height:56px!important;
+ min-height:56px!important;
+ gap:10px!important;
+ padding:5px 8px!important;
+ border-radius:12px!important;
+}
+body.flxtv-series-detail .series-season-option img,
+body.flxtv-series-detail .series-season-poster-fallback{
+ width:32px!important;
+ height:46px!important;
+ flex:0 0 32px!important;
+ border-radius:6px!important;
+}
+body.flxtv-series-detail .series-season-option strong{font-size:13px!important}
+body.flxtv-series-detail .series-season-option small{font-size:10px!important}
+body.flxtv-series-detail .series-season-option>b{font-size:14px!important}
+body.flxtv-series-detail .series-episode-card{
+ flex:0 0 min(70vw,270px)!important;
+ width:min(70vw,270px)!important;
+ max-width:min(70vw,270px)!important;
+ gap:8px!important;
+}
+body.flxtv-series-detail .series-episode-thumb{border-radius:12px!important}
+body.flxtv-series-detail .series-episode-copy strong{font-size:14px!important}
+body.flxtv-series-detail .series-episode-overview{font-size:11px!important}
+body.flxtv-series-detail .series-episode-card.is-seen .series-episode-thumb::after{
+ content:""!important;
+ position:absolute!important;
+ z-index:5!important;
+ left:0!important;
+ right:0!important;
+ bottom:0!important;
+ height:4px!important;
+ display:block!important;
+ background:#fff!important;
+ box-shadow:0 0 8px rgba(255,255,255,.35)!important;
+ pointer-events:none!important;
+}
+@media(max-width:390px){
+ body.flxtv-series-detail .series-season-menu{
+  width:min(80vw,320px)!important;
+  max-height:32svh!important;
+  max-height:32dvh!important;
+ }
+ body.flxtv-series-detail .series-season-option{height:52px!important;min-height:52px!important}
+ body.flxtv-series-detail .series-season-option img,
+ body.flxtv-series-detail .series-season-poster-fallback{width:29px!important;height:42px!important;flex-basis:29px!important}
+ body.flxtv-series-detail .series-episode-card{
+  flex-basis:74vw!important;
+  width:74vw!important;
+  max-width:74vw!important;
+ }
+}
