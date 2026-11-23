@@ -1716,7 +1716,6 @@ async function toggleSeasonWatched(item,season){
 }
 async function hydrateSeriesDetailExtras(item,d,videosPromise){
  const id=Number(item.id);
- if(videosPromise)await videosPromise;
  const [images,recommendations,ratings]=await Promise.all([
   tmdb("/tv/"+id+"/images?include_image_language=en,null").catch(()=>({logos:[]})),
   tmdb("/tv/"+id+"/recommendations?page=1").catch(()=>({results:[]})),
@@ -1738,6 +1737,8 @@ async function hydrateSeriesDetailExtras(item,d,videosPromise){
   networkHost.innerHTML=networks.map(x=>'<img loading="lazy" src="'+IMG+'w300'+x.logo_path+'" alt="'+escapeHtml(x.name)+'" decoding="async">').join("");
   networkHost.hidden=!networks.length;
  }
+ if(videosPromise)await videosPromise;
+ if(!titlePageItem||Number(titlePageItem.id)!==id||kind(titlePageItem)!=="tv")return;
  const trailer=(d.videos?.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser")&&v.key);
  const trailerRow=$("series-detail-trailer-row");
  if(trailerRow){
@@ -1768,7 +1769,6 @@ function formatMovieEndTime(runtime){
 }
 async function hydrateMovieDetailExtras(item,d,videosPromise){
  const id=Number(item.id);
- if(videosPromise)await videosPromise;
  const [images,releaseDates,recommendations]=await Promise.all([
   tmdb("/movie/"+id+"/images?include_image_language=en,null").catch(()=>({logos:[]})),
   tmdb("/movie/"+id+"/release_dates").catch(()=>({results:[]})),
@@ -1796,6 +1796,8 @@ async function hydrateMovieDetailExtras(item,d,videosPromise){
   studios.innerHTML=companies.map(x=>'<img loading="lazy" src="'+IMG+'w300'+x.logo_path+'" alt="'+escapeHtml(x.name)+'" decoding="async">').join("");
   studios.hidden=!companies.length;
  }
+ if(videosPromise)await videosPromise;
+ if(!titlePageItem||Number(titlePageItem.id)!==id||kind(titlePageItem)!=="movie")return;
  const trailerRows=(d.videos?.results||[]).filter(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser")&&v.key);
  const trailerRow=$("movie-detail-trailer-row");
  if(trailerRow){
