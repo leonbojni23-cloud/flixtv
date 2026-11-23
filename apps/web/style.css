@@ -7154,3 +7154,12 @@ body.flxtv-series-detail .series-season-jump button.active,
 body.flxtv-series-detail .series-episode-jump button:active{
  background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.28)!important;color:#fff!important;
 }
+
+
+/* Series detail uses the BODY-level wallpaper for its ambient layer and the
+   hero backdrop for the single sharp artwork. Hide the duplicate in-page
+   ambient image so the artwork is never rendered twice vertically. */
+body.flxtv-series-detail .movie-detail-ambient{
+ display:none!important;
+ visibility:hidden!important;
+}
