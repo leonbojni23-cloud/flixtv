@@ -884,7 +884,7 @@ function createContinueWatchingCard(entry,editing=false){
  const name=document.createElement("strong");
  name.textContent=entry.title||"Pa titull";
  const detail=document.createElement("small");
- detail.textContent=entry.mediaType==="tv"?"Sezoni "+(entry.season||1)+" · Episodi "+(entry.episode||1):"Vazhdo filmin";
+ detail.textContent="S"+(entry.season||1)+" · E"+(entry.episode||1);
  const artwork=document.createElement("span");
  artwork.className="continue-card-art";
  const progress=document.createElement("span");
