@@ -1574,6 +1574,74 @@ function syncMovieDetailHeader(enabled,activePage="movies"){
   activateMovies();requestAnimationFrame(activateMovies);
  }else if(back)back.remove();
 }
+function seriesSeenStorageKey(item,season){return "flxtv:series-seen:"+String(item?.id||"")+":"+Number(season||1)}
+function getSeriesSeenEpisodes(item,season){
+ try{return new Set((JSON.parse(localStorage.getItem(seriesSeenStorageKey(item,season))||"[]")||[]).map(Number))}catch(_){return new Set()}
+}
+function setSeriesSeenEpisodes(item,season,seen){
+ try{localStorage.setItem(seriesSeenStorageKey(item,season),JSON.stringify(Array.from(seen).map(Number)))}catch(_){}
+}
+async function toggleSeriesEpisodeSeen(item,season,episode){
+ const seen=getSeriesSeenEpisodes(item,season),number=Number(episode);
+ if(seen.has(number))seen.delete(number);else seen.add(number);
+ setSeriesSeenEpisodes(item,season,seen);
+ if(titlePageItem&&Number(titlePageItem.id)===Number(item.id)&&Number(titlePageSeason)===Number(season))await loadTitleEpisodes();
+}
+async function toggleSeasonWatched(item,season){
+ if(!item)return;
+ try{
+  let episodes=titleSeasonEpisodeCache.get(Number(item.id)+":"+Number(season));
+  if(!episodes){const data=await tmdb("/tv/"+Number(item.id)+"/season/"+Number(season));episodes=data.episodes||[];titleSeasonEpisodeCache.set(Number(item.id)+":"+Number(season),episodes)}
+  const seen=getSeriesSeenEpisodes(item,season),numbers=episodes.map(x=>Number(x.episode_number));
+  const all=numbers.length&&numbers.every(x=>seen.has(x));
+  numbers.forEach(x=>all?seen.delete(x):seen.add(x));
+  setSeriesSeenEpisodes(item,season,seen);
+  if(titlePageItem&&Number(titlePageItem.id)===Number(item.id)&&Number(titlePageSeason)===Number(season))await loadTitleEpisodes();
+ }catch(error){notice("Nuk u përditësua lista e episodeve: "+error.message)}
+}
+async function hydrateSeriesDetailExtras(item,d,videosPromise){
+ const id=Number(item.id);
+ if(videosPromise)await videosPromise;
+ const [images,recommendations]=await Promise.all([
+  tmdb("/tv/"+id+"/images?include_image_language=en,null").catch(()=>({logos:[]})),
+  tmdb("/tv/"+id+"/recommendations?page=1").catch(()=>({results:[]}))
+ ]);
+ if(!titlePageItem||Number(titlePageItem.id)!==id||kind(titlePageItem)!=="tv")return;
+ const logo=(images.logos||[]).filter(x=>x.file_path).sort((a,b)=>{
+  const preferred=x=>x.iso_639_1==="en"?0:x.iso_639_1===null?1:2;
+  return preferred(a)-preferred(b)||(b.vote_average||0)-(a.vote_average||0);
+ })[0];
+ const logoHost=$("series-detail-logo");
+ if(logoHost&&logo)logoHost.innerHTML='<img class="movie-detail-title-logo" src="'+IMG+'w500'+logo.file_path+'" alt="'+escapeHtml(title(d))+'">';
+ const networkHost=$("series-detail-networks");
+ if(networkHost){
+  const networks=(d.networks||[]).filter(x=>x.logo_path).slice(0,3);
+  networkHost.innerHTML=networks.map(x=>'<img loading="lazy" src="'+IMG+'w300'+x.logo_path+'" alt="'+escapeHtml(x.name)+'">').join("");
+  networkHost.hidden=!networks.length;
+ }
+ const trailer=(d.videos?.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser")&&v.key);
+ const trailerRow=$("series-detail-trailer-row");
+ if(trailerRow){
+  trailerRow.innerHTML=trailer?'<button type="button" class="movie-detail-trailer-card" data-series-trailer="'+escapeHtml(trailer.key)+'"><span class="movie-detail-trailer-thumb"><img loading="lazy" src="https://img.youtube.com/vi/'+encodeURIComponent(trailer.key)+'/maxresdefault.jpg" alt=""><i><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></i></span><span>'+escapeHtml(title(d))+' - Trailer</span></button>':'<div class="movie-detail-empty">No trailer available.</div>';
+  trailerRow.querySelector("[data-series-trailer]")?.addEventListener("click",()=>window.open("https://www.youtube.com/watch?v="+trailer.key,"_blank","noopener"));
+ }
+ const similarRow=$("series-detail-similar-row");
+ if(similarRow){
+  const rows=(recommendations.results||[]).filter(x=>x.poster_path).slice(0,16);
+  similarRow.innerHTML=rows.length?rows.map(x=>'<button type="button" class="movie-detail-similar-card" data-series-similar="'+x.id+'"><img loading="lazy" decoding="async" src="'+IMG+'w342'+x.poster_path+'" alt="'+escapeHtml(title(x))+'"></button>').join(""):'<div class="movie-detail-empty">No recommendations available.</div>';
+  similarRow.querySelectorAll("[data-series-similar]").forEach((button,index)=>button.addEventListener("click",()=>openTitlePage(rows[index],true,false)));
+ }
+ const save=$("series-detail-save");
+ if(save){
+  const isSaved=()=>readHeroSavedItems().some(x=>String(x.id)===String(item.id)&&kind(x)==="tv");
+  const paint=()=>{const yes=isSaved();save.classList.toggle("saved",yes);save.setAttribute("aria-label",yes?"Remove from My List":"Add to My List");save.innerHTML=yes?'<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'};
+  paint();save.onclick=()=>{toggleHeroSaved(item);paint()};
+ }
+ const trailerButton=$("series-detail-trailer");
+ if(trailerButton)trailerButton.onclick=()=>$("series-trailers")?.scrollIntoView({behavior:"smooth",block:"start"});
+ const more=$("overview-more"),overview=$("title-overview");
+ if(more&&overview){more.hidden=String(d.overviewSq||d.overview||"").length<=130;more.onclick=()=>{const expanded=overview.classList.toggle("expanded");overview.classList.toggle("collapsed",!expanded);more.textContent=expanded?"Read less":"Read more";more.setAttribute("aria-expanded",String(expanded))}}
+}
 function formatMovieEndTime(runtime){
  if(!runtime)return "";
  const end=new Date(Date.now()+runtime*60000);
@@ -1741,11 +1809,14 @@ async function loadTitleEpisodes(){
   const saved=getSavedProgress(titlePageItem),savedCanResume=!!(saved&&Number(saved.currentTime)>5&&(!saved.duration||Number(saved.currentTime)<Number(saved.duration)*0.92));
   list.innerHTML=episodes.map(ep=>{
    const epNo=Number(ep.episode_number),overview=String(ep.overview||"").trim();
-   return '<article class="series-episode-card '+(epNo===titlePageEpisode?'selected':'')+'" data-episode="'+epNo+'" role="button" tabindex="0"><span class="series-episode-thumb">'+(ep.still_path?'<img loading="lazy" decoding="async" src="'+IMG+'w300'+ep.still_path+'" alt="">':'<span>FLIXTV</span>')+'<b>▶</b></span><span class="series-episode-copy"><strong>'+escapeHtml(ep.name||("Episodi "+epNo))+'</strong><small>E'+epNo+(ep.runtime?" · "+ep.runtime+" min":"")+(ep.air_date?" · "+escapeHtml(ep.air_date.slice(0,4)):"")+'</small>'+(overview?'<span class="series-episode-overview">'+escapeHtml(overview)+'</span><button type="button" class="episode-overview-more" aria-expanded="false" aria-label="Shfaq përshkrimin e plotë">…</button>':'')+'</span></article>'
+   const seen=getSeriesSeenEpisodes(titlePageItem,season),isSeen=seen.has(epNo);
+   return '<article class="series-episode-card '+(epNo===titlePageEpisode?'selected ':'')+(isSeen?'is-seen':'')+'" data-episode="'+epNo+'" role="button" tabindex="0"><span class="series-episode-thumb">'+(ep.still_path?'<img loading="lazy" decoding="async" src="'+IMG+'w780'+ep.still_path+'" alt="">':'<span>FLIXTV</span>')+'<b>E'+epNo+'</b><button type="button" class="series-episode-seen" aria-label="'+(isSeen?'Mark unwatched':'Mark watched')+'">'+(isSeen?'<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>')+'</button>'+(ep.runtime?'<i>'+Number(ep.runtime)+'m</i>':'')+'</span><span class="series-episode-copy"><strong>'+escapeHtml(ep.name||("Episode "+epNo))+'</strong>'+(overview?'<span class="series-episode-overview">'+escapeHtml(overview)+'</span>':'')+'</span></article>'
   }).join("");
   list.querySelectorAll("[data-episode]").forEach(card=>{
    const play=()=>{const ep=Number(card.dataset.episode)||1;titlePageEpisode=ep;const resume=savedCanResume&&Number(saved.season)===season&&Number(saved.episode)===ep?Number(saved.currentTime):0;startTitlePlayback(season,ep,resume)};
-   card.addEventListener("click",event=>{if(event.target.closest(".episode-overview-more"))return;play()});
+   card.addEventListener("click",event=>{if(event.target.closest(".series-episode-seen"))return;play()});
+   const seenButton=card.querySelector(".series-episode-seen");
+   if(seenButton)seenButton.addEventListener("click",event=>{event.stopPropagation();toggleSeriesEpisodeSeen(titlePageItem,season,epNo)});
    card.addEventListener("keydown",event=>{if(event.target===card&&(event.key==="Enter"||event.key===" ")){event.preventDefault();play()}});
    const more=card.querySelector(".episode-overview-more");
    if(more)more.addEventListener("click",event=>{
