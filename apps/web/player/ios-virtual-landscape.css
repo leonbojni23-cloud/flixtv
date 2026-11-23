@@ -138,3 +138,14 @@
 #player-modal.open .player-loading-status{
   display:none!important;
 }
+
+
+/* Physical landscape on iPhone: keep the original centered alignment and
+   extend the video slightly farther on the right edge only. */
+@media (orientation:landscape) and (max-height:600px){
+  #player-modal.open.ios-player-active .cinesrc-video-wrapper:not(.ios-virtual-landscape){
+    left:0!important;
+    right:auto!important;
+    width:calc(100% + 14px)!important;
+  }
+}
