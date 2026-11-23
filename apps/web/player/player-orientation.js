@@ -10,6 +10,10 @@ let moved=false;
 function isIPhone(){
   return /iPhone|iPod/i.test(navigator.userAgent||"");
 }
+function isIPad(){
+  return /iPad/i.test(navigator.userAgent||"")||
+    (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+}
 function getViewport(){
   const vv=window.visualViewport;
   return {
@@ -68,6 +72,9 @@ function requestFullscreen(){
     sync();
     return;
   }
+  // This pass is intentionally limited to Apple mobile devices. Android and
+  // desktop fullscreen behavior will be enabled in their own platform pass.
+  if(!isIPad())return;
   if(typeof modal.requestFullscreen!=="function"||!document.fullscreenEnabled)return;
   try{
     const result=modal.requestFullscreen({navigationUI:"hide"});
@@ -97,5 +104,5 @@ if(window.visualViewport){
   window.visualViewport.addEventListener("resize",schedule,{passive:true});
   window.visualViewport.addEventListener("scroll",schedule,{passive:true});
 }
-window.FlixPlayerOrientation={sync,requestFullscreen,exitFullscreen,isIPhone};
+window.FlixPlayerOrientation={sync,requestFullscreen,exitFullscreen,isIPhone,isIPad};
 })();
