@@ -7616,3 +7616,29 @@ body.flxtv-series-detail .series-episode-card.is-seen .series-episode-thumb::aft
  }
  .mobile-nav button.active .nav-icon{color:#fff!important}
 }
+
+
+/* Match movie Play/Resume action to the TV-series primary action.
+   A restrained white halo gives every primary playback action a soft edge light. */
+body.flxtv-movie-detail .movie-detail-play,
+body.flxtv-series-detail .movie-detail-play{
+ background:#fff!important;
+ color:#080a0f!important;
+ border:1px solid rgba(255,255,255,.88)!important;
+ border-radius:999px!important;
+ box-shadow:
+  0 0 0 1px rgba(255,255,255,.20),
+  0 0 11px rgba(255,255,255,.30),
+  0 0 23px rgba(255,255,255,.13),
+  inset 0 1px 0 rgba(255,255,255,.95)!important;
+}
+body.flxtv-movie-detail .movie-detail-play svg,
+body.flxtv-series-detail .movie-detail-play svg{color:#080a0f!important;fill:currentColor!important}
+body.flxtv-movie-detail .movie-detail-play:active,
+body.flxtv-series-detail .movie-detail-play:active{
+ box-shadow:
+  0 0 0 1px rgba(255,255,255,.25),
+  0 0 14px rgba(255,255,255,.38),
+  0 0 26px rgba(255,255,255,.17),
+  inset 0 1px 0 rgba(255,255,255,.95)!important;
+}
