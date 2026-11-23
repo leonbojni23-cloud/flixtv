@@ -1589,7 +1589,7 @@ function movieTitlePageMarkup(d){
     '<div><span>Language</span><strong id="movie-detail-language">'+escapeHtml((d.original_language||"en").toUpperCase()==="EN"?"English":String(d.original_language||"").toUpperCase())+'</strong></div>'+
     '<div><span>Release Date</span><strong>'+escapeHtml(release)+'</strong></div>'+
    '</div>'+
-   '<div class="movie-detail-studios" id="movie-detail-studios">'+companies.slice(0,3).map(company=>'<img loading="lazy" src="'+IMG+'w300'+company.logo_path+'" alt="'+escapeHtml(company.name)+'">').join("")+'</div>'+
+   '<div class="movie-detail-studios" id="movie-detail-studios">'+companies.slice(0,3).map(company=>'<img loading="lazy" src="'+IMG+'w300'+company.logo_path+'" alt="'+escapeHtml(company.name)+'" decoding="async">').join("")+'</div>'+
   '</section>'+
   '<section class="movie-detail-section movie-detail-cast-section" id="movie-detail-cast-section"><h2>Cast</h2><div class="movie-detail-cast-row">'+cast.map(person=>'<article class="movie-detail-cast-card">'+(person.profile_path?'<img loading="lazy" decoding="async" src="'+IMG+'w185'+person.profile_path+'" alt="'+escapeHtml(person.name)+'">':'<div class="movie-detail-cast-placeholder"></div>')+'<strong>'+escapeHtml(person.name||"")+'</strong><span>'+escapeHtml(person.character||"")+'</span></article>').join("")+'</div></section>'+
   '<section class="movie-detail-section movie-detail-trailers-section" id="movie-trailers"><h2>Trailers</h2><div class="movie-detail-trailer-row" id="movie-detail-trailer-row"><div class="movie-detail-loading">Loading trailers…</div></div></section>'+
@@ -1639,11 +1639,11 @@ function seriesTitlePageMarkup(d,playMode=false){
     '<div><span>Seasons</span><strong>'+Number(d.number_of_seasons||seasons.length||0)+'</strong></div>'+
     '<div><span>Episodes</span><strong>'+Number(d.number_of_episodes||0)+'</strong></div>'+
    '</div>'+
-   '<div class="movie-detail-studios series-detail-networks" id="series-detail-networks">'+(network&&network.logo_path?'<img loading="lazy" src="'+IMG+'w300'+network.logo_path+'" alt="'+escapeHtml(network.name)+'">':'')+'</div>'+
+   '<div class="movie-detail-studios series-detail-networks" id="series-detail-networks">'+(network&&network.logo_path?'<img loading="lazy" src="'+IMG+'w300'+network.logo_path+'" alt="'+escapeHtml(network.name)+'" decoding="async">':'')+'</div>'+
   '</section>'+
   '<section class="movie-detail-section series-season-section" id="series-season-section">'+
    '<div class="series-season-heading"><button type="button" class="series-season-trigger" id="series-season-trigger"><span id="series-season-label">Season '+titlePageSeason+'</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button type="button" class="movie-detail-round series-seen-all" id="series-seen-all" aria-label="Mark all episodes as watched"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button></div>'+
-   '<div class="series-season-menu" id="series-season-menu" hidden>'+seasons.map(x=>'<button type="button" class="series-season-option '+(Number(x.season_number)===Number(titlePageSeason)?'active':'')+'" data-season="'+Number(x.season_number)+'">'+(x.poster_path?'<img loading="lazy" src="'+IMG+'w92'+x.poster_path+'" alt="">':'<span class="series-season-poster-fallback">S'+Number(x.season_number)+'</span>')+'<span><strong>'+escapeHtml(x.name||("Season "+x.season_number))+'</strong><small>'+Number(x.episode_count||0)+' episodes</small></span>'+(Number(x.season_number)===Number(titlePageSeason)?'<b>✓</b>':'')+'</button>').join('')+'</div>'+
+   '<div class="series-season-menu" id="series-season-menu" hidden>'+seasons.map(x=>'<button type="button" class="series-season-option '+(Number(x.season_number)===Number(titlePageSeason)?'active':'')+'" data-season="'+Number(x.season_number)+'">'+(x.poster_path?'<img loading="lazy" src="'+IMG+'w92'+x.poster_path+'" alt="" decoding="async">':'<span class="series-season-poster-fallback">S'+Number(x.season_number)+'</span>')+'<span><strong>'+escapeHtml(x.name||("Season "+x.season_number))+'</strong><small>'+Number(x.episode_count||0)+' episodes</small></span>'+(Number(x.season_number)===Number(titlePageSeason)?'<b>✓</b>':'')+'</button>').join('')+'</div>'+
    '<select id="title-season" class="series-season-native" aria-label="Choose season">'+seasons.map(x=>'<option value="'+x.season_number+'" '+(Number(x.season_number)===Number(titlePageSeason)?'selected':'')+'>'+escapeHtml(x.name||("Season "+x.season_number))+'</option>').join('')+'</select>'+
    '<div id="title-episode-list" class="series-episode-list movie-detail-cast-row"><div class="movie-detail-loading">Loading episodes…</div></div>'+
   '</section>'+
@@ -1735,13 +1735,13 @@ async function hydrateSeriesDetailExtras(item,d,videosPromise){
  const networkHost=$("series-detail-networks");
  if(networkHost){
   const networks=(d.networks||[]).filter(x=>x.logo_path).slice(0,3);
-  networkHost.innerHTML=networks.map(x=>'<img loading="lazy" src="'+IMG+'w300'+x.logo_path+'" alt="'+escapeHtml(x.name)+'">').join("");
+  networkHost.innerHTML=networks.map(x=>'<img loading="lazy" src="'+IMG+'w300'+x.logo_path+'" alt="'+escapeHtml(x.name)+'" decoding="async">').join("");
   networkHost.hidden=!networks.length;
  }
  const trailer=(d.videos?.results||[]).find(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser")&&v.key);
  const trailerRow=$("series-detail-trailer-row");
  if(trailerRow){
-  trailerRow.innerHTML=trailer?'<button type="button" class="movie-detail-trailer-card" data-series-trailer="'+escapeHtml(trailer.key)+'"><span class="movie-detail-trailer-thumb"><img loading="lazy" src="https://img.youtube.com/vi/'+encodeURIComponent(trailer.key)+'/maxresdefault.jpg" alt=""><i><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></i></span><span>'+escapeHtml(title(d))+' - Trailer</span></button>':'<div class="movie-detail-empty">No trailer available.</div>';
+  trailerRow.innerHTML=trailer?'<button type="button" class="movie-detail-trailer-card" data-series-trailer="'+escapeHtml(trailer.key)+'"><span class="movie-detail-trailer-thumb"><img loading="lazy" src="https://img.youtube.com/vi/'+encodeURIComponent(trailer.key)+'/maxresdefault.jpg" alt="" decoding="async"><i><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></i></span><span>'+escapeHtml(title(d))+' - Trailer</span></button>':'<div class="movie-detail-empty">No trailer available.</div>';
   trailerRow.querySelector("[data-series-trailer]")?.addEventListener("click",()=>window.open("https://www.youtube.com/watch?v="+trailer.key,"_blank","noopener"));
  }
  const similarRow=$("series-detail-similar-row");
@@ -1793,14 +1793,14 @@ async function hydrateMovieDetailExtras(item,d,videosPromise){
  const studios=$("movie-detail-studios");
  if(studios){
   const companies=(d.production_companies||[]).filter(x=>x.logo_path).slice(0,3);
-  studios.innerHTML=companies.map(x=>'<img loading="lazy" src="'+IMG+'w300'+x.logo_path+'" alt="'+escapeHtml(x.name)+'">').join("");
+  studios.innerHTML=companies.map(x=>'<img loading="lazy" src="'+IMG+'w300'+x.logo_path+'" alt="'+escapeHtml(x.name)+'" decoding="async">').join("");
   studios.hidden=!companies.length;
  }
  const trailerRows=(d.videos?.results||[]).filter(v=>v.site==="YouTube"&&(v.type==="Trailer"||v.type==="Teaser")&&v.key);
  const trailerRow=$("movie-detail-trailer-row");
  if(trailerRow){
   const videos=trailerRows.slice(0,8);
-  trailerRow.innerHTML=videos.length?videos.map((v,i)=>'<button type="button" class="movie-detail-trailer-card" data-trailer-key="'+escapeHtml(v.key)+'"><span class="movie-detail-trailer-thumb"><img loading="lazy" src="https://img.youtube.com/vi/'+encodeURIComponent(v.key)+'/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/'+encodeURIComponent(v.key)+'/hqdefault.jpg" data-poster-fallback="'+escapeHtml(d.backdrop_path?IMG+'w780'+d.backdrop_path:(d.poster_path?IMG+'w500'+d.poster_path:''))+'" alt=""><i><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></i></span><span>Trailer '+(i+1)+'</span></button>').join(""):'<div class="movie-detail-empty">No trailers available.</div>';
+  trailerRow.innerHTML=videos.length?videos.map((v,i)=>'<button type="button" class="movie-detail-trailer-card" data-trailer-key="'+escapeHtml(v.key)+'"><span class="movie-detail-trailer-thumb"><img loading="lazy" src="https://img.youtube.com/vi/'+encodeURIComponent(v.key)+'/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/'+encodeURIComponent(v.key)+'/hqdefault.jpg" data-poster-fallback="'+escapeHtml(d.backdrop_path?IMG+'w780'+d.backdrop_path:(d.poster_path?IMG+'w500'+d.poster_path:''))+'" alt="" decoding="async"><i><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></i></span><span>Trailer '+(i+1)+'</span></button>').join(""):'<div class="movie-detail-empty">No trailers available.</div>';
   trailerRow.querySelectorAll(".movie-detail-trailer-thumb img").forEach(image=>image.addEventListener("error",()=>{
    if(image.dataset.fallback){image.src=image.dataset.fallback;image.dataset.fallback="";return}
    if(image.dataset.posterFallback){image.src=image.dataset.posterFallback;image.dataset.posterFallback=""}
