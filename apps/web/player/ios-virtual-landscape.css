@@ -131,3 +131,10 @@
     animation:none!important;
   }
 }
+
+/* The FLIXTV overlay back button and resolver/loading label are intentionally
+   removed from the viewing experience. */
+#player-modal.open .player-actions .player-close,
+#player-modal.open .player-loading-status{
+  display:none!important;
+}
