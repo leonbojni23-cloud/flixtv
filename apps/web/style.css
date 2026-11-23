@@ -6873,3 +6873,63 @@ body.flxtv-movie-detail .movie-detail-backdrop-image{
 body.flxtv-movie-detail .movie-detail-shade{
  background:linear-gradient(to bottom,rgba(5,9,18,.025) 0%,rgba(5,9,18,.02) 46%,rgba(5,9,18,.035) 68%,rgba(8,13,23,.06) 100%)!important;
 }
+
+
+/* Movie-detail-only refinements. These selectors are deliberately scoped to
+   body.flxtv-movie-detail so the home/catalog background and cards are untouched. */
+body.flxtv-movie-detail{
+ position:relative!important;
+ isolation:isolate!important;
+ background:#080d17!important;
+}
+body.flxtv-movie-detail #movie-viewport-wallpaper{
+ display:block!important;
+ position:fixed!important;
+ z-index:0!important;
+ inset:-58px!important;
+ pointer-events:none!important;
+ background-position:center 18%!important;
+ background-size:cover!important;
+ background-repeat:no-repeat!important;
+ filter:blur(42px) saturate(1.85) brightness(.98)!important;
+ transform:translateZ(0) scale(1.08)!important;
+}
+body.flxtv-movie-detail #app{
+ position:fixed!important;
+ z-index:1!important;
+ isolation:isolate!important;
+ background:transparent!important;
+}
+body.flxtv-movie-detail #app::before,
+body.flxtv-movie-detail .movie-detail-ambient{
+ display:none!important;
+ content:none!important;
+}
+body.flxtv-movie-detail #title-page,
+body.flxtv-movie-detail .movie-detail-page,
+body.flxtv-movie-detail .movie-detail-section{
+ background:transparent!important;
+ background-color:transparent!important;
+}
+body.flxtv-movie-detail .movie-detail-similar-row{
+ gap:18px!important;
+ padding-right:18px!important;
+}
+body.flxtv-movie-detail .movie-detail-similar-card{
+ flex:0 0 154px!important;
+ width:154px!important;
+}
+body.flxtv-movie-detail .movie-detail-similar-card img{
+ display:block!important;
+ width:100%!important;
+ aspect-ratio:2/3!important;
+ height:auto!important;
+ object-fit:cover!important;
+ border-radius:13px!important;
+}
+@media(min-width:761px){
+ body.flxtv-movie-detail .movie-detail-similar-card{
+  flex-basis:184px!important;
+  width:184px!important;
+ }
+}
