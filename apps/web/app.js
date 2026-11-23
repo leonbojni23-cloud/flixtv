@@ -2576,7 +2576,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   document.body.classList.add("flxtv-player-active");
   syncPlayerOrientation();
   $("player-modal").dataset.playerState="embedded";
-  setPlayerStatus("Po hapet CineSRC brenda FLIXTV…");
+  setPlayerStatus("");
   frame.onload=()=>{if(playbackId===playbackOpenId)setPlayerStatus("")};
   frame.onerror=()=>{if(playbackId===playbackOpenId)setPlayerStatus("CineSRC nuk u ngarkua. Kontrollo nëse burimi lejon iframe.",true)};
   startProgressPolling();
