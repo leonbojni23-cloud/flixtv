@@ -7729,3 +7729,8 @@ body.flxtv-series-detail .movie-detail-play:active{
 @media(max-width:360px){
  #search-page #search-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 }
+
+/* Pause decorative ambient motion while a modal locks the app. The current frame stays visible. */
+body.no-scroll #app-ambient .ambient-cloud{
+ animation-play-state:paused!important;
+}
