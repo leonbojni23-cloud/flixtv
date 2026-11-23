@@ -7734,3 +7734,36 @@ body.flxtv-series-detail .movie-detail-play:active{
 body.no-scroll #app-ambient .ambient-cloud{
  animation-play-state:paused!important;
 }
+
+
+/* Playback focus mode: stop FLIXTV's background UI work and animations while
+   the video is open. The player itself remains interactive and full-screen. */
+html.flxtv-player-active,
+body.flxtv-player-active{
+ background:#000!important;
+}
+body.flxtv-player-active *{
+ animation-play-state:paused!important;
+}
+body.flxtv-player-active #player-modal,
+body.flxtv-player-active #player-modal *{
+ animation-play-state:running!important;
+}
+body.flxtv-player-active #player-modal{
+ pointer-events:auto!important;
+}
+body.flxtv-player-active #app-ambient,
+body.flxtv-player-active #ambient-canvas,
+body.flxtv-player-active .ambient-scene,
+body.flxtv-player-active .webgl-smoke-canvas{
+ animation:none!important;
+ opacity:0!important;
+ visibility:hidden!important;
+}
+@media(prefers-reduced-motion:no-preference){
+ .player-modal.open,
+ .player-modal.open #cinesrc-frame{
+  transition:none!important;
+  animation:none!important;
+ }
+}
