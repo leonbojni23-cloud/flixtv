@@ -1465,7 +1465,16 @@ function readTitleDetailsCache(item){
 function storeTitleDetailsCache(item,data){
  const key=titleDetailsKey(item);
  cacheTitleDetails(key,data);
- try{localStorage.setItem("flxtv:title:"+key,JSON.stringify({savedAt:Date.now(),data}))}catch(_){}
+ // Persist the potentially large TMDB payload when the main thread is idle,
+ // rather than blocking the title-page transition and its first paint.
+ const persist=()=>{
+  try{
+   if(titlePageCache.get(key)!==data)return;
+   localStorage.setItem("flxtv:title:"+key,JSON.stringify({savedAt:Date.now(),data}));
+  }catch(_){}
+ };
+ if("requestIdleCallback" in window)requestIdleCallback(persist,{timeout:1800});
+ else setTimeout(persist,250);
 }
 function prefetchTitle(item){
  if(!item||!item.id)return Promise.resolve(null);
