@@ -6230,3 +6230,52 @@ body.flxtv-movie-detail .movie-detail-shade{
    #080d17 100%),
   linear-gradient(90deg,rgba(4,8,15,.12),transparent 72%)!important;
 }
+
+
+/* Movie details: carry the film's artwork ambience below the hero.
+   The blurred duplicate sits behind the information sections and fades into
+   the native dark page background, without affecting the TV-show detail page. */
+body.flxtv-movie-detail .movie-detail-page{
+ position:relative!important;
+ isolation:isolate!important;
+ overflow:hidden!important;
+ background:#080d17!important;
+}
+body.flxtv-movie-detail .movie-detail-ambient{
+ position:absolute!important;
+ z-index:0!important;
+ top:0!important;
+ left:0!important;
+ right:0!important;
+ height:1750px!important;
+ overflow:hidden!important;
+ pointer-events:none!important;
+ opacity:1!important;
+}
+body.flxtv-movie-detail .movie-detail-ambient-image{
+ position:absolute!important;
+ inset:-28px!important;
+ width:calc(100% + 56px)!important;
+ height:calc(100% + 56px)!important;
+ object-fit:cover!important;
+ object-position:center top!important;
+ filter:blur(30px) saturate(1.55) brightness(.68)!important;
+ opacity:.34!important;
+ transform:scale(1.04)!important;
+}
+body.flxtv-movie-detail .movie-detail-ambient:after{
+ content:""!important;
+ position:absolute!important;
+ inset:0!important;
+ background:
+  linear-gradient(180deg,rgba(8,13,23,.12) 0%,rgba(8,13,23,.28) 24%,rgba(8,13,23,.55) 54%,rgba(8,13,23,.86) 82%,#080d17 100%),
+  linear-gradient(90deg,rgba(8,13,23,.26),rgba(8,13,23,.08) 50%,rgba(8,13,23,.3))!important;
+}
+body.flxtv-movie-detail .movie-detail-section{
+ position:relative!important;
+ z-index:1!important;
+ background:transparent!important;
+}
+@media(min-width:761px){
+ body.flxtv-movie-detail .movie-detail-ambient{height:2050px!important}
+}
