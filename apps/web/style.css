@@ -7689,3 +7689,12 @@ body.flxtv-series-detail .movie-detail-play:active{
 }
 #title-play.is-resume svg,
 #title-play.is-resume svg path{color:#080a0f!important;fill:#080a0f!important}
+
+
+/* Netflix-style profile handoff: selected avatar travels into the active profile control */
+.profile-screen{opacity:1;transition:opacity .38s cubic-bezier(.22,1,.36,1);}
+.profile-screen-exiting{pointer-events:none!important;}
+.profile-flight-avatar{overflow:hidden;border-radius:7px!important;box-shadow:0 18px 60px rgba(0,0,0,.48),0 0 28px rgba(255,255,255,.12);will-change:transform,opacity;backface-visibility:hidden;}
+.profile-flight-avatar img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit;}
+.profile-tile.selected .profile-avatar-art{transform:scale(1.04);transition:transform .16s cubic-bezier(.2,.8,.2,1);}
+@media(prefers-reduced-motion:reduce){.profile-flight-avatar{display:none!important}.profile-screen{transition:none!important}}

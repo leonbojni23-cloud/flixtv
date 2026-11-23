@@ -1064,8 +1064,33 @@ window.addEventListener("message",handleCineSrcMessage);
    if(profileManageMode){const edit=document.createElement("span");edit.className="profile-edit-badge";edit.setAttribute("aria-hidden","true");edit.textContent="✎";wrap.append(edit)}
    const activate=()=>{
     if(profileManageMode){manageOneProfile(p);return}
-    card.classList.add("selected");if(navigator.vibrate)navigator.vibrate(15);
-    setTimeout(()=>{activeWatchProfile=p;saveProfiles();profileManageMode=false;$("profile-picker").hidden=true;unlockProfileScreen();document.documentElement.classList.add("profile-ready");renderContinueWatching();restoreWatchProgress();},380);
+    if(card.dataset.activating==="true")return;card.dataset.activating="true";
+    if(navigator.vibrate&&window.matchMedia("(pointer:coarse)").matches)navigator.vibrate(8);
+    const screen=$("profile-picker"),source=card.querySelector(".profile-avatar-art"),sourceRect=source?.getBoundingClientRect();
+    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let flight=null;
+    if(source&&sourceRect&&!reduced){
+      flight=source.cloneNode(true);flight.classList.add("profile-flight-avatar");
+      Object.assign(flight.style,{position:"fixed",left:sourceRect.left+"px",top:sourceRect.top+"px",width:sourceRect.width+"px",height:sourceRect.height+"px",margin:"0",zIndex:"20003",pointerEvents:"none",transformOrigin:"top left"});
+      document.body.append(flight);source.style.visibility="hidden";
+    }
+    activeWatchProfile=p;saveProfiles();profileManageMode=false;
+    const finish=()=>{if(flight)flight.remove();if(screen){screen.hidden=true;screen.classList.remove("profile-screen-exiting");}unlockProfileScreen();document.documentElement.classList.add("profile-ready");renderContinueWatching();restoreWatchProgress();};
+    const target=$("profile-switcher"),targetRect=target?.getBoundingClientRect();
+    if(flight&&targetRect){
+      const dx=targetRect.left-sourceRect.left,dy=targetRect.top-sourceRect.top,sx=targetRect.width/sourceRect.width,sy=targetRect.height/sourceRect.height;
+      const flightAnimation=flight.animate([
+        {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:0},
+        {transform:"translate3d("+Math.round(dx*.22)+"px,"+Math.round(dy*.18)+"px,0) scale(1.42)",opacity:1,offset:.34},
+        {transform:"translate3d("+Math.round(dx*.72)+"px,"+Math.round(dy*.76)+"px,0) scale("+Math.max(sx,sy)*1.08+")",opacity:1,offset:.78},
+        {transform:"translate3d("+dx+"px,"+dy+"px,0) scale("+sx+","+sy+")",opacity:1,offset:1}
+      ],{duration:520,easing:"cubic-bezier(.2,.78,.22,1)",fill:"forwards"});
+      if(screen)screen.animate([{opacity:1},{opacity:0}],{duration:390,easing:"cubic-bezier(.22,1,.36,1)",fill:"forwards"});
+      flightAnimation.finished.then(finish).catch(finish);
+    }else{
+      if(screen&&!reduced)screen.animate([{opacity:1},{opacity:0}],{duration:180,easing:"ease-out",fill:"forwards"}).finished.then(finish).catch(finish);
+      else finish();
+    }
    };
    card.addEventListener("click",activate);card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate()}});
    list.append(card);
