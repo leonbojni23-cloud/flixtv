@@ -1,5 +1,5 @@
 (function(){"use strict";
-const ORIGIN="https://cinesrc.st",TYPES=new Set(["ready","play","pause","timeupdate","ended","volumechange","seeking","seeked","ratechange","loadedmetadata","error","response"]);
+const ORIGIN="https://cinesrc.st",TYPES=new Set(["ready","play","pause","timeupdate","ended","volumechange","seeking","seeked","ratechange","loadedmetadata","error","response","sourceused","skipintro","close"]);
 function handle(e){const f=document.getElementById("cinesrc-frame");if(e.origin!==ORIGIN||!f||e.source!==f.contentWindow)return;const d=e.data;if(!d||typeof d!=="object"||typeof d.type!=="string"||!d.type.startsWith("cinesrc:"))return;const type=d.type.slice(8);if(!TYPES.has(type)||(type==="response"&&typeof d.command!=="string"))return;window.FlixPlaybackState?.apply(type,d);if(type==="error")window.FlixPlayerErrors?.report(d);window.dispatchEvent(new CustomEvent("flxtv:cinesrc-event",{detail:{type,data:d,origin:e.origin,receivedAt:Date.now()}}))}
 window.addEventListener("message",handle);window.FlixCineSRCEvents={origin:ORIGIN,allowedTypes:[...TYPES]};
 })();

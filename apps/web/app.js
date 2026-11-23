@@ -998,6 +998,13 @@ window.addEventListener("flxtv:cinesrc-event",event=>{
   else if(type==="pause")$("player-modal").dataset.playerState="paused";
   else if(type==="loadedmetadata"){const d=Number(data.duration);if(Number.isFinite(d)&&d>0)latestPlaybackDuration=d}
   else if(type==="error"){$("player-modal").dataset.playerState="error";setPlayerStatus(window.FlixPlayerErrors?.message(data)||"CineSRC raportoi një gabim gjatë riprodhimit.",true)}
+  else if(type==="sourceused"){
+    const sourceId=String(data.sourceId||"").trim().slice(0,128);
+    if(sourceId){try{localStorage.setItem("flxtv:cinesrc:lastserver",sourceId)}catch(_){}}
+    $("player-modal").dataset.cinesrcSource=sourceId;
+  }else if(type==="skipintro"){
+    const time=Number(data.time);if(Number.isFinite(time)&&time>=0){latestPlaybackTime=time;savePlaybackProgress(true)}
+  }else if(type==="close"){closePlayer()}
 });
 window.addEventListener("flxtv:player-error",event=>{
   if(!currentPlayback)return;$("player-modal").dataset.playerState="error";
