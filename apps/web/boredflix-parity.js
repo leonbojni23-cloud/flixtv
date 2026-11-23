@@ -351,12 +351,14 @@ function shader(){
  var pr=gl.createProgram();gl.attachShader(pr,a);gl.attachShader(pr,b);gl.linkProgram(pr);if(!gl.getProgramParameter(pr,gl.LINK_STATUS)){c.style.display="none";return}fallback.style.display="none";
  gl.useProgram(pr);var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
  var pos=gl.getAttribLocation(pr,"p");gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
- var rr=gl.getUniformLocation(pr,"r"),tt=gl.getUniformLocation(pr,"t"),last=0,start=performance.now(),raf=0;
+ var rr=gl.getUniformLocation(pr,"r"),tt=gl.getUniformLocation(pr,"t"),start=performance.now(),raf=0,timer=0;
  function resize(){var dpr=Math.min(devicePixelRatio||1,1.3),w=Math.max(1,Math.floor(innerWidth*dpr)),h=Math.max(1,Math.floor(innerHeight*dpr));if(c.width!==w||c.height!==h){c.width=w;c.height=h;gl.viewport(0,0,w,h)}}
- function draw(now){if(doc.hidden)return;raf=requestAnimationFrame(draw);if(now-last<33)return;last=now;resize();gl.uniform2f(rr,c.width,c.height);gl.uniform1f(tt,(now-start)/1000);gl.drawArrays(gl.TRIANGLES,0,6)}
- resize();raf=requestAnimationFrame(draw);doc.addEventListener("visibilitychange",function(){if(doc.hidden)cancelAnimationFrame(raf);else{last=0;raf=requestAnimationFrame(draw)}});
- c.addEventListener("webglcontextlost",function(e){e.preventDefault();cancelAnimationFrame(raf);c.style.display="none"});
- c.addEventListener("webglcontextrestored",function(){c.style.display="block";last=0;raf=requestAnimationFrame(draw)});
+ function stop(){if(timer)clearTimeout(timer);timer=0;if(raf)cancelAnimationFrame(raf);raf=0}
+ function schedule(){if(doc.hidden||timer||raf)return;timer=window.setTimeout(function(){timer=0;raf=requestAnimationFrame(draw)},16)}
+ function draw(now){raf=0;if(doc.hidden)return;resize();gl.uniform2f(rr,c.width,c.height);gl.uniform1f(tt,(now-start)/1000);gl.drawArrays(gl.TRIANGLES,0,6);schedule()}
+ resize();schedule();doc.addEventListener("visibilitychange",function(){if(doc.hidden)stop();else schedule()});
+ c.addEventListener("webglcontextlost",function(e){e.preventDefault();stop();c.style.display="none"});
+ c.addEventListener("webglcontextrestored",function(){c.style.display="block";schedule()});
 }
 function install(){
  doc.body.classList.add("bf-reference-mode");ensurePanel().hidden=true;installHeader();reorderHome();shader();
