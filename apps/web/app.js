@@ -1216,11 +1216,8 @@ function createServiceCard(provider){
  label.textContent=displayName;
  button.append(tile,label);
  button.onclick=()=>{
-  const serviceSlug=String(provider.provider_name||"").toLowerCase()
-   .replace(/\\+/g," plus ")
-   .replace(/[^a-z0-9]+/g,"-")
-   .replace(/^-|-$/g,"");
-  location.href="/browse/provider/"+serviceSlug;
+  // Render the selected provider in the current page instead of reloading FLIXTV.
+  browseServiceProvider(provider);
  };
  return button;
 }
