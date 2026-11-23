@@ -1556,7 +1556,7 @@ function languageDisplayName(code){
  try{return new Intl.DisplayNames(["en"],{type:"language"}).of(code||"en")}catch(_){return String(code||"en").toUpperCase()}
 }
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function syncMovieDetailHeader(enabled){
+function syncMovieDetailHeader(enabled,activePage="movies"){
  const topbar=document.querySelector(".topbar");
  if(!topbar)return;
  let back=topbar.querySelector(".movie-detail-back");
@@ -1568,7 +1568,7 @@ function syncMovieDetailHeader(enabled){
    topbar.insertBefore(back,topbar.firstChild);
   }
   const activateMovies=()=>{
-   const nav=document.querySelector('.mobile-nav [data-page="movies"]');
+   const nav=document.querySelector('.mobile-nav [data-page="'+activePage+'"]');
    if(nav){document.querySelectorAll(".mobile-nav button").forEach(button=>button.classList.toggle("active",button===nav))}
   };
   activateMovies();requestAnimationFrame(activateMovies);
@@ -1681,11 +1681,13 @@ async function hydrateTitlePage(item,push=false,playMode=false){
   if(push)history.pushState({titlePage:true,play:playMode},"",pageUrl(titlePageItem,playMode));
   $("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;$("search-page").hidden=true;
   $("title-page").innerHTML=titlePageMarkup(titlePageItem,d,playMode);
-  const isMovieDetail=k==="movie";
+  const isMovieDetail=k==="movie",isSeriesDetail=k==="tv";
   document.body.classList.toggle("flxtv-movie-detail",isMovieDetail);
-  setMovieGlobalAmbientSuppressed(isMovieDetail);
-  syncMovieDetailHeader(isMovieDetail);
+  document.body.classList.toggle("flxtv-series-detail",isSeriesDetail);
+  setMovieGlobalAmbientSuppressed(isMovieDetail||isSeriesDetail);
+  syncMovieDetailHeader(isMovieDetail||isSeriesDetail,isSeriesDetail?"shows":"movies");
   if(isMovieDetail)hydrateMovieDetailExtras(titlePageItem,d,titleVideosPromise).catch(error=>console.warn("Movie detail extras failed",error));
+  if(isSeriesDetail)hydrateSeriesDetailExtras(titlePageItem,d,titleVideosPromise).catch(error=>console.warn("Series detail extras failed",error));
   initTitleYoutubeControls();
   document.body.classList.remove("no-scroll");
   if(k==="tv")loadTitleEpisodes();
@@ -1702,10 +1704,25 @@ async function hydrateTitlePage(item,push=false,playMode=false){
   const overviewMore=$("overview-more");
   if(overviewMore)overviewMore.onclick=()=>{const overviewNode=$("title-overview"),expanded=overviewNode.classList.toggle("expanded");overviewNode.classList.toggle("collapsed",!expanded);overviewMore.textContent=expanded?"Më pak":"Më shumë";overviewMore.setAttribute("aria-expanded",String(expanded))};
   if(k==="tv"){
-   $("title-season").onchange=async()=>{titlePageSeason=Number($("title-season").value);titlePageEpisode=1;episodeTab.classList.add("active");similarTab.classList.remove("active");episodeList.hidden=false;const similar=$("series-similar-list");if(similar)similar.hidden=true;await loadTitleEpisodes()};
-   const episodeTab=$("series-episodes-tab"),similarTab=$("series-similar-tab"),episodeList=$("title-episode-list");
-   episodeTab.onclick=()=>{episodeTab.classList.add("active");similarTab.classList.remove("active");episodeList.hidden=false;const similar=$("series-similar-list");if(similar)similar.hidden=true};
-   similarTab.onclick=async()=>{similarTab.classList.add("active");episodeTab.classList.remove("active");episodeList.hidden=true;let similar=$("series-similar-list");if(!similar){similar=document.createElement("div");similar.id="series-similar-list";similar.className="series-similar-list";episodeList.after(similar)}if(similar.dataset.loaded==="true") {similar.hidden=false;return}similar.hidden=false;similar.textContent="Po ngarkohen sugjerimet…";try{const data=await tmdb("/tv/"+titlePageItem.id+"/similar");const items=(data.results||[]).filter(x=>x.poster_path).slice(0,12);similar.replaceChildren(...items.map(x=>{const b=document.createElement("button");b.className="series-similar-card";b.type="button";const img=document.createElement("img");img.loading="lazy";img.src=IMG+"w185"+x.poster_path;img.alt="";const label=document.createElement("span");label.textContent=title(x);b.append(img,label);b.onclick=()=>openTitlePage(x,true,false);return b}));similar.dataset.loaded="true";if(!items.length)similar.textContent="Nuk ka sugjerime për këtë serial."}catch(error){similar.textContent="Sugjerimet nuk u ngarkuan."}};
+   const seasonSelect=$("title-season"),seasonTrigger=$("series-season-trigger"),seasonMenu=$("series-season-menu"),seasonLabel=$("series-season-label");
+   const seenAll=$("series-seen-all");
+   if(seasonTrigger&&seasonMenu){
+    seasonTrigger.onclick=()=>{seasonMenu.hidden=!seasonMenu.hidden;seasonTrigger.classList.toggle("open",!seasonMenu.hidden)};
+    seasonMenu.querySelectorAll("[data-season]").forEach(option=>option.onclick=()=>{
+     seasonSelect.value=String(Number(option.dataset.season));seasonSelect.dispatchEvent(new Event("change",{bubbles:true}));seasonMenu.hidden=true;seasonTrigger.classList.remove("open");
+    });
+    document.addEventListener("click",function closeSeasonMenu(event){
+     if(!document.body.classList.contains("flxtv-series-detail")){document.removeEventListener("click",closeSeasonMenu);return}
+     if(!event.target.closest(".series-season-heading")&&!event.target.closest(".series-season-menu")){seasonMenu.hidden=true;seasonTrigger.classList.remove("open")}
+    });
+   }
+   if(seasonSelect)seasonSelect.onchange=async()=>{
+    titlePageSeason=Number(seasonSelect.value);titlePageEpisode=1;
+    if(seasonLabel)seasonLabel.textContent="Season "+titlePageSeason;
+    seasonMenu?.querySelectorAll("[data-season]").forEach(option=>{const active=Number(option.dataset.season)===titlePageSeason;option.classList.toggle("active",active);option.querySelector("b")?.remove();if(active){const check=document.createElement("b");check.textContent="✓";option.append(check)}});
+    await loadTitleEpisodes();
+   };
+   if(seenAll)seenAll.onclick=()=>toggleSeasonWatched(titlePageItem,titlePageSeason);
   }
   if(playMode){const params=new URLSearchParams(location.search);if(k==="tv"){titlePageSeason=Number(params.get("season")||titlePageSeason);titlePageEpisode=Number(params.get("episode")||1);loadTitleEpisodes()}startTitlePlayback(k==="tv"?titlePageSeason:undefined,k==="tv"?titlePageEpisode:undefined,Number(params.get("t")||0))}
   window.scrollTo(0,0);
@@ -3002,7 +3019,7 @@ async function loadSports(){
 
 const loadedPages=new Set();
 async function openPage(page,updateHistory=true){
- document.body.classList.remove("flxtv-movie-detail");
+ document.body.classList.remove("flxtv-movie-detail","flxtv-series-detail");
  setMovieGlobalAmbientSuppressed(false);
  syncMovieDetailHeader(false);
   if(updateHistory){const target=page==="sports"?"/sports":page==="home"?"/":location.pathname;if(target!==location.pathname)history.pushState({page},"",target)}
