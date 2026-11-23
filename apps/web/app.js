@@ -2323,9 +2323,15 @@ function ensureHlsLibrary(){
   });
   return hlsLibraryPromise;
 }
-function stopResolvedVideo(){
+function stopResolvedVideo(options={}){
   const streamFrame=$("cinesrc-frame");
-  if(streamFrame){streamFrame.onload=null;streamFrame.onerror=null;streamFrame.src="about:blank";streamFrame.hidden=true;}
+  // During a new playback, replace the iframe URL directly. Navigating it to
+  // about:blank first creates an unnecessary extra document load.
+  if(streamFrame&&!options.preserveCineSrcFrame){
+    streamFrame.onload=null;streamFrame.onerror=null;
+    if(streamFrame.getAttribute("src")!=="about:blank")streamFrame.src="about:blank";
+    streamFrame.hidden=true;
+  }
   const video=$("resolved-video");
   if(activeHlsPlayer){
     try{activeHlsPlayer.destroy()}catch(_){}
@@ -2559,17 +2565,21 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   playbackReturnToTitlePage=!$("title-page").hidden;
   currentPlayback={item,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null};
   latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
-  stopResolvedVideo();
+  stopResolvedVideo({preserveCineSrcFrame:true});
   clearExternalSubtitles();
   const frame=$("cinesrc-frame");
   if(!frame)throw new Error("CineSRC iframe mungon në player-in FLIXTV.");
   embedUrl.searchParams.set("autoplay","1");
   embedUrl.searchParams.set("playsinline","1");
   frame.hidden=false;
+  frame.setAttribute("loading","eager");
+  frame.setAttribute("fetchpriority","high");
   frame.setAttribute("allow","fullscreen *; autoplay *; picture-in-picture; encrypted-media");
-  frame.src=embedUrl.href;
   $("resolved-video").hidden=true;
   $("player-quality-select").hidden=true;
+
+  // Make the player visible and request fullscreen before starting the
+  // cross-origin navigation, keeping the click's user activation intact.
   modal("player-modal",true);
   requestPlayerFullscreen();
   document.documentElement.classList.add("flxtv-player-active");
@@ -2580,6 +2590,20 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   frame.onload=()=>{if(playbackId===playbackOpenId)setPlayerStatus("")};
   frame.onerror=()=>{if(playbackId===playbackOpenId)setPlayerStatus("CineSRC nuk u ngarkua. Kontrollo nëse burimi lejon iframe.",true)};
   startProgressPolling();
+  const navigationStarted=performance.now();
+  frame.src=embedUrl.href;
+  console.info("[FLIXTV] CineSRC iframe navigation started",{
+    title:title(item),mediaType,tmdbId:item.id,
+    navigationStartMs:Math.round(navigationStarted),
+    embedHost:embedUrl.host
+  });
+  frame.addEventListener("load",()=>{
+    if(playbackId===playbackOpenId){
+      console.info("[FLIXTV] CineSRC iframe document loaded",{
+        title:title(item),elapsedMs:Math.round(performance.now()-navigationStarted)
+      });
+    }
+  },{once:true});
   console.info("[FLIXTV] CineSRC iframe playback opened",{title:title(item),mediaType,tmdbId:item.id,embedUrl:embedUrl.href});
   return {provider:"cinesrc",format:"iframe",embedUrl:embedUrl.href};
 }
