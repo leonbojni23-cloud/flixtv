@@ -3335,3 +3335,36 @@ body.bf-shows-route .bf-grid-card{align-self:start!important}
   .series-season-jump button,.detail-actions button
  ){ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;background-color:rgba(35,39,48,.92)!important }
 }
+
+
+/* Dark cinematic ambient background for Movies and TV Shows.
+   The palette follows the active Hero artwork through the existing extracted RGB variables. */
+body.bf-reference-mode.bf-movies-route #app-ambient,
+body.bf-reference-mode.bf-shows-route #app-ambient{
+ background:
+  radial-gradient(ellipse at 14% 12%,rgb(var(--hero-smoke-one,190,104,69) / .23),transparent 54%),
+  radial-gradient(ellipse at 86% 34%,rgb(var(--hero-smoke-two,76,111,94) / .19),transparent 57%),
+  radial-gradient(ellipse at 48% 86%,rgb(var(--hero-smoke-three,121,91,151) / .17),transparent 61%),
+  radial-gradient(ellipse at 50% 48%,rgba(30,35,48,.12),transparent 72%),
+  #080a10!important;
+ transition:background 1.6s ease!important;
+}
+body.bf-reference-mode.bf-movies-route #app-ambient .webgl-smoke-canvas,
+body.bf-reference-mode.bf-shows-route #app-ambient .webgl-smoke-canvas{
+ opacity:.34!important;
+ filter:blur(1.5px) saturate(1.18)!important;
+}
+body.bf-reference-mode.bf-movies-route #app-ambient::before,
+body.bf-reference-mode.bf-shows-route #app-ambient::before{
+ content:""!important;
+ position:absolute!important;
+ inset:0!important;
+ z-index:3!important;
+ pointer-events:none!important;
+ background:linear-gradient(180deg,rgba(5,7,12,.20),rgba(5,7,12,.34) 48%,rgba(5,7,12,.48))!important;
+}
+body.bf-reference-mode.bf-movies-route #app-ambient::after,
+body.bf-reference-mode.bf-shows-route #app-ambient::after{
+ z-index:4!important;
+ background:linear-gradient(180deg,rgba(0,0,0,.02) 0%,rgba(0,0,0,.06) 48%,rgba(0,0,0,.20) 100%)!important;
+}
