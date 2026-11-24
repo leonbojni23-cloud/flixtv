@@ -73,17 +73,17 @@
   -webkit-transform-origin:center center!important;
 }
 
-/* Symmetric iPhone virtual-landscape viewport.
-   The wrapper is centered on the physical screen. After rotation, its local
-   width maps to screen height and its local height maps to screen width.
-   Reducing both dimensions by 24px leaves exactly 12px of black margin on
-   every physical edge, without moving or scaling the video inside the frame. */
+/* iPhone virtual-landscape viewport margins requested by the user:
+   left 0px, right 0px, top -6px (6px overscan), bottom 16px.
+   After rotation, local width controls physical height and local height
+   controls physical width. The center is shifted 11px upward to preserve
+   the specified asymmetric top/bottom margins. */
 @media (orientation:portrait){
   #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape{
-    top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2)!important;
+    top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2 - 11px)!important;
     left:calc(var(--flxtv-ios-vv-left,0px) + var(--flxtv-ios-vv-width,100vw)/2)!important;
-    width:calc(var(--flxtv-ios-vv-height,100dvh) - 24px)!important;
-    height:calc(var(--flxtv-ios-vv-width,100vw) - 24px)!important;
+    width:calc(var(--flxtv-ios-vv-height,100dvh) - 10px)!important;
+    height:var(--flxtv-ios-vv-width,100vw)!important;
     transform:translate(-50%,-50%) rotate(90deg)!important;
     -webkit-transform:translate(-50%,-50%) rotate(90deg)!important;
   }
