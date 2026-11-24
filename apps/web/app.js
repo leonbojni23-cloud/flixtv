@@ -3293,12 +3293,16 @@ function resumeScrollHeavyWork(){
  ensureHeroSmokeStage();
  ensurePageSmokeCanvas();
 }
-window.addEventListener("scroll",()=>{
+const onFlixVerticalScroll=()=>{
  if(window.FlixPlayerFocus?.isActive())return;
  pauseScrollHeavyWork();
  clearTimeout(flixScrollIdleTimer);
  flixScrollIdleTimer=setTimeout(resumeScrollHeavyWork,520);
-},{passive:true});
+};
+// The app itself is the vertical scroller. Window-only listeners miss element scroll events.
+const flixAppScroller=$("app");
+if(flixAppScroller)flixAppScroller.addEventListener("scroll",onFlixVerticalScroll,{passive:true});
+window.addEventListener("scroll",onFlixVerticalScroll,{passive:true,capture:true});
 
 window.addEventListener("flxtv:player-focus",event=>{
  const focused=!!event.detail?.active;
