@@ -1004,7 +1004,7 @@ window.addEventListener("flxtv:cinesrc-event",event=>{
     $("player-modal").dataset.cinesrcSource=sourceId;
   }else if(type==="skipintro"){
     const time=Number(data.time);if(Number.isFinite(time)&&time>=0){latestPlaybackTime=time;savePlaybackProgress(true)}
-  }else if(type==="close"){closePlayer()}
+  }else if(type==="close"){returnToPlaybackTitlePage()}
 });
 window.addEventListener("flxtv:player-error",event=>{
   if(!currentPlayback)return;$("player-modal").dataset.playerState="error";
@@ -2625,6 +2625,22 @@ function play(item,season,episode){
   return openResolvedPlayback(item,season,episode,null,resume);
 }
 function hidePlayerControls(){$("player-modal").classList.add("controls-visible")}function showPlayerControls(){if(!$("player-modal").classList.contains("open"))return;$("player-modal").classList.add("controls-visible");clearTimeout(controlsTimer)}
+function returnToPlaybackTitlePage(){
+  const playback=currentPlayback;
+  if(!playback?.item){closePlayer();return}
+  const item={...playback.item,media_type:kind(playback.item)};
+  const season=playback.season,episode=playback.episode;
+  closePlayer();
+  if(kind(item)==="tv"){
+    titlePageSeason=Number(season||1);
+    titlePageEpisode=Number(episode||1);
+  }
+  const target=pageUrl(item,false);
+  if(location.pathname.replace(/\\/$/,"")!==target){
+    history.pushState({titlePage:true},"",target);
+  }
+  openTitlePage(item,false,false);
+}
 function closePlayer(){
   if(!$("player-modal").classList.contains("open"))return;
   window.FlixPlaybackProgress?.flush();renderContinueWatching();
