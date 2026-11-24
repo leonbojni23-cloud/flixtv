@@ -32,43 +32,36 @@ function startFlixLoading(){
   bar.setAttribute("aria-valuenow",String(Math.round(flixLoadingProgress*100)));
  },180);
 }
-async function waitForFlixVisualReady(root){
+async async function waitForFlixVisualReady(root){
  if(!root)return;
- await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
- const images=[...root.querySelectorAll("img")].filter(img=>{
-  const rect=img.getBoundingClientRect();
-  return rect.width>2&&rect.height>2&&rect.bottom>0&&rect.top<innerHeight;
+ const all=[...root.querySelectorAll("img")],selected=[],railImages=new Set();
+ [...root.querySelectorAll(".poster-row,.continue-watching-row,.content-row")].forEach(rail=>{
+  [...rail.querySelectorAll("img")].slice(0,8).forEach(img=>{selected.push(img);railImages.add(img)});
  });
- const decode=images.map(img=>new Promise(resolve=>{
-  if(img.complete&&img.naturalWidth>0){
-   if(img.decode)img.decode().catch(()=>{}).finally(resolve);else resolve();
-   return;
-  }
-  let done=false;
-  const finish=()=>{if(done)return;done=true;clearTimeout(timer);img.removeEventListener("load",finish);img.removeEventListener("error",finish);resolve()};
-  const timer=setTimeout(finish,2200);
-  img.addEventListener("load",finish,{once:true});
-  img.addEventListener("error",finish,{once:true});
- }));
- await Promise.race([Promise.all(decode),new Promise(resolve=>setTimeout(resolve,2400))]);
+ all.filter(img=>!railImages.has(img)).slice(0,12).forEach(img=>selected.push(img));
+ const images=[...new Set(selected)].slice(0,32);
+ await Promise.all(images.map(img=>new Promise(resolve=>{
+  img.loading="eager";img.fetchPriority="high";
+  const done=()=>resolve();
+  if(img.complete&&img.naturalWidth>0){if(img.decode)img.decode().catch(()=>{}).finally(done);else done();return}
+  let settled=false;
+  const finish=()=>{if(settled)return;settled=true;clearTimeout(timer);img.removeEventListener("load",finish);img.removeEventListener("error",finish);if(img.decode&&img.naturalWidth>0)img.decode().catch(()=>{}).finally(done);else done()};
+  const timer=setTimeout(finish,8000);
+  img.addEventListener("load",finish,{once:true});img.addEventListener("error",finish,{once:true});
+ })));
+ if(document.fonts?.ready)await Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))]);
  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 }
-function finishFlixLoading(){
- const bar=document.getElementById("flix-top-loading");
- if(!bar)return;
- clearInterval(flixLoadingInterval);
- flixLoadingProgress=1;
- const fill=bar.firstElementChild;
- fill.style.transform="scaleX(1)";
- bar.setAttribute("aria-valuenow","100");
+async function finishFlixLoading(){
+ const bar=document.getElementById("flix-top-loading");if(!bar)return;
+ clearInterval(flixLoadingInterval);flixLoadingProgress=1;
+ const fill=bar.firstElementChild;fill.style.transform="scaleX(1)";bar.setAttribute("aria-valuenow","100");
  clearTimeout(flixLoadingTimer);
- flixLoadingTimer=setTimeout(()=>{
-  bar.classList.remove("is-active");
-  setTimeout(()=>{if(!bar.classList.contains("is-active"))fill.style.transform="scaleX(0)"},220);
-  flixLoadingProgress=0;
- },220);
+ await new Promise(resolve=>setTimeout(resolve,130));
+ bar.classList.remove("is-active");
+ await new Promise(resolve=>setTimeout(resolve,140));
+ fill.style.transform="scaleX(0)";flixLoadingProgress=0;
 }
-
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
@@ -2316,40 +2309,25 @@ function setMovieGlobalAmbientSuppressed(suppress){
 async function openTitlePage(item,push=false,playMode=false,originCard=null){
  if(!item||!item.id)return;
  startFlixLoading();
- const sourceImage=originCard?.querySelector("img")||null;
- const sourceRect=sourceImage?.getBoundingClientRect()||null;
- const sourceRadius=sourceImage?getComputedStyle(sourceImage).borderRadius:"5px";
- const k=kind(item);
- // Fetch the essential title payload before swapping the visible page.
- // This avoids showing an empty shell while TMDB is still responding.
- let prepared=null;
- try{prepared=await prefetchTitle(item)}catch(error){console.warn("Title preparation failed",error)}
- const readyItem={...item,...(prepared||{}),media_type:k};
- titlePageItem=readyItem;
+ const sourceImage=originCard?.querySelector("img")||null,sourceRect=sourceImage?.getBoundingClientRect()||null;
+ const sourceRadius=sourceImage?getComputedStyle(sourceImage).borderRadius:"5px",k=kind(item);
+ let prepared=null;try{prepared=await prefetchTitle(item)}catch(error){console.warn("Title preparation failed",error)}
+ const readyItem={...item,...(prepared||{}),media_type:k};titlePageItem=readyItem;
  if(push){
-  const activePage=document.querySelector("[data-page].active")?.dataset.page||"home";
-  const appScroller=$("app");
+  const activePage=document.querySelector("[data-page].active")?.dataset.page||"home",appScroller=$("app");
   history.replaceState({...history.state,flixView:{scrollY:appScroller?.scrollTop||window.scrollY,page:activePage,search:!$("search-page").hidden,sports:!$("sports-page").hidden}},"",location.href);
   history.pushState({titlePage:true,play:playMode},"",pageUrl(item,playMode));
  }
- $("title-page").hidden=false;
- $("catalog").hidden=true;
- $("hero").hidden=true;
- $("search-page").hidden=true;
- document.body.classList.toggle("flxtv-movie-detail",k==="movie");
- document.body.classList.toggle("flxtv-series-detail",k==="tv");
- setMovieGlobalAmbientSuppressed(true);
- syncMovieDetailHeader(true,k==="tv"?"shows":"movies");
+ // Render and preload the title page off-screen while the current page stays visible.
  $("title-page").innerHTML=titlePageMarkup(readyItem,readyItem,playMode);
- document.body.classList.remove("no-scroll");
- window.scrollTo({top:0,left:0,behavior:"instant"});
- const destination=$("title-page").querySelector(".title-page-cover>.title-page-cover-image");
- if(sourceImage&&destination&&sourceRect&&sourceRect.width>1&&sourceRect.height>1){
-  animatePosterFallback(sourceImage,destination,sourceRect,sourceRadius);
- }
  await waitForFlixVisualReady($("title-page"));
- finishFlixLoading();
- // Hydrate trailers, translations and secondary data after the prepared page is visible.
+ await finishFlixLoading();
+ $("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;$("search-page").hidden=true;
+ document.body.classList.toggle("flxtv-movie-detail",k==="movie");document.body.classList.toggle("flxtv-series-detail",k==="tv");
+ setMovieGlobalAmbientSuppressed(true);syncMovieDetailHeader(true,k==="tv"?"shows":"movies");
+ document.body.classList.remove("no-scroll");window.scrollTo({top:0,left:0,behavior:"instant"});
+ const destination=$("title-page").querySelector(".title-page-cover>.title-page-cover-image");
+ if(sourceImage&&destination&&sourceRect&&sourceRect.width>1&&sourceRect.height>1)animatePosterFallback(sourceImage,destination,sourceRect,sourceRadius);
  void hydrateTitlePage(readyItem,false,playMode);
 }
 async function resolveTitleRoute(){
@@ -2402,32 +2380,24 @@ document.addEventListener("click",event=>{
  if(history.state?.titlePage)history.back();
  else location.assign("/");
 });
-window.addEventListener("popstate",event=>{
+window.addEventListener("popstate",async event=>{
  startFlixLoading();
  if($("player-modal").classList.contains("open"))closePlayer();
  const view=event.state?.flixView;
  if(view){
-  // Leaving a movie/series detail through iOS Safari back must restore the
-  // original Home ambient node and clear detail-only body styling first.
+  const targetRoot=view.page==="home"?$("home-page"):view.page==="movies"?$("movies-page"):view.page==="shows"?$("shows-page"):$("sports-page");
+  await waitForFlixVisualReady(targetRoot);
+  await finishFlixLoading();
   document.body.classList.remove("flxtv-movie-detail","flxtv-series-detail","flxtv-movie-overscroll-lock");
-  setMovieGlobalAmbientSuppressed(false);
-  syncMovieDetailHeader(false);
-  $("title-page").hidden=true;
-  $("catalog").hidden=false;
-  $("sports-page").hidden=!view.sports;
-  $("hero").hidden=view.page!=="home";
-  $("home-page").hidden=view.page!=="home";
-  $("movies-page").hidden=view.page!=="movies";
-  $("shows-page").hidden=view.page!=="shows";
-  $("search-page").hidden=!view.search;
+  setMovieGlobalAmbientSuppressed(false);syncMovieDetailHeader(false);
+  $("title-page").hidden=true;$("catalog").hidden=false;$("sports-page").hidden=!view.sports;
+  $("hero").hidden=view.page!=="home";$("home-page").hidden=view.page!=="home";$("movies-page").hidden=view.page!=="movies";$("shows-page").hidden=view.page!=="shows";$("search-page").hidden=!view.search;
   document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===view.page));
-  requestAnimationFrame(()=>requestAnimationFrame(async()=>{window.scrollTo({top:view.scrollY||0,left:0,behavior:"instant"});await waitForFlixVisualReady(view.page==="home"?$("home-page"):view.page==="movies"?$("movies-page"):view.page==="shows"?$("shows-page"):$("sports-page"));finishFlixLoading()}));
-  return;
+  requestAnimationFrame(()=>window.scrollTo({top:view.scrollY||0,left:0,behavior:"instant"}));return;
  }
- if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);
- else if(location.pathname==="/"){
-  $("title-page").hidden=true;$("catalog").hidden=false;$("hero").hidden=false;openPage("home",false);
- }else resolveTitleRoute();
+ if(location.pathname.replace(/\/$/,"")==="/sports")await openPage("sports",false);
+ else if(location.pathname==="/")await openPage("home",false);
+ else await resolveTitleRoute();
 });
 document.addEventListener("keydown",e=>{if((e.key==="Escape"||e.key==="Backspace")&&$("player-modal").classList.contains("open")){e.preventDefault();leavePlayer()}});
 
@@ -3302,52 +3272,30 @@ const loadedPages=new Set();
 async function openPage(page,updateHistory=true){
  startFlixLoading();
  try{
-  document.body.classList.remove("flxtv-movie-detail","flxtv-series-detail");
-  setMovieGlobalAmbientSuppressed(false);
-  syncMovieDetailHeader(false);
   if(updateHistory){const target=page==="sports"?"/sports":page==="home"?"/":location.pathname;if(target!==location.pathname)history.pushState({page},"",target)}
-  // Prepare content while the current page remains visible.
-  if(page==="home"){
-   resumeScrollHeavyWork();
-   renderContinueWatching();
-   await home();
-  }else{
-   pauseScrollHeavyWork();
-   if(page==="sports")await loadSports();
-   else if(!loadedPages.has(page)){
-    const jobs=page==="movies"?[
-     ["movie-trending","/trending/movie/week"],["movie-popular","/movie/popular"],["movie-top","/movie/top_rated"],["movie-now","/movie/now_playing"],["movie-upcoming","/movie/upcoming"]
-    ]:[
-     ["show-trending","/trending/tv/week"],["show-popular","/tv/popular"],["show-top","/tv/top_rated"],["show-airing","/tv/on_the_air"],["show-today","/tv/airing_today"],
-     ["show-action-adventure","/discover/tv?with_genres=10759&sort_by=popularity.desc"],
-     ["show-scifi-fantasy","/discover/tv?with_genres=10765&sort_by=popularity.desc"],
-     ["show-crime-drama","/discover/tv?with_genres=80,18&sort_by=popularity.desc"],
-     ["show-comedy-romance","/discover/tv?with_genres=35,10749&sort_by=popularity.desc"],
-     ["show-mystery-thriller","/discover/tv?with_genres=9648,53&sort_by=popularity.desc"]
-    ];
-    await Promise.all(jobs.map(([id,path])=>row(id,path)));
-    loadedPages.add(page);
-   }
+  // Keep the old page on screen while data and first-screen artwork are prepared.
+  if(page==="home"){renderContinueWatching();await home()}
+  else if(page==="sports")await loadSports();
+  else if(!loadedPages.has(page)){
+   const jobs=page==="movies"?[
+    ["movie-trending","/trending/movie/week"],["movie-popular","/movie/popular"],["movie-top","/movie/top_rated"],["movie-now","/movie/now_playing"],["movie-upcoming","/movie/upcoming"]
+   ]:[
+    ["show-trending","/trending/tv/week"],["show-popular","/tv/popular"],["show-top","/tv/top_rated"],["show-airing","/tv/on_the_air"],["show-today","/tv/airing_today"],
+    ["show-action-adventure","/discover/tv?with_genres=10759&sort_by=popularity.desc"],["show-scifi-fantasy","/discover/tv?with_genres=10765&sort_by=popularity.desc"],
+    ["show-crime-drama","/discover/tv?with_genres=80,18&sort_by=popularity.desc"],["show-comedy-romance","/discover/tv?with_genres=35,10749&sort_by=popularity.desc"],
+    ["show-mystery-thriller","/discover/tv?with_genres=9648,53&sort_by=popularity.desc"]
+   ];
+   await Promise.all(jobs.map(([id,path])=>row(id,path)));loadedPages.add(page);
   }
-  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
-  requestAnimationFrame(updateDesktopNavPill);
-  const appScroller=$("app");
-  if(appScroller){
-   appScroller.scrollTo({top:0,behavior:"instant"});
-   appScroller.classList.remove("flix-page-enter");
-   requestAnimationFrame(()=>appScroller.classList.add("flix-page-enter"));
-  }
-  $("search-page").hidden=true;
-  $("sports-page").hidden=page!=="sports";
-  $("catalog").hidden=page==="sports";
-  searchPageActive=false;
-  $("hero").hidden=page!=="home";
-  $("home-page").hidden=page!=="home";
-  $("movies-page").hidden=page!=="movies";
-  $("shows-page").hidden=page!=="shows";
-  const visibleRoot=page==="sports"?$("sports-page"):page==="home"?$("home-page"):page==="movies"?$("movies-page"):$("shows-page");
-  await waitForFlixVisualReady(visibleRoot);
- }finally{finishFlixLoading()}
+  const targetRoot=page==="sports"?$("sports-page"):page==="home"?$("home-page"):page==="movies"?$("movies-page"):$("shows-page");
+  await waitForFlixVisualReady(targetRoot);
+  await finishFlixLoading();
+  document.body.classList.remove("flxtv-movie-detail","flxtv-series-detail");setMovieGlobalAmbientSuppressed(false);syncMovieDetailHeader(false);
+  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));requestAnimationFrame(updateDesktopNavPill);
+  const appScroller=$("app");if(appScroller){appScroller.scrollTo({top:0,behavior:"instant"});appScroller.classList.remove("flix-page-enter");requestAnimationFrame(()=>appScroller.classList.add("flix-page-enter"))}
+  $("search-page").hidden=true;$("sports-page").hidden=page!=="sports";$("catalog").hidden=page==="sports";searchPageActive=false;
+  $("hero").hidden=page!=="home";$("home-page").hidden=page!=="home";$("movies-page").hidden=page!=="movies";$("shows-page").hidden=page!=="shows";
+ }catch(error){console.warn("Page navigation preparation failed",error);await finishFlixLoading()}
 }
 $("continue-library-open").onclick=openContinueLibrary;
 $("continue-library-close").onclick=closeContinueLibrary;
