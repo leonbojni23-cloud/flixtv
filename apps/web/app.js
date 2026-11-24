@@ -32,7 +32,7 @@ function startFlixLoading(){
   bar.setAttribute("aria-valuenow",String(Math.round(flixLoadingProgress*100)));
  },180);
 }
-async async function waitForFlixVisualReady(root){
+async function waitForFlixVisualReady(root){
  if(!root)return;
  const all=[...root.querySelectorAll("img")],selected=[],railImages=new Set();
  [...root.querySelectorAll(".poster-row,.continue-watching-row,.content-row")].forEach(rail=>{
