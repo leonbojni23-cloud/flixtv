@@ -73,13 +73,13 @@
   -webkit-transform-origin:center center!important;
 }
 
-/* Physical viewport target: top edge -17px overscan, bottom edge +17px inset.
-   The viewport height is reduced by 34px and its center moves 17px upward. */
+/* Physical viewport target: top edge -14px overscan, bottom edge +14px inset.
+   The viewport height is reduced by 28px and its center moves 14px upward. */
 @media (orientation:portrait){
   #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape{
-    top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2 - 17px)!important;
+    top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2 - 14px)!important;
     left:calc(var(--flxtv-ios-vv-left,0px) + var(--flxtv-ios-vv-width,100vw)/2)!important;
-    width:calc(var(--flxtv-ios-vv-height,100dvh) - 34px)!important;
+    width:calc(var(--flxtv-ios-vv-height,100dvh) - 28px)!important;
     height:var(--flxtv-ios-vv-width,100vw)!important;
     transform:translate(-50%,-50%) rotate(90deg)!important;
     -webkit-transform:translate(-50%,-50%) rotate(90deg)!important;
