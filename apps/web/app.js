@@ -2590,7 +2590,6 @@ function isIOSDevice(){
   return /iPad|iPhone|iPod/.test(navigator.userAgent)||
     (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 }
-function isolatePageForPlayer(active){window.FlixPlayerFocus?.setActive(!!active)}
 function syncPlayerOrientation(){window.FlixPlayerOrientation?.sync()}
 function requestPlayerFullscreen(){window.FlixPlayerOrientation?.requestFullscreen()}
 async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0){
@@ -2606,8 +2605,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   frame.hidden=false;frame.setAttribute("loading","eager");frame.setAttribute("fetchpriority","high");
   frame.setAttribute("allow","fullscreen *; autoplay *; picture-in-picture; encrypted-media; orientation-lock");
   $("resolved-video").hidden=true;$("player-quality-select").hidden=true;
-  modal("player-modal",true);document.documentElement.classList.add("flxtv-player-active");document.body.classList.add("flxtv-player-active");
-  isolatePageForPlayer(true);clearInterval(heroTimer);heroTimer=null;
+  modal("player-modal",true);clearInterval(heroTimer);heroTimer=null;
   $("player-modal").dataset.playerState="loading";setPlayerStatus("Po lidhet me CineSRC…");
   requestPlayerFullscreen();syncPlayerOrientation();startPlaybackProgressTracking();
   frame.onerror=()=>{if(playbackId!==playbackOpenId)return;$("player-modal").dataset.playerState="error";setPlayerStatus("CineSRC nuk u ngarkua. Kontrollo lidhjen ose burimin.",true)};
@@ -2653,8 +2651,7 @@ function closePlayer(){
   $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");
   $("player-modal").classList.remove("attention-active","open");$("player-modal").setAttribute("aria-hidden","true");
   ["--flxtv-vv-width","--flxtv-vv-height","--flxtv-vv-left","--flxtv-vv-top"].forEach(name=>$("player-modal").style.removeProperty(name));
-  document.documentElement.classList.remove("flxtv-player-active");document.body.classList.remove("flxtv-player-active","no-scroll");
-  isolatePageForPlayer(false);syncPlayerOrientation();if(heroItems.length>1)startHeroTimer();
+  syncPlayerOrientation();if(heroItems.length>1)startHeroTimer();
 }
 
 
