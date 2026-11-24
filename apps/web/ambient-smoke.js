@@ -281,7 +281,9 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     resize();
     readPalette();
     window.addEventListener("resize", resize, { passive: true });
-    window.addEventListener("scroll", pauseForScroll, { passive: true });
+    const appScroller = document.getElementById("app");
+    if (appScroller) appScroller.addEventListener("scroll", pauseForScroll, { passive: true });
+    window.addEventListener("scroll", pauseForScroll, { passive: true, capture: true });
     const homeNode = document.getElementById("home-page");
     if (homeNode && "MutationObserver" in window) {
       pageObserver = new MutationObserver(() => {
@@ -316,7 +318,8 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       clearTimeout(scrollIdleTimer);
       pageObserver?.disconnect();
       window.removeEventListener("resize", resize);
-      window.removeEventListener("scroll", pauseForScroll);
+      appScroller?.removeEventListener("scroll", pauseForScroll);
+      window.removeEventListener("scroll", pauseForScroll, true);
       material.dispose();
       renderer.dispose();
       canvas.remove();
