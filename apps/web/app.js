@@ -910,7 +910,10 @@ function createContinueWatchingCard(entry,editing=false){
  button.append(artwork,body);
  button.onclick=()=>{
   if(continueEditMode)return;
-  window.location.assign(continueWatchUrl(item,entry));
+  // Open the title in-app so the poster-to-detail transition is animated and
+  // the previous Home scroll position remains available to the Back button.
+  openTitlePage(item,true,true,button);
+  history.replaceState(history.state, "", continueWatchUrl(item,entry));
  };
  shell.append(button);
  if(editing){
@@ -1678,9 +1681,15 @@ function syncMovieDetailHeader(enabled,activePage="movies"){
     if(history.state?.titlePage&&history.length>1){
      history.back();
     }else{
+     // Deep links (including Continue Watching URLs opened before this
+     // in-app navigation pass) must explicitly hide the detail layer.
      history.replaceState({page:"home",flixView:{page:"home",scrollY:0,search:false,sports:false}},"","/");
      document.body.classList.remove("flxtv-movie-detail","flxtv-series-detail","flxtv-movie-overscroll-lock");
      setMovieGlobalAmbientSuppressed(false);
+     $("title-page").hidden=true;
+     $("catalog").hidden=false;
+     $("hero").hidden=false;
+     $("search-page").hidden=true;
      syncMovieDetailHeader(false);
      openPage("home",false);
     }
@@ -2253,6 +2262,10 @@ function openTitlePage(item,push=false,playMode=false,originCard=null){
  $("catalog").hidden=true;
  $("hero").hidden=true;
  $("search-page").hidden=true;
+ document.body.classList.toggle("flxtv-movie-detail",k==="movie");
+ document.body.classList.toggle("flxtv-series-detail",k==="tv");
+ setMovieGlobalAmbientSuppressed(true);
+ syncMovieDetailHeader(true,k==="tv"?"shows":"movies");
  $("title-page").innerHTML=titlePageMarkup(titlePageItem,titlePageItem,playMode);
  document.body.classList.remove("no-scroll");
  window.scrollTo({top:0,left:0,behavior:"instant"});
