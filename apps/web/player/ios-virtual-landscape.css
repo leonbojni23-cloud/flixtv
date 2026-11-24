@@ -73,13 +73,13 @@
   -webkit-transform-origin:center center!important;
 }
 
-/* iPhone virtual-landscape viewport margins requested by the user:
-   left 0px, right 0px, top -35px (35px overscan), bottom 28px.
-   After rotation, local width controls physical height; center shifts
-   3.5px upward to preserve the requested asymmetric top/bottom margins. */
+/* Physical viewport target: top edge -35px (overscan), bottom edge 28px
+   inside the visual viewport. After the 90deg rotation, local width maps
+   to physical height: H + 35 - 28 = H + 7. The center is shifted upward
+   by (35 + 28) / 2 = 31.5px. */
 @media (orientation:portrait){
   #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape{
-    top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2 - 3.5px)!important;
+    top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2 - 31.5px)!important;
     left:calc(var(--flxtv-ios-vv-left,0px) + var(--flxtv-ios-vv-width,100vw)/2)!important;
     width:calc(var(--flxtv-ios-vv-height,100dvh) + 7px)!important;
     height:var(--flxtv-ios-vv-width,100vw)!important;
