@@ -949,8 +949,7 @@ function createContinueWatchingCard(entry,editing=false){
   if(continueEditMode)return;
   // Open the title in-app so the poster-to-detail transition is animated and
   // the previous Home scroll position remains available to the Back button.
-  openTitlePage(item,true,true,button);
-  history.replaceState(history.state, "", continueWatchUrl(item,entry));
+  void openTitlePage(item,true,true,button).then(()=>history.replaceState(history.state,"",continueWatchUrl(item,entry)));
  };
  shell.append(button);
  if(editing){
@@ -3275,6 +3274,29 @@ async function openPage(page,updateHistory=true){
   setMovieGlobalAmbientSuppressed(false);
   syncMovieDetailHeader(false);
   if(updateHistory){const target=page==="sports"?"/sports":page==="home"?"/":location.pathname;if(target!==location.pathname)history.pushState({page},"",target)}
+  // Prepare content while the current page remains visible.
+  if(page==="home"){
+   resumeScrollHeavyWork();
+   renderContinueWatching();
+   await home();
+  }else{
+   pauseScrollHeavyWork();
+   if(page==="sports")await loadSports();
+   else if(!loadedPages.has(page)){
+    const jobs=page==="movies"?[
+     ["movie-trending","/trending/movie/week"],["movie-popular","/movie/popular"],["movie-top","/movie/top_rated"],["movie-now","/movie/now_playing"],["movie-upcoming","/movie/upcoming"]
+    ]:[
+     ["show-trending","/trending/tv/week"],["show-popular","/tv/popular"],["show-top","/tv/top_rated"],["show-airing","/tv/on_the_air"],["show-today","/tv/airing_today"],
+     ["show-action-adventure","/discover/tv?with_genres=10759&sort_by=popularity.desc"],
+     ["show-scifi-fantasy","/discover/tv?with_genres=10765&sort_by=popularity.desc"],
+     ["show-crime-drama","/discover/tv?with_genres=80,18&sort_by=popularity.desc"],
+     ["show-comedy-romance","/discover/tv?with_genres=35,10749&sort_by=popularity.desc"],
+     ["show-mystery-thriller","/discover/tv?with_genres=9648,53&sort_by=popularity.desc"]
+    ];
+    await Promise.all(jobs.map(([id,path])=>row(id,path)));
+    loadedPages.add(page);
+   }
+  }
   document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
   requestAnimationFrame(updateDesktopNavPill);
   const appScroller=$("app");
@@ -3291,22 +3313,6 @@ async function openPage(page,updateHistory=true){
   $("home-page").hidden=page!=="home";
   $("movies-page").hidden=page!=="movies";
   $("shows-page").hidden=page!=="shows";
-  if(page==="home"){resumeScrollHeavyWork();renderContinueWatching();await home();return}
-  pauseScrollHeavyWork();
-  if(page==="sports"){await loadSports();return}
-  if(loadedPages.has(page))return;
-  const jobs=page==="movies"?[
-   ["movie-trending","/trending/movie/week"],["movie-popular","/movie/popular"],["movie-top","/movie/top_rated"],["movie-now","/movie/now_playing"],["movie-upcoming","/movie/upcoming"]
-  ]:[
-   ["show-trending","/trending/tv/week"],["show-popular","/tv/popular"],["show-top","/tv/top_rated"],["show-airing","/tv/on_the_air"],["show-today","/tv/airing_today"],
-   ["show-action-adventure","/discover/tv?with_genres=10759&sort_by=popularity.desc"],
-   ["show-scifi-fantasy","/discover/tv?with_genres=10765&sort_by=popularity.desc"],
-   ["show-crime-drama","/discover/tv?with_genres=80,18&sort_by=popularity.desc"],
-   ["show-comedy-romance","/discover/tv?with_genres=35,10749&sort_by=popularity.desc"],
-   ["show-mystery-thriller","/discover/tv?with_genres=9648,53&sort_by=popularity.desc"]
-  ];
-  await Promise.all(jobs.map(([id,path])=>row(id,path)));
-  loadedPages.add(page);
  }finally{finishFlixLoading()}
 }
 $("continue-library-open").onclick=openContinueLibrary;
