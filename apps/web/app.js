@@ -782,7 +782,7 @@ function showHero(index){
 showHero.requestId=0;
 function startHeroTimer(){
  clearInterval(heroTimer);
- if(heroItems.length<2)return;
+ if(heroItems.length<2||window.FlixPlayerFocus?.isActive()||$("player-modal")?.classList.contains("open"))return;
  restartHeroProgress();
  heroTimer=setInterval(()=>{if(!document.hidden&&!$("hero").hidden&&!$("player-modal").classList.contains("open"))showHero(heroIndex+1)},8000);
 }
@@ -3283,6 +3283,7 @@ function triggerHeroTitleFlicker(){
  triggerHeroTitleFlicker.cleanupTimer=setTimeout(()=>visibleTitle.classList.remove("is-flickering"),440);
 }
 window.addEventListener("scroll",()=>{
+ if(window.FlixPlayerFocus?.isActive())return;
  clearTimeout(heroTitleFlickerTimer);
  heroTitleFlickerTimer=setTimeout(triggerHeroTitleFlicker,170);
 },{passive:true});
