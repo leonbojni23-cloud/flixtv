@@ -7780,3 +7780,35 @@ html:not(.profile-ready) body> #flxtv-boot-recovery{visibility:visible!important
 .flxtv-boot-actions button{border:0;border-radius:9px;padding:12px 15px;background:#e50936;color:white;font-weight:700}
 .flxtv-boot-actions button+button{background:#293241}
 .flxtv-boot-card small{color:#9299a7;font-size:11px}
+
+
+/* FLIXTV scroll performance pass: defer off-screen section rendering and
+   avoid expensive backdrop compositing on mobile while the page is moving. */
+.content-section{
+  content-visibility:auto;
+  contain-intrinsic-size:auto 360px;
+}
+@media(max-width:760px){
+  .topbar,
+  .mobile-nav{
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+    background:rgba(9,11,16,.97)!important;
+  }
+  .content-section{
+    contain-intrinsic-size:auto 340px;
+  }
+  .poster-card,
+  .continue-card-shell .continue-card,
+  .service-logo-tile{
+    transition:none!important;
+  }
+  .poster-card:hover,
+  .continue-card-shell .continue-card:hover,
+  .service-logo-tile:hover{
+    transform:none!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .content-section{content-visibility:visible}
+}
