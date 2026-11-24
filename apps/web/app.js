@@ -3217,7 +3217,12 @@ async function openPage(page,updateHistory=true){
   if(updateHistory){const target=page==="sports"?"/sports":page==="home"?"/":location.pathname;if(target!==location.pathname)history.pushState({page},"",target)}
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
  requestAnimationFrame(updateDesktopNavPill);
- const appScroller=$("app");if(appScroller)appScroller.scrollTo({top:0,behavior:"auto"});
+ const appScroller=$("app");
+ if(appScroller){
+  appScroller.scrollTo({top:0,behavior:"instant"});
+  appScroller.classList.remove("flix-page-enter");
+  requestAnimationFrame(()=>appScroller.classList.add("flix-page-enter"));
+ }
  $("search-page").hidden=true;
  $("sports-page").hidden=page!=="sports";
  $("catalog").hidden=page==="sports";
