@@ -7862,3 +7862,40 @@ html:not(.profile-ready) body> #flxtv-boot-recovery{visibility:visible!important
     background:rgba(5,6,11,.78)!important;
   }
 }
+
+/* Continue Watching typography: match Browse by Service heading and keep
+   title/episode metadata quiet, compact and secondary to the artwork. */
+#home-page .continue-section-title{
+  font-size:21px!important;
+  line-height:1.2!important;
+}
+#home-page .continue-heading-title{
+  font-size:inherit!important;
+  line-height:inherit!important;
+}
+#home-page #continue-watching .continue-card-copy strong{
+  font-size:14px!important;
+  font-weight:600!important;
+  line-height:1.25!important;
+  letter-spacing:-.015em!important;
+}
+#home-page #continue-watching .continue-card-copy small{
+  font-size:10px!important;
+  font-weight:400!important;
+  line-height:1.2!important;
+  letter-spacing:.01em!important;
+  color:rgba(255,255,255,.56)!important;
+}
+@media(max-width:760px){
+  #home-page .continue-section-title{font-size:18px!important}
+  #home-page #continue-watching .continue-card-copy strong{
+    font-size:12px!important;
+    font-weight:600!important;
+    line-height:1.25!important;
+  }
+  #home-page #continue-watching .continue-card-copy small{
+    font-size:9px!important;
+    line-height:1.2!important;
+    letter-spacing:.015em!important;
+  }
+}
