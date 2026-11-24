@@ -74,13 +74,14 @@
 }
 
 /* iPhone virtual-landscape viewport margins requested by the user:
-   left 0px, right 0px, top -24px (24px overscan), bottom 24px.
-   The viewport extends equally beyond the top and bottom edges. */
+   left 0px, right 0px, top -28px (28px overscan), bottom 24px.
+   After rotation, local width controls physical height; center shifts 2px
+   upward to preserve the requested asymmetric top/bottom margins. */
 @media (orientation:portrait){
   #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape{
-    top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2)!important;
+    top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2 - 2px)!important;
     left:calc(var(--flxtv-ios-vv-left,0px) + var(--flxtv-ios-vv-width,100vw)/2)!important;
-    width:calc(var(--flxtv-ios-vv-height,100dvh) + 48px)!important;
+    width:calc(var(--flxtv-ios-vv-height,100dvh) + 4px)!important;
     height:var(--flxtv-ios-vv-width,100vw)!important;
     transform:translate(-50%,-50%) rotate(90deg)!important;
     -webkit-transform:translate(-50%,-50%) rotate(90deg)!important;
