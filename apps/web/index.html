@@ -31,6 +31,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style id="flxtv-critical-startup">
+    /* Critical fallback: never leave the user staring at an empty black screen. */
+    #brand-intro{display:grid!important;position:fixed!important;inset:0!important;z-index:2147483645!important;place-items:center!important;background:#050505!important;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:none!important}
+    #brand-intro .brand-intro-lockup,#brand-intro .brand-intro-f,#brand-intro .brand-intro-rest{opacity:1!important;visibility:visible!important;transform:none!important;filter:none!important}
+    #brand-intro:after{content:"FLIXTV po ngarkohet…";position:absolute;top:calc(50% + 58px);left:0;right:0;text-align:center;color:#aeb4c0;font:12px/1.5 system-ui,sans-serif;letter-spacing:1.5px}
+    html.profile-ready #brand-intro{display:none!important}
+  </style>
   <link rel="stylesheet" href="/style.css?v=search-cards-x-refine-20261123-2">
   <link rel="stylesheet" href="/boredflix-parity.css?v=visible-buttons-glass-only-v1">
   <link rel="stylesheet" href="/player/ios-virtual-landscape.css?v=ios-viewport-top-minus15_5-bottom-plus15_5">
