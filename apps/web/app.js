@@ -57,9 +57,9 @@ async function finishFlixLoading(){
  clearInterval(flixLoadingInterval);flixLoadingProgress=1;
  const fill=bar.firstElementChild;fill.style.transform="scaleX(1)";bar.setAttribute("aria-valuenow","100");
  clearTimeout(flixLoadingTimer);
- await new Promise(resolve=>setTimeout(resolve,130));
+ await new Promise(resolve=>setTimeout(resolve,210));
  bar.classList.remove("is-active");
- await new Promise(resolve=>setTimeout(resolve,140));
+ await new Promise(resolve=>setTimeout(resolve,130));
  fill.style.transform="scaleX(0)";flixLoadingProgress=0;
 }
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
