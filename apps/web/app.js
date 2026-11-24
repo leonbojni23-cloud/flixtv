@@ -1,7 +1,7 @@
 (() => {
 "use strict";
 const RESOLVER_API="https://flixtv-api.vercel.app";
-let flixLoadingTimer=0;
+let flixLoadingTimer=0,flixLoadingProgress=0,flixLoadingInterval=0;
 function startFlixLoading(){
  let bar=document.getElementById("flix-top-loading");
  if(!bar){
@@ -16,18 +16,48 @@ function startFlixLoading(){
   document.body.append(bar);
  }
  clearTimeout(flixLoadingTimer);
+ clearInterval(flixLoadingInterval);
  bar.classList.add("is-active");
  const fill=bar.firstElementChild;
+ flixLoadingProgress=Math.max(flixLoadingProgress,.035);
  fill.style.transition="none";
- fill.style.transform="scaleX(.06)";
- requestAnimationFrame(()=>requestAnimationFrame(()=>{
-  fill.style.transition="";
-  fill.style.transform="scaleX(.82)";
+ fill.style.transform="scaleX("+flixLoadingProgress+")";
+ bar.setAttribute("aria-valuenow",String(Math.round(flixLoadingProgress*100)));
+ requestAnimationFrame(()=>{fill.style.transition="transform 180ms linear"});
+ // Progress is deliberately indeterminate-like: it advances slowly and never
+ // reaches completion until the destination has rendered and key images are ready.
+ flixLoadingInterval=setInterval(()=>{
+  flixLoadingProgress=Math.min(.90,flixLoadingProgress+Math.max(.002,(.90-flixLoadingProgress)*.018));
+  fill.style.transform="scaleX("+flixLoadingProgress+")";
+  bar.setAttribute("aria-valuenow",String(Math.round(flixLoadingProgress*100)));
+ },180);
+}
+async function waitForFlixVisualReady(root){
+ if(!root)return;
+ await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+ const images=[...root.querySelectorAll("img")].filter(img=>{
+  const rect=img.getBoundingClientRect();
+  return rect.width>2&&rect.height>2&&rect.bottom>0&&rect.top<innerHeight;
+ });
+ const decode=images.map(img=>new Promise(resolve=>{
+  if(img.complete&&img.naturalWidth>0){
+   if(img.decode)img.decode().catch(()=>{}).finally(resolve);else resolve();
+   return;
+  }
+  let done=false;
+  const finish=()=>{if(done)return;done=true;clearTimeout(timer);img.removeEventListener("load",finish);img.removeEventListener("error",finish);resolve()};
+  const timer=setTimeout(finish,2200);
+  img.addEventListener("load",finish,{once:true});
+  img.addEventListener("error",finish,{once:true});
  }));
+ await Promise.race([Promise.all(decode),new Promise(resolve=>setTimeout(resolve,2400))]);
+ await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 }
 function finishFlixLoading(){
  const bar=document.getElementById("flix-top-loading");
  if(!bar)return;
+ clearInterval(flixLoadingInterval);
+ flixLoadingProgress=1;
  const fill=bar.firstElementChild;
  fill.style.transform="scaleX(1)";
  bar.setAttribute("aria-valuenow","100");
@@ -35,7 +65,8 @@ function finishFlixLoading(){
  flixLoadingTimer=setTimeout(()=>{
   bar.classList.remove("is-active");
   setTimeout(()=>{if(!bar.classList.contains("is-active"))fill.style.transform="scaleX(0)"},220);
- },180);
+  flixLoadingProgress=0;
+ },220);
 }
 
 const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/",$=id=>document.getElementById(id);
@@ -2316,6 +2347,7 @@ async function openTitlePage(item,push=false,playMode=false,originCard=null){
  if(sourceImage&&destination&&sourceRect&&sourceRect.width>1&&sourceRect.height>1){
   animatePosterFallback(sourceImage,destination,sourceRect,sourceRadius);
  }
+ await waitForFlixVisualReady($("title-page"));
  finishFlixLoading();
  // Hydrate trailers, translations and secondary data after the prepared page is visible.
  void hydrateTitlePage(readyItem,false,playMode);
@@ -2389,7 +2421,7 @@ window.addEventListener("popstate",event=>{
   $("shows-page").hidden=view.page!=="shows";
   $("search-page").hidden=!view.search;
   document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===view.page));
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{window.scrollTo({top:view.scrollY||0,left:0,behavior:"instant"});finishFlixLoading()}));
+  requestAnimationFrame(()=>requestAnimationFrame(async()=>{window.scrollTo({top:view.scrollY||0,left:0,behavior:"instant"});await waitForFlixVisualReady(view.page==="home"?$("home-page"):view.page==="movies"?$("movies-page"):view.page==="shows"?$("shows-page"):$("sports-page"));finishFlixLoading()}));
   return;
  }
  if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);
@@ -3313,6 +3345,8 @@ async function openPage(page,updateHistory=true){
   $("home-page").hidden=page!=="home";
   $("movies-page").hidden=page!=="movies";
   $("shows-page").hidden=page!=="shows";
+  const visibleRoot=page==="sports"?$("sports-page"):page==="home"?$("home-page"):page==="movies"?$("movies-page"):$("shows-page");
+  await waitForFlixVisualReady(visibleRoot);
  }finally{finishFlixLoading()}
 }
 $("continue-library-open").onclick=openContinueLibrary;
