@@ -7987,13 +7987,13 @@ body.flxtv-series-detail .topbar .top-actions{margin-left:auto!important;gap:9px
  display:block!important;
  width:100%!important;
  height:100%!important;
- transform:scaleX(0)!important;
+ transform:scaleX(0);
  transform-origin:left center!important;
  background:linear-gradient(90deg,#f5c842 0%,#ffe66a 58%,#fff1a6 100%)!important;
  box-shadow:0 0 7px rgba(255,213,73,.72),0 0 15px rgba(255,213,73,.42)!important;
  transition:transform .72s cubic-bezier(.18,.72,.25,1)!important;
 }
-#flix-top-loading.is-active>span{transform:scaleX(.82)!important}
+#flix-top-loading.is-active>span{transform:scaleX(.82)}
 @media(prefers-reduced-motion:reduce){
  #flix-top-loading>span{transition:none!important}
 }
