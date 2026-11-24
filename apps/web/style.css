@@ -7809,3 +7809,21 @@ html:not(.profile-ready) body> #flxtv-boot-recovery{visibility:visible!important
     transform:none!important;
   }
 }
+
+/* Low-cost page switch motion: animate the page surface, not poster grids. */
+#app.flix-page-enter #catalog,
+#app.flix-page-enter #sports-page{
+  animation:flixPageEnter 190ms cubic-bezier(.2,.7,.25,1) both;
+}
+@keyframes flixPageEnter{
+  from{opacity:.72;transform:translate3d(0,5px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+.desktop-nav .nav-pill{
+  transition:transform 220ms cubic-bezier(.2,.75,.25,1),width 220ms cubic-bezier(.2,.75,.25,1),opacity 120ms ease!important;
+}
+@media(prefers-reduced-motion:reduce){
+  #app.flix-page-enter #catalog,
+  #app.flix-page-enter #sports-page{animation:none!important}
+  .desktop-nav .nav-pill{transition:none!important}
+}
