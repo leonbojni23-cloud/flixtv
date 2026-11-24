@@ -3226,7 +3226,8 @@ async function openPage(page,updateHistory=true){
  $("home-page").hidden=page!=="home";
  $("movies-page").hidden=page!=="movies";
  $("shows-page").hidden=page!=="shows";
- if(page==="home"){renderContinueWatching();await home();return}
+ if(page==="home"){resumeScrollHeavyWork();renderContinueWatching();await home();return}
+ pauseScrollHeavyWork();
  if(page==="sports"){await loadSports();return}
  if(loadedPages.has(page))return;
  const jobs=page==="movies"?[
@@ -3282,10 +3283,21 @@ function triggerHeroTitleFlicker(){
  clearTimeout(triggerHeroTitleFlicker.cleanupTimer);
  triggerHeroTitleFlicker.cleanupTimer=setTimeout(()=>visibleTitle.classList.remove("is-flickering"),440);
 }
+let flixScrollIdleTimer=0;
+function pauseScrollHeavyWork(){
+ if(heroSmokeCanvasState?.raf){cancelAnimationFrame(heroSmokeCanvasState.raf);heroSmokeCanvasState.raf=0;}
+ if(pageSmokeState?.raf){cancelAnimationFrame(pageSmokeState.raf);pageSmokeState.raf=0;}
+}
+function resumeScrollHeavyWork(){
+ if(document.hidden||window.FlixPlayerFocus?.isActive()||$("player-modal")?.classList.contains("open")||$("home-page")?.hidden||$("hero")?.hidden)return;
+ ensureHeroSmokeStage();
+ ensurePageSmokeCanvas();
+}
 window.addEventListener("scroll",()=>{
  if(window.FlixPlayerFocus?.isActive())return;
- clearTimeout(heroTitleFlickerTimer);
- heroTitleFlickerTimer=setTimeout(triggerHeroTitleFlicker,170);
+ pauseScrollHeavyWork();
+ clearTimeout(flixScrollIdleTimer);
+ flixScrollIdleTimer=setTimeout(resumeScrollHeavyWork,520);
 },{passive:true});
 
 window.addEventListener("flxtv:player-focus",event=>{
@@ -3297,8 +3309,7 @@ window.addEventListener("flxtv:player-focus",event=>{
   if(heroSmokeCanvasState?.raf){cancelAnimationFrame(heroSmokeCanvasState.raf);heroSmokeCanvasState.raf=0;}
   if(pageSmokeState?.raf){cancelAnimationFrame(pageSmokeState.raf);pageSmokeState.raf=0;}
  }else{
-  ensureHeroSmokeStage();
-  ensurePageSmokeCanvas();
+  resumeScrollHeavyWork();
   if(heroItems.length>1)startHeroTimer();
  }
 });
