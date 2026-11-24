@@ -127,7 +127,7 @@ if(enabled){
   record("dom.ready",{ids:["brand-intro","profile-picker","catalog","home-page","player-modal"].map(id=>({id,exists:!!document.getElementById(id)}))});
   if(!enabled)return;
   const button=document.createElement("button");
-  button.type="button";button.textContent="DIAG";button.setAttribute("aria-label","Open FLIXTV diagnostics");
+  button.type="button";button.className="flxtv-diagnostics-control";button.textContent="DIAG";button.setAttribute("aria-label","Open FLIXTV diagnostics");
   Object.assign(button.style,{position:"fixed",right:"10px",bottom:"10px",zIndex:"2147483647",padding:"8px 11px",border:"1px solid #ffffff55",borderRadius:"9px",background:"#111e",color:"#fff",font:"12px monospace"});
   button.addEventListener("click",()=>openPanel());document.body.append(button);
  });
