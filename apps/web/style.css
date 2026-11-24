@@ -7767,3 +7767,16 @@ body.flxtv-player-active .webgl-smoke-canvas{
   animation:none!important;
  }
 }
+
+/* Startup recovery and diagnostics must remain visible while the first-run gate is active. */
+html:not(.profile-ready) body> .flxtv-diagnostics-control,
+html:not(.profile-ready) body> #flxtv-boot-recovery{visibility:visible!important;}
+.flxtv-diagnostics-control{position:fixed!important;right:10px!important;bottom:10px!important;z-index:2147483647!important;visibility:visible!important;pointer-events:auto!important;}
+#flxtv-boot-recovery{position:fixed!important;inset:0!important;z-index:2147483646!important;display:grid!important;place-items:center!important;padding:24px!important;background:#050505!important;color:#fff!important;font-family:Inter,system-ui,sans-serif!important;visibility:visible!important;}
+.flxtv-boot-card{width:min(440px,100%);padding:28px;border:1px solid #ffffff24;border-radius:18px;background:#11151d;box-shadow:0 24px 80px #000b;text-align:center;}
+.flxtv-boot-brand{font-size:30px;font-weight:900;letter-spacing:-2px}.flxtv-boot-brand span{color:#e50936}
+.flxtv-boot-card h1{font-size:21px;margin:20px 0 10px}.flxtv-boot-card p{font-size:13px;line-height:1.55;color:#f0b7b7;overflow-wrap:anywhere}
+.flxtv-boot-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.flxtv-boot-actions button{border:0;border-radius:9px;padding:12px 15px;background:#e50936;color:white;font-weight:700}
+.flxtv-boot-actions button+button{background:#293241}
+.flxtv-boot-card small{color:#9299a7;font-size:11px}
