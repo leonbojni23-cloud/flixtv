@@ -73,15 +73,12 @@
   -webkit-transform-origin:center center!important;
 }
 
-/* Physical viewport target: top edge -35px (overscan), bottom edge 22px
-   inside the visual viewport. After the 90deg rotation, local width maps
-   to physical height: H + 35 - 22 = H + 13. The center is shifted upward
-   by (35 + 22) / 2 = 28.5px. */
+/* Physical viewport target: no overscan or inset on any edge. */
 @media (orientation:portrait){
   #player-modal.open.ios-player-active .cinesrc-video-wrapper.ios-virtual-landscape{
-    top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2 - 28.5px)!important;
+    top:calc(var(--flxtv-ios-vv-top,0px) + var(--flxtv-ios-vv-height,100dvh)/2)!important;
     left:calc(var(--flxtv-ios-vv-left,0px) + var(--flxtv-ios-vv-width,100vw)/2)!important;
-    width:calc(var(--flxtv-ios-vv-height,100dvh) + 13px)!important;
+    width:var(--flxtv-ios-vv-height,100dvh)!important;
     height:var(--flxtv-ios-vv-width,100vw)!important;
     transform:translate(-50%,-50%) rotate(90deg)!important;
     -webkit-transform:translate(-50%,-50%) rotate(90deg)!important;
