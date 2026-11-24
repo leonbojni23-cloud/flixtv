@@ -7827,3 +7827,38 @@ html:not(.profile-ready) body> #flxtv-boot-recovery{visibility:visible!important
   #app.flix-page-enter #sports-page{animation:none!important}
   .desktop-nav .nav-pill{transition:none!important}
 }
+
+/* FLIXTV Home horizontal poster rails: keep native iOS momentum scrolling
+   and remove per-frame paint/compositing work from cards while swiping. */
+#home-page .poster-row:not(#continue-watching){
+  -webkit-overflow-scrolling:touch;
+  overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  scroll-behavior:auto;
+  touch-action:pan-x pan-y;
+  contain:layout style;
+}
+@media(max-width:760px){
+  #home-page .poster-row:not(#continue-watching)>.poster-card{
+    transition:none!important;
+    transform:none!important;
+    -webkit-tap-highlight-color:transparent;
+  }
+  #home-page .poster-row:not(#continue-watching)>.poster-card:active{
+    transform:none!important;
+  }
+  #home-page .poster-row:not(#continue-watching)>.poster-card .poster-art{
+    box-shadow:none!important;
+    contain:paint;
+  }
+  #home-page .poster-row:not(#continue-watching)>.poster-card .poster-art>img{
+    transition:none!important;
+    transform:none!important;
+    backface-visibility:hidden;
+  }
+  #home-page .poster-row:not(#continue-watching)>.poster-card .poster-rating{
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+    background:rgba(5,6,11,.78)!important;
+  }
+}
