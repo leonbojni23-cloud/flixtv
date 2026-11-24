@@ -3302,7 +3302,7 @@ const onFlixVerticalScroll=()=>{
 // The app itself is the vertical scroller. Window-only listeners miss element scroll events.
 const flixAppScroller=$("app");
 if(flixAppScroller)flixAppScroller.addEventListener("scroll",onFlixVerticalScroll,{passive:true});
-window.addEventListener("scroll",onFlixVerticalScroll,{passive:true,capture:true});
+window.addEventListener("scroll",onFlixVerticalScroll,{passive:true});
 
 window.addEventListener("flxtv:player-focus",event=>{
  const focused=!!event.detail?.active;
