@@ -486,7 +486,8 @@ function ensureHeroSmokeStage(){
   const smooth=(a,b,v)=>{const q=Math.max(0,Math.min(1,(v-a)/(b-a)));return q*q*(3-2*q);};
   const render=now=>{
    const st=heroSmokeCanvasState;if(!st||st.canvas!==canvas)return;
-   if(document.hidden||now-st.last<68){st.raf=requestAnimationFrame(render);return;}
+   if(document.hidden||window.FlixPlayerFocus?.isActive()){st.raf=0;return;}
+   if(now-st.last<68){st.raf=requestAnimationFrame(render);return;}
    st.last=now;st.time+=.018;const w=canvas.width,h=canvas.height,p=st.palette,t=st.time,frame=context.createImageData(w,h),data=frame.data;
    for(let y=0;y<h;y++){const ny=y/h;for(let x=0;x<w;x++){const nx=x/w;
     const wx=(fbm(nx*2.1+31+t*.19,ny*2+7-t*.08)-.5)*1.25,wy=(fbm(nx*2.4-13-t*.11,ny*2.8+21+t*.14)-.5)*.92;
@@ -499,8 +500,10 @@ function ensureHeroSmokeStage(){
    }}
    context.putImageData(frame,0,0);st.raf=requestAnimationFrame(render);
   };
+  heroSmokeCanvasState.render=render;
   heroSmokeCanvasState.raf=requestAnimationFrame(render);
  }
+ if(heroSmokeCanvasState&&!heroSmokeCanvasState.raf&&!document.hidden&&!window.FlixPlayerFocus?.isActive()&&heroSmokeCanvasState.render)heroSmokeCanvasState.raf=requestAnimationFrame(heroSmokeCanvasState.render);
  return stage;
 }
 let pageSmokeState=null;
@@ -521,7 +524,7 @@ function ensurePageSmokeCanvas(){
   pageSmokeState={canvas,context,palette:[[125,94,82],[83,108,112],[119,91,137]],targetPalette:[[125,94,82],[83,108,112],[119,91,137]],time:0,last:0,raf:0,fbm,smooth};
   const render=now=>{
    const st=pageSmokeState;if(!st||st.canvas!==canvas)return;
-   if(document.hidden){st.raf=requestAnimationFrame(render);return;}
+   if(document.hidden||window.FlixPlayerFocus?.isActive()){st.raf=0;return;}
    if(now-st.last<55){st.raf=requestAnimationFrame(render);return;}
    const dt=st.last?Math.min(2,(now-st.last)/55):1;st.last=now;st.time+=.010*dt;
    const w=canvas.width,h=canvas.height,t=st.time,p=st.palette,frame=context.createImageData(w,h),data=frame.data;
@@ -545,8 +548,10 @@ function ensurePageSmokeCanvas(){
    }}
    context.putImageData(frame,0,0);st.raf=requestAnimationFrame(render);
   };
+  pageSmokeState.render=render;
   pageSmokeState.raf=requestAnimationFrame(render);
  }
+ if(pageSmokeState&&!pageSmokeState.raf&&!document.hidden&&!window.FlixPlayerFocus?.isActive()&&pageSmokeState.render)pageSmokeState.raf=requestAnimationFrame(pageSmokeState.render);
  return canvas;
 }
 function updatePageSmokePalette(colors){
@@ -3282,6 +3287,20 @@ window.addEventListener("scroll",()=>{
  heroTitleFlickerTimer=setTimeout(triggerHeroTitleFlicker,170);
 },{passive:true});
 
+window.addEventListener("flxtv:player-focus",event=>{
+ const focused=!!event.detail?.active;
+ if(focused){
+  clearInterval(heroTimer);heroTimer=null;
+  clearTimeout(showHero.contentTimer);
+  clearTimeout(triggerHeroTitleFlicker.cleanupTimer);
+  if(heroSmokeCanvasState?.raf){cancelAnimationFrame(heroSmokeCanvasState.raf);heroSmokeCanvasState.raf=0;}
+  if(pageSmokeState?.raf){cancelAnimationFrame(pageSmokeState.raf);pageSmokeState.raf=0;}
+ }else{
+  ensureHeroSmokeStage();
+  ensurePageSmokeCanvas();
+  if(heroItems.length>1)startHeroTimer();
+ }
+});
 $("hero-prev").onclick=()=>{if(heroItems.length>1){showHero(heroIndex-1);startHeroTimer()}};
 $("hero-next").onclick=()=>{if(heroItems.length>1){showHero(heroIndex+1);startHeroTimer()}};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
