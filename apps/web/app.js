@@ -2634,7 +2634,7 @@ function returnToPlaybackTitlePage(){
     titlePageEpisode=Number(episode||1);
   }
   const target=pageUrl(item,false);
-  if(location.pathname.replace(/\\/$/,"")!==target){
+  if(location.pathname.replace(/\/$/,"")!==target){
     history.pushState({titlePage:true},"",target);
   }
   openTitlePage(item,false,false);
