@@ -7809,6 +7809,3 @@ html:not(.profile-ready) body> #flxtv-boot-recovery{visibility:visible!important
     transform:none!important;
   }
 }
-@media(prefers-reduced-motion:reduce){
-  .content-section{content-visibility:visible}
-}
