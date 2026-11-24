@@ -232,16 +232,42 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       renderWidth = width;
       renderHeight = height;
       // Keep the full-viewport shader light enough for mobile GPUs while preserving sharp UI and posters.
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, isMobile ? 0.9 : 1.25);
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, isMobile ? 0.7 : 1.0);
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(width, height, false);
       material.uniforms.uResolution.value.set(width * pixelRatio, height * pixelRatio);
     };
     let playerFocused = false;
-    const render = now => {
-      if (disposed || document.hidden || playerFocused) { raf = 0; return; }
+    let scrolling = false;
+    let scrollIdleTimer = 0;
+    let pageObserver = null;
+    const homePage = () => {
+      const page = document.getElementById("home-page");
+      return !page || !page.hidden;
+    };
+    const canAnimate = () => !disposed && !document.hidden && !playerFocused && !scrolling && homePage();
+    const stopRender = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    };
+    const startRender = () => {
+      if (!canAnimate() || raf) return;
+      last = 0;
       raf = requestAnimationFrame(render);
-      if (now - last < 32) return;
+    };
+    const pauseForScroll = () => {
+      scrolling = true;
+      stopRender();
+      clearTimeout(scrollIdleTimer);
+      scrollIdleTimer = setTimeout(() => {
+        scrolling = false;
+        startRender();
+      }, 520);
+    };
+    const render = now => {
+      if (!canAnimate()) { raf = 0; return; }
+      raf = requestAnimationFrame(render);
+      if (now - last < 50) return;
       const delta = last ? Math.min((now - last) / 1000, 0.06) : 0.032;
       last = now;
       if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) elapsed += delta;
@@ -255,25 +281,24 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     resize();
     readPalette();
     window.addEventListener("resize", resize, { passive: true });
+    window.addEventListener("scroll", pauseForScroll, { passive: true });
+    const homeNode = document.getElementById("home-page");
+    if (homeNode && "MutationObserver" in window) {
+      pageObserver = new MutationObserver(() => {
+        if (homePage()) startRender();
+        else stopRender();
+      });
+      pageObserver.observe(homeNode, { attributes: true, attributeFilter: ["hidden", "class", "style"] });
+    }
     window.addEventListener("orientationchange", () => setTimeout(() => resize(true), 220), { passive: true });
     document.addEventListener("visibilitychange", () => {
-      if (document.hidden || playerFocused) {
-        if (raf) cancelAnimationFrame(raf);
-        raf = 0;
-      } else {
-        last = 0;
-        if (!raf && !disposed) raf = requestAnimationFrame(render);
-      }
+      if (!canAnimate()) stopRender();
+      else startRender();
     });
     window.addEventListener("flxtv:player-focus", event => {
       playerFocused = !!event.detail?.active;
-      if (playerFocused || document.hidden) {
-        if (raf) cancelAnimationFrame(raf);
-        raf = 0;
-      } else if (!disposed && !raf) {
-        last = 0;
-        raf = requestAnimationFrame(render);
-      }
+      if (!canAnimate()) stopRender();
+      else startRender();
     });
     window.addEventListener("flxtv:ambient-palette", readPalette);
         canvas.addEventListener("webglcontextlost", event => {
@@ -284,11 +309,14 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       last = 0;
       raf = requestAnimationFrame(render);
     });
-    raf = requestAnimationFrame(render);
+    startRender();
     window.__FLIXTV_WEBGL_SMOKE__ = { renderer, canvas, dispose() {
       disposed = true;
-      cancelAnimationFrame(raf);
-            window.removeEventListener("resize", resize);
+      stopRender();
+      clearTimeout(scrollIdleTimer);
+      pageObserver?.disconnect();
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("scroll", pauseForScroll);
       material.dispose();
       renderer.dispose();
       canvas.remove();
