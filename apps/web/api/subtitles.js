@@ -52,8 +52,11 @@ module.exports=async function handler(req,res){
    }else{
     if(tmdbId)params.set("tmdb_id",tmdbId);
     if(imdbId)params.set("imdb_id",imdbId);
+    const year=String(q.year||"");
+    if(/^\d{4}$/.test(year))params.set("year",year);
    }
-   const moviehash=String(q.moviehash||"").trim().toLowerCase();\n   if(moviehash&&!/^[a-f0-9]{16}$/.test(moviehash))return json(res,400,{error:"Movie hash i pavlefshëm."});\n   if(moviehash)params.set("moviehash",moviehash);\n   params.set("type",type);
+   const moviehash=String(q.moviehash||"").trim().toLowerCase();
+   if(moviehash&&!/^[a-f0-9]{16}$/.test(moviehash))return json(res,400,{error:"Movie hash i pavlefshëm."});\n   if(moviehash)params.set("moviehash",moviehash);\n   params.set("type",type);
    params.set("languages",language);
    params.set("per_page","50");
    params.set("hearing_impaired","exclude");
