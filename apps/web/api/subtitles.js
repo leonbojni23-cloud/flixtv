@@ -61,8 +61,23 @@ module.exports=async function handler(req,res){
    params.set("machine_translated","exclude");
    params.set("ai_translated","exclude");
    const sortedParams=new URLSearchParams([...params.entries()].sort(([a],[b])=>a.localeCompare(b)));
-   const data=await upstream("/subtitles?"+sortedParams.toString());
-   return json(res,200,{data:Array.isArray(data.data)?data.data:[]});
+   let data=await upstream("/subtitles?"+sortedParams.toString());
+   let results=Array.isArray(data.data)?data.data:[];
+   const fallbackQuery=String(q.query||"").trim().slice(0,160);
+   if(!results.length&&fallbackQuery){
+    const fallback=new URLSearchParams();
+    fallback.set("query",fallbackQuery.toLowerCase());
+    fallback.set("type",type);
+    fallback.set("languages",language);
+    if(isEpisode){
+     if(q.season_number)fallback.set("season_number",String(q.season_number));
+     if(q.episode_number)fallback.set("episode_number",String(q.episode_number));
+    }else if(/^\\d{4}$/.test(String(q.year||""))){fallback.set("year",String(q.year))}
+    const canonicalFallback=new URLSearchParams([...fallback.entries()].sort(([a],[b])=>a.localeCompare(b)));
+    data=await upstream("/subtitles?"+canonicalFallback.toString());
+    results=Array.isArray(data.data)?data.data:[];
+   }
+   return json(res,200,{data:results});
   }
   if(req.method==="POST"){
    let body=req.body;
