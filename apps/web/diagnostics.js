@@ -7,6 +7,10 @@ const VERSION = "2.0.0";
 const MAX_EVENTS = 3000;
 const MAX_NETWORK = 1800;
 const STORE_KEY = "flxtv:test-observability:v2";
+const SESSION_KEY = "flxtv:test-observability:session";
+let sessionId = "";
+try { sessionId = sessionStorage.getItem(SESSION_KEY) || ""; } catch (_) {}
+if (!sessionId) { sessionId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : "s-" + Math.random().toString(36).slice(2) + Date.now().toString(36); try { sessionStorage.setItem(SESSION_KEY, sessionId); } catch (_) {} }
 const startedAt = performance.now();
 const nativeConsole = {};
 ["log","info","warn","error","debug","table","group","groupEnd"].forEach(function (name) {
@@ -194,6 +198,7 @@ function markTestRequest(input, init) {
     return { input: input, init: init, url: cleanUrl(url.href) };
   }
   url.searchParams.set("__flxtv_test", "1");
+  url.searchParams.set("__flxtv_session", sessionId);
   try {
     if (input instanceof Request) return { input: new Request(url.href, input), init: init, url: cleanUrl(url.href) };
     return { input: url.href, init: init, url: cleanUrl(url.href) };
@@ -235,7 +240,7 @@ if (window.XMLHttpRequest) {
     try {
       const u = new URL(String(url), location.href);
       if (u.origin === location.origin && u.pathname.startsWith("/api/") && u.pathname !== "/api/test-observability") {
-        u.searchParams.set("__flxtv_test", "1"); target = u.href;
+        u.searchParams.set("__flxtv_test", "1"); u.searchParams.set("__flxtv_session", sessionId); target = u.href;
       }
     } catch (_) {}
     this.__flxObs = { method: String(method || "GET").toUpperCase(), url: cleanUrl(target) };
@@ -298,7 +303,7 @@ document.addEventListener("click", function (event) {
   document.addEventListener(name, function (event) {
     const target = describeTarget(event.target);
     if (!target) return;
-    record("ui", "ui." + name, { target: target, key: name === "keydown" ? event.key : undefined, trusted: event.isTrusted }, "debug");
+    record("ui", "ui." + name, { target: target, key: name === "keydown" ? ((event.key === "Enter" || event.key === "Escape" || event.key.indexOf("Arrow") === 0) ? event.key : "other") : undefined, trusted: event.isTrusted }, "debug");
   }, true);
 });
 
@@ -378,7 +383,7 @@ requestAnimationFrame(frameLoop);
 async function pollServer() {
   if (document.hidden) return;
   try {
-    const url = "/api/test-observability?__flxtv_test=1&after=" + encodeURIComponent(serverCursor);
+    const url = "/api/test-observability?__flxtv_test=1&__flxtv_session=" + encodeURIComponent(sessionId) + "&after=" + encodeURIComponent(serverCursor);
     const response = await nativeFetch(url, { cache: "no-store", credentials: "same-origin" });
     if (!response.ok) throw new Error("Server telemetry endpoint returned " + response.status);
     const data = await response.json();
