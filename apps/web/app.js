@@ -2764,7 +2764,8 @@ async function loadExternalSubtitleFile(file){
   notice("Titrat u ngarkuan me sukses.");
  }catch(error){notice(error.message||"Skedari i titrave nuk u lexua.")}
 }
-let subtitleLookupRequest=0,subtitleDownloadRequest=0,activeSubtitleCandidates=[],activeSubtitleLookupId=0;\nfunction subtitleScore(entry,item,season,episode){
+let subtitleLookupRequest=0,subtitleDownloadRequest=0,activeSubtitleCandidates=[],activeSubtitleLookupId=0;
+function subtitleScore(entry,item,season,episode){
  const x=entry.attributes||{},f=x.feature_details||{};
  const norm=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
  const same=(u,v)=>u!=null&&v!=null&&String(u).replace(/^tt0*/i,"")===String(v).replace(/^tt0*/i,"");
@@ -2825,6 +2826,8 @@ async function downloadSubtitleCandidate(chosen,lookupId,languageName,languageCo
 }
 \nasync function autoLoadOpenSubtitles(item,season,episode){
  const request=++subtitleLookupRequest;
+ activeSubtitleCandidates=[];activeSubtitleLookupId=request;
+ const choice=$("subtitle-choice");if(choice){choice.replaceChildren(new Option("Po kërkohen titrat…",""));choice.disabled=true}
  clearExternalSubtitles();
  const languageCode=activeWatchProfile?.language==="en"?"en":"sq";
  const languageName=languageCode==="sq"?"Shqip":"English";
@@ -2887,7 +2890,9 @@ function updateSubtitleOffset(delta){
 
 const subtitleFileInput=$("subtitle-file-input");
 if(subtitleFileInput)subtitleFileInput.addEventListener("change",event=>{loadExternalSubtitleFile(event.target.files&&event.target.files[0]);event.target.value="";});
-const subtitleChoice=$("subtitle-choice");\nif(subtitleChoice)subtitleChoice.addEventListener("change",()=>{const i=Number(subtitleChoice.value);if(Number.isInteger(i)&&activeSubtitleCandidates[i])downloadSubtitleCandidate(activeSubtitleCandidates[i],activeSubtitleLookupId,activeWatchProfile?.language==="en"?"English":"Shqip",activeWatchProfile?.language==="en"?"en":"sq").catch(e=>notice(e.message));});\nconst subtitleLoadButton=$("subtitle-load-button");
+const subtitleChoice=$("subtitle-choice");
+if(subtitleChoice)subtitleChoice.addEventListener("change",()=>{const i=Number(subtitleChoice.value);if(Number.isInteger(i)&&activeSubtitleCandidates[i])downloadSubtitleCandidate(activeSubtitleCandidates[i],activeSubtitleLookupId,activeWatchProfile?.language==="en"?"English":"Shqip",activeWatchProfile?.language==="en"?"en":"sq").catch(e=>notice(e.message));});
+const subtitleLoadButton=$("subtitle-load-button");
 if(subtitleLoadButton)subtitleLoadButton.addEventListener("click",()=>subtitleFileInput&&subtitleFileInput.click());
 const subtitleToggle=$("subtitle-toggle");
 if(subtitleToggle)subtitleToggle.addEventListener("click",()=>{
