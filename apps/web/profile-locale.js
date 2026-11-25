@@ -151,6 +151,7 @@ const en={
 };
 const textSources=new WeakMap(),textLast=new WeakMap(),attributeSources=new WeakMap(),attributeLast=new WeakMap();
 let language="sq",scheduled=false;
+const pendingAdded=new Set(),pendingTextNodes=new Set(),pendingAttributes=new Set();
 function getLanguage(){
  try{
   const profiles=JSON.parse(localStorage.getItem(PROFILE_KEY)||"[]");
@@ -205,16 +206,17 @@ function processNode(node){
  if(node.querySelectorAll)node.querySelectorAll("*").forEach(processAttributes);
 }
 function scheduleMutations(records){
- const added=new Set(),textNodes=new Set(),attributes=new Set();
  records.forEach(record=>{
-  if(record.type==="childList")record.addedNodes.forEach(node=>added.add(node));
-  else if(record.type==="characterData")textNodes.add(record.target);
-  else if(record.type==="attributes")attributes.add(record.target);
+  if(record.type==="childList")record.addedNodes.forEach(node=>pendingAdded.add(node));
+  else if(record.type==="characterData")pendingTextNodes.add(record.target);
+  else if(record.type==="attributes")pendingAttributes.add(record.target);
  });
- if(scheduled||(!added.size&&!textNodes.size&&!attributes.size))return;
+ if(scheduled)return;
  scheduled=true;
  requestAnimationFrame(()=>{
   scheduled=false;
+  const added=[...pendingAdded],textNodes=[...pendingTextNodes],attributes=[...pendingAttributes];
+  pendingAdded.clear();pendingTextNodes.clear();pendingAttributes.clear();
   added.forEach(processNode);
   textNodes.forEach(processText);
   attributes.forEach(processAttributes);
