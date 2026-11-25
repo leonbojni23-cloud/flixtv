@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b12"><title>FLIXTV · Live Diagnostics</title>
+<link rel="stylesheet" href="/diagnostics-lab.css?v=1">
+<script src="/diagnostics.js?v=isolated-diagnostics-lab-v1"></script>
+<script src="/diagnostics-lab.js?v=1" defer></script>
+</head>
+<body>
+<main class="lab">
+<header class="lab-header">
+ <div><div class="eyebrow">FLIXTV / ENGINEERING</div><h1>Live Diagnostics</h1><p>Request tracing · Runtime errors · Rendering health · Device telemetry</p></div>
+ <div class="header-actions"><span id="connection" class="pill">Checking connection</span><button id="live-toggle" class="primary">Live capture ON</button><button id="open-logs" class="secondary">Open live logs</button></div>
+</header>
+<section class="metric-grid">
+ <article class="metric"><span>Requests</span><strong id="m-requests">0</strong><small id="m-request-rate">0 / min</small></article>
+ <article class="metric"><span>Avg response</span><strong id="m-average">—</strong><small id="m-p95">P95 —</small></article>
+ <article class="metric"><span>Failures</span><strong id="m-failures">0</strong><small id="m-failure-rate">0% failure rate</small></article>
+ <article class="metric"><span>Runtime errors</span><strong id="m-errors">0</strong><small id="m-warnings">0 warnings</small></article>
+ <article class="metric"><span>Long tasks</span><strong id="m-longtasks">0</strong><small id="m-longtask-time">0 ms total</small></article>
+ <article class="metric"><span>Frame health</span><strong id="m-fps">—</strong><small id="m-frame-drops">No frame sample yet</small></article>
+</section>
+<section class="panel device-panel"><div class="panel-head"><div><h2>Device & runtime</h2><p>Live browser snapshot. Some hardware metrics are browser-restricted.</p></div><span class="live-dot">LIVE</span></div><div id="device-grid" class="device-grid"></div></section>
+<section class="panel"><div class="panel-head"><div><h2>Network request inspector</h2><p>Fetch, XHR and browser resource timings with source attribution.</p></div><div class="toolbar"><select id="request-filter"><option value="all">All requests</option><option value="failed">Failed only</option><option value="slow">Slow &gt; 800 ms</option><option value="api">API / fetch / XHR</option></select><button id="export" class="secondary">Export session</button></div></div>
+<div class="table-wrap"><table><thead><tr><th>Time</th><th>Method / Type</th><th>Request URL</th><th>Status</th><th>Duration</th><th>Transfer</th><th>Initiator</th></tr></thead><tbody id="request-rows"><tr><td colspan="7" class="empty">Waiting for requests…</td></tr></tbody></table></div></section>
+<section class="two-col"><section class="panel"><div class="panel-head"><div><h2>Runtime events</h2><p>JavaScript errors, promise rejections, CSP and app logs.</p></div><span id="event-count" class="pill">0 events</span></div><div id="event-list" class="event-list"><div class="empty">No errors captured.</div></div></section>
+<section class="panel"><div class="panel-head"><div><h2>Performance timeline</h2><p>Long tasks, resource bottlenecks, frame drops and lifecycle.</p></div></div><div id="perf-list" class="event-list"><div class="empty">Waiting for performance events…</div></div></section></section>
+<footer><span>Session-local telemetry · Sensitive URL parameters are redacted · No data is sent to a server</span><button id="clear" class="danger">Clear session data</button></footer>
+</main>
+<button id="floating-logs" class="floating">☷ Logs / Errors</button>
+<div id="log-drawer" class="drawer" hidden><div class="drawer-head"><strong>FLIXTV · Live event stream</strong><button id="close-logs">Close</button></div><div id="drawer-events" class="drawer-events"></div></div>
+</body></html>
