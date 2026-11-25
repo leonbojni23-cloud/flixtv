@@ -4,7 +4,7 @@ const PROFILE_KEY="flxtv:profiles:v1",ACTIVE_KEY="flxtv:active-profile:v1";
 const sq={
  "Home":"Kryefaqja","Movies":"Filma","Shows":"Seriale","Sports":"Sport","My List":"Lista ime",
  "Search":"Kërko","Search movies and TV shows":"Kërko filma dhe seriale","Search movies and TV shows…":"Kërko filma dhe seriale…",
- "Settings":"Cilësimet","Discover FLIXTV":"ZBULO FLIXTV","Discover something ":"Zbulo diçka ","new":"të re",
+ "Settings":"Cilësimet","Discover FLIXTV":"ZBULO FLIXTV","Discover something":"Zbulo diçka","new":"të re",
  "Search results":"Rezultatet e kërkimit","Trending Today":"Në trend sot","Browse by Service":"Shfleto sipas shërbimit",
  "STREAMING PLATFORMS":"PLATFORMA STREAMING","Top 10 Today":"10 më të kërkuarit sot","DAILY CHART":"RENDITJA DITORE",
  "Continue Watching":"Vazhdo shikimin","Edit":"Redakto","Done":"Përfundo","Trending Movies":"Filma në trend",
@@ -36,7 +36,7 @@ const sq={
 const en={
  "Kryefaqja":"Home","Filma":"Movies","Seriale":"Shows","Sport":"Sports","Lista ime":"My List",
  "Kërko":"Search","Kërko filma dhe seriale":"Search movies and TV shows","Kërko filma dhe seriale…":"Search movies and TV shows…",
- "Cilësimet":"Settings","ZBULO FLIXTV":"DISCOVER FLIXTV","Zbulo diçka ":"Discover something ","të re":"new",
+ "Cilësimet":"Settings","ZBULO FLIXTV":"DISCOVER FLIXTV","Zbulo diçka":"Discover something","të re":"new",
  "Rezultatet e kërkimit":"Search results","Në trend sot":"Trending Today","Shfleto sipas shërbimit":"Browse by Service",
  "PLATFORMA STREAMING":"STREAMING PLATFORMS","10 më të kërkuarit sot":"Top 10 Today","RENDITJA DITORE":"DAILY CHART",
  "Vazhdo shikimin":"Continue Watching","Redakto":"Edit","Përfundo":"Done","Filma në trend":"Trending Movies",
