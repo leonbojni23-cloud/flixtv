@@ -34,22 +34,24 @@ function startFlixLoading(){
 }
 async function waitForFlixVisualReady(root){
  if(!root)return;
- const all=[...root.querySelectorAll("img")],selected=[],railImages=new Set();
- [...root.querySelectorAll(".poster-row,.continue-watching-row,.content-row")].forEach(rail=>{
-  [...rail.querySelectorAll("img")].slice(0,8).forEach(img=>{selected.push(img);railImages.add(img)});
- });
- all.filter(img=>!railImages.has(img)).slice(0,12).forEach(img=>selected.push(img));
- const images=[...new Set(selected)].slice(0,32);
- await Promise.all(images.map(img=>new Promise(resolve=>{
-  img.loading="eager";img.fetchPriority="high";
+ // Wait only for the images that can affect the first rendered viewport.
+ // Remaining posters keep their native lazy-loading behavior.
+ const rails=[...root.querySelectorAll(".poster-row,.continue-watching-row,.content-row")];
+ const selected=[];
+ if(rails[0])selected.push(...[...rails[0].querySelectorAll("img")].slice(0,4));
+ const railImages=new Set(rails.flatMap(rail=>[...rail.querySelectorAll("img")]));
+ selected.push(...[...root.querySelectorAll("img")].filter(img=>!railImages.has(img)).slice(0,4));
+ const images=[...new Set(selected)].slice(0,8);
+ await Promise.all(images.map((img,index)=>new Promise(resolve=>{
+  img.loading="eager";img.fetchPriority=index<2?"high":"auto";
   const done=()=>resolve();
   if(img.complete&&img.naturalWidth>0){if(img.decode)img.decode().catch(()=>{}).finally(done);else done();return}
   let settled=false;
   const finish=()=>{if(settled)return;settled=true;clearTimeout(timer);img.removeEventListener("load",finish);img.removeEventListener("error",finish);if(img.decode&&img.naturalWidth>0)img.decode().catch(()=>{}).finally(done);else done()};
-  const timer=setTimeout(finish,8000);
+  const timer=setTimeout(finish,5000);
   img.addEventListener("load",finish,{once:true});img.addEventListener("error",finish,{once:true});
  })));
- if(document.fonts?.ready)await Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))]);
+ if(document.fonts?.ready)await Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,800))]);
  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 }
 async function finishFlixLoading(){
@@ -237,7 +239,7 @@ async function tmdb(path){const [pathname,query=""]=path.split("?");const params
 async function translateOverviewToAlbanian(text){
  if(!text)return "";
  try{
-  const response=await fetch("/api/translate.js?text="+encodeURIComponent(text));
+  const response=await fetch("/api/translate.js",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});
   if(!response.ok)throw new Error("Translation unavailable");
   const data=await response.json();
   return data.translated||text;

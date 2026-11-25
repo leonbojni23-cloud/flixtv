@@ -12,9 +12,9 @@ function getPlayer(){return document.getElementById("player-modal")}
 function setActive(on,reason="api"){
  const player=getPlayer();
  on=!!on;
- log("transition.requested",{requested:on,active,reason,modalExists:!!player,modalOpen:!!player?.classList.contains("open"),ariaHidden:player?.getAttribute("aria-hidden")});
  if(!player)return false;
  if(on===active)return true;
+ log("transition.requested",{requested:on,active,reason,modalExists:true,modalOpen:!!player.classList.contains("open"),ariaHidden:player.getAttribute("aria-hidden")});
  if(on){
   active=true;snapshot=[];
   let branch=player;
@@ -46,7 +46,8 @@ function setActive(on,reason="api"){
 function sync(reason="mutation"){
  const player=getPlayer();
  const shouldBeActive=!!player&&player.classList.contains("open")&&player.getAttribute("aria-hidden")!=="true";
- log("sync",{reason,shouldBeActive,active,modalExists:!!player,modalOpen:!!player?.classList.contains("open"),ariaHidden:player?.getAttribute("aria-hidden")});
+ if(shouldBeActive===active)return;
+ log("sync",{reason,shouldBeActive,active,modalExists:!!player,modalOpen:!!player.classList.contains("open"),ariaHidden:player.getAttribute("aria-hidden")});
  setActive(shouldBeActive,reason);
 }
 function observe(){
@@ -59,10 +60,7 @@ function observe(){
  }
  if(observer)observer.disconnect();
  if(frame)cancelAnimationFrame(frame);
- observer=new MutationObserver(records=>{
-  log("modal-mutation",{records:records.map(record=>({attribute:record.attributeName}))});
-  sync("modal-mutation");
- });
+ observer=new MutationObserver(()=>sync("modal-mutation"));
  observer.observe(player,{attributes:true,attributeFilter:["class","aria-hidden"]});
  log("observer-attached",{readyState:document.readyState,modalOpen:player.classList.contains("open"),ariaHidden:player.getAttribute("aria-hidden")});
  sync("observer-initial");

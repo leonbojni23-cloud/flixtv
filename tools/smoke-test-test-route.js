@@ -35,6 +35,14 @@ async function waitForServer() {
     const rootHtml = await rootResponse.text();
     assert.ok(!rootHtml.includes("/diagnostics.js"), "main app must not load diagnostics");
     assert.ok(!rootHtml.includes("/boot-guard.js"), "main app must not load test boot guard");
+    assert.ok(rootHtml.includes("https://img.youtube.com"), "CSP must allow YouTube thumbnail images");
+
+    const translationPost = await fetch(base + "/api/translate.js", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({})
+    });
+    assert.equal(translationPost.status, 400, "translation API must parse JSON POST bodies");
 
     const testResponse = await fetch(base + "/test");
     assert.equal(testResponse.status, 200, "/test must serve the app shell");

@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 var doc=document,$=function(id){return doc.getElementById(id)},root=$("app");
-var current={page:"home",provider:null,query:"",tab:"continue",savedFilter:"all",media:"movie",filters:{genre:"",year:"",sort:"popularity.desc",rating:"",votes:""},results:[],pageNo:0,totalPages:1,loading:false,request:0,providerData:[],searchTimer:0};
+var current={page:"home",provider:null,query:"",tab:"continue",savedFilter:"all",media:"movie",filters:{genre:"",year:"",sort:"popularity.desc",rating:"",votes:""},results:[],pageNo:0,totalPages:1,loading:false,request:0,providerData:[],searchTimer:0,searchAbort:null};
 var API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.app/api/tmdb.js":"/api/tmdb.js",IMG="https://image.tmdb.org/t/p/";
 var GENRES={movie:[[28,"Action"],[12,"Adventure"],[16,"Animation"],[35,"Comedy"],[80,"Crime"],[99,"Documentary"],[18,"Drama"],[10751,"Family"],[14,"Fantasy"],[36,"History"],[27,"Horror"],[10402,"Music"],[9648,"Mystery"],[10749,"Romance"],[878,"Sci-Fi"],[53,"Thriller"],[10752,"War"],[37,"Western"]],tv:[[10759,"Action & Adventure"],[16,"Animation"],[35,"Comedy"],[80,"Crime"],[99,"Documentary"],[18,"Drama"],[10751,"Family"],[10762,"Kids"],[9648,"Mystery"],[10763,"News"],[10764,"Reality"],[10765,"Sci-Fi & Fantasy"],[10766,"Soap"],[10767,"Talk"],[10768,"War & Politics"],[37,"Western"]]};
 function safe(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -11,7 +11,7 @@ function kind(x){return x.media_type==="tv"||x.first_air_date?"tv":"movie"}
 function yr(x){return String(x.release_date||x.first_air_date||"").slice(0,4)}
 function posterUrl(x){return x.poster_path?IMG+"w342"+x.poster_path:""}
 function apiPath(path){var parts=path.split("?"),params=new URLSearchParams(parts[1]||"");params.set("path",parts[0]);if(!params.has("language"))params.set("language","sq-AL");return API+"?"+params.toString()}
-async function tmdb(path){var r=await fetch(apiPath(path),{credentials:"same-origin"});if(!r.ok)throw new Error("TMDB request failed ("+r.status+").");return r.json()}
+async function tmdb(path,signal){var r=await fetch(apiPath(path),{credentials:"same-origin",signal:signal});if(!r.ok)throw new Error("TMDB request failed ("+r.status+").");return r.json()}
 function bridge(){return window.FLIXTV_BRIDGE||null}
 function openTitle(item){var b=bridge();if(b&&b.openTitle){b.openTitle(Object.assign({},item,{media_type:kind(item)}));return}location.href="/"+name(item).toLowerCase().replace(/[^a-z0-9]+/g,"-")+"--"+kind(item)+"-"+item.id}
 function playTitle(item){var b=bridge();if(b&&b.play){try{var p=b.play(Object.assign({},item,{media_type:kind(item)}));if(p&&p.catch)p.catch(function(){openTitle(item)})}catch(_){openTitle(item)}}else openTitle(item)}
@@ -291,9 +291,12 @@ function renderSearch(q){
  searchResults(current.query)
 }
 async function searchResults(q){
+ if(current.searchAbort)current.searchAbort.abort();
+ var controller=new AbortController();current.searchAbort=controller;
  var req=++current.request,g=$("bf-grid");if(!g)return;var h=$("bf-search-heading");if(h)h.textContent=q?"Search results":"Trending Today";g.innerHTML='<div class="bf-loading">Loading…</div>';
- try{var d=await tmdb(q?"/search/multi?query="+encodeURIComponent(q)+"&include_adult=false":"/trending/all/day");if(req!==current.request)return;var a=(d.results||[]).filter(function(x){return x.poster_path&&(x.media_type==="movie"||x.media_type==="tv"||x.title||x.name)}).map(function(x){return Object.assign({},x,{media_type:x.media_type||kind(x)})});renderGrid(g,a);setCount(d.total_results||a.length)}
- catch(e){g.innerHTML='<div class="bf-empty">'+safe(e.message)+'</div>'}
+ try{var d=await tmdb(q?"/search/multi?query="+encodeURIComponent(q)+"&include_adult=false":"/trending/all/day",controller.signal);if(req!==current.request)return;var a=(d.results||[]).filter(function(x){return x.poster_path&&(x.media_type==="movie"||x.media_type==="tv"||x.title||x.name)}).map(function(x){return Object.assign({},x,{media_type:x.media_type||kind(x)})});renderGrid(g,a);setCount(d.total_results||a.length)}
+ catch(e){if(e&&e.name==="AbortError")return;if(req===current.request)g.innerHTML='<div class="bf-empty">'+safe(e.message)+'</div>'}
+ finally{if(current.searchAbort===controller)current.searchAbort=null}
 }
 function renderSports(){showOnly("sports");navActive("sports");scrollTop()}
 function render(page,provider,query){
