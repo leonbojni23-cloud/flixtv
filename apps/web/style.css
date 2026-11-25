@@ -4067,29 +4067,14 @@ input:focus-visible{
   white-space:nowrap;
 }
 .service-card:active .service-logo-tile{transform:scale(.96);border-color:rgba(255,255,255,.35)}
-.service-loading,.service-note,.service-results-note{
+.service-loading,.service-note{
   color:rgba(245,243,234,.62);
   font-size:12px;
   line-height:1.6;
 }
 .service-loading{padding:12px 3px}
-.service-note{margin:10px 0 0}
-.service-results-section[hidden]{display:none!important}
-.service-results-section{scroll-margin-top:90px}
-.service-results-heading{align-items:center}
-.service-back-button{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  padding:8px 12px;
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:999px;
-  background:rgba(255,255,255,.08);
-  color:#f5f4ef;
-  font-size:11px;
-  font-weight:700;
-}
-.service-results-note{margin:-7px 0 14px}
+.service-note{margin:10px 0 0}.service-results-heading{align-items:center}
+.service-note{margin:-7px 0 14px}
 
 /* C — Top 10 Today: real daily TMDB chart order, giant outlined rank behind each poster. */
 .top10-section{padding-top:26px!important}
@@ -4235,9 +4220,7 @@ input:focus-visible{
   .top10-row{grid-auto-columns:clamp(158px,42vw,200px);gap:16px;padding-left:17px}
   .top10-rank{font-size:clamp(150px,38vw,198px);left:-4px;bottom:54px}
   .home-poster-carousel{grid-auto-columns:clamp(135px,39vw,164px)!important;gap:13px!important}
-  .home-poster-carousel .poster-card img{border-radius:17px!important}
-  .service-results-section{scroll-margin-top:80px}
-}
+  .home-poster-carousel .poster-card img{border-radius:17px!important}}
 @media(max-width:370px){
   .continue-card-shell{flex-basis:76vw;width:76vw}
   .service-row{grid-auto-columns:108px;gap:12px}
@@ -4283,7 +4266,6 @@ html,body{max-width:100%;overflow-x:clip}
 .service-card:focus-visible,
 .top10-card:focus-visible,
 .section-more-button:focus-visible,
-.service-back-button:focus-visible,
 .continue-library-close:focus-visible{
   outline:2px solid rgba(255,255,255,.92);
   outline-offset:4px;
@@ -4316,14 +4298,7 @@ html,body{max-width:100%;overflow-x:clip}
   }
   #search-page{
     padding-top:calc(76px + env(safe-area-inset-top,0px))!important;
-  }
-  #movies-page .catalog-row-section,
-  #shows-page .catalog-row-section,
-  #home-page>.content-section,
-  #service-results-section{
-    scroll-margin-top:calc(78px + env(safe-area-inset-top,0px))!important;
-  }
-  #movies-page .catalog-jump-nav,
+  }#movies-page .catalog-jump-nav,
   #shows-page .catalog-jump-nav{scroll-margin-top:calc(78px + env(safe-area-inset-top,0px))}
   .mobile-nav{touch-action:manipulation}
 }
@@ -5169,10 +5144,7 @@ button,input,select,textarea{font-family:var(--font-ui)}
 }
 #home-page .service-card:hover .service-logo-tile{transform:translateY(-4px) scale(1.035);border-color:rgba(255,255,255,.24)!important}
 #home-page .service-card-label{font-size:11px!important;color:rgba(255,255,255,.72)!important;font-weight:550}
-#home-page .service-note,#home-page .service-results-note{color:rgba(255,255,255,.47)!important}
-#home-page .service-results-section{scroll-margin-top:104px}
-
-/* Top 10: oversized outlined numerals sit beside each portrait poster. */
+#home-page .service-note,#home-page .service-note{color:rgba(255,255,255,.47)!important}/* Top 10: oversized outlined numerals sit beside each portrait poster. */
 #home-page .top10-row{
   display:flex!important;
   align-items:stretch!important;
