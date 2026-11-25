@@ -8036,3 +8036,7 @@ body.flxtv-series-detail .topbar .top-actions{margin-left:auto!important;gap:9px
 .profile-add-editing[data-no-i18n="true"]{isolation:isolate}
 @media(max-width:600px){.profile-add-editing[data-editor-step="language"]{width:min(260px,82vw)!important;min-width:min(210px,82vw)!important;max-width:260px!important}}
 @media(prefers-reduced-motion:reduce){.profile-add-glyph,.profile-language-option{transition:none!important}}
+
+/* Keep the profile wizard inside the existing two-column Who's Watching grid. */
+.profiles-grid .profile-add-editing{grid-column:1/-1;justify-self:center;width:min(230px,100%)!important;min-width:0!important;max-width:230px!important}
+.profiles-grid .profile-add-editing[data-editor-step="language"]{width:min(260px,100%)!important;min-width:0!important;max-width:260px!important}
