@@ -36,8 +36,11 @@ module.exports=async function handler(req,res){
    const type=String(q.type||"movie").toLowerCase();
    if(!/^\d+$/.test(tmdbId)||!["movie","tv"].includes(type))return json(res,400,{error:"TMDB ID ose tipi i përmbajtjes është i pavlefshëm."});
    const params=new URLSearchParams();
-   params.set("tmdb_id",tmdbId);
-   params.set("languages",String(q.languages||"sq,en"));
+   const language=String(q.languages||"sq").toLowerCase();
+   if(!["sq","en"].includes(language))return json(res,400,{error:"Gjuha e titrave duhet të jetë sq ose en."});
+   if(type==="tv")params.set("parent_tmdb_id",tmdbId);else params.set("tmdb_id",tmdbId);
+   params.set("languages",language);
+   params.set("per_page","50");
    if(type==="tv"){
     if(q.season_number)params.set("season_number",String(q.season_number));
     if(q.episode_number)params.set("episode_number",String(q.episode_number));
