@@ -1311,7 +1311,7 @@ window.addEventListener("flxtv:player-error",event=>{
   if(watchProfiles.length>=8){notice("Mund të krijosh deri në 8 profile.");renderProfileCards();return}
   const colors=["linear-gradient(135deg,#ff5f6d,#b52a26)","linear-gradient(135deg,#2f80ed,#14305c)","linear-gradient(135deg,#8a2be2,#3b1d78)","linear-gradient(135deg,#16a085,#075e54)","linear-gradient(135deg,#d97706,#78350f)","linear-gradient(135deg,#db4b9b,#831843)"];
   const previousLanguage=activeWatchProfile?.language||"sq";
-  const p={id:"p"+Date.now().toString(36),name,color:colors[watchProfiles.length%colors.length],letter:name.slice(0,1).toUpperCase(),avatarType:"monogram",language:language==="en"?"en":"sq"};
+  const p={id:"p"+Date.now().toString(36),name,color:colors[watchProfiles.length%colors.length],letter:name.slice(0,1).toUpperCase(),avatarType:"portrait",language:language==="en"?"en":"sq"};
   watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();closeProfileMenu();
   if(!document.documentElement.classList.contains("profile-ready")){
    const screen=$("profile-picker");if(screen)screen.hidden=true;
@@ -1563,7 +1563,7 @@ function movieTitlePageMarkup(d){
  const runtime=Number(d.runtime)||0;
  const hours=Math.floor(runtime/60),minutes=runtime%60;
  const duration=runtime?(hours?hours+"h ":"")+minutes+"m":"—";
- const release=d.release_date?new Date(d.release_date+"T12:00:00").toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}):"—";
+ const release=d.release_date?new Date(d.release_date+"T12:00:00").toLocaleDateString(activeWatchProfile?.language==="en"?"en-US":"sq-AL",{month:"long",day:"numeric",year:"numeric"}):"—";
  const backdrop=d.backdrop_path?IMG+"original"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:"");
  const certification=""; 
  const logoFallback='<span class="movie-detail-title-fallback">'+escapeHtml(title(d))+'</span>';
@@ -1604,8 +1604,8 @@ function seriesTitlePageMarkup(d,playMode=false){
  const backdrop=d.backdrop_path?IMG+"original"+d.backdrop_path:(d.poster_path?IMG+"w780"+d.poster_path:"");
  const genres=(d.genres||[]).slice(0,4),cast=(d.credits?.cast||[]).slice(0,12);
  const seasons=(d.seasons||[]).filter(x=>Number(x.season_number)>=0);
- const firstAir=d.first_air_date?new Date(d.first_air_date+"T12:00:00").toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}):"—";
- const lastAir=d.last_air_date?new Date(d.last_air_date+"T12:00:00").toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}):"—";
+ const firstAir=d.first_air_date?new Date(d.first_air_date+"T12:00:00").toLocaleDateString(activeWatchProfile?.language==="en"?"en-US":"sq-AL",{month:"long",day:"numeric",year:"numeric"}):"—";
+ const lastAir=d.last_air_date?new Date(d.last_air_date+"T12:00:00").toLocaleDateString(activeWatchProfile?.language==="en"?"en-US":"sq-AL",{month:"long",day:"numeric",year:"numeric"}):"—";
  const years=(d.first_air_date||"").slice(0,4)+(d.last_air_date?"–"+String(d.last_air_date).slice(0,4):d.status==="Ended"?"":"–");
  const rating=d.vote_average?Number(d.vote_average).toFixed(1):"—";
  const runtime=(d.episode_run_time||[]).find(x=>Number(x)>0);
@@ -1654,7 +1654,7 @@ function seriesTitlePageMarkup(d,playMode=false){
  '</div>';
 }
 function languageDisplayName(code){
- try{return new Intl.DisplayNames(["en"],{type:"language"}).of(code||"en")}catch(_){return String(code||"en").toUpperCase()}
+ try{return new Intl.DisplayNames([activeWatchProfile?.language==="en"?"en":"sq"],{type:"language"}).of(code||"en")}catch(_){return String(code||"en").toUpperCase()}
 }
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function syncMovieDetailHeader(enabled,activePage="movies"){
@@ -1795,7 +1795,7 @@ async function hydrateMovieDetailExtras(item,d,videosPromise){
  const endNode=$("movie-detail-endtime");if(endNode)endNode.textContent=formatMovieEndTime(Number(d.runtime)||0);
  const langNode=$("movie-detail-language");
  if(langNode){
-  try{langNode.textContent=new Intl.DisplayNames(["en"],{type:"language"}).of(d.original_language||"en")}catch(_){langNode.textContent=String(d.original_language||"en").toUpperCase()}
+  try{langNode.textContent=new Intl.DisplayNames([activeWatchProfile?.language==="en"?"en":"sq"],{type:"language"}).of(d.original_language||"en")}catch(_){langNode.textContent=String(d.original_language||"en").toUpperCase()}
  }
  const studios=$("movie-detail-studios");
  if(studios){
@@ -2254,6 +2254,7 @@ async function openTitlePage(item,push=false,playMode=false,originCard=null){
  }
  // Render and preload the title page off-screen while the current page stays visible.
  $("title-page").innerHTML=titlePageMarkup(readyItem,readyItem,playMode);
+ window.FlixLocale?.refresh();
  await waitForFlixVisualReady($("title-page"));
  await finishFlixLoading();
  $("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;$("search-page").hidden=true;
@@ -2262,7 +2263,7 @@ async function openTitlePage(item,push=false,playMode=false,originCard=null){
  document.body.classList.remove("no-scroll");window.scrollTo({top:0,left:0,behavior:"instant"});
  const destination=$("title-page").querySelector(".title-page-cover>.title-page-cover-image");
  if(sourceImage&&destination&&sourceRect&&sourceRect.width>1&&sourceRect.height>1)animatePosterFallback(sourceImage,destination,sourceRect,sourceRadius);
- void hydrateTitlePage(readyItem,false,playMode);
+ void hydrateTitlePage(readyItem,false,playMode).then(()=>window.FlixLocale?.refresh());
 }
 async function resolveTitleRoute(){
  const parts=decodeURIComponent(location.pathname).split("/").filter(Boolean);
@@ -2772,7 +2773,23 @@ async function autoLoadOpenSubtitles(item,season,episode){
  const status=$("subtitle-status");
  if(status)status.textContent=languageCode==="sq"?"Po kërkohen titrat shqip…":"Searching for English subtitles…";
  try{
-  const params=new URLSearchParams({tmdb_id:String(item.id),type:kind(item),languages:languageCode});
+  const imdbId=String(item?.external_ids?.imdb_id||item?.imdb_id||"").replace(/^tt0*/i,"");
+  const params=new URLSearchParams();
+  if(kind(item)==="tv"){
+   params.set("parent_tmdb_id",String(item.id));
+   if(imdbId)params.set("parent_imdb_id",imdbId);
+   params.set("type","episode");
+  }else{
+   params.set("tmdb_id",String(item.id));
+   if(imdbId)params.set("imdb_id",imdbId);
+   params.set("type","movie");
+  }
+  params.set("languages",languageCode);
+  params.set("hearing_impaired","exclude");
+  params.set("foreign_parts_only","exclude");
+  params.set("machine_translated","exclude");
+  params.set("ai_translated","exclude");
+  params.set("per_page","50");
   if(kind(item)==="tv"){params.set("season_number",String(season||1));params.set("episode_number",String(episode||1))}
   const response=await fetch("/api/subtitles.js?"+params.toString(),{headers:{Accept:"application/json"}});
   const result=await response.json();
