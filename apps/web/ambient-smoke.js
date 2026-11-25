@@ -245,7 +245,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       const page = document.getElementById("home-page");
       return !page || !page.hidden;
     };
-    const canAnimate = () => !disposed && !document.hidden && !playerFocused && !scrolling && homePage();
+    const canAnimate = () => !disposed && !document.hidden && !document.getElementById("brand-intro") && !playerFocused && !scrolling && homePage();
     const stopRender = () => {
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
@@ -302,6 +302,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       if (!canAnimate()) stopRender();
       else startRender();
     });
+    window.addEventListener("flxtv:intro-finished", startRender);
     window.addEventListener("flxtv:ambient-palette", readPalette);
         canvas.addEventListener("webglcontextlost", event => {
       event.preventDefault();
