@@ -25,6 +25,7 @@ function showOnly(page){
  doc.body.classList.toggle("bf-provider-route",page==="provider");
  doc.body.classList.toggle("bf-movies-route",page==="movies");
  doc.body.classList.toggle("bf-shows-route",page==="shows");
+ doc.body.classList.toggle("bf-search-route",page==="search");
  if($("hero"))$("hero").hidden=page!=="home"&&page!=="movies"&&page!=="shows";
  if($("catalog"))$("catalog").hidden=page!=="home";
  if($("search-page"))$("search-page").hidden=true;
