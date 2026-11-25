@@ -3394,3 +3394,26 @@ body.bf-search-route .bf-page-search .bf-grid-card{
  align-self:start!important;
  border-radius:11px!important;
 }
+
+
+/* Search results: retain the previous grid while fetching and cross-fade only when new results are ready. */
+body.bf-search-route .bf-page-search #bf-grid{
+ opacity:1;
+ transform:translate3d(0,0,0);
+ transition:opacity .18s ease,transform .18s ease;
+}
+body.bf-search-route .bf-page-search #bf-grid.is-loading.has-results{
+ opacity:.58;
+ transform:translate3d(0,3px,0);
+ pointer-events:none;
+}
+body.bf-search-route .bf-page-search #bf-grid.has-results:not(.is-loading){
+ animation:bf-search-results-in .24s cubic-bezier(.2,.7,.25,1) both;
+}
+@keyframes bf-search-results-in{
+ from{opacity:.72;transform:translate3d(0,5px,0)}
+ to{opacity:1;transform:translate3d(0,0,0)}
+}
+@media(prefers-reduced-motion:reduce){
+ body.bf-search-route .bf-page-search #bf-grid{transition:none!important;animation:none!important;transform:none!important}
+}
