@@ -36,6 +36,13 @@ async function waitForServer() {
     assert.ok(!rootHtml.includes("/diagnostics.js"), "main app must not load diagnostics");
     assert.ok(!rootHtml.includes("/boot-guard.js"), "main app must not load test boot guard");
     assert.ok(rootHtml.includes("https://img.youtube.com"), "CSP must allow YouTube thumbnail images");
+    assert.ok(rootHtml.includes("/profile-locale.js"), "profile locale runtime must load before the app");
+    const localeResponse = await fetch(base + "/profile-locale.js");
+    assert.equal(localeResponse.status, 200, "profile locale runtime must be served");
+    const localeSource = await localeResponse.text();
+    assert.ok(localeSource.includes("setLanguage"), "profile locale runtime must expose profile language switching");
+    const invalidSubtitleLanguage = await fetch(base + "/api/subtitles.js?tmdb_id=123&type=movie&languages=xx");
+    assert.equal(invalidSubtitleLanguage.status, 400, "subtitle API must reject unsupported profile languages");
 
     const translationPost = await fetch(base + "/api/translate.js", {
       method: "POST",

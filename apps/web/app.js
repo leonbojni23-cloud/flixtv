@@ -235,7 +235,7 @@ function createTrendingMovieCard(item){
  element.classList.add("trending-movie-card");
  return element;
 }
-async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language","sq-AL");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Kërkesa për katalogun dështoi ("+r.status+").");return r.json()}
+async function tmdb(path){const [pathname,query=""]=path.split("?");const params=new URLSearchParams(query);params.set("path",pathname);if(!params.has("language"))params.set("language",activeWatchProfile?.language==="en"?"en-US":"sq-AL");const r=await fetch(API+"?"+params.toString());if(!r.ok)throw Error("Kërkesa për katalogun dështoi ("+r.status+").");return r.json()}
 async function translateOverviewToAlbanian(text){
  if(!text)return "";
  try{
@@ -246,6 +246,7 @@ async function translateOverviewToAlbanian(text){
  }catch(_){return text}
 }
 async function getAlbanianOverview(item,mediaType){
+ if(activeWatchProfile?.language==="en")return String(item.overview||"").trim();
  let source="";
  // Prefer a predictable English source so an English synopsis is never mistaken for an Albanian one.
  try{
@@ -1097,6 +1098,7 @@ window.addEventListener("flxtv:player-error",event=>{
   }catch(_){watchProfiles=[]}
   // Remove only the three profiles that were automatically seeded by the old build.
   watchProfiles=watchProfiles.filter(p=>!DEFAULT_PROFILES.some(d=>p.id===d.id&&p.name===d.name));
+  watchProfiles.forEach(p=>{p.language=p.language==="en"?"en":"sq"});
   let id="";try{id=localStorage.getItem(ACTIVE_PROFILE_KEY)||""}catch(_){}
   activeWatchProfile=watchProfiles.find(x=>x.id===id)||watchProfiles[0]||EMPTY_PROFILE;
   try{
@@ -1107,7 +1109,7 @@ window.addEventListener("flxtv:player-error",event=>{
   }catch(_){}
  }
  function profileProgressKey(){return WATCH_PROGRESS_KEY+":"+activeWatchProfile.id;}
- function saveProfiles(){try{if(watchProfiles.length)localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));else localStorage.removeItem(WATCH_PROFILES_KEY);if(activeWatchProfile&&activeWatchProfile!==EMPTY_PROFILE)localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id);else localStorage.removeItem(ACTIVE_PROFILE_KEY)}catch(_){notice("Nuk u ruajtën profilet në këtë pajisje.")}renderProfileButton();renderProfileCards();if(heroItems[heroIndex])renderHeroSaveButton(heroItems[heroIndex])}
+ function saveProfiles(){try{if(watchProfiles.length)localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));else localStorage.removeItem(WATCH_PROFILES_KEY);if(activeWatchProfile&&activeWatchProfile!==EMPTY_PROFILE)localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id);else localStorage.removeItem(ACTIVE_PROFILE_KEY)}catch(_){notice("Nuk u ruajtën profilet në këtë pajisje.")}window.FlixLocale?.setLanguage(activeWatchProfile?.language||"sq");renderProfileButton();renderProfileCards();if(heroItems[heroIndex])renderHeroSaveButton(heroItems[heroIndex])}
  function ensureProfileUi(){
   if($("profile-switcher"))return;
   const button=document.createElement("button");button.id="profile-switcher";button.type="button";button.className="profile-switcher";button.hidden=true;button.setAttribute("aria-label","Profili aktiv");button.setAttribute("aria-haspopup","true");button.setAttribute("aria-expanded","false");document.body.append(button);
@@ -1121,14 +1123,14 @@ window.addEventListener("flxtv:player-error",event=>{
  function renderProfileButton(){
   const b=$("profile-switcher");if(!b)return;
   if(!activeWatchProfile||activeWatchProfile===EMPTY_PROFILE){b.hidden=true;return;}b.hidden=false;
-  const profileIndex=Math.max(0,watchProfiles.findIndex(p=>p.id===activeWatchProfile.id));const portraitUrl="https://raw.githubusercontent.com/HoneyTyagii/Netflix-Clone/master/public/profile-"+(profileIndex+1)+".png";b.innerHTML='<span class="profile-mini-avatar" style="--profile-color:'+escapeHtml(activeWatchProfile.color||"#e50914")+'"><img src="'+portraitUrl+'" alt="" onerror="this.remove();this.parentElement.textContent=\''+escapeHtml(activeWatchProfile.letter||activeWatchProfile.name.slice(0,1).toUpperCase())+'\'"></span>';b.title=activeWatchProfile.name;b.setAttribute("aria-label","Profili: "+activeWatchProfile.name);
+  const profileIndex=Math.max(0,watchProfiles.findIndex(p=>p.id===activeWatchProfile.id));const portraitUrl="https://raw.githubusercontent.com/HoneyTyagii/Netflix-Clone/master/public/profile-"+(profileIndex+1)+".png";const avatar=activeWatchProfile.avatarType==="monogram"?escapeHtml(activeWatchProfile.letter||activeWatchProfile.name.slice(0,1).toUpperCase()):'<img src="'+portraitUrl+'" alt="" onerror="this.remove();this.parentElement.textContent=\''+escapeHtml(activeWatchProfile.letter||activeWatchProfile.name.slice(0,1).toUpperCase())+'\'">';b.innerHTML='<span class="profile-mini-avatar" style="--profile-color:'+escapeHtml(activeWatchProfile.color||"#e50914")+'">'+avatar+'</span>';b.title=activeWatchProfile.name;b.setAttribute("aria-label","Profili: "+activeWatchProfile.name);
  }
  function renderProfileCards(){
   const list=$("profile-picker-list");if(!list)return;list.replaceChildren();
   watchProfiles.slice(0,3).forEach((p,index)=>{
    const card=document.createElement("div");card.className="profile-tile"+(profileManageMode?" managing":"");card.tabIndex=0;card.setAttribute("role","button");card.setAttribute("aria-label","Profili "+p.name);
    const wrap=document.createElement("div");wrap.className="profile-avatar-wrap";
-   const avatar=document.createElement("div");avatar.className="profile-avatar-art";avatar.style.background=p.color||["#1674b8","#e50914","#d6a52b"][index%3];const portrait=document.createElement("img");portrait.src="https://raw.githubusercontent.com/HoneyTyagii/Netflix-Clone/master/public/profile-"+(index+1)+".png";portrait.alt=p.name;portrait.loading="eager";portrait.onerror=()=>{portrait.remove();avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase()};avatar.append(portrait);wrap.append(avatar);
+   const avatar=document.createElement("div");avatar.className="profile-avatar-art";avatar.style.background=p.color||["#1674b8","#e50914","#d6a52b"][index%3];if(p.avatarType==="monogram"){avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase()}else{const portrait=document.createElement("img");portrait.src="https://raw.githubusercontent.com/HoneyTyagii/Netflix-Clone/master/public/profile-"+(index+1)+".png";portrait.alt=p.name;portrait.loading="eager";portrait.onerror=()=>{portrait.remove();avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase()};avatar.append(portrait)}wrap.append(avatar);
    const name=document.createElement("span");name.className="profile-name";name.textContent=p.name;
    card.append(wrap,name);
    if(profileManageMode){const edit=document.createElement("span");edit.className="profile-edit-badge";edit.setAttribute("aria-hidden","true");edit.textContent="✎";wrap.append(edit)}
@@ -1148,6 +1150,7 @@ window.addEventListener("flxtv:player-error",event=>{
       document.body.append(flight);
     }
     activeWatchProfile=p;
+    window.FlixLocale?.setLanguage(p.language||"sq");
     profileManageMode=false;
     saveProfiles();
     // Reveal the app behind the picker before the picker starts fading.
@@ -1200,10 +1203,10 @@ window.addEventListener("flxtv:player-error",event=>{
   const heading=document.createElement("div");heading.className="profile-menu-heading";heading.textContent="Profile";menu.append(heading);
   watchProfiles.forEach(p=>{
    const item=document.createElement("button");item.type="button";item.className="profile-menu-item"+(p.id===activeWatchProfile.id?" active":"");
-   const avatar=document.createElement("span");avatar.className="profile-menu-avatar";avatar.style.background=p.color||"#333";const profileIndex=Math.max(0,watchProfiles.findIndex(x=>x.id===p.id));const portrait=document.createElement("img");portrait.src="https://raw.githubusercontent.com/HoneyTyagii/Netflix-Clone/master/public/profile-"+(profileIndex%3+1)+".png";portrait.alt="";portrait.loading="eager";portrait.onerror=()=>{portrait.remove();avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase()};avatar.append(portrait);
+   const avatar=document.createElement("span");avatar.className="profile-menu-avatar";avatar.style.background=p.color||"#333";if(p.avatarType==="monogram"){avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase()}else{const profileIndex=Math.max(0,watchProfiles.findIndex(x=>x.id===p.id));const portrait=document.createElement("img");portrait.src="https://raw.githubusercontent.com/HoneyTyagii/Netflix-Clone/master/public/profile-"+(profileIndex%3+1)+".png";portrait.alt="";portrait.loading="eager";portrait.onerror=()=>{portrait.remove();avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase()};avatar.append(portrait)}
    const name=document.createElement("span");name.className="profile-menu-name";name.textContent=p.name;
    const check=document.createElement("span");check.className="profile-menu-check";check.textContent=p.id===activeWatchProfile.id?"✓":"";
-   item.append(avatar,name,check);item.onclick=()=>{closeProfileMenu();if(p.id===activeWatchProfile.id)return;activeWatchProfile=p;saveProfiles();renderContinueWatching();restoreWatchProgress()};menu.append(item);
+   item.append(avatar,name,check);item.onclick=()=>{closeProfileMenu();if(p.id===activeWatchProfile.id)return;activeWatchProfile=p;window.FlixLocale?.setLanguage(p.language||"sq");saveProfiles();renderContinueWatching();restoreWatchProgress()};menu.append(item);
   });
   const divider=document.createElement("div");divider.className="profile-menu-divider";menu.append(divider);
   const add=document.createElement("button");add.type="button";add.className="profile-menu-action";add.textContent="+  Shto profil";add.onclick=()=>{closeProfileMenu();addWatchProfile()};menu.append(add);
@@ -1247,38 +1250,47 @@ window.addEventListener("flxtv:player-error",event=>{
  }
  function showAddProfileEditor(tile){
   if(watchProfiles.length>=8){notice("Mund të krijosh deri në 8 profile.");return}
-  if(tile.dataset.editorOpen==="true")return;
-  tile.dataset.editorOpen="true";
-  tile.classList.add("profile-add-editing");
-  tile.removeAttribute("role");
-  tile.removeAttribute("tabindex");
-  tile.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art profile-add-preview">+</div></div><input class="profile-name-input" id="new-profile-name" type="text" name="profile-name" placeholder="Emri i profilit" aria-label="Emri i profilit të ri" maxlength="24" autocomplete="off" autocapitalize="words" spellcheck="false" inputmode="text" enterkeyhint="done"><div class="profile-add-actions"><button type="button" class="profile-add-save">KRIJO</button><button type="button" class="profile-add-cancel">ANULO</button></div>';
-  const input=tile.querySelector("#new-profile-name");
-  const preview=tile.querySelector(".profile-add-preview");
-  const save=tile.querySelector(".profile-add-save");
-  const cancel=tile.querySelector(".profile-add-cancel");
-  const sync=()=>{const value=input.value.trim();preview.textContent=value?value.slice(0,1).toUpperCase():"+";};
+  if(tile.dataset.editorOpen==="true"&&tile.dataset.editorStep==="name")return;
+  tile.dataset.editorOpen="true";tile.dataset.editorStep="name";tile.dataset.noI18n="true";
+  tile.classList.add("profile-add-editing");tile.removeAttribute("role");tile.removeAttribute("tabindex");
+  const uiLang=window.FlixLocale?.getLanguage?.()||"sq";
+  const placeholder=uiLang==="en"?"Profile name":"Emri i profilit";
+  const nextLabel=uiLang==="en"?"CONTINUE":"VAZHDO",cancelLabel=uiLang==="en"?"CANCEL":"ANULO";
+  tile.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art profile-add-preview" aria-label="Profile avatar"><svg class="profile-add-glyph" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="17" r="8" fill="currentColor"/><path d="M8 41c1.8-9 7.2-13.5 16-13.5S38.2 32 40 41" fill="currentColor"/></svg><span class="profile-add-initial" hidden></span></div></div><input class="profile-name-input" id="new-profile-name" type="text" name="profile-name" placeholder="'+placeholder+'" aria-label="'+placeholder+'" maxlength="24" autocomplete="off" autocapitalize="words" spellcheck="false" inputmode="text" enterkeyhint="next"><div class="profile-add-actions"><button type="button" class="profile-add-next" disabled>'+nextLabel+'</button><button type="button" class="profile-add-cancel">'+cancelLabel+'</button></div>';
+  const input=tile.querySelector("#new-profile-name"),initial=tile.querySelector(".profile-add-initial"),glyph=tile.querySelector(".profile-add-glyph"),next=tile.querySelector(".profile-add-next");
+  const sync=()=>{const value=input.value.trim();initial.textContent=value.slice(0,1).toUpperCase();initial.hidden=!value;glyph.hidden=!!value;next.disabled=!value};
+  const advance=()=>{if(!input.value.trim()){input.focus();return}showProfileLanguageStep(tile,input.value)};
   input.addEventListener("input",sync);
-  input.addEventListener("keydown",event=>{
-   event.stopPropagation();
-   if(event.key==="Enter"){event.preventDefault();createWatchProfile(input.value,tile)}
-   if(event.key==="Escape"){event.preventDefault();cancelAddProfileEditor()}
-  });
-  save.addEventListener("click",()=>createWatchProfile(input.value,tile));
-  cancel.addEventListener("click",cancelAddProfileEditor);
+  input.addEventListener("keydown",event=>{event.stopPropagation();if(event.key==="Enter"){event.preventDefault();advance()}if(event.key==="Escape"){event.preventDefault();cancelAddProfileEditor()}});
+  next.addEventListener("click",advance);tile.querySelector(".profile-add-cancel").addEventListener("click",cancelAddProfileEditor);
   try{input.focus({preventScroll:true})}catch(_){input.focus()}
+ }
+ function showProfileLanguageStep(tile,rawName){
+  const name=String(rawName||"").trim().replace(/\s+/g," ").slice(0,24);if(!name)return;
+  const uiLang=window.FlixLocale?.getLanguage?.()||"sq",isEn=uiLang==="en";
+  const initial=escapeHtml(name.slice(0,1).toUpperCase());
+  tile.dataset.editorStep="language";
+  tile.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art profile-add-preview"><span class="profile-add-initial">'+initial+'</span></div></div><div class="profile-language-name">'+escapeHtml(name)+'</div><div class="profile-language-heading">'+(isEn?"PROFILE LANGUAGE":"GJUHA E PROFILIT")+'</div><div class="profile-language-options" role="radiogroup" aria-label="'+(isEn?"Choose profile language":"Zgjidh gjuhën e profilit")+'"><button type="button" class="profile-language-option" data-profile-language="sq" role="radio" aria-checked="false"><span class="profile-language-flag" aria-hidden="true">🇦🇱</span><span class="profile-language-copy"><strong>Shqip</strong><small>'+(isEn?"Albanian interface and subtitles":"Ndërfaqe dhe titra shqip")+'</small></span><span class="profile-language-check" aria-hidden="true">✓</span></button><button type="button" class="profile-language-option" data-profile-language="en" role="radio" aria-checked="false"><span class="profile-language-flag" aria-hidden="true">🇬🇧</span><span class="profile-language-copy"><strong>English</strong><small>'+(isEn?"English interface and subtitles":"Ndërfaqe dhe titra anglisht")+'</small></span><span class="profile-language-check" aria-hidden="true">✓</span></button></div><div class="profile-add-actions"><button type="button" class="profile-add-save" disabled>'+(isEn?"CREATE PROFILE":"KRIJO PROFILIN")+'</button><button type="button" class="profile-add-cancel">'+(isEn?"BACK":"KTHEHU")+'</button></div>';
+  let selectedLanguage="";const save=tile.querySelector(".profile-add-save");
+  tile.querySelectorAll("[data-profile-language]").forEach(option=>option.addEventListener("click",()=>{
+   selectedLanguage=option.dataset.profileLanguage;
+   tile.querySelectorAll("[data-profile-language]").forEach(item=>{const active=item===option;item.classList.toggle("selected",active);item.setAttribute("aria-checked",String(active))});
+   save.disabled=false;
+  }));
+  save.addEventListener("click",()=>{if(selectedLanguage)createWatchProfile(name,tile,selectedLanguage)});
+  tile.querySelector(".profile-add-cancel").addEventListener("click",()=>showAddProfileEditor(tile));
  }
  function cancelAddProfileEditor(){
   renderProfileCards();
   const addTile=$("profile-picker-list")?.querySelector(".profile-add-tile");
   addTile?.focus();
  }
- function createWatchProfile(rawName,tile){
+ function createWatchProfile(rawName,tile,language="sq"){
   const name=String(rawName||"").trim().replace(/\s+/g," ").slice(0,24);
   if(!name){const input=tile?.querySelector(".profile-name-input");input?.focus();return}
   if(watchProfiles.length>=8){notice("Mund të krijosh deri në 8 profile.");renderProfileCards();return}
   const colors=["linear-gradient(135deg,#ff5f6d,#b52a26)","linear-gradient(135deg,#2f80ed,#14305c)","linear-gradient(135deg,#8a2be2,#3b1d78)","linear-gradient(135deg,#16a085,#075e54)","linear-gradient(135deg,#d97706,#78350f)","linear-gradient(135deg,#db4b9b,#831843)"];
-  const p={id:"p"+Date.now().toString(36),name,color:colors[watchProfiles.length%colors.length],letter:name.slice(0,1).toUpperCase()};
+  const p={id:"p"+Date.now().toString(36),name,color:colors[watchProfiles.length%colors.length],letter:name.slice(0,1).toUpperCase(),avatarType:"monogram",language:language==="en"?"en":"sq"};
   watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();closeProfileMenu();
   if(!document.documentElement.classList.contains("profile-ready")){
    const screen=$("profile-picker");if(screen)screen.hidden=true;
@@ -1327,7 +1339,7 @@ async function loadHomeTop10(){
  if(!container)return [];
  container.innerHTML='<div class="service-loading">Po ngarkohet renditja ditore…</div>';
  try{
-  const data=await tmdb("/trending/all/day?language=sq-AL");
+  const data=await tmdb("/trending/all/day?language="+(activeWatchProfile?.language==="en"?"en-US":"sq-AL"));
   const ranked=(data.results||[]).slice(0,10).map((item,index)=>({item,rank:index+1}));
   const visible=ranked.filter(entry=>entry.item&&entry.item.poster_path);
   if(!visible.length){
@@ -1412,7 +1424,7 @@ const titlePagePrefetches=new Map();
 const titlePageCache=new Map();
 const TITLE_PAGE_CACHE_TTL=6*60*60*1000;
 const TITLE_PAGE_MEMORY_LIMIT=24;
-function titleDetailsKey(item){return kind(item)+":"+String(item.id)}
+function titleDetailsKey(item){return kind(item)+":"+String(item.id)+":"+(activeWatchProfile?.language==="en"?"en":"sq")}
 function cacheTitleDetails(key,data){
  titlePageCache.delete(key);
  titlePageCache.set(key,data);
@@ -2574,6 +2586,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   const opened=window.FlixCineSRC?.open({mediaType,tmdbId:item.id,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null,resumeTime:Number(resumeTime)||0});
   if(!opened)throw new Error("Moduli i ri CineSRC nuk u inicializua.");
   console.info("[FLIXTV] CineSRC playback opened",{title:title(item),mediaType,tmdbId:item.id,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null,resumeTime:Number(resumeTime)||0,embedUrl:opened.embedUrl});
+  void autoLoadOpenSubtitles(item,season,episode);
   return opened;
 }
 function play(item,season,episode){
@@ -2642,7 +2655,7 @@ function parseExternalSubtitles(raw){
 }
 function renderExternalSubtitle(time){
  const host=$("external-subtitle-overlay");
- if(activeSubtitleTrack){if(host)host.textContent="";return}
+ if(activeSubtitleTrack&&!$("resolved-video")?.hidden){if(host)host.textContent="";return}
  if(!host||!externalSubtitleEnabled||!externalSubtitleCues.length){if(host)host.textContent="";return}
  const t=Math.max(0,Number(time)||0)+externalSubtitleOffset;
  let lo=0,hi=externalSubtitleCues.length-1,found=-1;
@@ -2718,7 +2731,7 @@ async function loadExternalSubtitleFile(file){
   externalSubtitleCues=cues;externalSubtitleOffset=0;lastSubtitleIndex=-1;externalSubtitleEnabled=true;
   activeSubtitleLabel=file.name||"Titra";
   activeSubtitleLanguage="sq";
-  attachNativeSubtitleTrack(cues,activeSubtitleLabel,activeSubtitleLanguage);
+  if($("cinesrc-frame")?.hidden)attachNativeSubtitleTrack(cues,activeSubtitleLabel,activeSubtitleLanguage);else removeNativeSubtitleTrack();
   $("subtitle-status").textContent="Titra aktivë · "+cues.length+" rreshta";
   $("subtitle-toggle").textContent="CC ON";
   renderExternalSubtitle(latestPlaybackTime);
@@ -2729,41 +2742,52 @@ let subtitleLookupRequest=0;
 async function autoLoadOpenSubtitles(item,season,episode){
  const request=++subtitleLookupRequest;
  clearExternalSubtitles();
+ const languageCode=activeWatchProfile?.language==="en"?"en":"sq";
+ const languageName=languageCode==="sq"?"Shqip":"English";
  const status=$("subtitle-status");
- if(status)status.textContent="Po kërkohen titrat automatikisht…";
+ if(status)status.textContent=languageCode==="sq"?"Po kërkohen titrat shqip…":"Searching for English subtitles…";
  try{
-  const params=new URLSearchParams({tmdb_id:String(item.id),type:kind(item),languages:"sq,en"});
+  const params=new URLSearchParams({tmdb_id:String(item.id),type:kind(item),languages:languageCode});
   if(kind(item)==="tv"){params.set("season_number",String(season||1));params.set("episode_number",String(episode||1))}
   const response=await fetch("/api/subtitles.js?"+params.toString(),{headers:{Accept:"application/json"}});
   const result=await response.json();
   if(request!==subtitleLookupRequest)return;
-  if(!response.ok)throw new Error(result.error||"OpenSubtitles nuk u përgjigj.");
-  const subtitles=Array.isArray(result.data)?result.data:[];
-  if(!subtitles.length){status.textContent="Nuk u gjetën titra shqip ose anglisht";return}
-  const langRank=code=>String(code||"").toLowerCase().startsWith("sq")?0:String(code||"").toLowerCase().startsWith("en")?1:2;
-  subtitles.sort((a,b)=>langRank(a.attributes?.language)-langRank(b.attributes?.language));
-  const chosen=subtitles.find(x=>Array.isArray(x.attributes?.files)&&x.attributes.files.some(f=>f.file_id))||subtitles[0];
-  const file=(chosen.attributes?.files||[]).find(f=>f.file_id);
-  if(!file)throw new Error("OpenSubtitles nuk dha skedar të shkarkueshëm.");
+  if(!response.ok)throw new Error(result.error||(languageCode==="sq"?"OpenSubtitles nuk u përgjigj.":"OpenSubtitles did not respond."));
+  const subtitles=(Array.isArray(result.data)?result.data:[]).filter(entry=>{
+   const attr=entry?.attributes||{};
+   return String(attr.language||"").toLowerCase()===languageCode&&Array.isArray(attr.files)&&attr.files.some(file=>Number(file.file_id)>0)&&!attr.foreign_parts_only&&!attr.machine_translated&&!attr.ai_translated;
+  });
+  if(!subtitles.length){
+   if(status)status.textContent=languageCode==="sq"?"Nuk u gjetën titra shqip për këtë titull.":"No English subtitles were found for this title.";
+   return;
+  }
+  subtitles.sort((a,b)=>{
+   const x=a.attributes||{},y=b.attributes||{};
+   return (Number(y.ratings)||0)-(Number(x.ratings)||0)||
+    (Number(y.votes)||0)-(Number(x.votes)||0)||
+    (Number(y.points)||0)-(Number(x.points)||0)||
+    (Number(y.download_count)||0)-(Number(x.download_count)||0)||
+    Number(!!y.from_trusted)-Number(!!x.from_trusted)||
+    Number(!!x.hearing_impaired)-Number(!!y.hearing_impaired)||
+    Number(!!y.hd)-Number(!!x.hd);
+  });
+  const chosen=subtitles[0],file=(chosen.attributes.files||[]).find(entry=>Number(entry.file_id)>0);
   const download=await fetch("/api/subtitles.js?action=download",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({file_id:file.file_id})});
   const payload=await download.json();
   if(request!==subtitleLookupRequest)return;
-  if(!download.ok||!payload.content)throw new Error(payload.error||"Shkarkimi i titrave dështoi.");
+  if(!download.ok||!payload.content)throw new Error(payload.error||(languageCode==="sq"?"Shkarkimi i titrave dështoi.":"Subtitle download failed."));
   const cues=parseExternalSubtitles(payload.content);
-  if(!cues.length)throw new Error("Skedari i shkarkuar nuk përmban SRT/VTT të lexueshëm.");
+  if(!cues.length)throw new Error(languageCode==="sq"?"Skedari i titrave nuk përmban SRT/VTT të lexueshëm.":"The subtitle file contains no readable SRT/VTT cues.");
   externalSubtitleCues=cues;externalSubtitleOffset=0;lastSubtitleIndex=-1;externalSubtitleEnabled=true;
+  removeNativeSubtitleTrack();
   $("subtitle-offset-value").textContent="0.0s";$("subtitle-toggle").textContent="CC ON";
-  const languageCode=String(chosen.attributes?.language||"en").toLowerCase().startsWith("sq")?"sq":"en";
-  const language=languageCode==="sq"?"Shqip":"Anglisht";
-  activeSubtitleLabel="OpenSubtitles · "+language;
-  activeSubtitleLanguage=languageCode;
-  attachNativeSubtitleTrack(cues,activeSubtitleLabel,activeSubtitleLanguage);
-  status.textContent="OpenSubtitles · "+language+" · "+cues.length+" rreshta";
+  activeSubtitleLabel="OpenSubtitles · "+languageName;activeSubtitleLanguage=languageCode;
+  if(status)status.textContent="OpenSubtitles · "+languageName+" · "+cues.length+" cues";
   renderExternalSubtitle(latestPlaybackTime);
  }catch(error){
   if(request!==subtitleLookupRequest)return;
   console.warn("[FLIXTV] Automatic subtitle lookup failed:",error);
-  if(status)status.textContent=error.message||"Titrat automatikë nuk u ngarkuan";
+  if(status)status.textContent=error.message||"Automatic subtitles could not be loaded";
  }
 }
 function updateSubtitleOffset(delta){
@@ -2802,6 +2826,7 @@ function runBrandIntro(){
  setTimeout(()=>{splash.remove();window.dispatchEvent(new Event("flxtv:intro-finished"));openProfilePicker()},4200);
 }
 loadWatchProfiles();
+window.FlixLocale?.setLanguage(activeWatchProfile?.language||"sq");
 restoreWatchProgress();
 renderContinueWatching();
 ensureProfileUi();
@@ -2971,7 +2996,7 @@ function sportsStartDate(item){
 }
 function sportsDate(item){
  const date=sportsStartDate(item);if(!date)return "";
- return new Intl.DateTimeFormat("sq-AL",{timeZone:"Europe/Tirane",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:false}).format(date);
+ return new Intl.DateTimeFormat(activeWatchProfile?.language==="en"?"en-GB":"sq-AL",{timeZone:"Europe/Tirane",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:false}).format(date);
 }
 function sportsCountdown(item){
  const date=sportsStartDate(item);if(!date)return "";
