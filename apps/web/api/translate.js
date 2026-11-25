@@ -1,14 +1,14 @@
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "GET") {
-    res.setHeader("Allow", "GET, OPTIONS");
+  if (req.method !== "GET" && req.method !== "POST") {
+    res.setHeader("Allow", "GET, POST, OPTIONS");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const source = String(req.query.text || "").trim();
+  const source = String((req.method === "POST" ? req.body?.text : req.query.text) || "").trim();
   if (!source) return res.status(400).json({ error: "Missing text" });
   if (source.length > 5000) return res.status(413).json({ error: "Text too long" });
 
