@@ -31,6 +31,8 @@ jobs:
           git fetch origin test-observability
           git checkout -B test-observability origin/test-observability
           git checkout origin/main -- apps/web tools/apply-test-overlay.js tools/test-observability.js
+          node --check tools/apply-test-overlay.js
+          node --check tools/test-observability.js
           node tools/apply-test-overlay.js
           node --check apps/web/server.js
           node --check apps/web/app.js
