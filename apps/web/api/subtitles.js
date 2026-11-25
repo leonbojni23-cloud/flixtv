@@ -56,7 +56,9 @@ module.exports=async function handler(req,res){
     if(/^\d{4}$/.test(year))params.set("year",year);
    }
    const moviehash=String(q.moviehash||"").trim().toLowerCase();
-   if(moviehash&&!/^[a-f0-9]{16}$/.test(moviehash))return json(res,400,{error:"Movie hash i pavlefshëm."});\n   if(moviehash)params.set("moviehash",moviehash);\n   params.set("type",type);
+   if(moviehash&&!/^[a-f0-9]{16}$/.test(moviehash))return json(res,400,{error:"Movie hash i pavlefshëm."});
+   if(moviehash)params.set("moviehash",moviehash);
+   params.set("type",type);
    params.set("languages",language);
    params.set("per_page","50");
    params.set("hearing_impaired","exclude");
