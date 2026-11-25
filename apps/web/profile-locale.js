@@ -45,7 +45,17 @@ const sq={
  "Action":"Aksion","Adventure":"Aventurë","Animation":"Animacion","Comedy":"Komedi","Crime":"Krim",
  "Documentary":"Dokumentar","Drama":"Dramë","Family":"Familjar","Fantasy":"Fantazi","History":"Histori",
  "Music":"Muzikë","Mystery":"Mister","Romance":"Romancë","Sci-Fi":"Fantashkencë","War":"Luftë",
- "Created by:":"Krijuar nga:","Director:":"Regjisor:","Description unavailable.":"Përshkrimi nuk është i disponueshëm.","Read more":"Lexo më shumë","Read less":"Lexo më pak","Runtime":"Kohëzgjatja","Language":"Gjuha","Release Date":"Data e publikimit","Status":"Statusi","First Aired":"Transmetuar për herë të parë","Last Aired":"Transmetuar për herë të fundit","Seasons":"Sezone","Episodes":"Episode","Cast":"Aktorët","Trailers":"Trajlerët","Trailer":"Trajleri","You Might Also Like":"Mund të të pëlqejnë edhe","Loading recommendations…":"Po ngarkohen rekomandimet…","Loading episodes…":"Po ngarkohen episodet…","Loading trailer…":"Po ngarkohet trajleri…","Loading trailers…":"Po ngarkohen trajlerët…","Mark all episodes as watched":"Shëno të gjitha episodet si të shikuara","Add to My List":"Shto te Lista ime","Watch trailer":"Shiko trajlerin","Choose season":"Zgjidh sezonin","Season":"Sezoni","episodes":"episode","Returning Series":"Në transmetim","Ended":"Përfunduar","Canceled":"Anuluar","In Production":"Në prodhim","Planned":"Planifikuar","Released":"Publikuar","Post Production":"Pas prodhimit","Rumored":"Përfolur","Movie details":"Detajet e filmit","Series details":"Detajet e serialit","No subtitles loaded":"Nuk ka titra të ngarkuar","Loading subtitles…":"Po ngarkohen titrat…","No subtitles found":"Nuk u gjetën titra","Subtitles":"Titra",
+ "Created by:":"Krijuar nga:","Director:":"Regjisor:","Description unavailable.":"Përshkrimi nuk është i disponueshëm.",
+ "Read more":"Lexo më shumë","Read less":"Lexo më pak","Runtime":"Kohëzgjatja","Language":"Gjuha","Release Date":"Data e publikimit",
+ "Movie information":"Informacion për filmin","Series information":"Informacion për serialin","Status":"Statusi","First Aired":"Transmetuar për herë të parë",
+ "Last Aired":"Transmetuar për herë të fundit","Seasons":"Sezone","Episodes":"Episode","Cast":"Aktorët","Trailers":"Trajlerët","Trailer":"Trajleri",
+ "You Might Also Like":"Mund të të pëlqejnë edhe","Loading recommendations…":"Po ngarkohen rekomandimet…","Loading episodes…":"Po ngarkohen episodet…",
+ "Loading trailer…":"Po ngarkohet trajleri…","Loading trailers…":"Po ngarkohen trajlerët…","Mark all episodes as watched":"Shëno të gjitha episodet si të shikuara",
+ "Add to My List":"Shto te Lista ime","Watch trailer":"Shiko trajlerin","Choose season":"Zgjidh sezonin","Season":"Sezoni","episodes":"episode",
+ "Returning Series":"Në transmetim","Ended":"Përfunduar","Canceled":"Anuluar","In Production":"Në prodhim","Planned":"Planifikuar",
+ "Released":"Publikuar","Post Production":"Pas prodhimit","Rumored":"Përfolur","TV":"TV",
+ "Movie details":"Detajet e filmit","Series details":"Detajet e serialit","No subtitles loaded":"Nuk ka titra të ngarkuar",
+ "Loading subtitles…":"Po ngarkohen titrat…","No subtitles found":"Nuk u gjetën titra","Subtitles":"Titra",
 };
 const en={
  "Kryefaqja":"Home","Filma":"Movies","Seriale":"Shows","Sport":"Sports","Lista ime":"My List",
@@ -149,7 +159,16 @@ const en={
  "Manifest u hap, por nuk përmban katalogë sportivë.":"Manifest opened, but contains no sports catalogs.",
  "Lidhja dështoi":"Connection failed",
  "DaddyLive mbetet i disponueshëm te kategoritë më sipër.":"DaddyLive remains available in the categories above.",
- "Krijuar nga:":"Created by:","Regjisor:":"Director:","Përshkrimi nuk është i disponueshëm.":"Description unavailable.","Lexo më shumë":"Read more","Lexo më pak":"Read less","Kohëzgjatja":"Runtime","Gjuha":"Language","Data e publikimit":"Release Date","Statusi":"Status","Transmetuar për herë të parë":"First Aired","Transmetuar për herë të fundit":"Last Aired","Sezone":"Seasons","Aktorët":"Cast","Trajlerët":"Trailers","Trajleri":"Trailer","Mund të të pëlqejnë edhe":"You Might Also Like","Po ngarkohen rekomandimet…":"Loading recommendations…","Po ngarkohen episodet…":"Loading episodes…","Po ngarkohet trajleri…":"Loading trailer…","Po ngarkohen trajlerët…":"Loading trailers…","Shëno të gjitha episodet si të shikuara":"Mark all episodes as watched","Shto te Lista ime":"Add to My List","Shiko trajlerin":"Watch trailer","Zgjidh sezonin":"Choose season","Sezoni":"Season","episode":"episodes","Në transmetim":"Returning Series","Përfunduar":"Ended","Anuluar":"Canceled","Në prodhim":"In Production","Planifikuar":"Planned","Publikuar":"Released","Pas prodhimit":"Post Production","Përfolur":"Rumored","Detajet e filmit":"Movie details","Detajet e serialit":"Series details","Nuk ka titra të ngarkuar":"No subtitles loaded","Po ngarkohen titrat…":"Loading subtitles…","Nuk u gjetën titra":"No subtitles found","Titra":"Subtitles",
+ "Krijuar nga:":"Created by:","Regjisor:":"Director:","Përshkrimi nuk është i disponueshëm.":"Description unavailable.",
+ "Lexo më shumë":"Read more","Lexo më pak":"Read less","Kohëzgjatja":"Runtime","Gjuha":"Language","Data e publikimit":"Release Date",
+ "Informacion për filmin":"Movie information","Informacion për serialin":"Series information","Statusi":"Status","Transmetuar për herë të parë":"First Aired",
+ "Transmetuar për herë të fundit":"Last Aired","Sezone":"Seasons","Aktorët":"Cast","Trajlerët":"Trailers","Trajleri":"Trailer",
+ "Mund të të pëlqejnë edhe":"You Might Also Like","Po ngarkohen rekomandimet…":"Loading recommendations…","Po ngarkohen episodet…":"Loading episodes…",
+ "Po ngarkohet trajleri…":"Loading trailer…","Po ngarkohen trajlerët…":"Loading trailers…","Shëno të gjitha episodet si të shikuara":"Mark all episodes as watched",
+ "Shto te Lista ime":"Add to My List","Shiko trajlerin":"Watch trailer","Zgjidh sezonin":"Choose season","Sezoni":"Season","episode":"episodes",
+ "Në transmetim":"Returning Series","Përfunduar":"Ended","Anuluar":"Canceled","Në prodhim":"In Production","Planifikuar":"Planned",
+ "Publikuar":"Released","Pas prodhimit":"Post Production","Përfolur":"Rumored","Detajet e filmit":"Movie details","Detajet e serialit":"Series details",
+ "Nuk ka titra të ngarkuar":"No subtitles loaded","Po ngarkohen titrat…":"Loading subtitles…","Nuk u gjetën titra":"No subtitles found","Titra":"Subtitles",
 };
 const textSources=new WeakMap(),textLast=new WeakMap(),attributeSources=new WeakMap(),attributeLast=new WeakMap();
 let language="sq",scheduled=false;

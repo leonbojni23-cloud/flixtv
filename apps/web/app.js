@@ -1208,7 +1208,7 @@ window.addEventListener("flxtv:player-error",event=>{
   if(watchProfiles.length<8){
    const add=document.createElement("div");add.className="profile-tile profile-add-tile";add.tabIndex=0;add.setAttribute("role","button");add.setAttribute("aria-label","Add Profile");
    add.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art">+</div></div><span class="profile-name">Add Profile</span>';
-   const addAction=()=>{if(add.dataset.editorOpen==="true")return;showAddProfileEditor(add)};add.addEventListener("click",addAction);add.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();addAction()}});
+   const addAction=()=>showAddProfileEditor(add);add.addEventListener("click",addAction);add.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();addAction()}});
    list.append(add);
   }
   const manage=$("profile-manage");if(manage){manage.textContent=profileManageMode?"DONE":"MANAGE PROFILES";manage.hidden=watchProfiles.length===0;}
@@ -1276,14 +1276,13 @@ window.addEventListener("flxtv:player-error",event=>{
   const nextLabel=uiLang==="en"?"CONTINUE":"VAZHDO",cancelLabel=uiLang==="en"?"CANCEL":"ANULO";
   tile.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art profile-add-preview" aria-label="Profile avatar"><svg class="profile-add-glyph" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="17" r="8" fill="currentColor"/><path d="M8 41c1.8-9 7.2-13.5 16-13.5S38.2 32 40 41" fill="currentColor"/></svg><span class="profile-add-initial" hidden></span></div></div><input class="profile-name-input" id="new-profile-name" type="text" name="profile-name" placeholder="'+placeholder+'" aria-label="'+placeholder+'" maxlength="24" autocomplete="off" autocapitalize="words" spellcheck="false" inputmode="text" enterkeyhint="next"><div class="profile-add-actions"><button type="button" class="profile-add-next" disabled>'+nextLabel+'</button><button type="button" class="profile-add-cancel">'+cancelLabel+'</button></div>';
   const input=tile.querySelector("#new-profile-name"),initial=tile.querySelector(".profile-add-initial"),glyph=tile.querySelector(".profile-add-glyph"),next=tile.querySelector(".profile-add-next");
-  input.addEventListener("click",event=>event.stopPropagation());
   if(presetName)input.value=String(presetName).slice(0,24);
   const sync=()=>{const value=input.value.trim();initial.textContent=value.slice(0,1).toUpperCase();initial.hidden=!value;glyph.hidden=!!value;next.disabled=!value};
   sync();
   const advance=()=>{if(!input.value.trim()){input.focus();return}showProfileLanguageStep(tile,input.value)};
   input.addEventListener("input",sync);
   input.addEventListener("keydown",event=>{event.stopPropagation();if(event.key==="Enter"){event.preventDefault();advance()}if(event.key==="Escape"){event.preventDefault();cancelAddProfileEditor()}});
-  next.addEventListener("click",event=>{event.stopPropagation();advance()});tile.querySelector(".profile-add-cancel").addEventListener("click",event=>{event.stopPropagation();cancelAddProfileEditor()});
+  next.addEventListener("click",advance);tile.querySelector(".profile-add-cancel").addEventListener("click",cancelAddProfileEditor);
   try{input.focus({preventScroll:true})}catch(_){input.focus()}
  }
  function showProfileLanguageStep(tile,rawName){
@@ -1293,14 +1292,13 @@ window.addEventListener("flxtv:player-error",event=>{
   tile.dataset.editorStep="language";
   tile.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art profile-add-preview"><span class="profile-add-initial">'+initial+'</span></div></div><div class="profile-language-name">'+escapeHtml(name)+'</div><div class="profile-language-heading">'+(isEn?"PROFILE LANGUAGE":"GJUHA E PROFILIT")+'</div><div class="profile-language-options" role="radiogroup" aria-label="'+(isEn?"Choose profile language":"Zgjidh gjuhën e profilit")+'"><button type="button" class="profile-language-option" data-profile-language="sq" role="radio" aria-checked="false"><span class="profile-language-flag" aria-hidden="true">🇦🇱</span><span class="profile-language-copy"><strong>Shqip</strong><small>'+(isEn?"Albanian interface and subtitles":"Ndërfaqe dhe titra shqip")+'</small></span><span class="profile-language-check" aria-hidden="true">✓</span></button><button type="button" class="profile-language-option" data-profile-language="en" role="radio" aria-checked="false"><span class="profile-language-flag" aria-hidden="true">🇬🇧</span><span class="profile-language-copy"><strong>English</strong><small>'+(isEn?"English interface and subtitles":"Ndërfaqe dhe titra anglisht")+'</small></span><span class="profile-language-check" aria-hidden="true">✓</span></button></div><div class="profile-add-actions"><button type="button" class="profile-add-save" disabled>'+(isEn?"CREATE PROFILE":"KRIJO PROFILIN")+'</button><button type="button" class="profile-add-cancel">'+(isEn?"BACK":"KTHEHU")+'</button></div>';
   let selectedLanguage="";const save=tile.querySelector(".profile-add-save");
-  tile.querySelectorAll("[data-profile-language]").forEach(option=>option.addEventListener("click",event=>{
-   event.stopPropagation();
+  tile.querySelectorAll("[data-profile-language]").forEach(option=>option.addEventListener("click",()=>{
    selectedLanguage=option.dataset.profileLanguage;
    tile.querySelectorAll("[data-profile-language]").forEach(item=>{const active=item===option;item.classList.toggle("selected",active);item.setAttribute("aria-checked",String(active))});
    save.disabled=false;
   }));
-  save.addEventListener("click",event=>{event.stopPropagation();if(selectedLanguage)createWatchProfile(name,tile,selectedLanguage)});
-  tile.querySelector(".profile-add-cancel").addEventListener("click",event=>{event.stopPropagation();showAddProfileEditor(tile,name)});
+  save.addEventListener("click",()=>{if(selectedLanguage)createWatchProfile(name,tile,selectedLanguage)});
+  tile.querySelector(".profile-add-cancel").addEventListener("click",()=>showAddProfileEditor(tile,name));
  }
  function cancelAddProfileEditor(){
   renderProfileCards();
@@ -2778,12 +2776,20 @@ async function autoLoadOpenSubtitles(item,season,episode){
   const imdbId=String(item?.external_ids?.imdb_id||item?.imdb_id||"").replace(/^tt0*/i,"");
   const params=new URLSearchParams();
   if(kind(item)==="tv"){
-   params.set("parent_tmdb_id",String(item.id));if(imdbId)params.set("parent_imdb_id",imdbId);params.set("type","episode");
+   params.set("parent_tmdb_id",String(item.id));
+   if(imdbId)params.set("parent_imdb_id",imdbId);
+   params.set("type","episode");
   }else{
-   params.set("tmdb_id",String(item.id));if(imdbId)params.set("imdb_id",imdbId);params.set("type","movie");
+   params.set("tmdb_id",String(item.id));
+   if(imdbId)params.set("imdb_id",imdbId);
+   params.set("type","movie");
   }
-  params.set("languages",languageCode);params.set("hearing_impaired","exclude");params.set("foreign_parts_only","exclude");
-  params.set("machine_translated","exclude");params.set("ai_translated","exclude");params.set("per_page","50");
+  params.set("languages",languageCode);
+  params.set("hearing_impaired","exclude");
+  params.set("foreign_parts_only","exclude");
+  params.set("machine_translated","exclude");
+  params.set("ai_translated","exclude");
+  params.set("per_page","50");
   params.set("query",String(title(item)||"").trim());
   if(kind(item)!=="tv"){const release=String(item.release_date||"").slice(0,4);if(/^\\d{4}$/.test(release))params.set("year",release)}
   if(kind(item)==="tv"){params.set("season_number",String(season||1));params.set("episode_number",String(episode||1))}
