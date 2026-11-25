@@ -1,3 +1,4 @@
+// This runtime is loaded only by the Railway /test shell; CI smoke-tests its server boundary.
 (function () {
 "use strict";
 if (window.__FLIXTV_TEST_MODE__ !== true || window.__FLIXTV_OBSERVABILITY__) return;
