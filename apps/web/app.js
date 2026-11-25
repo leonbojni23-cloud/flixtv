@@ -2824,7 +2824,7 @@ async function downloadSubtitleCandidate(chosen,lookupId,languageName,languageCo
  if(status)status.textContent=(attr.moviehash_match?"Përputhje hash · ":"")+String(attr.release||file.file_name||"OpenSubtitles").slice(0,45)+" · "+cues.length+" rreshta";
  renderExternalSubtitle(latestPlaybackTime);
 }
-\nasync function autoLoadOpenSubtitles(item,season,episode){
+async function autoLoadOpenSubtitles(item,season,episode){
  const request=++subtitleLookupRequest;
  activeSubtitleCandidates=[];activeSubtitleLookupId=request;
  const choice=$("subtitle-choice");if(choice){choice.replaceChildren(new Option("Po kërkohen titrat…",""));choice.disabled=true}
@@ -2852,7 +2852,7 @@ async function downloadSubtitleCandidate(chosen,lookupId,languageName,languageCo
   params.set("ai_translated","exclude");
   params.set("per_page","50");
   params.set("query",String(title(item)||"").trim());
-  if(kind(item)!=="tv"){const release=String(item.release_date||"").slice(0,4);if(/^\\d{4}$/.test(release))params.set("year",release)}
+  if(kind(item)!=="tv"){const release=String(item.release_date||"").slice(0,4);if(/^\d{4}$/.test(release))params.set("year",release)}
   if(kind(item)==="tv"){params.set("season_number",String(season||1));params.set("episode_number",String(episode||1))}
   const response=await fetch("/api/subtitles.js?"+params.toString(),{headers:{Accept:"application/json"}});
   const result=await response.json();
