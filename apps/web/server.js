@@ -32,6 +32,7 @@ const MIME = {
 
 const TEST_EVENT_LIMIT = 1200;
 let testEventSequence = 0;
+let testLastCpu = { at: process.hrtime.bigint(), usage: process.cpuUsage() };
 const testServerEvents = [];
 function pushTestServerEvent(item) {
   const event = Object.assign({ id: ++testEventSequence, time: new Date().toISOString() }, item);
@@ -209,9 +210,15 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== "GET" || !testTagged) return sendJson(res, 404, { error: "Not found" });
     const after = Number(parsed.searchParams.get("after")) || 0;
     const usage = process.memoryUsage();
+    const cpuNowAt = process.hrtime.bigint();
+    const cpuNow = process.cpuUsage();
+    const cpuDelta = process.cpuUsage(testLastCpu.usage);
+    const cpuElapsedMicros = Number(cpuNowAt - testLastCpu.at) / 1000;
+    testLastCpu = { at: cpuNowAt, usage: cpuNow };
+    const cpuPercent = cpuElapsedMicros > 0 ? +((cpuDelta.user + cpuDelta.system) / cpuElapsedMicros * 100).toFixed(1) : 0;
     return sendJson(res, 200, {
       events: testServerEvents.filter(event => event.id > after),
-      server: { uptimeSec: Math.round(process.uptime()), pid: process.pid,
+      server: { uptimeSec: Math.round(process.uptime()), pid: process.pid, cpuPercent: cpuPercent,
         memoryMB: { rss: +(usage.rss / 1048576).toFixed(1), heapUsed: +(usage.heapUsed / 1048576).toFixed(1), heapTotal: +(usage.heapTotal / 1048576).toFixed(1), external: +(usage.external / 1048576).toFixed(1) },
         eventBuffer: testServerEvents.length, capturedAt: new Date().toISOString() }
     });
