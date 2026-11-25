@@ -167,13 +167,13 @@ function openPanel(){
 window.FlixDiagnostics={
  version:VERSION,
  enabled,
- log:(type,data={},level="info")=>record("app."+type,data,level),
- capture:(error,context={})=>record("app.captured-error",{error:safe(error),context:safe(context)},"error"),
+ log:(type,data={},level="info")=>enabled?record("app."+type,data,level):null,
+ capture:(error,context={})=>enabled?record("app.captured-error",{error:safe(error),context:safe(context)},"error"):null,
  snapshot,
  getEntries:()=>entries.slice(),
  export:download,
  open:openPanel,
  clear:()=>{entries.length=0;persist();record("diagnostics.cleared",{})}
 };
-record("diagnostics.api.ready",{version:VERSION,enabled});
+if(enabled)record("diagnostics.api.ready",{version:VERSION,enabled});
 })();
