@@ -394,6 +394,11 @@ function install(){
   else{render("home");loadHomeExtras()}
  });
  window.addEventListener("flxtv:playback-completed",function(e){if(e.detail&&e.detail.item)markWatched(e.detail.item)});
+ window.addEventListener("flxtv:profile-language-changed",function(){
+  if(!doc.body.classList.contains("bf-reference-mode"))return;
+  if(current.page==="home"){window.FLIXTV_BRIDGE?.openPage("home",false);return}
+  render(current.page,current.provider,current.query);
+ });
 }
 if(doc.readyState==="loading")doc.addEventListener("DOMContentLoaded",install);else install();
 })();
