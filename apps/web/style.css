@@ -8040,3 +8040,68 @@ body.flxtv-series-detail .topbar .top-actions{margin-left:auto!important;gap:9px
 /* Keep the profile wizard inside the existing two-column Who's Watching grid. */
 .profiles-grid .profile-add-editing{grid-column:1/-1;justify-self:center;width:min(230px,100%)!important;min-width:0!important;max-width:230px!important}
 .profiles-grid .profile-add-editing[data-editor-step="language"]{width:min(260px,100%)!important;min-width:0!important;max-width:260px!important}
+
+/* Compact profile wizard: keep the premium picker layout, never enlarge the avatar to form size. */
+.profiles-grid .profile-add-editing{
+ grid-column:1/-1!important;
+ justify-self:center!important;
+ align-self:start!important;
+ width:min(310px,calc(100vw - 48px))!important;
+ min-width:0!important;
+ max-width:310px!important;
+ gap:10px!important;
+ padding:14px 16px 13px!important;
+ border:1px solid rgba(255,255,255,.13)!important;
+ border-radius:18px!important;
+ background:linear-gradient(145deg,rgba(30,34,45,.96),rgba(13,15,21,.96))!important;
+ box-shadow:0 18px 55px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.06)!important;
+ backdrop-filter:blur(22px)!important;
+ -webkit-backdrop-filter:blur(22px)!important;
+ animation:profileWizardIn .32s cubic-bezier(.2,.8,.2,1) both!important;
+}
+.profiles-grid .profile-add-editing .profile-avatar-wrap{
+ width:76px!important;
+ height:76px!important;
+ min-height:76px!important;
+ aspect-ratio:1/1!important;
+ border-radius:18px!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.24)!important;
+}
+.profiles-grid .profile-add-editing .profile-add-preview{
+ border-radius:18px!important;
+ border:1px solid rgba(255,255,255,.14)!important;
+ background:linear-gradient(145deg,#343b4b,#171b25)!important;
+}
+.profiles-grid .profile-add-editing .profile-add-initial{font-size:2.3rem!important}
+.profiles-grid .profile-add-editing .profile-name-input{
+ height:44px!important;border-radius:11px!important;background:rgba(255,255,255,.055)!important;
+ border-color:rgba(255,255,255,.16)!important;font:500 15px system-ui,-apple-system,sans-serif!important;
+}
+.profiles-grid .profile-add-editing .profile-add-actions{margin-top:2px!important}
+.profiles-grid .profile-add-editing .profile-add-actions button{
+ min-height:40px!important;border-radius:11px!important;padding:9px 16px!important;
+ font:650 11px system-ui,-apple-system,sans-serif!important;letter-spacing:.1em!important;
+}
+.profiles-grid .profile-add-editing .profile-add-next,
+.profiles-grid .profile-add-editing .profile-add-save{
+ background:linear-gradient(135deg,#f5f6fa,#d9dce5)!important;color:#11131a!important;border-color:transparent!important;
+}
+.profiles-grid .profile-add-editing .profile-add-next:disabled,
+.profiles-grid .profile-add-editing .profile-add-save:disabled{opacity:.38!important}
+.profiles-grid .profile-add-editing .profile-language-options{gap:8px!important}
+.profiles-grid .profile-add-editing .profile-language-option{
+ min-height:56px!important;border-radius:12px!important;padding:9px 11px!important;
+ background:rgba(255,255,255,.045)!important;border-color:rgba(255,255,255,.1)!important;
+}
+.profiles-grid .profile-add-editing .profile-language-option.selected{
+ background:rgba(255,255,255,.12)!important;border-color:rgba(255,255,255,.62)!important;
+}
+.profiles-grid .profile-add-editing .profile-language-copy strong{font-size:13px!important}
+.profiles-grid .profile-add-editing .profile-language-copy small{font-size:10px!important}
+.profiles-grid .profile-add-editing .profile-language-name{font-size:14px!important}
+@keyframes profileWizardIn{from{opacity:0;transform:translateY(12px) scale(.975)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:600px){
+ .profiles-grid .profile-add-editing{width:min(300px,calc(100vw - 40px))!important;padding:13px!important}
+ .profiles-grid .profile-add-editing .profile-avatar-wrap{width:68px!important;height:68px!important;min-height:68px!important}
+}
+@media(prefers-reduced-motion:reduce){.profiles-grid .profile-add-editing{animation:none!important}}
