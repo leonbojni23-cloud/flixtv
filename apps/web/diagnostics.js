@@ -2,7 +2,7 @@
 "use strict";
 const VERSION="1.0.0";
 // Diagnostics instrumentation is intentionally active only on the isolated admin test page.
-const enabled=location.pathname.replace(/\/+$/,"")==="/faqjaime/test";
+const enabled=location.pathname.replace(/\/+$/,"")==="/faqjaime/test"||(window.parent!==window&&new URLSearchParams(location.search).get("flxdiag")==="1"&&(()=>{try{return new URL(document.referrer).pathname.replace(/\/+$/,"")==="/faqjaime/test"}catch(_){return false}})());
 const LIMIT=500,KEY="flxtv:diagnostics:session:v1",started=performance.now();
 const entries=[];
 const native={log:console.log.bind(console),info:console.info.bind(console),warn:console.warn.bind(console),error:console.error.bind(console),debug:console.debug.bind(console)};
@@ -44,6 +44,7 @@ function persist(){
 }
 function record(type,data={},level="info"){
  const item={id:++sequence,t:new Date().toISOString(),ms:Math.round(performance.now()*10)/10,level,type,data:safe(data)};
+ if(enabled&&window.parent!==window){try{window.parent.postMessage({source:"flxtv-diagnostics-frame",kind:"event",payload:item},location.origin)}catch(_){}}
  entries.push(item);
  if(entries.length>LIMIT)entries.splice(0,entries.length-LIMIT);
  if(level==="error"||level==="warn")native[level]("[FLIXTV DIAG]",type,item.data);
@@ -124,7 +125,7 @@ if(enabled){
  },true);
  document.addEventListener("DOMContentLoaded",()=>{
   record("dom.ready",{ids:["brand-intro","profile-picker","catalog","home-page","player-modal"].map(id=>({id,exists:!!document.getElementById(id)}))});
-  if(!enabled)return;
+  if(!enabled||window.parent!==window)return;
   const button=document.createElement("button");
   button.type="button";button.className="flxtv-diagnostics-control";button.textContent="DIAG";button.setAttribute("aria-label","Open FLIXTV diagnostics");
   Object.assign(button.style,{position:"fixed",right:"10px",bottom:"10px",zIndex:"2147483647",padding:"8px 11px",border:"1px solid #ffffff55",borderRadius:"9px",background:"#111e",color:"#fff",font:"12px monospace"});
