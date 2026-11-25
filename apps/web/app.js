@@ -2895,19 +2895,13 @@ window.addEventListener("pagehide",()=>savePlaybackProgress(true));
 window.addEventListener("beforeunload",()=>savePlaybackProgress(true));
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")savePlaybackProgress(true)});
 function runBrandIntro(){
- const splash=$("brand-intro");
- const finishIntro=()=>{
-  if(splash)splash.remove();
-  window.dispatchEvent(new Event("flxtv:intro-finished"));
-  openProfilePicker();
- };
- if(!splash){finishIntro();return;}
+ const splash=$("brand-intro");if(!splash){openProfilePicker();return;}
  const reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
- if(reduced){finishIntro();return;}
- // The initial F animation runs from critical inline CSS on first paint.
+ if(reduced){splash.remove();openProfilePicker();return;}
+ requestAnimationFrame(()=>splash.classList.add("stage-mark"));
  setTimeout(()=>splash.classList.add("stage-word"),1450);
  setTimeout(()=>splash.classList.add("stage-exit"),3500);
- setTimeout(finishIntro,4200);
+ setTimeout(()=>{splash.remove();window.dispatchEvent(new Event("flxtv:intro-finished"));openProfilePicker()},4200);
 }
 loadWatchProfiles();
 restoreWatchProgress();
