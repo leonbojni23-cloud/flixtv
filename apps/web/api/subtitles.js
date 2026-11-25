@@ -53,6 +53,9 @@ module.exports=async function handler(req,res){
     if(tmdbId)params.set("tmdb_id",tmdbId);
     if(imdbId)params.set("imdb_id",imdbId);
    }
+   const moviehash=String(q.moviehash||"").trim().toLowerCase();
+   if(moviehash&&!/^[a-f0-9]{16}$/.test(moviehash))return json(res,400,{error:"Movie hash i pavlefshëm."});
+   if(moviehash)params.set("moviehash",moviehash);
    params.set("type",type);
    params.set("languages",language);
    params.set("per_page","50");
