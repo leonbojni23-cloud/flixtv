@@ -2784,7 +2784,9 @@ async function autoLoadOpenSubtitles(item,season,episode){
    if(status)status.textContent=languageCode==="sq"?"Nuk u gjetën titra shqip për këtë titull.":"No English subtitles were found for this title.";
    return;
   }
-  subtitles.sort((a,b)=>{
+  const regularSubtitles=subtitles.filter(entry=>!entry.attributes?.hearing_impaired);
+  const rankedSubtitles=regularSubtitles.length?regularSubtitles:subtitles;
+  rankedSubtitles.sort((a,b)=>{
    const x=a.attributes||{},y=b.attributes||{};
    return (Number(y.ratings)||0)-(Number(x.ratings)||0)||
     (Number(y.votes)||0)-(Number(x.votes)||0)||
@@ -2794,7 +2796,7 @@ async function autoLoadOpenSubtitles(item,season,episode){
     Number(!!x.hearing_impaired)-Number(!!y.hearing_impaired)||
     Number(!!y.hd)-Number(!!x.hd);
   });
-  const chosen=subtitles[0],file=(chosen.attributes.files||[]).find(entry=>Number(entry.file_id)>0);
+  const chosen=rankedSubtitles[0],file=(chosen.attributes.files||[]).find(entry=>Number(entry.file_id)>0);
   const download=await fetch("/api/subtitles.js?action=download",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({file_id:file.file_id})});
   const payload=await download.json();
   if(request!==subtitleLookupRequest)return;
