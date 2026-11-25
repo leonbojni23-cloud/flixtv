@@ -1265,7 +1265,7 @@ window.addEventListener("flxtv:player-error",event=>{
   }
   if(action.trim()){p.name=action.trim().slice(0,24);p.letter=p.name.slice(0,1).toUpperCase();saveProfiles()}
  }
- function showAddProfileEditor(tile){
+ function showAddProfileEditor(tile,presetName=""){
   if(watchProfiles.length>=8){notice("Mund të krijosh deri në 8 profile.");return}
   if(tile.dataset.editorOpen==="true"&&tile.dataset.editorStep==="name")return;
   tile.dataset.editorOpen="true";tile.dataset.editorStep="name";tile.dataset.noI18n="true";
@@ -1275,7 +1275,9 @@ window.addEventListener("flxtv:player-error",event=>{
   const nextLabel=uiLang==="en"?"CONTINUE":"VAZHDO",cancelLabel=uiLang==="en"?"CANCEL":"ANULO";
   tile.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art profile-add-preview" aria-label="Profile avatar"><svg class="profile-add-glyph" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="17" r="8" fill="currentColor"/><path d="M8 41c1.8-9 7.2-13.5 16-13.5S38.2 32 40 41" fill="currentColor"/></svg><span class="profile-add-initial" hidden></span></div></div><input class="profile-name-input" id="new-profile-name" type="text" name="profile-name" placeholder="'+placeholder+'" aria-label="'+placeholder+'" maxlength="24" autocomplete="off" autocapitalize="words" spellcheck="false" inputmode="text" enterkeyhint="next"><div class="profile-add-actions"><button type="button" class="profile-add-next" disabled>'+nextLabel+'</button><button type="button" class="profile-add-cancel">'+cancelLabel+'</button></div>';
   const input=tile.querySelector("#new-profile-name"),initial=tile.querySelector(".profile-add-initial"),glyph=tile.querySelector(".profile-add-glyph"),next=tile.querySelector(".profile-add-next");
+  if(presetName)input.value=String(presetName).slice(0,24);
   const sync=()=>{const value=input.value.trim();initial.textContent=value.slice(0,1).toUpperCase();initial.hidden=!value;glyph.hidden=!!value;next.disabled=!value};
+  sync();
   const advance=()=>{if(!input.value.trim()){input.focus();return}showProfileLanguageStep(tile,input.value)};
   input.addEventListener("input",sync);
   input.addEventListener("keydown",event=>{event.stopPropagation();if(event.key==="Enter"){event.preventDefault();advance()}if(event.key==="Escape"){event.preventDefault();cancelAddProfileEditor()}});
@@ -1295,7 +1297,7 @@ window.addEventListener("flxtv:player-error",event=>{
    save.disabled=false;
   }));
   save.addEventListener("click",()=>{if(selectedLanguage)createWatchProfile(name,tile,selectedLanguage)});
-  tile.querySelector(".profile-add-cancel").addEventListener("click",()=>showAddProfileEditor(tile));
+  tile.querySelector(".profile-add-cancel").addEventListener("click",()=>showAddProfileEditor(tile,name));
  }
  function cancelAddProfileEditor(){
   renderProfileCards();
