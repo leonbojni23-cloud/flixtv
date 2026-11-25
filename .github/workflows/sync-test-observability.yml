@@ -30,13 +30,15 @@ jobs:
           set -euo pipefail
           git fetch origin test-observability
           git checkout -B test-observability origin/test-observability
-          git checkout origin/main -- apps/web tools/apply-test-overlay.js tools/test-observability.js
+          git checkout origin/main -- apps/web tools/apply-test-overlay.js tools/test-observability.js tools/smoke-test-test-route.js
           node --check tools/apply-test-overlay.js
           node --check tools/test-observability.js
+          node --check tools/smoke-test-test-route.js
           node tools/apply-test-overlay.js
           node --check apps/web/server.js
           node --check apps/web/app.js
           node --check apps/web/diagnostics.js
+          node tools/smoke-test-test-route.js
           git add apps/web
           if git diff --cached --quiet; then
             echo "Test branch already matches main."
