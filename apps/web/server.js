@@ -218,7 +218,7 @@ const server = http.createServer(async (req, res) => {
     const cpuPercent = cpuElapsedMicros > 0 ? +((cpuDelta.user + cpuDelta.system) / cpuElapsedMicros * 100).toFixed(1) : 0;
     return sendJson(res, 200, {
       events: testServerEvents.filter(event => event.id > after),
-      server: { uptimeSec: Math.round(process.uptime()), pid: process.pid, cpuPercent: cpuPercent,
+      server: { uptimeSec: Math.round(process.uptime()), pid: process.pid, cpuPercent: cpuPercent, cpuPercent: cpuPercent,
         memoryMB: { rss: +(usage.rss / 1048576).toFixed(1), heapUsed: +(usage.heapUsed / 1048576).toFixed(1), heapTotal: +(usage.heapTotal / 1048576).toFixed(1), external: +(usage.external / 1048576).toFixed(1) },
         eventBuffer: testServerEvents.length, capturedAt: new Date().toISOString() }
     });
