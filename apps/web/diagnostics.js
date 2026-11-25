@@ -1,9 +1,8 @@
 (function(){
 "use strict";
 const VERSION="1.0.0";
-const params=new URLSearchParams(location.search);
-let enabled=params.get("flxdiag")==="1"||params.get("debugPlayerFocus")==="1";
-try{enabled=enabled||localStorage.getItem("flxtv:diagnostics")==="1"}catch(_){}
+// Diagnostics instrumentation is intentionally active only on the isolated admin test page.
+const enabled=location.pathname.replace(/\\/+$/,"")==="/faqjaime/test";
 const LIMIT=500,KEY="flxtv:diagnostics:session:v1",started=performance.now();
 const entries=[];
 const native={log:console.log.bind(console),info:console.info.bind(console),warn:console.warn.bind(console),error:console.error.bind(console),debug:console.debug.bind(console)};
