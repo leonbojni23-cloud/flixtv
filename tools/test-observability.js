@@ -96,8 +96,8 @@ function recordNetwork(item) {
   item.id = ++sequence;
   item.time = item.time || new Date().toISOString();
   network.push(safe(item));
-  requestCount++;
-  if (item.status >= 400 || item.error) failedRequests++;
+  if (item.phase === "request" || item.phase === "resource") requestCount++;
+  if ((item.phase === "response" && Number(item.status) >= 400) || item.phase === "error" || item.error) failedRequests++;
   if (network.length > MAX_NETWORK) network.splice(0, network.length - MAX_NETWORK);
   if (panel) scheduleRender();
   clearTimeout(persistTimer);
