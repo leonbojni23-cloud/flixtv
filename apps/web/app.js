@@ -3185,7 +3185,7 @@ $("hero-next").onclick=()=>{if(heroItems.length>1){showHero(heroIndex+1);startHe
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroItems.length>1)startHeroTimer()});
 window.addEventListener("pageshow",()=>{renderContinueWatching();if(heroItems.length>1)startHeroTimer()});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderContinueWatching()});
-if(window.__FLIXTV_TEST_MODE__===true&&/^\/test\/?$/.test(location.pathname)){document.documentElement.classList.remove("deep-route-loading");home()}else if(window.__FLIXTV_TEST_MODE__===true&&/^\/test\/?$/.test(location.pathname)){document.documentElement.classList.remove("deep-route-loading");home()}else if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);else if(location.pathname!=="/")resolveTitleRoute();else home();
+if(window.__FLIXTV_TEST_MODE__===true&&/^\/test\/?$/.test(location.pathname)){document.documentElement.classList.remove("deep-route-loading");home()}else if(location.pathname.replace(/\/$/,"")==="/sports")openPage("sports",false);else if(location.pathname!=="/")resolveTitleRoute();else home();
 
 window.FLIXTV_BRIDGE={
  openPage:function(page,updateHistory){return openPage(page,updateHistory!==false)},
