@@ -163,11 +163,13 @@ function scheduleNodes(nodes){
  requestAnimationFrame(()=>{scheduled=false;nodes.forEach(processNode)});
 }
 function apply(target){
+ const previousLanguage=language;
  language=target==="en"?"en":"sq";
  document.documentElement.lang=language==="sq"?"sq":"en";
  document.documentElement.dataset.profileLanguage=language;
  if(document.body)document.body.dataset.profileLanguage=language;
  if(document.body)processNode(document.body);
+ if(previousLanguage!==language)window.dispatchEvent(new CustomEvent("flxtv:profile-language-changed",{detail:{language}}));
 }
 const observer=new MutationObserver(records=>{
  const nodes=new Set();
