@@ -61,9 +61,29 @@
     {
       "src": "boredflix-parity.css",
       "use": "@vercel/static"
+    },
+    {
+      "src": "faqjaime/test.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "diagnostics.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "diagnostics-lab.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "diagnostics-lab.css",
+      "use": "@vercel/static"
     }
   ],
   "rewrites": [
+    {
+      "source": "/faqjaime/test",
+      "destination": "/faqjaime/test.html"
+    },
     {
       "source": "/browse/:path*",
       "destination": "/index.html"
