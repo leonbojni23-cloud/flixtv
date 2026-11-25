@@ -2770,41 +2770,28 @@ function subtitleScore(entry,item,season,episode){
  const norm=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
  const same=(u,v)=>u!=null&&v!=null&&String(u).replace(/^tt0*/i,"")===String(v).replace(/^tt0*/i,"");
  const imdb=String(item?.external_ids?.imdb_id||item?.imdb_id||"").replace(/^tt0*/i,"");
- const tv=kind(item)==="tv",expected=norm(title(item));
- let s=x.moviehash_match?10000:0;
+ const tv=kind(item)==="tv",expected=norm(title(item));let s=x.moviehash_match?10000:0;
  if(tv){
-  if(same(f.parent_tmdb_id,item.id))s+=1600;
-  if(imdb&&same(f.parent_imdb_id,imdb))s+=1800;
+  if(same(f.parent_tmdb_id,item.id))s+=1600;if(imdb&&same(f.parent_imdb_id,imdb))s+=1800;
   if(f.season_number!=null)s+=Number(f.season_number)===Number(season)?220:-180;
   if(f.episode_number!=null)s+=Number(f.episode_number)===Number(episode)?260:-220;
   const actual=norm(f.parent_title||f.title||f.movie_name);
   if(actual&&actual===expected)s+=350;else if(actual&&(actual.includes(expected)||expected.includes(actual)))s+=180;
  }else{
-  if(same(f.tmdb_id,item.id))s+=1600;
-  if(imdb&&same(f.imdb_id,imdb))s+=1800;
+  if(same(f.tmdb_id,item.id))s+=1600;if(imdb&&same(f.imdb_id,imdb))s+=1800;
   const actual=norm(f.title||f.movie_name);
   if(actual&&actual===expected)s+=350;else if(actual&&(actual.includes(expected)||expected.includes(actual)))s+=180;
-  const year=String(item?.release_date||"").slice(0,4);
-  if(year&&String(f.year||"")===year)s+=90;else if(year&&f.year)s-=100;
+  const year=String(item?.release_date||"").slice(0,4);if(year&&String(f.year||"")===year)s+=90;else if(year&&f.year)s-=100;
  }
- const release=norm(x.release||x.files?.[0]?.file_name);
- const words=expected.split(" ").filter(w=>w.length>2);
+ const release=norm(x.release||x.files?.[0]?.file_name),words=expected.split(" ").filter(w=>w.length>2);
  if(words.length&&release)s+=Math.round(70*words.filter(w=>release.includes(w)).length/words.length);
  if(x.from_trusted)s+=18;if(x.hd)s+=6;if(!x.hearing_impaired)s+=5;
- s+=Math.min(12,Math.max(0,Number(x.ratings)||0)*1.2);
- s+=Math.min(8,Math.max(0,Number(x.votes)||0)/100);
- s+=Math.min(5,Math.max(0,Number(x.download_count)||0)/10000);
- if(x.machine_translated||x.ai_translated||x.foreign_parts_only)s-=1000;
- return s;
+ s+=Math.min(12,Math.max(0,Number(x.ratings)||0)*1.2)+Math.min(8,Math.max(0,Number(x.votes)||0)/100)+Math.min(5,Math.max(0,Number(x.download_count)||0)/10000);
+ if(x.machine_translated||x.ai_translated||x.foreign_parts_only)s-=1000;return s;
 }
 function subtitleOptionLabel(entry,index){
- const x=entry.attributes||{},f=x.feature_details||{};
- const release=String(x.release||x.files?.[0]?.file_name||f.title||f.movie_name||"Version pa emër");
- const tags=[];
- if(x.moviehash_match)tags.push("HASH");
- if(x.from_trusted)tags.push("Trusted");
- if(Number(x.fps)>0)tags.push(Number(x.fps).toFixed(3)+" FPS");
- if(x.hd)tags.push("HD");
+ const x=entry.attributes||{},f=x.feature_details||{},release=String(x.release||x.files?.[0]?.file_name||f.title||f.movie_name||"Version pa emër");
+ const tags=[];if(x.moviehash_match)tags.push("HASH");if(x.from_trusted)tags.push("Trusted");if(Number(x.fps)>0)tags.push(Number(x.fps).toFixed(3)+" FPS");if(x.hd)tags.push("HD");
  return (index+1)+". "+release.slice(0,54)+(tags.length?" · "+tags.join(" · "):"");
 }
 
@@ -2812,18 +2799,17 @@ async function downloadSubtitleCandidate(chosen,lookupId,languageName,languageCo
  const request=++subtitleDownloadRequest,attr=chosen?.attributes||{},file=(attr.files||[]).find(x=>Number(x.file_id)>0);
  if(!file)throw new Error("Rezultati nuk ka skedar titrash.");
  const status=$("subtitle-status");if(status)status.textContent="Po shkarkohen titrat…";
- const download=await fetch("/api/subtitles.js?action=download",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({file_id:file.file_id})});
- const payload=await download.json();
- if(request!==subtitleDownloadRequest||lookupId!==subtitleLookupRequest)return;
- if(!download.ok||!payload.content)throw new Error(payload.error||(languageCode==="sq"?"Shkarkimi i titrave dështoi.":"Subtitle download failed."));
- const cues=parseExternalSubtitles(payload.content);
- if(!cues.length)throw new Error("Skedari i titrave nuk përmban SRT/VTT të lexueshëm.");
+ const response=await fetch("/api/subtitles.js?action=download",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({file_id:file.file_id})});
+ const payload=await response.json();if(request!==subtitleDownloadRequest||lookupId!==subtitleLookupRequest)return;
+ if(!response.ok||!payload.content)throw new Error(payload.error||(languageCode==="sq"?"Shkarkimi i titrave dështoi.":"Subtitle download failed."));
+ const cues=parseExternalSubtitles(payload.content);if(!cues.length)throw new Error("Skedari i titrave nuk përmban SRT/VTT të lexueshëm.");
  externalSubtitleCues=cues;externalSubtitleOffset=0;lastSubtitleIndex=-1;removeNativeSubtitleTrack();
  $("subtitle-offset-value").textContent="0.0s";$("subtitle-toggle").textContent="CC ON";
  activeSubtitleLabel="OpenSubtitles · "+languageName;activeSubtitleLanguage=attr.language||languageCode;
  if(status)status.textContent=(attr.moviehash_match?"Përputhje hash · ":"")+String(attr.release||file.file_name||"OpenSubtitles").slice(0,45)+" · "+cues.length+" rreshta";
  renderExternalSubtitle(latestPlaybackTime);
 }
+
 async function autoLoadOpenSubtitles(item,season,episode){
  const request=++subtitleLookupRequest;
  activeSubtitleCandidates=[];activeSubtitleLookupId=request;
@@ -2852,7 +2838,7 @@ async function autoLoadOpenSubtitles(item,season,episode){
   params.set("ai_translated","exclude");
   params.set("per_page","50");
   params.set("query",String(title(item)||"").trim());
-  if(kind(item)!=="tv"){const release=String(item.release_date||"").slice(0,4);if(/^\d{4}$/.test(release))params.set("year",release)}
+  if(kind(item)!=="tv"){const release=String(item.release_date||"").slice(0,4);if(/^\\d{4}$/.test(release))params.set("year",release)}
   if(kind(item)==="tv"){params.set("season_number",String(season||1));params.set("episode_number",String(episode||1))}
   const response=await fetch("/api/subtitles.js?"+params.toString(),{headers:{Accept:"application/json"}});
   const result=await response.json();
@@ -2866,14 +2852,10 @@ async function autoLoadOpenSubtitles(item,season,episode){
    if(status)status.textContent=languageCode==="sq"?"Nuk u gjetën titra shqip për këtë titull.":"No English subtitles were found for this title.";
    return;
   }
-  activeSubtitleCandidates=subtitles.slice().sort((a,b)=>subtitleScore(b,item,season,episode)-subtitleScore(a,item,season,episode));
+  activeSubtitleCandidates=subtitles.slice().sort((x,y)=>subtitleScore(y,item,season,episode)-subtitleScore(x,item,season,episode));
   activeSubtitleLookupId=request;
   const choice=$("subtitle-choice");
-  if(choice){
-   choice.replaceChildren(new Option(languageCode==="sq"?"Zgjidh versionin e titrave":"Choose subtitle version",""));
-   activeSubtitleCandidates.forEach((entry,index)=>choice.add(new Option(subtitleOptionLabel(entry,index),String(index))));
-   choice.disabled=false;choice.value="0";
-  }
+  if(choice){choice.replaceChildren(new Option(languageCode==="sq"?"Zgjidh versionin e titrave":"Choose subtitle version",""));activeSubtitleCandidates.forEach((entry,index)=>choice.add(new Option(subtitleOptionLabel(entry,index),String(index))));choice.disabled=false;choice.value="0";}
   await downloadSubtitleCandidate(activeSubtitleCandidates[0],request,languageName,languageCode);
  }catch(error){
   if(request!==subtitleLookupRequest)return;

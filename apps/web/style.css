@@ -8040,4 +8040,7 @@ body.flxtv-series-detail .topbar .top-actions{margin-left:auto!important;gap:9px
 /* Keep the profile wizard inside the existing two-column Who's Watching grid. */
 .profiles-grid .profile-add-editing{grid-column:1/-1;justify-self:center;width:min(230px,100%)!important;min-width:0!important;max-width:230px!important}
 .profiles-grid .profile-add-editing[data-editor-step="language"]{width:min(260px,100%)!important;min-width:0!important;max-width:260px!important}
-\n#subtitle-choice{max-width:min(34vw,330px);min-width:150px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:#111923;color:#fff;padding:7px 8px;font:inherit;overflow:hidden;text-overflow:ellipsis}\n#subtitle-choice:disabled{opacity:.55}\n@media(max-width:700px){#subtitle-choice{max-width:38vw;min-width:105px;padding:6px 4px;font-size:10px}}\n
+
+#subtitle-choice{max-width:min(34vw,330px);min-width:150px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:#111923;color:#fff;padding:7px 8px;font:inherit;overflow:hidden;text-overflow:ellipsis}
+#subtitle-choice:disabled{opacity:.55}
+@media(max-width:700px){#subtitle-choice{max-width:38vw;min-width:105px;padding:6px 4px;font-size:10px}}

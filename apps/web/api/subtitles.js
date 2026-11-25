@@ -52,8 +52,6 @@ module.exports=async function handler(req,res){
    }else{
     if(tmdbId)params.set("tmdb_id",tmdbId);
     if(imdbId)params.set("imdb_id",imdbId);
-    const year=String(q.year||"");
-    if(/^\d{4}$/.test(year))params.set("year",year);
    }
    const moviehash=String(q.moviehash||"").trim().toLowerCase();
    if(moviehash&&!/^[a-f0-9]{16}$/.test(moviehash))return json(res,400,{error:"Movie hash i pavlefshëm."});
@@ -77,7 +75,7 @@ module.exports=async function handler(req,res){
     if(isEpisode){
      if(q.season_number)fallback.set("season_number",String(q.season_number));
      if(q.episode_number)fallback.set("episode_number",String(q.episode_number));
-    }else if(/^\d{4}$/.test(String(q.year||""))){fallback.set("year",String(q.year))}
+    }else if(/^\\d{4}$/.test(String(q.year||""))){fallback.set("year",String(q.year))}
     const canonicalFallback=new URLSearchParams([...fallback.entries()].sort(([a],[b])=>a.localeCompare(b)));
     data=await upstream("/subtitles?"+canonicalFallback.toString());
     results=Array.isArray(data.data)?data.data:[];
