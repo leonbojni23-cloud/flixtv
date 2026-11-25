@@ -31,7 +31,20 @@ const sq={
  "Search movies and TV shows…":"Kërko filma dhe seriale…","No subtitles loaded":"Pa titra të ngarkuar",
  "Load subtitles (.srt/.vtt)":"Ngarko titra (.srt/.vtt)","Delay subtitles":"Vono titrat","Advance subtitles":"Përshpejto titrat",
  "Loading…":"Po ngarkohet…","Settings":"Cilësimet","My List":"Lista ime","Continue watching":"Vazhdo shikimin",
- "Popular this week":"Të njohura këtë javë","Top Rated TV Shows":"Serialet më të vlerësuara"
+ "Popular this week":"Të njohura këtë javë","Top Rated TV Shows":"Serialet më të vlerësuara",
+ "TITLE":"TITULLI","Auto":"Automatik","Trailer":"Traileri","Crime & Drama Series":"Krim dhe dramë",
+ "Mystery & Thriller Series":"Mister dhe thriller","Action & Adventure Series":"Aksion dhe aventurë",
+ "Sci-Fi & Fantasy Series":"Fantashkencë dhe fantazi","Comedy & Romance Series":"Komedi dhe romancë",
+ "On the air":"Në transmetim","Today":"Sot","Currently airing":"Në transmetim aktualisht","On TV today":"Sot në televizion",
+ "Live matches and sports events.":"Ndeshje live dhe evente sportive.",
+ "No saved content to continue.":"Nuk ka përmbajtje të ruajtur për vazhdim.",
+ "▶ Play":"▶ Luaj","▶ Play episode":"▶ Luaj episodin","Searching for video source…":"Po kërkohet burimi i videos…",
+ "FLIXTV · CONTENT DETAILS":"FLIXTV · INFORMACION I PËRMBAJTJES","SKIP":"KALO",
+ "MOVIE PICKS":"ZGJEDHJE FILMASH","SERIES PICKS":"ZGJEDHJE SERIALESH","TOP RATED":"MË TË VLERËSUARIT",
+ "IN THE SPOTLIGHT":"NË VËMENDJE","THE BIG SCREEN":"EKRANI I MADH","COLLECTION":"KOLEKSION",
+ "Action":"Aksion","Adventure":"Aventurë","Animation":"Animacion","Comedy":"Komedi","Crime":"Krim",
+ "Documentary":"Dokumentar","Drama":"Dramë","Family":"Familjar","Fantasy":"Fantazi","History":"Histori",
+ "Music":"Muzikë","Mystery":"Mister","Romance":"Romancë","Sci-Fi":"Fantashkencë","War":"Luftë"
 };
 const en={
  "Kryefaqja":"Home","Filma":"Movies","Seriale":"Shows","Sport":"Sports","Lista ime":"My List",
@@ -70,7 +83,25 @@ const en={
  "U KRYE":"DONE","Sezoni":"Season","Episodi":"Episode","Detajet e filmit":"Movie details",
  "Detajet e serialit":"Series details","Titra":"Subtitles","Po ngarkohen titrat…":"Loading subtitles…",
  "Nuk u gjetën titra":"No subtitles found","Zbulo diçka të veçantë.":"Discover something special.",
- "Filma dhe seriale, të gjitha në një vend.":"Movies and series, all in one place."
+ "Filma dhe seriale, të gjitha në një vend.":"Movies and series, all in one place.",
+ "Zbulo diçka të veçantë.":"Discover something special.",
+ "ZGJEDHJE FILMASH":"MOVIE PICKS","ZGJEDHJE SERIALESH":"SERIES PICKS","MË TË VLERËSUARIT":"TOP RATED",
+ "Aksion dhe aventurë":"Action & Adventure","Komedi dhe romancë":"Comedy & Romance",
+ "Krim dhe thriller":"Crime & Thriller","Fantashkencë dhe fantazi":"Science Fiction & Fantasy",
+ "NË VËMENDJE":"IN THE SPOTLIGHT","Seriale aksion dhe fantazi":"Action & Fantasy Series",
+ "Në trend":"Trending","Të njohur":"Popular","Më të vlerësuar":"Top rated",
+ "Shfleto sipas zhanrit":"Browse by genre","Zgjidh një zhanër":"Choose a genre",
+ "Aksion":"Action","Aventurë":"Adventure","Animacion":"Animation","Komedi":"Comedy","Krim":"Crime",
+ "Dokumentar":"Documentary","Dramë":"Drama","Familjar":"Family","Fantazi":"Fantasy","Histori":"History",
+ "Muzikë":"Music","Mister":"Mystery","Romancë":"Romance","Fantashkencë":"Sci-Fi","Luftë":"War",
+ "SERIALE DHE HISTORI":"SERIES & STORIES","Në transmetim":"On the air","Sot":"Today",
+ "Në transmetim aktualisht":"Currently airing","Sot në televizion":"On TV today",
+ "Aksion dhe aventurë Series":"Action & Adventure Series","Fantashkencë dhe fantazi Series":"Sci-Fi & Fantasy Series",
+ "Komedi dhe romancë Series":"Comedy & Romance Series","Ndeshje live dhe evente sportive.":"Live matches and sports events.",
+ "Nuk ka përmbajtje të ruajtur për vazhdim.":"No saved content to continue.",
+ "▶ Luaj":"▶ Play","Traileri":"Trailer","Sezoni":"Season","Episodi":"Episode","▶ Luaj episodin":"▶ Play episode",
+ "Po kërkohet burimi i videos…":"Searching for video source…","FLIXTV · INFORMACION I PËRMBAJTJES":"FLIXTV · CONTENT DETAILS",
+ "KALO":"SKIP","Pa titra të ngarkuar":"No subtitles loaded","TITULLI":"TITLE","Automatik":"Auto"
 };
 const textSources=new WeakMap(),textLast=new WeakMap(),attributeSources=new WeakMap(),attributeLast=new WeakMap();
 let language="sq",scheduled=false;
