@@ -1185,7 +1185,7 @@ window.addEventListener("flxtv:player-error",event=>{
   if(watchProfiles.length<8){
    const add=document.createElement("div");add.className="profile-tile profile-add-tile";add.tabIndex=0;add.setAttribute("role","button");add.setAttribute("aria-label","Add Profile");
    add.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art">+</div></div><span class="profile-name">Add Profile</span>';
-   const addAction=()=>addWatchProfile();add.addEventListener("click",addAction);add.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();addAction()}});
+   const addAction=()=>showAddProfileEditor(add);add.addEventListener("click",addAction);add.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();addAction()}});
    list.append(add);
   }
   const manage=$("profile-manage");if(manage){manage.textContent=profileManageMode?"DONE":"MANAGE PROFILES";manage.hidden=watchProfiles.length===0;}
@@ -1243,12 +1243,49 @@ window.addEventListener("flxtv:player-error",event=>{
   }
   if(action.trim()){p.name=action.trim().slice(0,24);p.letter=p.name.slice(0,1).toUpperCase();saveProfiles()}
  }
- function addWatchProfile(){
+ function showAddProfileEditor(tile){
   if(watchProfiles.length>=8){notice("Mund të krijosh deri në 8 profile.");return}
-  const name=prompt("Emri i profilit të ri:");if(!name||!name.trim())return;
+  if(tile.dataset.editorOpen==="true")return;
+  tile.dataset.editorOpen="true";
+  tile.classList.add("profile-add-editing");
+  tile.removeAttribute("role");
+  tile.removeAttribute("tabindex");
+  tile.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art profile-add-preview">+</div></div><input class="profile-name-input" id="new-profile-name" type="text" name="profile-name" placeholder="Emri i profilit" aria-label="Emri i profilit të ri" maxlength="24" autocomplete="off" autocapitalize="words" spellcheck="false" inputmode="text" enterkeyhint="done"><div class="profile-add-actions"><button type="button" class="profile-add-save">KRIJO</button><button type="button" class="profile-add-cancel">ANULO</button></div>';
+  const input=tile.querySelector("#new-profile-name");
+  const preview=tile.querySelector(".profile-add-preview");
+  const save=tile.querySelector(".profile-add-save");
+  const cancel=tile.querySelector(".profile-add-cancel");
+  const sync=()=>{const value=input.value.trim();preview.textContent=value?value.slice(0,1).toUpperCase():"+";};
+  input.addEventListener("input",sync);
+  input.addEventListener("keydown",event=>{
+   event.stopPropagation();
+   if(event.key==="Enter"){event.preventDefault();createWatchProfile(input.value,tile)}
+   if(event.key==="Escape"){event.preventDefault();cancelAddProfileEditor()}
+  });
+  save.addEventListener("click",()=>createWatchProfile(input.value,tile));
+  cancel.addEventListener("click",cancelAddProfileEditor);
+  requestAnimationFrame(()=>{input.focus();try{input.click()}catch(_){}});
+ }
+ function cancelAddProfileEditor(){
+  profileAddEditorOpen=false;
+  renderProfileCards();
+  const addTile=$("profile-picker-list")?.querySelector(".profile-add-tile");
+  addTile?.focus();
+ }
+ let profileAddEditorOpen=false;
+ function createWatchProfile(rawName,tile){
+  const name=String(rawName||"").trim().replace(/\\s+/g," ").slice(0,24);
+  if(!name){const input=tile?.querySelector(".profile-name-input");input?.focus();return}
+  if(watchProfiles.length>=8){notice("Mund të krijosh deri në 8 profile.");renderProfileCards();return}
   const colors=["linear-gradient(135deg,#ff5f6d,#b52a26)","linear-gradient(135deg,#2f80ed,#14305c)","linear-gradient(135deg,#8a2be2,#3b1d78)","linear-gradient(135deg,#16a085,#075e54)","linear-gradient(135deg,#d97706,#78350f)","linear-gradient(135deg,#db4b9b,#831843)"];
-  const p={id:"p"+Date.now().toString(36),name:name.trim().slice(0,24),color:colors[watchProfiles.length%colors.length],letter:name.trim().slice(0,1).toUpperCase()};
-  watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();closeProfileMenu();if(!document.documentElement.classList.contains("profile-ready")){$("profile-picker").hidden=true;unlockProfileScreen();document.documentElement.classList.add("profile-ready")}
+  const p={id:"p"+Date.now().toString(36),name,color:colors[watchProfiles.length%colors.length],letter:name.slice(0,1).toUpperCase()};
+  watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();closeProfileMenu();
+  if(!document.documentElement.classList.contains("profile-ready")){
+   const screen=$("profile-picker");if(screen)screen.hidden=true;
+   unlockProfileScreen();document.documentElement.classList.add("profile-ready");
+  }else{
+   renderProfileCards();
+  }
  }
 
  
