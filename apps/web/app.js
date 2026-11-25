@@ -1109,6 +1109,7 @@ window.addEventListener("flxtv:player-error",event=>{
   }catch(_){}
  }
  async function refreshProfileContent(){
+  if(document.body.classList.contains("bf-reference-mode"))return;
   const pending=homeDataPromise;
   if(pending){try{await pending}catch(_){}}
   homeDataPromise=null;homeDataLoadedAt=0;
