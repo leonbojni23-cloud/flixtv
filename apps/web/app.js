@@ -1098,7 +1098,7 @@ window.addEventListener("flxtv:player-error",event=>{
   }catch(_){watchProfiles=[]}
   // Remove only the three profiles that were automatically seeded by the old build.
   watchProfiles=watchProfiles.filter(p=>!DEFAULT_PROFILES.some(d=>p.id===d.id&&p.name===d.name));
-  watchProfiles.forEach(p=>{p.language=p.language==="en"?"en":"sq"});
+  watchProfiles.forEach(p=>{p.language=p.language==="en"?"en":"sq";if(p.avatarType==="monogram")p.avatarType="portrait"});
   let id="";try{id=localStorage.getItem(ACTIVE_PROFILE_KEY)||""}catch(_){}
   activeWatchProfile=watchProfiles.find(x=>x.id===id)||watchProfiles[0]||EMPTY_PROFILE;
   try{
@@ -2784,6 +2784,8 @@ async function autoLoadOpenSubtitles(item,season,episode){
   }
   params.set("languages",languageCode);params.set("hearing_impaired","exclude");params.set("foreign_parts_only","exclude");
   params.set("machine_translated","exclude");params.set("ai_translated","exclude");params.set("per_page","50");
+  params.set("query",String(title(item)||"").trim());
+  if(kind(item)!=="tv"){const release=String(item.release_date||"").slice(0,4);if(/^\\d{4}$/.test(release))params.set("year",release)}
   if(kind(item)==="tv"){params.set("season_number",String(season||1));params.set("episode_number",String(episode||1))}
   const response=await fetch("/api/subtitles.js?"+params.toString(),{headers:{Accept:"application/json"}});
   const result=await response.json();
