@@ -1,0 +1,43 @@
+name: Sync FLIXTV test app with main
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-test-observability
+  cancel-in-progress: true
+
+jobs:
+  sync-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: \${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync latest app files into the test branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin test-observability
+          git checkout -B test-observability origin/test-observability
+          git checkout origin/main -- apps/web tools/apply-test-overlay.js tools/test-observability.js
+          node tools/apply-test-overlay.js
+          git add apps/web
+          if git diff --cached --quiet; then
+            echo "Test branch already matches main."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Sync /test with main \${GITHUB_SHA:0:7}"
+          git push origin HEAD:test-observability
