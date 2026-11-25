@@ -2673,39 +2673,48 @@ body.profile-screen-open{position:fixed!important;left:0!important;right:0!impor
 body.profile-screen-open .profile-screen{position:fixed!important;inset:0!important;height:100dvh!important;min-height:100dvh!important;overflow:hidden!important;overscroll-behavior:none!important;}
 body.profile-screen-open .profile-stage{height:100dvh!important;min-height:100dvh!important;overflow:hidden!important;}
 
+/* FLIXTV Netflix-inspired brand reveal: mark -> wordmark -> profiles */
+.brand-intro{position:fixed;inset:0;z-index:30000;display:flex;align-items:center;justify-content:center;gap:0;background:#050505;opacity:1;visibility:visible;transition:opacity .42s ease,visibility .42s ease;overflow:hidden;}
+.brand-intro-mark{font-family:Arial,Helvetica,sans-serif;font-size:clamp(6rem,22vw,12rem);font-weight:950;line-height:1;color:#e50936;letter-spacing:-.09em;text-shadow:0 0 32px #e5093655;transform:scale(.72);opacity:0;transition:transform .55s cubic-bezier(.16,1,.3,1),opacity .35s ease;}
+.brand-intro-word{position:absolute;white-space:nowrap;font-family:Arial,Helvetica,sans-serif;font-size:clamp(2.8rem,11vw,6.5rem);font-weight:950;letter-spacing:-.075em;color:#fff;opacity:0;transform:scale(.88);transition:opacity .48s ease,transform .62s cubic-bezier(.16,1,.3,1);}
+.brand-intro-word span{color:#e50936;}
+.brand-intro.stage-mark .brand-intro-mark{opacity:1;transform:scale(1);}
+.brand-intro.stage-word .brand-intro-mark{opacity:0;transform:scale(1.2);}
+.brand-intro.stage-word .brand-intro-word{opacity:1;transform:scale(1);}
+.brand-intro.stage-exit{opacity:0;visibility:hidden;}
+@media(prefers-reduced-motion:reduce){.brand-intro{display:none!important}}
+
 /* First-run gate: never expose app content before a viewer profile is selected */
 html:not(.profile-ready) body> :not(#brand-intro):not(#profile-picker){visibility:hidden!important;}
 html:not(.profile-ready) body{background:#050505!important;}
 html.profile-ready #brand-intro{display:none!important;}
-
-/* FLIXTV logo reveal restored from commit 45188e1: F mark -> complete wordmark. */
-.brand-intro{
- position:fixed!important;inset:0!important;z-index:50000!important;
- display:flex!important;align-items:center!important;justify-content:center!important;
- background:#050505!important;opacity:1;visibility:visible;overflow:hidden;
- transition:opacity .7s cubic-bezier(.22,1,.36,1),visibility .7s;
-}
-.brand-intro-lockup{
- position:relative;display:flex;align-items:center;justify-content:center;
- font-family:Arial,Helvetica,sans-serif;font-size:clamp(4.2rem,18vw,9rem);
- font-weight:950;line-height:1;letter-spacing:-.085em;white-space:nowrap;
-}
-.brand-intro-f{
- position:relative;z-index:2;color:#e50936;text-shadow:0 0 38px #e5093650;
- opacity:0;transform:translateX(1.15em) scale(1.55);transform-origin:center;
- transition:transform 1.45s cubic-bezier(.2,.85,.2,1),opacity .8s ease;
-}
-.brand-intro-rest{
- display:inline-block;overflow:hidden;max-width:0;opacity:0;
- clip-path:inset(0 100% 0 0);color:#fff;
- transition:max-width 1.55s cubic-bezier(.2,.85,.2,1),opacity .9s ease,clip-path 1.55s cubic-bezier(.2,.85,.2,1);
-}
+/* Slow, continuous FLIXTV logo assembly: the F travels into the full wordmark */
+.brand-intro{position:fixed!important;inset:0!important;z-index:50000!important;display:flex!important;align-items:center!important;justify-content:center!important;background:#050505!important;opacity:1;visibility:visible;overflow:hidden;transition:opacity .7s cubic-bezier(.22,1,.36,1),visibility .7s;}
+.brand-intro-lockup{position:relative;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;font-size:clamp(4.2rem,18vw,9rem);font-weight:950;line-height:1;letter-spacing:-.085em;white-space:nowrap;}
+.brand-intro-f{position:relative;z-index:2;color:#e50936;text-shadow:0 0 38px #e5093650;opacity:0;transform:translateX(1.15em) scale(1.55);transform-origin:center;transition:transform 1.45s cubic-bezier(.2,.85,.2,1),opacity .8s ease;}
+.brand-intro-rest{display:inline-block;overflow:hidden;max-width:0;opacity:0;clip-path:inset(0 100% 0 0);color:#fff;transition:max-width 1.55s cubic-bezier(.2,.85,.2,1),opacity .9s ease,clip-path 1.55s cubic-bezier(.2,.85,.2,1);}
 .brand-intro-tv{color:#e50936;}
 .brand-intro.stage-mark .brand-intro-f{opacity:1;transform:translateX(1.15em) scale(1.55);}
 .brand-intro.stage-word .brand-intro-f{transform:translateX(0) scale(1);}
 .brand-intro.stage-word .brand-intro-rest{max-width:5em;opacity:1;clip-path:inset(0 0 0 0);}
 .brand-intro.stage-exit{opacity:0;visibility:hidden;}
 @media(prefers-reduced-motion:reduce){.brand-intro{display:none!important}}
+
+/* Refined centered logo reveal. Previous animation is preserved in commit 45188e1. */
+.brand-intro-lockup{justify-content:center!important;width:max-content!important;max-width:92vw!important;}
+.brand-intro-f{transform:scale(1.42)!important;transform-origin:center!important;transition:transform 1.8s cubic-bezier(.2,.85,.2,1),opacity 1.1s ease!important;}
+.brand-intro.stage-mark .brand-intro-f{transform:scale(1.42)!important;}
+.brand-intro.stage-word .brand-intro-f{transform:scale(1)!important;}
+.brand-intro-rest{transition:max-width 1.2s cubic-bezier(.2,.85,.2,1),opacity .85s ease,clip-path 1.2s cubic-bezier(.2,.85,.2,1)!important;}
+
+/* Synchronize the F landing with completion of the full FLIXTV reveal.
+   The F starts its final movement later, so both finish at 1.8s. */
+.brand-intro-f{
+ transition:transform 1.45s cubic-bezier(.2,.85,.2,1) .35s,opacity 1.1s ease!important;
+}
+.brand-intro-rest{
+ transition:max-width 1.8s cubic-bezier(.2,.85,.2,1),opacity 1.1s ease,clip-path 1.8s cubic-bezier(.2,.85,.2,1)!important;
+}
 
 
 /* Floating glass bottom navigation inspired by the supplied reference */
