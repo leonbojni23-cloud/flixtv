@@ -101,7 +101,9 @@ const en={
  "Nuk ka përmbajtje të ruajtur për vazhdim.":"No saved content to continue.",
  "▶ Luaj":"▶ Play","Traileri":"Trailer","Sezoni":"Season","Episodi":"Episode","▶ Luaj episodin":"▶ Play episode",
  "Po kërkohet burimi i videos…":"Searching for video source…","FLIXTV · INFORMACION I PËRMBAJTJES":"FLIXTV · CONTENT DETAILS",
- "KALO":"SKIP","Pa titra të ngarkuar":"No subtitles loaded","TITULLI":"TITLE","Automatik":"Auto"
+ "KALO":"SKIP","Pa titra të ngarkuar":"No subtitles loaded","TITULLI":"TITLE","Automatik":"Auto",
+ "Po ngarkohet renditja ditore…":"Loading today's chart…","PËRZGJEDHJE FILMASH":"MOVIE PICKS",
+ "FLIXTV / KOLEKSION":"FLIXTV / COLLECTION","Profili aktiv":"Active profile","MENAXHO PROFILET":"MANAGE PROFILES"
 };
 const textSources=new WeakMap(),textLast=new WeakMap(),attributeSources=new WeakMap(),attributeLast=new WeakMap();
 let language="sq",scheduled=false;
