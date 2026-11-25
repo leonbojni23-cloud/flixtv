@@ -2741,13 +2741,14 @@ function attachNativeSubtitleTrack(cues,label="Titra",language="sq"){
  return true;
 }
 function clearExternalSubtitles(){
- externalSubtitleCues=[];lastSubtitleIndex=-1;externalSubtitleOffset=0;
+ externalSubtitleCues=[];lastSubtitleIndex=-1;externalSubtitleOffset=0;externalSubtitleEnabled=true;
  removeNativeSubtitleTrack();
  const host=$("external-subtitle-overlay");if(host)host.textContent="";
  const status=$("subtitle-status");if(status)status.textContent="Pa titra të ngarkuar";
 }
 async function loadExternalSubtitleFile(file){
  if(!file)return;
+ subtitleLookupRequest++;
  if(file.size>5*1024*1024){notice("Skedari i titrave është shumë i madh (maksimumi 5 MB).");return}
  try{
   const raw=await file.text(),cues=parseExternalSubtitles(raw);
@@ -2804,11 +2805,11 @@ async function autoLoadOpenSubtitles(item,season,episode){
   if(!download.ok||!payload.content)throw new Error(payload.error||(languageCode==="sq"?"Shkarkimi i titrave dështoi.":"Subtitle download failed."));
   const cues=parseExternalSubtitles(payload.content);
   if(!cues.length)throw new Error(languageCode==="sq"?"Skedari i titrave nuk përmban SRT/VTT të lexueshëm.":"The subtitle file contains no readable SRT/VTT cues.");
-  externalSubtitleCues=cues;externalSubtitleOffset=0;lastSubtitleIndex=-1;externalSubtitleEnabled=true;
+  externalSubtitleCues=cues;externalSubtitleOffset=0;lastSubtitleIndex=-1;
   removeNativeSubtitleTrack();
   $("subtitle-offset-value").textContent="0.0s";$("subtitle-toggle").textContent="CC ON";
   activeSubtitleLabel="OpenSubtitles · "+languageName;activeSubtitleLanguage=languageCode;
-  if(status)status.textContent="OpenSubtitles · "+languageName+" · "+cues.length+" cues";
+  if(status)status.textContent="OpenSubtitles · "+languageName+" · "+cues.length+" "+(languageCode==="sq"?"rreshta":"cues");
   renderExternalSubtitle(latestPlaybackTime);
  }catch(error){
   if(request!==subtitleLookupRequest)return;
