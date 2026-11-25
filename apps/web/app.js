@@ -1108,6 +1108,21 @@ window.addEventListener("flxtv:player-error",event=>{
    else localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id);
   }catch(_){}
  }
+ async function refreshProfileContent(){
+  const pending=homeDataPromise;
+  if(pending){try{await pending}catch(_){}}
+  homeDataPromise=null;homeDataLoadedAt=0;
+  titlePageCache.clear();titlePagePrefetches.clear();titleSeasonEpisodeCache.clear();
+  if(typeof loadedPages!=="undefined")loadedPages.clear();
+  const path=location.pathname.replace(/\/$/,"")||"/";
+  if(path==="/sports"){await openPage("sports",false);return}
+  if(path==="/" ){
+   const page=document.querySelector("[data-page].active")?.dataset.page||"home";
+   if(["home","movies","shows"].includes(page))await openPage(page,false);
+   return;
+  }
+  if(titlePageItem&&!$("title-page").hidden)await openTitlePage({...titlePageItem},false,false);
+ }
  function profileProgressKey(){return WATCH_PROGRESS_KEY+":"+activeWatchProfile.id;}
  function saveProfiles(){try{if(watchProfiles.length)localStorage.setItem(WATCH_PROFILES_KEY,JSON.stringify(watchProfiles));else localStorage.removeItem(WATCH_PROFILES_KEY);if(activeWatchProfile&&activeWatchProfile!==EMPTY_PROFILE)localStorage.setItem(ACTIVE_PROFILE_KEY,activeWatchProfile.id);else localStorage.removeItem(ACTIVE_PROFILE_KEY)}catch(_){notice("Nuk u ruajtën profilet në këtë pajisje.")}window.FlixLocale?.setLanguage(activeWatchProfile?.language||"sq");renderProfileButton();renderProfileCards();if(heroItems[heroIndex])renderHeroSaveButton(heroItems[heroIndex])}
  function ensureProfileUi(){
@@ -1149,6 +1164,7 @@ window.addEventListener("flxtv:player-error",event=>{
       Object.assign(flight.style,{position:"fixed",left:sourceRect.left+"px",top:sourceRect.top+"px",width:sourceRect.width+"px",height:sourceRect.height+"px",margin:"0",zIndex:"20003",pointerEvents:"none",transformOrigin:"top left"});
       document.body.append(flight);
     }
+    const previousLanguage=activeWatchProfile?.language||"sq";
     activeWatchProfile=p;
     window.FlixLocale?.setLanguage(p.language||"sq");
     profileManageMode=false;
@@ -1167,6 +1183,7 @@ window.addEventListener("flxtv:player-error",event=>{
       unlockProfileScreen();
       renderContinueWatching();
       restoreWatchProgress();
+      if(previousLanguage!==(p.language||"sq"))void refreshProfileContent();
     };
     if(flight&&targetRect){
       const dx=targetRect.left-sourceRect.left;
@@ -1206,7 +1223,7 @@ window.addEventListener("flxtv:player-error",event=>{
    const avatar=document.createElement("span");avatar.className="profile-menu-avatar";avatar.style.background=p.color||"#333";if(p.avatarType==="monogram"){avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase()}else{const profileIndex=Math.max(0,watchProfiles.findIndex(x=>x.id===p.id));const portrait=document.createElement("img");portrait.src="https://raw.githubusercontent.com/HoneyTyagii/Netflix-Clone/master/public/profile-"+(profileIndex%3+1)+".png";portrait.alt="";portrait.loading="eager";portrait.onerror=()=>{portrait.remove();avatar.textContent=p.letter||p.name.slice(0,1).toUpperCase()};avatar.append(portrait)}
    const name=document.createElement("span");name.className="profile-menu-name";name.textContent=p.name;
    const check=document.createElement("span");check.className="profile-menu-check";check.textContent=p.id===activeWatchProfile.id?"✓":"";
-   item.append(avatar,name,check);item.onclick=()=>{closeProfileMenu();if(p.id===activeWatchProfile.id)return;activeWatchProfile=p;window.FlixLocale?.setLanguage(p.language||"sq");saveProfiles();renderContinueWatching();restoreWatchProgress()};menu.append(item);
+   item.append(avatar,name,check);item.onclick=()=>{closeProfileMenu();if(p.id===activeWatchProfile.id)return;const previousLanguage=activeWatchProfile?.language||"sq";activeWatchProfile=p;window.FlixLocale?.setLanguage(p.language||"sq");saveProfiles();renderContinueWatching();restoreWatchProgress();if(previousLanguage!==(p.language||"sq"))void refreshProfileContent()};menu.append(item);
   });
   const divider=document.createElement("div");divider.className="profile-menu-divider";menu.append(divider);
   const add=document.createElement("button");add.type="button";add.className="profile-menu-action";add.textContent="+  Shto profil";add.onclick=()=>{closeProfileMenu();addWatchProfile()};menu.append(add);
@@ -1290,6 +1307,7 @@ window.addEventListener("flxtv:player-error",event=>{
   if(!name){const input=tile?.querySelector(".profile-name-input");input?.focus();return}
   if(watchProfiles.length>=8){notice("Mund të krijosh deri në 8 profile.");renderProfileCards();return}
   const colors=["linear-gradient(135deg,#ff5f6d,#b52a26)","linear-gradient(135deg,#2f80ed,#14305c)","linear-gradient(135deg,#8a2be2,#3b1d78)","linear-gradient(135deg,#16a085,#075e54)","linear-gradient(135deg,#d97706,#78350f)","linear-gradient(135deg,#db4b9b,#831843)"];
+  const previousLanguage=activeWatchProfile?.language||"sq";
   const p={id:"p"+Date.now().toString(36),name,color:colors[watchProfiles.length%colors.length],letter:name.slice(0,1).toUpperCase(),avatarType:"monogram",language:language==="en"?"en":"sq"};
   watchProfiles.push(p);activeWatchProfile=p;saveProfiles();renderContinueWatching();closeProfileMenu();
   if(!document.documentElement.classList.contains("profile-ready")){
@@ -1298,6 +1316,7 @@ window.addEventListener("flxtv:player-error",event=>{
   }else{
    renderProfileCards();
   }
+  if(previousLanguage!==(p.language||"sq"))void refreshProfileContent();
  }
 
  
@@ -1689,8 +1708,9 @@ async function toggleSeriesEpisodeSeen(item,season,episode){
 async function toggleSeasonWatched(item,season){
  if(!item)return;
  try{
-  let episodes=titleSeasonEpisodeCache.get(Number(item.id)+":"+Number(season));
-  if(!episodes){const data=await tmdb("/tv/"+Number(item.id)+"/season/"+Number(season));episodes=data.episodes||[];titleSeasonEpisodeCache.set(Number(item.id)+":"+Number(season),episodes)}
+  const cacheKey=Number(item.id)+":"+Number(season)+":"+(activeWatchProfile?.language==="en"?"en":"sq");
+  let episodes=titleSeasonEpisodeCache.get(cacheKey);
+  if(!episodes){const data=await tmdb("/tv/"+Number(item.id)+"/season/"+Number(season));episodes=data.episodes||[];titleSeasonEpisodeCache.set(cacheKey,episodes)}
   const seen=getSeriesSeenEpisodes(item,season),numbers=episodes.map(x=>Number(x.episode_number));
   const all=numbers.length&&numbers.every(x=>seen.has(x));
   numbers.forEach(x=>all?seen.delete(x):seen.add(x));
@@ -1910,7 +1930,7 @@ const titleSeasonEpisodeCache=new Map();
 async function loadTitleEpisodes(){
  if(!titlePageItem||kind(titlePageItem)!=="tv")return;
  const request=++titleEpisodesRequest,itemId=Number(titlePageItem.id),season=Number(titlePageSeason);
- const cacheKey=itemId+":"+season,list=$("title-episode-list");
+ const cacheKey=itemId+":"+season+":"+(activeWatchProfile?.language==="en"?"en":"sq"),list=$("title-episode-list");
  if(!list)return;
  const isCurrent=()=>request===titleEpisodesRequest&&titlePageItem&&Number(titlePageItem.id)===itemId&&Number(titlePageSeason)===season;
  const renderEpisodes=episodes=>{
@@ -1952,6 +1972,7 @@ async function loadTitleEpisodes(){
   renderEpisodes(episodes);
   // Always fetch English source text: TMDB's sq-AL response can still contain English descriptions.
   (async()=>{
+   if(activeWatchProfile?.language==="en")return;
    try{
     const english=await tmdb("/tv/"+itemId+"/season/"+season+"?language=en-US");
     const englishByNumber=new Map((english.episodes||[]).map(ep=>[Number(ep.episode_number),ep]));
