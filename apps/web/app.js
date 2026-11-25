@@ -2814,88 +2814,6 @@ if(isDirectPlaybackRoute){
 }
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);const playerCloseButton=$("player-close");if(playerCloseButton)playerCloseButton.onclick=closePlayer;
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
-let searchPageActive=false,searchDebounce=null,suggestionDebounce=null,suggestionRequest=0,advancedRequest=0;
-function showSearchPage(){
- searchPageActive=true;
- $("hero").hidden=true;$("catalog").hidden=true;
- $("search-page").hidden=false;
- document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));
- $("search").blur();
- $("search-page-input").value=$("search").value||$("search-page-input").value;
- $("search-page-input").focus({preventScroll:true});
- if(!$("search-page-input").value.trim())loadPopularSearch();
- else runAdvancedSearch();
- window.scrollTo({top:0,behavior:"instant"});
-}
-function closeSearchPage(){
- searchPageActive=false;$("search-page").hidden=true;
- $("hero").hidden=false;$("catalog").hidden=false;
- openPage("home");
-}
-function renderSearchCards(items){
- $("search-grid").replaceChildren(...items.filter(x=>x.poster_path).map(item=>card(item,false,false)));
- $("search-count").textContent=items.length+" titles";
- $("search-empty").hidden=items.length>0;
-}
-async function loadPopularSearch(){
- const request=++advancedRequest;
- $("search-heading").textContent="Të njohura tani";
- $("search-count").textContent="Po ngarkohet…";
- try{
-  const d=await tmdb("/trending/all/week");
-  if(request!==advancedRequest)return;
-  renderSearchCards((d.results||[]).filter(x=>x.media_type==="movie"||x.media_type==="tv"));
- }catch(e){if(request===advancedRequest)notice(e.message)}
-}
-async function showSuggestions(query){
- const request=++suggestionRequest,box=$("search-suggestions");
- if(query.length<2){box.hidden=true;box.replaceChildren();return}
- try{
-  const d=await tmdb("/search/multi?query="+encodeURIComponent(query)+"&include_adult=false");
-  if(request!==suggestionRequest)return;
-  const items=(d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv")&&x.poster_path).slice(0,6);
-  box.replaceChildren();
-  items.forEach(item=>{
-   const button=document.createElement("button");button.type="button";button.className="search-suggestion";
-   const img=document.createElement("img");img.loading="lazy";img.src=poster(item);img.alt="";
-   const copy=document.createElement("span");copy.className="suggestion-copy";
-   const name=document.createElement("strong");name.textContent=title(item);
-   const meta=document.createElement("small");meta.textContent=(kind(item)==="tv"?"Serial":"Film")+" · "+(year(item)||"—");
-   copy.append(name,meta);button.append(img,copy);
-   button.addEventListener("click",()=>{ $("search-page-input").value=title(item);$("search").value=title(item);box.hidden=true;window.location.assign(pageUrl(item))});
-   box.append(button);
-  });
-  box.hidden=!items.length;
- }catch(_){if(request===suggestionRequest)box.hidden=true}
-}
-async function runAdvancedSearch(){
- const request=++advancedRequest,q=$("search-page-input").value.trim();
- $("search-suggestions").hidden=true;
- $("search-heading").textContent=q?'Results for “'+q+'”':"Popular right now";
- $("search-count").textContent="Loading…";
- const path=q?"/search/multi?query="+encodeURIComponent(q)+"&include_adult=false":"/trending/all/week";
- try{
-  const d=await tmdb(path);
-  if(request!==advancedRequest)return;
-  renderSearchCards((d.results||[]).filter(x=>(x.media_type==="movie"||x.media_type==="tv")&&x.poster_path));
- }catch(e){if(request===advancedRequest)notice(e.message)}
-}
-function scheduleSearch(){
- clearTimeout(searchDebounce);clearTimeout(suggestionDebounce);
- const q=$("search-page-input").value.trim();
- $("search").value=q;
- suggestionDebounce=setTimeout(()=>showSuggestions(q),160);
- $("search-grid").replaceChildren();
- $("search-count").textContent="";
- $("search-heading").textContent=q?"Suggestions":"Popular right now";
- if(!q)searchDebounce=setTimeout(runAdvancedSearch,280);
-}
-$("search-page-input").addEventListener("input",scheduleSearch);
-$("search-clear").onclick=()=>{$("search-page-input").value="";$("search").value="";$("search-suggestions").hidden=true;runAdvancedSearch()};
-$("search-page-input").addEventListener("keydown",e=>{if(e.key==="Escape")$("search-suggestions").hidden=true;if(e.key==="Enter"){e.preventDefault();$("search-suggestions").hidden=true;runAdvancedSearch()}});
-$("search").onfocus=()=>showSearchPage();
-$("search-trigger").onclick=showSearchPage;
-const mobileSearchButton=$("mobile-search");if(mobileSearchButton)mobileSearchButton.onclick=showSearchPage;
 const movieGenreSelect=$("movie-genre-select");
 const genreCollections=$("movie-genre-collections");
 const movieCatalogSections=[...document.querySelectorAll("#movies-page > .catalog-row-section")];
@@ -3189,7 +3107,7 @@ async function openPage(page,updateHistory=true){
   document.body.classList.remove("flxtv-movie-detail","flxtv-series-detail");setMovieGlobalAmbientSuppressed(false);syncMovieDetailHeader(false);
   document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));requestAnimationFrame(updateDesktopNavPill);
   const appScroller=$("app");if(appScroller){appScroller.scrollTo({top:0,behavior:"instant"});appScroller.classList.remove("flix-page-enter");requestAnimationFrame(()=>appScroller.classList.add("flix-page-enter"))}
-  $("search-page").hidden=true;$("sports-page").hidden=page!=="sports";$("catalog").hidden=page==="sports";searchPageActive=false;
+  $("search-page").hidden=true;$("sports-page").hidden=page!=="sports";$("catalog").hidden=page==="sports";
   $("hero").hidden=page!=="home";$("home-page").hidden=page!=="home";$("movies-page").hidden=page!=="movies";$("shows-page").hidden=page!=="shows";
  }catch(error){console.warn("Page navigation preparation failed",error);await finishFlixLoading()}
 }
