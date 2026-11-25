@@ -160,7 +160,7 @@ const server = http.createServer(async (req, res) => {
   try { parsed = new URL(req.url, "http://localhost"); } catch (_) { return sendJson(res, 400, { error: "Invalid URL" }); }
   const pathname = parsed.pathname;
 
-  if (pathname === "/health" || pathname === "/healthz") {
+  if (pathname === "/faqjaime/test" || pathname === "/faqjaime/test/") {\n    return serveFile(req, res, path.join(WEB_ROOT, "faqjaime", "test.html")) || sendJson(res, 404, { error: "Diagnostics page not found" });\n  }\n\n  if (pathname === "/health" || pathname === "/healthz") {
     res.setHeader("Cache-Control", "no-store");
     return sendJson(res, 200, { ok: true, service: "flixtv-web" });
   }
