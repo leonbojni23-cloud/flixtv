@@ -1208,7 +1208,7 @@ window.addEventListener("flxtv:player-error",event=>{
   if(watchProfiles.length<8){
    const add=document.createElement("div");add.className="profile-tile profile-add-tile";add.tabIndex=0;add.setAttribute("role","button");add.setAttribute("aria-label","Add Profile");
    add.innerHTML='<div class="profile-avatar-wrap"><div class="profile-avatar-art">+</div></div><span class="profile-name">Add Profile</span>';
-   const addAction=()=>showAddProfileEditor(add);add.addEventListener("click",addAction);add.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();addAction()}});
+   const addAction=()=>{if(add.dataset.editorOpen==="true")return;showAddProfileEditor(add)};add.addEventListener("click",addAction);add.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();addAction()}});
    list.append(add);
   }
   const manage=$("profile-manage");if(manage){manage.textContent=profileManageMode?"DONE":"MANAGE PROFILES";manage.hidden=watchProfiles.length===0;}
