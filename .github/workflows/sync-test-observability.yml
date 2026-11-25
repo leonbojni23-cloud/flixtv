@@ -37,8 +37,11 @@ jobs:
           node tools/apply-test-overlay.js
           node --check apps/web/server.js
           node --check apps/web/app.js
+          node --check apps/web/profile-locale.js
           node --check apps/web/boredflix-parity.js
           node --check apps/web/player/player-focus.js
+          node --check apps/web/player/cinesrc-config.js
+          node --check apps/web/api/subtitles.js
           node --check apps/web/api/translate.js
           node --check apps/web/diagnostics.js
           node tools/smoke-test-test-route.js
