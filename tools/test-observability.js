@@ -542,7 +542,7 @@ function openPanel() {
   const copy = el("button", "obs-action", "Copy all"); copy.dataset.action = "copy"; copy.onclick = copyAll;
   const exportButton = el("button", "obs-action obs-primary", "Export all .txt"); exportButton.onclick = downloadText;
   const clear = el("button", "obs-action", "Clear"); clear.onclick = function () {
-    events.length = 0; network.length = 0; samples.length = 0; requestCount = 0; failedRequests = 0; sequence = 0; serverCursor = 0;
+    events.length = 0; network.length = 0; samples.length = 0; requestCount = 0; failedRequests = 0; sequence = 0;
     try { sessionStorage.removeItem(STORE_KEY); } catch (_) {}
     record("developer", "logs.cleared", {}, "warn"); renderPanel();
   };
