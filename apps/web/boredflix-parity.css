@@ -3368,3 +3368,29 @@ body.bf-reference-mode.bf-shows-route #app-ambient::after{
  z-index:4!important;
  background:linear-gradient(180deg,rgba(0,0,0,.02) 0%,rgba(0,0,0,.06) 48%,rgba(0,0,0,.20) 100%)!important;
 }
+
+
+/* Search uses the exact clean poster-card presentation used by Movies. */
+body.bf-search-route .bf-page-search .bf-grid{
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:18px 11px!important;
+ align-items:start!important;
+}
+body.bf-search-route .bf-page-search .bf-grid-media{
+ display:block!important;
+ width:100%!important;
+ aspect-ratio:2/3!important;
+ border-radius:11px!important;
+}
+body.bf-search-route .bf-page-search .bf-grid-rating,
+body.bf-search-route .bf-page-search .bf-grid-rating-inline,
+body.bf-search-route .bf-page-search .bf-grid-hover,
+body.bf-search-route .bf-page-search .bf-grid-title,
+body.bf-search-route .bf-page-search .bf-grid-meta{
+ display:none!important;
+}
+body.bf-search-route .bf-page-search .bf-grid-card{
+ align-self:start!important;
+ border-radius:11px!important;
+}
