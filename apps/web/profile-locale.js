@@ -63,7 +63,14 @@ const en={
  "Të përzgjedhura":"Featured","EKRANI I MADH":"THE BIG SCREEN","KOLEKSION":"COLLECTION",
  "Zgjedhje filmash":"MOVIE PICKS","Zgjedhje serialesh":"SERIES PICKS","Në vëmendje":"IN THE SPOTLIGHT",
  "Filma dhe seriale, të gjitha në një vend.":"Movies and series, all in one place.",
- "Të njohur":"Popular","Filma të njohur":"Popular movies","Seriale të njohura":"Popular series"
+ "Të njohur":"Popular","Filma të njohur":"Popular movies","Seriale të njohura":"Popular series",
+ "DONE":"U KRYE","Season":"Sezoni","Episode":"Episodi","Movie details":"Detajet e filmit",
+ "Series details":"Detajet e serialit","Subtitles":"Titra","Loading subtitles…":"Po ngarkohen titrat…",
+ "No subtitles found":"Nuk u gjetën titra","Zbulo diçka të veçantë.":"Zbulo diçka të veçantë.",
+ "U KRYE":"DONE","Sezoni":"Season","Episodi":"Episode","Detajet e filmit":"Movie details",
+ "Detajet e serialit":"Series details","Titra":"Subtitles","Po ngarkohen titrat…":"Loading subtitles…",
+ "Nuk u gjetën titra":"No subtitles found","Zbulo diçka të veçantë.":"Discover something special.",
+ "Filma dhe seriale, të gjitha në një vend.":"Movies and series, all in one place."
 };
 const textSources=new WeakMap(),textLast=new WeakMap(),attributeSources=new WeakMap(),attributeLast=new WeakMap();
 let language="sq",scheduled=false;
