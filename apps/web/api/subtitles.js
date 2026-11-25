@@ -33,19 +33,35 @@ module.exports=async function handler(req,res){
   if(req.method==="GET"){
    const q=req.query||{};
    const tmdbId=String(q.tmdb_id||"").trim();
-   const type=String(q.type||"movie").toLowerCase();
-   if(!/^\d+$/.test(tmdbId)||!["movie","tv"].includes(type))return json(res,400,{error:"TMDB ID ose tipi i përmbajtjes është i pavlefshëm."});
-   const params=new URLSearchParams();
+   const parentTmdbId=String(q.parent_tmdb_id||"").trim();
+   const imdbId=String(q.imdb_id||"").replace(/^tt0*/i,"");
+   const parentImdbId=String(q.parent_imdb_id||"").replace(/^tt0*/i,"");
+   const requestedType=String(q.type||"movie").toLowerCase();
+   const isEpisode=requestedType==="tv"||requestedType==="episode";
+   const type=isEpisode?"episode":"movie";
+   const validId=isEpisode?(parentTmdbId||parentImdbId):(tmdbId||imdbId);
+   if(!/^\d+$/.test(validId)||!["movie","tv","episode"].includes(requestedType))return json(res,400,{error:"TMDB/IMDb ID ose tipi i përmbajtjes është i pavlefshëm."});
    const language=String(q.languages||"sq").toLowerCase();
    if(!["sq","en"].includes(language))return json(res,400,{error:"Gjuha e titrave duhet të jetë sq ose en."});
-   if(type==="tv")params.set("parent_tmdb_id",tmdbId);else params.set("tmdb_id",tmdbId);
-   params.set("languages",language);
-   params.set("per_page","50");
-   if(type==="tv"){
+   const params=new URLSearchParams();
+   if(isEpisode){
+    if(parentTmdbId)params.set("parent_tmdb_id",parentTmdbId);
+    if(parentImdbId)params.set("parent_imdb_id",parentImdbId);
     if(q.season_number)params.set("season_number",String(q.season_number));
     if(q.episode_number)params.set("episode_number",String(q.episode_number));
+   }else{
+    if(tmdbId)params.set("tmdb_id",tmdbId);
+    if(imdbId)params.set("imdb_id",imdbId);
    }
-   const data=await upstream("/subtitles?"+params.toString());
+   params.set("type",type);
+   params.set("languages",language);
+   params.set("per_page","50");
+   params.set("hearing_impaired","exclude");
+   params.set("foreign_parts_only","exclude");
+   params.set("machine_translated","exclude");
+   params.set("ai_translated","exclude");
+   const sortedParams=new URLSearchParams([...params.entries()].sort(([a],[b])=>a.localeCompare(b)));
+   const data=await upstream("/subtitles?"+sortedParams.toString());
    return json(res,200,{data:Array.isArray(data.data)?data.data:[]});
   }
   if(req.method==="POST"){
