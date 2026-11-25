@@ -23,6 +23,7 @@ let renderQueued = false;
 let persistTimer = 0;
 let serverCursor = 0;
 let serverState = null;
+let lastServerErrorAt = 0;
 let fpsFrames = 0;
 let fpsStarted = performance.now();
 let fps = 0;
@@ -97,7 +98,7 @@ function recordNetwork(item) {
   item.time = item.time || new Date().toISOString();
   network.push(safe(item));
   if (item.phase === "request" || item.phase === "resource") requestCount++;
-  if ((item.phase === "response" && Number(item.status) >= 400) || item.phase === "error" || item.error) failedRequests++;
+  if ((item.phase === "response" && (Number(item.status) >= 400 || Number(item.status) === 0)) || item.phase === "error" || item.error) failedRequests++;
   if (network.length > MAX_NETWORK) network.splice(0, network.length - MAX_NETWORK);
   if (panel) scheduleRender();
   clearTimeout(persistTimer);
@@ -333,6 +334,7 @@ if (window.PerformanceObserver) {
     try { new PerformanceObserver(function (list) { list.getEntries().forEach(callback); }).observe({ type: type, buffered: true }); } catch (_) {}
   }
   observe("resource", function (entry) {
+    if (entry.initiatorType === "fetch" || entry.initiatorType === "xmlhttprequest") return;
     const item = {
       phase: "resource", transport: "resource-timing", method: entry.initiatorType || "resource",
       url: cleanUrl(entry.name), durationMs: +entry.duration.toFixed(2),
@@ -387,7 +389,7 @@ async function pollServer() {
     });
     if (panel) scheduleRender();
   } catch (error) {
-    if (!serverState) record("server", "server.telemetry.unavailable", { message: error.message }, "warn");
+    if (!serverState && Date.now() - lastServerErrorAt > 15000) { lastServerErrorAt = Date.now(); record("server", "server.telemetry.unavailable", { message: error.message }, "warn"); }
   }
 }
 const nativeFetch = window.fetch ? window.fetch.bind(window) : null;
@@ -476,6 +478,9 @@ function renderOverview(host) {
     metricCard("INP", m.inpMs === null ? "pending" : m.inpMs + " ms", "Observed interaction latency"),
     metricCard("Uptime", m.uptimeSec + " s", "This page session"),
     metricCard("Events", m.events, "Captured browser events"),
+    metricCard("Server CPU", serverState && serverState.cpuPercent !== undefined ? serverState.cpuPercent + "%" : "n/a", "Node process CPU sample"),
+    metricCard("Server RSS", serverState && serverState.memoryMB ? serverState.memoryMB.rss + " MB" : "n/a", "Railway container process"),
+    metricCard("Server heap", serverState && serverState.memoryMB ? serverState.memoryMB.heapUsed + " MB" : "n/a", "Node.js heap used"),
     metricCard("Server", serverState ? "Connected" : "Waiting", serverState ? "Railway process metrics" : "Waiting for server samples")
   );
   host.append(grid);
