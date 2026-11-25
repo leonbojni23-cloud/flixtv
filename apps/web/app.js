@@ -2904,8 +2904,7 @@ function runBrandIntro(){
  if(!splash){finishIntro();return;}
  const reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
  if(reduced){finishIntro();return;}
- // The initial F is already animating from the critical inline CSS on first paint.
- splash.classList.add("stage-mark");
+ // The initial F animation runs from critical inline CSS on first paint.
  setTimeout(()=>splash.classList.add("stage-word"),1450);
  setTimeout(()=>splash.classList.add("stage-exit"),3500);
  setTimeout(finishIntro,4200);
