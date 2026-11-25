@@ -2696,7 +2696,7 @@ html.profile-ready #brand-intro{display:none!important;}
 .brand-intro-tv{color:#e50936;}
 .brand-intro.stage-mark .brand-intro-f{opacity:1;transform:translateX(1.15em) scale(1.55);}
 .brand-intro.stage-word .brand-intro-f{transform:translateX(0) scale(1);}
-.brand-intro.stage-word .brand-intro-rest{max-width:5em;opacity:1;clip-path:none;transform:scaleX(1);}
+.brand-intro.stage-word .brand-intro-rest{max-width:5em;opacity:1;clip-path:inset(0 0 0 0);}
 .brand-intro.stage-exit{opacity:0;visibility:hidden;}
 @media(prefers-reduced-motion:reduce){.brand-intro{display:none!important}}
 
@@ -2732,8 +2732,7 @@ html.profile-ready #brand-intro{display:none!important;}
 .brand-intro-f{transform:scale(1.42)!important;transform-origin:center!important;transition:transform 1.8s cubic-bezier(.2,.85,.2,1),opacity 1.1s ease!important;}
 .brand-intro.stage-mark .brand-intro-f{transform:scale(1.42)!important;}
 .brand-intro.stage-word .brand-intro-f{transform:scale(1)!important;}
-.brand-intro-rest{max-width:5em!important;clip-path:none!important;transform:scaleX(0);transform-origin:left center;opacity:0;will-change:transform,opacity;transition:transform 1.8s cubic-bezier(.2,.85,.2,1),opacity .85s ease!important;}
-.brand-intro.stage-word .brand-intro-rest{transform:scaleX(1);opacity:1;}
+.brand-intro-rest{transition:max-width 1.2s cubic-bezier(.2,.85,.2,1),opacity .85s ease,clip-path 1.2s cubic-bezier(.2,.85,.2,1)!important;}
 
 /* Synchronize the F landing with completion of the full FLIXTV reveal.
    The F starts its final movement later, so both finish at 1.8s. */
