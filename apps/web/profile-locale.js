@@ -204,9 +204,21 @@ function processNode(node){
  let textNode;while((textNode=walker.nextNode()))processText(textNode);
  if(node.querySelectorAll)node.querySelectorAll("*").forEach(processAttributes);
 }
-function scheduleNodes(nodes){
- if(scheduled)return;scheduled=true;
- requestAnimationFrame(()=>{scheduled=false;nodes.forEach(processNode)});
+function scheduleMutations(records){
+ const added=new Set(),textNodes=new Set(),attributes=new Set();
+ records.forEach(record=>{
+  if(record.type==="childList")record.addedNodes.forEach(node=>added.add(node));
+  else if(record.type==="characterData")textNodes.add(record.target);
+  else if(record.type==="attributes")attributes.add(record.target);
+ });
+ if(scheduled||(!added.size&&!textNodes.size&&!attributes.size))return;
+ scheduled=true;
+ requestAnimationFrame(()=>{
+  scheduled=false;
+  added.forEach(processNode);
+  textNodes.forEach(processText);
+  attributes.forEach(processAttributes);
+ });
 }
 function apply(target){
  const previousLanguage=language;
@@ -217,15 +229,7 @@ function apply(target){
  if(document.body)processNode(document.body);
  if(previousLanguage!==language)window.dispatchEvent(new CustomEvent("flxtv:profile-language-changed",{detail:{language}}));
 }
-const observer=new MutationObserver(records=>{
- const nodes=new Set();
- records.forEach(record=>{
-  if(record.type==="childList")record.addedNodes.forEach(node=>nodes.add(node));
-  else if(record.type==="characterData")nodes.add(record.target);
-  else if(record.type==="attributes")nodes.add(record.target);
- });
- if(nodes.size)scheduleNodes(nodes);
-});
+const observer=new MutationObserver(scheduleMutations);
 if(document.body)observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:ATTRS});
 window.FlixLocale=Object.freeze({
  getLanguage:()=>language,
