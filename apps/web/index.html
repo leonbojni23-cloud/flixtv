@@ -46,12 +46,24 @@
       min-height: 100dvh;
     }
 
-    /* Critical fallback keeps the splash visible while the external animation CSS loads.
-       It deliberately does not force the logo layers visible, so the reveal can animate. */
-    #brand-intro{display:flex!important;position:fixed!important;inset:0!important;z-index:2147483645!important;align-items:center!important;justify-content:center!important;background:#050505!important;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:none!important;overflow:hidden!important}
+    /* Critical first paint: show the logo animation immediately, without waiting for app.js. */
+    @keyframes flxtvIntroMarkIn {
+      0% { opacity:0; transform:scale(.82); }
+      100% { opacity:1; transform:scale(1.42); }
+    }
+    #brand-intro{display:flex!important;position:fixed!important;inset:0!important;z-index:2147483645!important;align-items:center!important;justify-content:center!important;background:
+      radial-gradient(ellipse 58% 44% at 0% 0%,rgba(78,7,23,.62) 0%,rgba(45,5,15,.32) 44%,transparent 78%),
+      radial-gradient(ellipse 58% 44% at 100% 0%,rgba(70,6,20,.52) 0%,rgba(39,4,13,.28) 46%,transparent 78%),
+      radial-gradient(ellipse 62% 48% at 0% 100%,rgba(73,7,22,.58) 0%,rgba(42,4,14,.28) 46%,transparent 80%),
+      radial-gradient(ellipse 62% 48% at 100% 100%,rgba(83,8,25,.54) 0%,rgba(42,4,14,.27) 46%,transparent 80%),
+      #050505!important;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:none!important;overflow:hidden!important}
+    #brand-intro .brand-intro-lockup{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:max-content;max-width:92vw;font-family:Arial,Helvetica,sans-serif;font-size:clamp(4.2rem,18vw,9rem);font-weight:950;line-height:1;letter-spacing:-.085em;white-space:nowrap}
+    #brand-intro .brand-intro-f{position:relative;z-index:2;color:#e50936;text-shadow:0 0 38px #e5093650;opacity:0;transform:scale(.82);transform-origin:center;animation:flxtvIntroMarkIn .72s cubic-bezier(.16,1,.3,1) .04s both}
+    #brand-intro .brand-intro-rest{display:inline-block;overflow:hidden;max-width:0;opacity:0;clip-path:inset(0 100% 0 0);color:#fff}
+    #brand-intro .brand-intro-tv{color:#e50936}
     html.profile-ready #brand-intro{display:none!important}
   </style>
-  <link rel="stylesheet" href="/style.css?v=logo-intro-dark-crimson-texture-v1">
+  <link rel="stylesheet" href="/style.css?v=logo-intro-first-paint-smooth-v2">
   <link rel="stylesheet" href="/boredflix-parity.css?v=visible-buttons-glass-only-v1">
   <link rel="stylesheet" href="/player/ios-virtual-landscape.css?v=ios-viewport-top-minus15_5-bottom-plus15_5">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.css">
@@ -60,6 +72,7 @@
   <script src="/boot-guard.js?v=boot-recovery-20261124"></script>
 </head>
 <body>
+  <div id="brand-intro" class="brand-intro" aria-label="FLIXTV"><div class="brand-intro-lockup"><span class="brand-intro-f">F</span><span class="brand-intro-rest">LIX<span class="brand-intro-tv">TV</span></span></div></div>
   <div id="app-ambient" aria-hidden="true">
     <div class="ambient-scene active" id="app-ambient-scene-a">
       <div class="ambient-scene-art"></div>
@@ -77,7 +90,6 @@
     
     <div class="ambient-shade"></div>
   </div>
-  <div id="brand-intro" class="brand-intro" aria-label="FLIXTV"><div class="brand-intro-lockup"><span class="brand-intro-f">F</span><span class="brand-intro-rest">LIX<span class="brand-intro-tv">TV</span></span></div></div>
   <header class="topbar">
     <a class="brand" href="/" aria-label="FLIXTV kryefaqja"><span class="brand-name">FLIX<span>TV</span></span></a>
     <nav class="desktop-nav" aria-label="Navigimi kryesor"><span class="nav-pill" aria-hidden="true"></span>
