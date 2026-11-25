@@ -1264,17 +1264,15 @@ window.addEventListener("flxtv:player-error",event=>{
   });
   save.addEventListener("click",()=>createWatchProfile(input.value,tile));
   cancel.addEventListener("click",cancelAddProfileEditor);
-  requestAnimationFrame(()=>{input.focus();try{input.click()}catch(_){}});
+  try{input.focus({preventScroll:true})}catch(_){input.focus()}
  }
  function cancelAddProfileEditor(){
-  profileAddEditorOpen=false;
   renderProfileCards();
   const addTile=$("profile-picker-list")?.querySelector(".profile-add-tile");
   addTile?.focus();
  }
- let profileAddEditorOpen=false;
  function createWatchProfile(rawName,tile){
-  const name=String(rawName||"").trim().replace(/\\s+/g," ").slice(0,24);
+  const name=String(rawName||"").trim().replace(/\s+/g," ").slice(0,24);
   if(!name){const input=tile?.querySelector(".profile-name-input");input?.focus();return}
   if(watchProfiles.length>=8){notice("Mund të krijosh deri në 8 profile.");renderProfileCards();return}
   const colors=["linear-gradient(135deg,#ff5f6d,#b52a26)","linear-gradient(135deg,#2f80ed,#14305c)","linear-gradient(135deg,#8a2be2,#3b1d78)","linear-gradient(135deg,#16a085,#075e54)","linear-gradient(135deg,#d97706,#78350f)","linear-gradient(135deg,#db4b9b,#831843)"];
