@@ -20,7 +20,7 @@ FLIXTV is a lightweight 1920×1080 streaming interface designed for LG webOS tel
 - Movies and Series render at most eight cards each; Search shows at most twelve results.
 - Images use lazy loading and asynchronous decoding.
 - Hero rotation, weather polling, YouTube trends, streaming-service discovery and background prefetch are disabled.
-- The background uses one static, dimmed and blurred hero image. No WebGL, smoke simulation or continuous decorative animation.
+- The background uses one static, darkened hero image with a simple color wash. No WebGL, smoke simulation or continuous decorative animation.
 - The player hides and inerts the rest of the application while playback is active.
 
 ## Playback
