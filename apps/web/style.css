@@ -8049,7 +8049,7 @@ body.flxtv-series-detail .topbar .top-actions{margin-left:auto!important;gap:9px
 
 /* Persistent exit control: stays above the cross-origin player, including focus mode. */
 .player-modal .player-actions{z-index:2147483001!important;pointer-events:none!important}
-.player-modal .player-close{position:static!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;min-width:68px!important;min-height:42px!important;padding:8px 13px!important;border-radius:999px!important;background:rgba(12,15,22,.88)!important;color:#fff!important;pointer-events:auto!important;opacity:1!important;visibility:visible!important}
-.player-modal .player-close span{font-size:25px!important;line-height:16px!important}
-.player-modal .player-close strong{font-size:12px!important;font-weight:700!important}
+.player-modal .player-close{position:static!important;display:grid!important;place-items:center!important;flex:0 0 42px!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;padding:0!important;border:1px solid rgba(255,255,255,.28)!important;border-radius:50%!important;background:rgba(255,255,255,.075)!important;color:#fff!important;-webkit-backdrop-filter:blur(14px) saturate(150%)!important;backdrop-filter:blur(14px) saturate(150%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 14px rgba(0,0,0,.14)!important;pointer-events:auto!important;opacity:1!important;visibility:visible!important;-webkit-tap-highlight-color:transparent!important;cursor:pointer!important}
+.player-modal .player-close svg{display:block!important;width:21px!important;height:21px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+.player-modal .player-close:active{background:rgba(255,255,255,.16)!important;transform:scale(.94)!important}
 html.flxtv-player-active,body.flxtv-player-active{background:#000!important}
