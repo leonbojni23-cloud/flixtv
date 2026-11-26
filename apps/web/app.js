@@ -1059,12 +1059,8 @@ window.addEventListener("message",event=>{
   const dispatch=(type,data={})=>window.dispatchEvent(new CustomEvent("flxtv:cinesrc-event",{detail:{type,data}}));
   switch(payload.event){
     case "fullscreen":
-      $("player-modal").dataset.bingeFullscreen="true";
-      $("player-fullscreen")?.setAttribute("aria-label","Dil nga ekrani i plotë");
       break;
     case "exitfullscreen":
-      $("player-modal").dataset.bingeFullscreen="false";
-      $("player-fullscreen")?.setAttribute("aria-label","Hap videon në ekran të plotë");
       break;
     case "play":dispatch("play");break;
     case "pause":dispatch("pause");break;
@@ -2682,7 +2678,9 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   const subtitleToolbar=$("subtitle-toolbar");if(subtitleToolbar)subtitleToolbar.hidden=true;
   modal("player-modal",true);clearInterval(heroTimer);heroTimer=null;
   $("player-modal").dataset.playerState="loading";setPlayerStatus("Po lidhet me BingeAPI…");
-  requestPlayerFullscreen();syncPlayerOrientation();startPlaybackProgressTracking();
+  // Do not request fullscreen while opening the iframe: browsers require a user gesture.
+  // BingeAPI must enter fullscreen from its own in-player control.
+  syncPlayerOrientation();startPlaybackProgressTracking();
   const id=encodeURIComponent(String(item.id));
   const url=new URL("https://bingeapi.st/embed/"+mediaType+"/"+id);
   if(mediaType==="tv"){
@@ -2737,7 +2735,6 @@ function closePlayer(){
   window.FlixPlaybackProgress?.flush();renderContinueWatching();
   $("player-modal").classList.remove("ios-landscape-layout");
   playbackOpenId++;cinesrcResolveRequestId++;subtitleLookupRequest++;
-  $("player-modal").dataset.bingeFullscreen="false";
   window.FlixPlaybackProgress?.stop();window.FlixCineSRC?.close();window.FlixPlayerOrientation?.exitFullscreen();
   $("player-modal").classList.remove("css-fullscreen");clearTimeout(controlsTimer);clearTimeout(introTimer);
   stopResolvedVideo();currentPlayback=null;
@@ -3009,21 +3006,6 @@ if(isDirectPlaybackRoute){
  runBrandIntro();
 }
 $("play-title").onclick=()=>play(selected);$("play-episode").onclick=()=>play(selected,$("season-select").value,$("episode-select").value);const playerCloseButton=$("player-close");if(playerCloseButton)playerCloseButton.onclick=closePlayer;
-const playerFullscreenButton=$("player-fullscreen");
-if(playerFullscreenButton)playerFullscreenButton.onclick=()=>{
- const frame=$("cinesrc-frame");
- if(!frame?.contentWindow)return;
- const active=$("player-modal").dataset.bingeFullscreen==="true";
- const command=active?"exitfullscreen":"fullscreen";
- // BingeAPI documents this postMessage command. A click on FLIXTV's own
- // control gives Safari a fresh user gesture, unlike an automatic request
- // made while the iframe is being opened.
- try{frame.contentWindow.postMessage({source:"bingeapi_player_command",command},"https://bingeapi.st")}
- catch(error){console.warn("[FLIXTV] BingeAPI fullscreen command failed",error)}
- if(!active&&typeof frame.requestFullscreen==="function"&&document.fullscreenEnabled){
-  try{const request=frame.requestFullscreen({navigationUI:"hide"});if(request?.catch)request.catch(()=>{})}catch(_){}
- }
-};
 document.querySelectorAll("[data-close]").forEach(e=>e.onclick=()=>modal(e.dataset.close+"-modal",false));
 const movieGenreSelect=$("movie-genre-select");
 const genreCollections=$("movie-genre-collections");
