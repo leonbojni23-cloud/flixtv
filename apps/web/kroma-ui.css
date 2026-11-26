@@ -1,0 +1,169 @@
+/*
+ * FLIXTV KROMA visual layer
+ * Original FLIXTV implementation using KROMA as a visual reference.
+ * No KROMA application components, server code or playback code are imported.
+ * KROMA project reference: https://github.com/kromatv/kroma
+ */
+
+.kroma-ui {
+  color-scheme: dark;
+  --k-bg: #0A0A0C;
+  --k-surface-1: #121216;
+  --k-surface-2: #1C1C22;
+  --k-surface-3: #26262E;
+  --k-overlay: rgba(18, 18, 22, .86);
+  --k-border: rgba(255, 255, 255, .08);
+  --k-border-strong: rgba(255, 255, 255, .14);
+  --k-wash: rgba(255, 255, 255, .06);
+
+  --k-text: #F4F3F0;
+  --k-text-muted: rgba(244, 243, 240, .62);
+  --k-text-dim: rgba(244, 243, 240, .48);
+  --k-glyph: #9B9B99;
+  --k-glyph-dim: #7A7A79;
+
+  --k-accent: #F4B642;
+  --k-accent-hover: #FFC862;
+  --k-accent-pressed: #DFA436;
+  --k-accent-bright: #FFD262;
+  --k-accent-ink: #0A0A0C;
+  --k-accent-soft: rgba(242, 180, 66, .16);
+  --k-accent-soft-hover: rgba(242, 180, 66, .26);
+
+  --k-success: #46D08D;
+  --k-info: #86A8FF;
+  --k-danger: #E8536A;
+
+  --k-font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --k-font-ui: "Hanken Grotesk", system-ui, sans-serif;
+
+  --k-space-1: 4px;
+  --k-space-2: 8px;
+  --k-space-3: 12px;
+  --k-space-4: 16px;
+  --k-space-5: 20px;
+  --k-space-6: 24px;
+  --k-space-8: 32px;
+  --k-space-10: 40px;
+  --k-space-14: 56px;
+  --k-space-16: 64px;
+
+  --k-radius-xs: 6px;
+  --k-radius-sm: 8px;
+  --k-radius-md: 10px;
+  --k-radius-control: 11px;
+  --k-radius-panel: 12px;
+  --k-radius-tile: 17px;
+  --k-radius-row: 20px;
+  --k-radius-dialog: 24px;
+  --k-radius-hero: 28px;
+  --k-radius-pill: 999px;
+
+  --k-shadow-card: 0 10px 28px rgba(0, 0, 0, .45);
+  --k-shadow-pop: 0 20px 50px rgba(0, 0, 0, .55);
+  --k-shadow-hero: 0 20px 50px rgba(0, 0, 0, .6);
+  --k-focus-width: 4px;
+  --k-focus-gap: 6px;
+  --k-motion-fast: 150ms;
+  --k-motion-base: 200ms;
+  --k-motion-slow: 400ms;
+  --k-ease-out: cubic-bezier(.22, 1, .36, 1);
+
+  color: var(--k-text);
+  background: var(--k-bg);
+  font-family: var(--k-font-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.kroma-ui :where(h1, h2, h3, .kroma-display) {
+  font-family: var(--k-font-display);
+  letter-spacing: -.02em;
+}
+
+.kroma-ui :where(button, input, select, textarea) {
+  font: inherit;
+}
+
+.kroma-ui :where(button) {
+  color: inherit;
+}
+
+.kroma-ui :where(button:focus-visible, a:focus-visible, [tabindex]:focus-visible) {
+  outline: var(--k-focus-width) solid var(--k-accent);
+  outline-offset: var(--k-focus-gap);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .42);
+}
+
+.kroma-ui .kroma-eyebrow {
+  color: var(--k-accent);
+  font: 700 13px/1.23 var(--k-font-ui);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+.kroma-ui .kroma-hero-title {
+  color: var(--k-text);
+  font: 700 clamp(42px, 5.2vw, 82px)/.96 var(--k-font-display);
+  letter-spacing: -.02em;
+}
+
+.kroma-ui .kroma-section-title {
+  color: var(--k-text);
+  font: 700 clamp(20px, 1.7vw, 30px)/1.05 var(--k-font-display);
+  letter-spacing: -.02em;
+}
+
+.kroma-ui .kroma-body {
+  color: var(--k-text);
+  font: 400 16px/1.55 var(--k-font-ui);
+}
+
+.kroma-ui .kroma-meta {
+  color: var(--k-text-muted);
+  font: 500 13px/1.4 var(--k-font-ui);
+}
+
+.kroma-ui .kroma-surface {
+  background: var(--k-surface-1);
+  border: 1px solid var(--k-border);
+  border-radius: var(--k-radius-panel);
+}
+
+.kroma-ui .kroma-pill {
+  border-radius: var(--k-radius-pill);
+}
+
+.kroma-ui .kroma-primary-action {
+  min-height: 48px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: var(--k-radius-control);
+  background: var(--k-accent);
+  color: var(--k-accent-ink);
+  font: 700 16px/1 var(--k-font-ui);
+  transition:
+    background var(--k-motion-fast) var(--k-ease-out),
+    transform var(--k-motion-fast) var(--k-ease-out),
+    box-shadow var(--k-motion-fast) var(--k-ease-out);
+}
+
+.kroma-ui .kroma-primary-action:hover {
+  background: var(--k-accent-hover);
+}
+
+.kroma-ui .kroma-primary-action:active {
+  background: var(--k-accent-pressed);
+  transform: scale(.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kroma-ui *,
+  .kroma-ui *::before,
+  .kroma-ui *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
