@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101010">
+<title>EmbedBandit Sandbox Test</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; background: #101010; color: #f5f5f5; font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 1100px; margin: auto; }
+  h1 { font-size: 24px; margin: 0 0 8px; }
+  p { color: #aaa; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
+  button { border: 1px solid #444; border-radius: 10px; background: #222; color: white; padding: 11px 14px; font: inherit; cursor: pointer; }
+  button[aria-pressed="true"] { background: #a71925; border-color: #e34a56; }
+  .frame-wrap { overflow: hidden; border: 1px solid #444; border-radius: 14px; background: #000; }
+  iframe { display: block; width: 100%; height: min(65vh, 650px); min-height: 360px; border: 0; background: #000; }
+  #status { margin-top: 12px; padding: 12px; border-radius: 10px; background: #1b1b1b; color: #ddd; overflow-wrap: anywhere; }
+  .note { font-size: 13px; color: #999; }
+</style>
+</head>
+<body>
+<main>
+  <h1>EmbedBandit Sandbox Test</h1>
+  <p>Testo të njëjtin embed me politika të ndryshme sandbox. Ky është një test i izoluar dhe nuk ndryshon FLIXTV.</p>
+  <div class="controls" role="group" aria-label="Sandbox modes">
+    <button data-mode="none" aria-pressed="true">Pa sandbox</button>
+    <button data-mode="scripts">Vetëm scripts</button>
+    <button data-mode="same-origin">Scripts + same-origin</button>
+    <button data-mode="extended">Extended</button>
+    <button data-mode="strict">Strict (kontroll)</button>
+  </div>
+  <div class="frame-wrap" id="player"></div>
+  <div id="status" role="status">Modaliteti: Pa sandbox</div>
+  <p class="note">Shënim: faqja pritëse nuk mund të lexojë përmbajtjen ose gabimet e brendshme të iframe-it për shkak të same-origin policy. Kontrollo nëse player-i shfaqet, nëse Play punon dhe nëse fullscreen hapet. Një dështim mund të vijë edhe nga kufizimet e vetë provider-it.</p>
+</main>
+<script>
+(() => {
+  const embedUrl = "https://embedbandit.com/embed/movie?tmdb=308266";
+  const modes = {
+    none: { label: "Pa sandbox", sandbox: null },
+    scripts: { label: "Vetëm allow-scripts", sandbox: "allow-scripts" },
+    "same-origin": { label: "allow-scripts + allow-same-origin", sandbox: "allow-scripts allow-same-origin" },
+    extended: { label: "Extended: scripts, same-origin, forms, popups, presentation", sandbox: "allow-scripts allow-same-origin allow-forms allow-popups allow-presentation" },
+    strict: { label: "Strict: pa leje sandbox", sandbox: "" }
+  };
+
+  const player = document.getElementById("player");
+  const status = document.getElementById("status");
+  const buttons = [...document.querySelectorAll("button[data-mode]")];
+
+  function load(mode) {
+    const config = modes[mode];
+    const frame = document.createElement("iframe");
+    frame.title = "EmbedBandit movie player test";
+    frame.src = embedUrl;
+    frame.allow = "autoplay; fullscreen; picture-in-picture";
+    frame.allowFullscreen = true;
+    frame.referrerPolicy = "strict-origin-when-cross-origin";
+    if (config.sandbox !== null) frame.setAttribute("sandbox", config.sandbox);
+    player.replaceChildren(frame);
+    status.textContent = "Modaliteti: " + config.label + " | URL: " + embedUrl;
+    buttons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mode === mode)));
+  }
+
+  buttons.forEach(button => button.addEventListener("click", () => load(button.dataset.mode)));
+  load("none");
+})();
+</script>
+</body>
+</html>
