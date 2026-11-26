@@ -1303,3 +1303,71 @@ main#home { padding:0 5.2%;z-index:2; }
   background: #fff;
   color: #111;
 }
+
+/* FLIXTV webOS 0.26: large, calm Netflix-like TV layout. */
+:root{--flix-red:#e50936;--flix-muted:#9ca3af}
+html,body{background:#050609!important;color:#f7f7f8!important;overflow:hidden!important}
+#bg{background:#08090d!important;overflow:hidden!important}
+#bg img{transition:none!important;filter:blur(20px) saturate(1.12) brightness(.32)!important;transform:scale(1.06);opacity:0!important}
+#bg img.on{opacity:.34!important}
+#bgBlur{display:none!important}
+#shade{background:linear-gradient(90deg,rgba(5,6,9,.94) 0%,rgba(5,6,9,.74) 38%,rgba(5,6,9,.20) 75%,rgba(5,6,9,.08) 100%),linear-gradient(0deg,#050609 0%,rgba(5,6,9,.65) 35%,rgba(5,6,9,.12) 78%)!important;transition:none!important}
+#top{top:34px!important;left:76px!important;right:76px!important;min-height:62px!important;transition:none!important}
+#top .brand{display:flex!important;align-items:center!important;gap:14px!important;font-size:30px!important;font-weight:850!important;letter-spacing:1.4px!important;color:#fff!important}
+#top .brand-mark{width:54px!important;height:54px!important;object-fit:contain!important;display:block!important}
+#top .brand span{color:#fff!important}
+#top .catalog-nav{background:rgba(255,255,255,.055)!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:999px!important;padding:7px!important}
+#top .tab{font-size:20px!important;min-width:112px!important;padding:14px 24px!important;border-radius:999px!important;color:rgba(255,255,255,.72)!important;transition:none!important}
+#top .tab.cur{background:rgba(255,255,255,.16)!important;color:#fff!important;box-shadow:none!important}
+#top .tab.focus{outline:3px solid #fff!important;outline-offset:4px!important;background:rgba(255,255,255,.20)!important}
+#clock{font-size:24px!important;color:rgba(255,255,255,.82)!important}
+main#home{padding:0 76px!important;transition:none!important;will-change:auto!important}
+#hero{width:min(900px,64vw)!important;height:610px!important;padding-top:176px!important;transition:none!important;opacity:1!important}
+#heroSrc{font-size:17px!important;font-weight:750!important;letter-spacing:2px!important;color:rgba(255,255,255,.68)!important;margin-bottom:18px!important}
+#heroTitle{font-size:clamp(54px,4.2vw,78px)!important;line-height:1.02!important;letter-spacing:-1.8px!important;font-weight:800!important;max-height:160px!important;margin-bottom:20px!important}
+#heroMeta{font-size:20px!important;color:rgba(255,255,255,.76)!important;margin-bottom:18px!important}
+#heroSub{font-size:21px!important;line-height:1.45!important;color:rgba(255,255,255,.78)!important;width:min(760px,58vw)!important;max-height:90px!important}
+#heroBtn{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:58px!important;margin-top:28px!important;padding:0 34px!important;border-radius:10px!important;background:#fff!important;color:#090a0d!important;font-size:20px!important;font-weight:800!important;transition:none!important}
+#heroBtn.focus{background:#e50936!important;color:#fff!important;outline:3px solid #fff!important;outline-offset:4px!important}
+#dots{display:none!important}
+.scrolled #hero{opacity:1!important}
+.scrolled #top{opacity:1!important;transform:none!important}
+#rows{padding:0 0 100px!important}
+.row{margin:0 0 74px!important}
+.row h3{font-size:30px!important;font-weight:750!important;letter-spacing:-.5px!important;margin:0 0 24px!important;color:#f7f7f8!important}
+.strip,.row.poster-row .strip{height:492px!important;white-space:nowrap!important;overflow:visible!important;transition:none!important;will-change:auto!important}
+.card{width:258px!important;height:456px!important;margin:0 28px 0 0!important;vertical-align:top!important;contain:layout paint!important}
+.card .pic{width:258px!important;height:387px!important;border-radius:12px!important;background:#171a21!important;border:1px solid rgba(255,255,255,.09)!important;box-shadow:none!important;transform:none!important;transition:none!important;overflow:hidden!important}
+.card .pic img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;transform:none!important;transition:none!important}
+.card .poster-rating{top:14px!important;left:14px!important;padding:7px 10px!important;border-radius:7px!important;font-size:16px!important;background:rgba(0,0,0,.78)!important}
+.card .card-info{padding:14px 3px 0!important}
+.card .ttl{font-size:21px!important;line-height:1.25!important;font-weight:700!important;color:#fff!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.card .cap{font-size:15px!important;margin-top:7px!important;color:#a5aab4!important}
+.card.focus .pic{transform:none!important;outline:4px solid #fff!important;outline-offset:4px!important;box-shadow:0 10px 28px rgba(0,0,0,.38)!important}
+.card.focus .ttl{color:#fff!important}
+.row:not(.poster-row) .card{width:258px!important}
+.tv-loading{padding:35px 0;color:#aeb4c0;font-size:22px}
+#player-view{background:#000!important;z-index:2147483000!important}
+#cinesrc-frame{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;border:0!important;background:#000!important}
+#player-loading{font-size:22px!important;background:#000!important;color:#fff!important}
+#player-back{top:36px!important;left:48px!important;min-width:58px!important;width:58px!important;height:58px!important;padding:0!important;border-radius:50%!important;background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.28)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;opacity:1!important;visibility:visible!important;transform:none!important;transition:none!important}
+#player-back span{display:none!important}
+#player-back svg{width:25px!important;height:25px!important}
+#player-back.focus,#player-back:focus{outline:3px solid #fff!important;outline-offset:4px!important;background:rgba(255,255,255,.22)!important;transform:none!important}
+body.player-open{background:#000!important}
+body.player-open>#bg,body.player-open>#bgBlur,body.player-open>#shade,body.player-open>#top,body.player-open>#home,body.player-open>#apps,body.player-open>#series-view,body.player-open>#qpanel,body.player-open>#spanel,body.player-open>#wxpanel{display:none!important}
+body.player-open *{animation:none!important;transition:none!important}
+#toast{font-size:18px!important}
+#details .dbody{left:76px!important;top:142px!important;width:1080px!important}
+#details .dbody h1{font-size:66px!important}
+#details .dback{min-width:58px!important;width:58px!important;height:58px!important;padding:0!important;border-radius:50%!important}
+#details .dback span{display:none!important}
+#details .dbtn{font-size:20px!important;padding:16px 28px!important;border-radius:10px!important}
+#details .dmore{left:76px!important;top:720px!important}
+#search .skey{min-width:64px!important;min-height:58px!important;font-size:22px!important}
+#search .card{width:220px!important}
+#search .card .pic{width:220px!important;height:330px!important}
+#search .strip{height:410px!important}
+.f.focus{outline:3px solid #fff!important;outline-offset:4px!important}
+.tv-loading{min-height:80px}
+@media(prefers-reduced-motion:no-preference){*{scroll-behavior:auto!important}}
