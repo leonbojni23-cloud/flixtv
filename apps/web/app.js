@@ -2646,7 +2646,9 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   const frame=$("cinesrc-frame");if(!frame)throw new Error("BingeAPI iframe mungon në player-in FLIXTV.");
   frame.hidden=false;frame.setAttribute("title","BingeAPI player");
   frame.setAttribute("loading","eager");frame.setAttribute("fetchpriority","high");
-  frame.setAttribute("allow","autoplay; fullscreen; picture-in-picture; encrypted-media");
+  frame.setAttribute("allow","autoplay; fullscreen *; picture-in-picture; encrypted-media; orientation-lock");
+  frame.setAttribute("allowfullscreen","");
+  frame.setAttribute("webkitallowfullscreen","");
   // Sandbox keeps the external player isolated while permitting fullscreen presentation,
   // while keeping the embedded BingeAPI document isolated from the parent page.
   frame.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock");
