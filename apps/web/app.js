@@ -2661,7 +2661,6 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   url.searchParams.set("sub_lang","alb");
   url.searchParams.set("sub_os","1");
   url.searchParams.set("autoplay","1");
-  url.searchParams.set("resume","1");
   frame.onload=()=>{
     if(playbackId!==playbackOpenId)return;
     $("player-modal").dataset.playerState="ready";
