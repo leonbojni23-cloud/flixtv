@@ -58,6 +58,7 @@
   var observer = new MutationObserver(updateTrigger);
   var tabs = document.querySelector("#top .catalog-nav");
   if (tabs) observer.observe(tabs, { attributes: true, subtree: true, attributeFilter: ["class"] });
+  window.addEventListener("tvpagechange", updateTrigger);
   updateTrigger();
 
   function groups() {
