@@ -54,7 +54,7 @@
     var active = document.querySelector("#top .tab.cur");
     var page = active && active.dataset.tab;
     trigger.hidden = page !== "movies" && page !== "series";
-    if (!trigger.hidden && active && active.parentNode) active.insertAdjacentElement("afterend", trigger);
+    if (!trigger.hidden && active && active.parentNode && active.nextElementSibling !== trigger) active.insertAdjacentElement("afterend", trigger);
   }
   var observer = new MutationObserver(updateTrigger);
   var tabs = document.querySelector("#top .catalog-nav");
