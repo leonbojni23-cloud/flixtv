@@ -1063,12 +1063,27 @@ window.addEventListener("message",event=>{
     case "ended":dispatch("ended");break;
     case "time":{
       const currentTime=Number(info);
+      if(!bingeResumeApplied&&pendingBingeResumeTime>0&&Number.isFinite(currentTime)&&currentTime>=0){
+        const target=latestPlaybackDuration>0?Math.min(pendingBingeResumeTime,Math.max(0,latestPlaybackDuration-5)):pendingBingeResumeTime;
+        frame.contentWindow.postMessage({source:"bingeapi_player_command",command:"seek",value:target},"https://bingeapi.st");
+        bingeResumeApplied=true;
+        console.info("[FLIXTV] Restored Continue Watching position",{seconds:target,duration:latestPlaybackDuration||null});
+      }
       if(Number.isFinite(currentTime)&&currentTime>=0)dispatch("timeupdate",{currentTime,duration:latestPlaybackDuration});
       break;
     }
     case "duration":{
       const duration=Number(info);
-      if(Number.isFinite(duration)&&duration>0){latestPlaybackDuration=duration;dispatch("loadedmetadata",{duration});}
+      if(Number.isFinite(duration)&&duration>0){
+        latestPlaybackDuration=duration;
+        if(!bingeResumeApplied&&pendingBingeResumeTime>0){
+          const target=Math.min(pendingBingeResumeTime,Math.max(0,duration-5));
+          frame.contentWindow.postMessage({source:"bingeapi_player_command",command:"seek",value:target},"https://bingeapi.st");
+          bingeResumeApplied=true;
+          console.info("[FLIXTV] Restored Continue Watching position",{seconds:target,duration});
+        }
+        dispatch("loadedmetadata",{duration});
+      }
       break;
     }
     case "seek":{
@@ -2386,6 +2401,8 @@ function ageLabel(cert){const c=String(cert||"").trim().toUpperCase();const map=
 async function contentRating(item){try{const k=kind(item),d=await tmdb("/"+k+"/"+item.id+(k==="tv"?"/content_ratings":"/release_dates"));if(k==="tv"){const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");return (rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0]||{}).rating||""}const rows=(d.results||[]).filter(x=>x.iso_3166_1==="US"||x.iso_3166_1==="AL");const country=rows.find(x=>x.iso_3166_1==="AL")||rows.find(x=>x.iso_3166_1==="US")||rows[0];return country&&country.release_dates&&((country.release_dates.find(x=>x.certification)||{}).certification)||""}catch(_){return""}}
 
 let currentPlayback=null;
+let pendingBingeResumeTime=0;
+let bingeResumeApplied=false;
 let playbackReturnToTitlePage=false;
 let playbackOpenId=0;
 let activeHlsPlayer=null;
@@ -2642,16 +2659,17 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   playbackReturnToTitlePage=!$("title-page").hidden;
   currentPlayback={item,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null};
   latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
+  pendingBingeResumeTime=Math.max(0,Number(resumeTime)||0);bingeResumeApplied=pendingBingeResumeTime<=0;
   stopResolvedVideo({preserveCineSrcFrame:true});clearExternalSubtitles();
   const frame=$("cinesrc-frame");if(!frame)throw new Error("BingeAPI iframe mungon në player-in FLIXTV.");
   frame.hidden=false;frame.setAttribute("title","BingeAPI player");
   frame.setAttribute("loading","eager");frame.setAttribute("fetchpriority","high");
-  frame.setAttribute("allow","autoplay; fullscreen *; picture-in-picture; encrypted-media; orientation-lock");
+  frame.setAttribute("allow","autoplay; fullscreen; picture-in-picture; encrypted-media");
   frame.setAttribute("allowfullscreen","");
   frame.setAttribute("webkitallowfullscreen","");
-  // Sandbox keeps the external player isolated while permitting fullscreen presentation,
-  // while keeping the embedded BingeAPI document isolated from the parent page.
-  frame.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock");
+  // BingeAPI explicitly requires an unsandboxed iframe. Its own fullscreen button
+  // and player scripts can be blocked by iframe sandboxing, especially in Safari.
+  frame.removeAttribute("sandbox");
   $("resolved-video").hidden=true;$("player-quality-select").hidden=true;
   const subtitleToolbar=$("subtitle-toolbar");if(subtitleToolbar)subtitleToolbar.hidden=true;
   modal("player-modal",true);clearInterval(heroTimer);heroTimer=null;
