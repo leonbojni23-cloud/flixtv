@@ -1,0 +1,378 @@
+/* FLIXTV webOS premium living-room design system.
+   Translucency is built from alpha gradients and borders, not backdrop-filter. */
+:root {
+  --tv-bg: #080b12;
+  --tv-panel: rgba(22, 29, 42, .78);
+  --tv-glass: rgba(255, 255, 255, .085);
+  --tv-glass-hi: rgba(255, 255, 255, .14);
+  --tv-line: rgba(255, 255, 255, .15);
+  --tv-text: #f6f7fb;
+  --tv-muted: #aeb8c8;
+  --tv-accent: #e94b68;
+}
+html, body { background: var(--tv-bg) !important; color: var(--tv-text) !important; }
+#bg { background: #090d15 !important; }
+#bg img {
+  opacity: 0 !important;
+  filter: none !important;
+  transition: opacity 220ms ease-out !important;
+}
+#bg img.on { opacity: .24 !important; }
+#shade {
+  background:
+    linear-gradient(90deg, rgba(7,10,16,.96) 0%, rgba(7,10,16,.80) 31%, rgba(7,10,16,.32) 67%, rgba(7,10,16,.12) 100%),
+    linear-gradient(0deg, #080b12 3%, rgba(8,11,18,.82) 28%, rgba(8,11,18,.10) 72%) !important;
+  transition: none !important;
+}
+#bgBlur { display: none !important; }
+
+/* Floating glass header. No backdrop blur: alpha layers are much cheaper on TV. */
+#top {
+  top: 28px !important;
+  left: 64px !important;
+  right: 64px !important;
+  min-height: 76px !important;
+  padding: 9px 18px 9px 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid rgba(255,255,255,.13) !important;
+  border-radius: 24px !important;
+  background: linear-gradient(110deg, rgba(28,37,53,.82), rgba(15,20,31,.70)) !important;
+  box-shadow: 0 10px 34px rgba(0,0,0,.20), inset 0 1px rgba(255,255,255,.07) !important;
+  opacity: 1 !important;
+  transform: none !important;
+  transition: background 180ms ease-out !important;
+}
+#top .brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 11px !important;
+  font-size: 25px !important;
+  font-weight: 850 !important;
+  letter-spacing: 1.7px !important;
+  color: #fff !important;
+}
+#top .brand-mark { width: 43px !important; height: 43px !important; }
+#top .catalog-nav {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%,-50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 5px !important;
+  margin: 0 !important;
+  border: 1px solid rgba(255,255,255,.13) !important;
+  border-radius: 17px !important;
+  background: linear-gradient(130deg, rgba(255,255,255,.105), rgba(255,255,255,.035)) !important;
+}
+#top .tab {
+  min-width: 108px !important;
+  margin: 0 2px !important;
+  padding: 12px 18px !important;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+  color: rgba(246,247,251,.72) !important;
+  background: transparent !important;
+  font-size: 19px !important;
+  font-weight: 650 !important;
+  text-align: center !important;
+  transition: background 140ms ease-out, color 140ms ease-out !important;
+}
+#top .tab.cur {
+  color: #fff !important;
+  background: rgba(255,255,255,.16) !important;
+  border-color: rgba(255,255,255,.12) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.08) !important;
+}
+#top .tab[data-view="genres"], #top .genre-trigger {
+  min-width: 112px !important;
+  margin-left: 8px !important;
+  border: 1px solid rgba(255,255,255,.17) !important;
+  background: linear-gradient(135deg, rgba(233,75,104,.26), rgba(255,255,255,.08)) !important;
+  color: #fff !important;
+}
+#top .avatar {
+  width: 48px !important; height: 48px !important;
+  margin: 0 12px 0 auto !important;
+  border: 1px solid rgba(255,255,255,.20) !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.22), rgba(255,255,255,.07)) !important;
+  color: #fff !important;
+  font-size: 20px !important;
+}
+#top .pill.icons { padding: 0 !important; margin: 0 16px 0 0 !important; background: transparent !important; }
+#top .ico {
+  width: 48px !important; height: 48px !important;
+  border: 1px solid rgba(255,255,255,.17) !important;
+  border-radius: 15px !important;
+  background: rgba(255,255,255,.075) !important;
+}
+#top .ico svg { width: 23px !important; height: 23px !important; }
+#clock { font-size: 19px !important; font-weight: 650 !important; color: rgba(255,255,255,.86) !important; }
+#top .tab.focus, #top .ico.focus, #top .avatar.focus, #top .genre-trigger.focus {
+  outline: 2px solid rgba(255,255,255,.98) !important;
+  outline-offset: 3px !important;
+  background: rgba(255,255,255,.20) !important;
+  color: #fff !important;
+  transform: none !important;
+}
+.scrolled #top { opacity: 1 !important; transform: none !important; }
+
+/* Cinematic hero, compact enough to reach content without endless remote presses. */
+main#home {
+  top: 0 !important;
+  padding: 0 76px !important;
+  transition: transform 230ms cubic-bezier(.22,.72,.22,1) !important;
+  will-change: auto !important;
+}
+#hero {
+  width: min(920px, 62vw) !important;
+  height: 590px !important;
+  padding-top: 172px !important;
+  opacity: 1 !important;
+  transition: opacity 180ms ease-out !important;
+}
+#heroSrc {
+  margin-bottom: 15px !important;
+  color: rgba(255,255,255,.68) !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  letter-spacing: 2.5px !important;
+}
+#heroTitle {
+  max-height: 146px !important;
+  margin-bottom: 15px !important;
+  color: #fff !important;
+  font-size: clamp(48px, 4.1vw, 72px) !important;
+  font-weight: 820 !important;
+  line-height: 1.04 !important;
+  letter-spacing: -1.5px !important;
+  text-shadow: 0 4px 24px rgba(0,0,0,.24) !important;
+}
+#heroMeta { margin-bottom: 12px !important; color: rgba(255,255,255,.78) !important; font-size: 18px !important; }
+#heroSub {
+  width: min(720px, 55vw) !important;
+  max-height: 78px !important;
+  color: rgba(238,242,249,.82) !important;
+  font-size: 19px !important;
+  line-height: 1.42 !important;
+}
+#heroBtn {
+  min-height: 54px !important;
+  margin-top: 23px !important;
+  padding: 0 27px !important;
+  border: 1px solid rgba(255,255,255,.22) !important;
+  border-radius: 15px !important;
+  background: linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.09)) !important;
+  color: #fff !important;
+  font-size: 18px !important;
+  font-weight: 750 !important;
+  transition: background 140ms ease-out, transform 140ms ease-out !important;
+}
+#heroBtn.focus {
+  background: linear-gradient(135deg, rgba(233,75,104,.82), rgba(183,48,82,.82)) !important;
+  outline: 2px solid #fff !important;
+  outline-offset: 3px !important;
+  transform: scale(1.025) !important;
+}
+#dots { display: none !important; }
+.scrolled #hero { opacity: 1 !important; }
+
+/* Content rails: portrait posters, balanced spacing and gentle horizontal movement. */
+#rows { padding: 0 0 110px !important; }
+.row { margin: 0 0 58px !important; }
+.row h3 {
+  margin: 0 0 19px !important;
+  color: rgba(248,249,252,.96) !important;
+  font-size: 27px !important;
+  font-weight: 760 !important;
+  letter-spacing: -.35px !important;
+}
+.strip {
+  height: 414px !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  transition: transform 185ms cubic-bezier(.22,.72,.22,1) !important;
+  will-change: auto !important;
+}
+.row.poster-row .strip { height: 414px !important; }
+.card {
+  width: 218px !important;
+  height: 394px !important;
+  margin: 0 25px 0 0 !important;
+  vertical-align: top !important;
+  contain: layout paint !important;
+}
+.card .pic {
+  width: 218px !important;
+  height: 327px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255,255,255,.09) !important;
+  border-radius: 13px !important;
+  background: linear-gradient(145deg, #202938, #101620) !important;
+  box-shadow: 0 5px 18px rgba(0,0,0,.18) !important;
+  transform: scale(1) !important;
+  transition: transform 145ms ease-out, border-color 145ms ease-out !important;
+}
+.card .pic img {
+  width: 100% !important; height: 100% !important;
+  object-fit: cover !important;
+  transform: none !important;
+}
+.card .card-info { padding: 12px 2px 0 !important; }
+.card .ttl {
+  color: #f7f8fb !important;
+  font-size: 17px !important;
+  line-height: 1.24 !important;
+  font-weight: 720 !important;
+}
+.card .cap { margin-top: 5px !important; color: #aeb8c8 !important; font-size: 13px !important; }
+.card .poster-rating {
+  top: 10px !important; left: 10px !important;
+  padding: 6px 9px !important;
+  border: 1px solid rgba(255,255,255,.13) !important;
+  border-radius: 8px !important;
+  background: rgba(9,13,21,.82) !important;
+  font-size: 14px !important;
+}
+.card.focus .pic {
+  transform: scale(1.035) !important;
+  border-color: rgba(255,255,255,.95) !important;
+  outline: 2px solid #fff !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 9px 26px rgba(0,0,0,.30) !important;
+}
+.card.focus .ttl { color: #fff !important; }
+.card .cap { opacity: 1 !important; }
+.card.focus .cap { color: #dce3ed !important; }
+.tv-loading { padding: 30px 0 !important; color: #bac4d3 !important; font-size: 20px !important; }
+
+/* Search and genre surfaces share the same low-cost glass material. */
+#search, #genre-browser {
+  background: linear-gradient(145deg, #111a29, #080d16 78%) !important;
+  color: #f6f7fb !important;
+}
+#search .sq {
+  border: 1px solid var(--tv-line) !important;
+  border-radius: 17px !important;
+  background: linear-gradient(130deg, rgba(255,255,255,.13), rgba(255,255,255,.055)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.08) !important;
+}
+#search .skey, #search .schip, #sxclose {
+  border: 1px solid rgba(255,255,255,.13) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.055)) !important;
+  color: #fff !important;
+  transition: background 120ms ease-out !important;
+}
+#search .skey.focus, #search .schip.focus, #sxclose.focus {
+  outline: 2px solid #fff !important;
+  outline-offset: 2px !important;
+  background: rgba(255,255,255,.24) !important;
+  transform: none !important;
+}
+#search .caret { animation: none !important; opacity: 1 !important; background: #f07187 !important; }
+#search .swhere b { color: #f08a9c !important; }
+#genre-browser {
+  z-index: 30 !important;
+  padding: 72px 76px 42px !important;
+  border-top: 1px solid rgba(255,255,255,.06) !important;
+}
+.genre-head { margin-bottom: 24px !important; }
+.genre-head small { color: #ef9aaa !important; letter-spacing: 2px !important; }
+.genre-head h2 { font-size: 36px !important; font-weight: 800 !important; }
+.genre-head p { color: var(--tv-muted) !important; font-size: 17px !important; }
+.genre-back, .genre-chip {
+  min-height: 50px !important;
+  border: 1px solid rgba(255,255,255,.15) !important;
+  border-radius: 13px !important;
+  background: linear-gradient(135deg, rgba(255,255,255,.13), rgba(255,255,255,.05)) !important;
+  color: #fff !important;
+  font-size: 17px !important;
+  font-weight: 650 !important;
+}
+.genre-options {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  max-height: 170px !important;
+  margin-bottom: 18px !important;
+}
+.genre-chip { padding: 8px 12px !important; text-align: center !important; }
+.genre-chip.focus, .genre-back.focus {
+  outline: 2px solid #fff !important;
+  outline-offset: 2px !important;
+  background: rgba(255,255,255,.23) !important;
+}
+.genre-results-title { margin: 0 0 14px !important; font-size: 22px !important; color: #fff !important; }
+.genre-results {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 18px 20px !important;
+  overflow: hidden !important;
+}
+.genre-results .card {
+  width: 100% !important; height: 298px !important; margin: 0 !important;
+}
+.genre-results .card .pic { width: 100% !important; height: 250px !important; }
+.genre-results .card .card-info { padding-top: 7px !important; }
+.genre-results .card .ttl { font-size: 14px !important; }
+.genre-results .card .cap { font-size: 11px !important; }
+.genre-loading { color: #c4ccda !important; font-size: 19px !important; padding: 20px 0 !important; }
+
+/* Details, settings and quick panel: consistent glass panels, no backdrop blur. */
+#details .dbody { color: #fff !important; }
+#details .dbtn, #details .dback {
+  border: 1px solid rgba(255,255,255,.17) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.055)) !important;
+  color: #fff !important;
+}
+#details .dbtn.focus, #details .dback.focus {
+  outline: 2px solid #fff !important; outline-offset: 3px !important;
+}
+#spanel, #qpanel {
+  border: 1px solid rgba(255,255,255,.14) !important;
+  background: linear-gradient(145deg, rgba(27,36,51,.98), rgba(11,16,25,.98)) !important;
+  box-shadow: 0 16px 42px rgba(0,0,0,.34) !important;
+}
+#spanel .chip, #qpanel .tile, #qpanel .qbtn {
+  border: 1px solid rgba(255,255,255,.12) !important;
+  background: linear-gradient(135deg, rgba(255,255,255,.11), rgba(255,255,255,.045)) !important;
+  color: #fff !important;
+}
+#spanel .chip.sel { background: rgba(233,75,104,.30) !important; }
+#spanel .chip.focus, #qpanel .tile.focus, #qpanel .qbtn.focus {
+  outline: 2px solid #fff !important; outline-offset: 2px !important;
+}
+#toast {
+  border: 1px solid rgba(255,255,255,.15) !important;
+  border-radius: 14px !important;
+  background: rgba(24,32,46,.96) !important;
+  color: #fff !important;
+}
+
+/* Keep movement fluid, but limit it to compositor-friendly transforms and opacity. */
+main { transition: transform 230ms cubic-bezier(.22,.72,.22,1) !important; }
+.strip { transition: transform 185ms cubic-bezier(.22,.72,.22,1) !important; }
+.card .pic, #heroBtn, #top .tab, #top .ico {
+  transition-property: transform, opacity, background-color, border-color !important;
+  transition-duration: 145ms !important;
+  transition-timing-function: ease-out !important;
+}
+#bg img { transition: opacity 220ms ease-out !important; }
+#details *, #search *, #genre-browser *, #spanel *, #qpanel * {
+  animation: none !important;
+}
+@media (max-height: 800px) {
+  #top { top: 18px !important; min-height: 64px !important; }
+  #hero { height: 500px !important; padding-top: 138px !important; }
+  #heroTitle { font-size: 54px !important; }
+  .strip, .row.poster-row .strip { height: 360px !important; }
+  .card { width: 184px !important; height: 340px !important; }
+  .card .pic { width: 184px !important; height: 276px !important; }
+  #genre-browser { padding-top: 48px !important; }
+  .genre-options { max-height: 135px !important; }
+  .genre-results .card { height: 255px !important; }
+  .genre-results .card .pic { height: 210px !important; }
+}
