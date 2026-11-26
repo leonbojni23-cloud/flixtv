@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#0e1014">
 <title>FLIXTV</title>
 
-<link rel="stylesheet" href="style.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="features/details.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="features/search.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="features/profiles.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="features/details.css">
+<link rel="stylesheet" href="features/search.css">
+<link rel="stylesheet" href="features/profiles.css">
 
 <style>
 html, body {
@@ -165,7 +165,7 @@ body.player-open > #home {
 <!-- Header -->
 <header id="top">
 
-  <div class="brand" aria-label="FLIXTV">FLIX<span>TV</span></div>
+  <div class="brand" aria-label="FLIXTV"><img class="brand-mark" src="flixtv-logo.svg" alt=""><span>FLIXTV</span></div>
 
   <nav class="pill catalog-nav">
     <span class="tab f cur" data-tab="home">Kryefaqja</span>
@@ -217,9 +217,8 @@ body.player-open > #home {
     Loading player...
   </div>
 
-  <iframe id="cinesrc-frame" title="CineSRC video player" src="about:blank"
-     sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
-    allow="autoplay; fullscreen; encrypted-media; picture-in-picture; orientation-lock"
+  <iframe id="cinesrc-frame" title="FLIXTV video player" src="about:blank"
+    allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
     allowfullscreen referrerpolicy="no-referrer"></iframe>
 
   <button id="player-back" class="f" type="button" aria-label="Back to title details">
@@ -356,7 +355,7 @@ body.player-open > #home {
 
     <div class="qrow qinputs" id="qinputs"></div>
 
-    <div class="qfoot">TV Home</div>
+    <div class="qfoot">FLIXTV</div>
 
   </div>
 </div>
@@ -382,7 +381,7 @@ body.player-open > #home {
 <script src="app.js"></script>
 
 <!-- CineSRC player: load after app.js and before details.js -->
-<script src="features/superembed-player.js"></script>
+<script src="features/bingeapi-player.js"></script>
 
 <script src="features/details.js"></script>
 <script src="features/search.js"></script>
