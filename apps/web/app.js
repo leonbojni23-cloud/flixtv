@@ -2676,7 +2676,10 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   frame.removeAttribute("sandbox");
   $("resolved-video").hidden=true;$("player-quality-select").hidden=true;
   const subtitleToolbar=$("subtitle-toolbar");if(subtitleToolbar)subtitleToolbar.hidden=true;
-  modal("player-modal",true);clearInterval(heroTimer);heroTimer=null;
+  modal("player-modal",true);
+  document.documentElement.classList.add("flxtv-player-active");
+  document.body.classList.add("flxtv-player-active");
+  clearInterval(heroTimer);heroTimer=null;
   $("player-modal").dataset.playerState="loading";setPlayerStatus("Po lidhet me BingeAPI…");
   // Do not request fullscreen while opening the iframe: browsers require a user gesture.
   // BingeAPI must enter fullscreen from its own in-player control.
@@ -2741,6 +2744,8 @@ function closePlayer(){
   if(playbackReturnToTitlePage){$("title-page").hidden=false;$("catalog").hidden=true;$("hero").hidden=true;playbackReturnToTitlePage=false}
   $("content-intro").classList.remove("show");$("content-intro").setAttribute("aria-hidden","true");
   $("player-modal").classList.remove("attention-active","open");$("player-modal").setAttribute("aria-hidden","true");
+  document.documentElement.classList.remove("flxtv-player-active");
+  document.body.classList.remove("flxtv-player-active");
   ["--flxtv-vv-width","--flxtv-vv-height","--flxtv-vv-left","--flxtv-vv-top"].forEach(name=>$("player-modal").style.removeProperty(name));
   syncPlayerOrientation();if(heroItems.length>1)startHeroTimer();
 }

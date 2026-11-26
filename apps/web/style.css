@@ -792,7 +792,7 @@ body{
   .details-backdrop{flex:0 0 auto}
 }
 
-.player-modal.attention-active .player-close{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+.player-modal .player-close{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
 
 /* External player fallback for browsers that block third-party iframe cookies. */
 .player-actions{position:absolute;z-index:61;top:calc(env(safe-area-inset-top) + 78px);left:22px;display:flex;gap:9px;align-items:center}
@@ -8045,3 +8045,11 @@ body.flxtv-series-detail .topbar .top-actions{margin-left:auto!important;gap:9px
 #subtitle-choice{max-width:min(34vw,330px);min-width:150px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:#111923;color:#fff;padding:7px 8px;font:inherit;overflow:hidden;text-overflow:ellipsis}
 #subtitle-choice:disabled{opacity:.55}
 @media(max-width:700px){#subtitle-choice{max-width:38vw;min-width:105px;padding:6px 4px;font-size:10px}}
+
+
+/* Persistent exit control: stays above the cross-origin player, including focus mode. */
+.player-modal .player-actions{z-index:2147483001!important;pointer-events:none!important}
+.player-modal .player-close{position:static!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;min-width:68px!important;min-height:42px!important;padding:8px 13px!important;border-radius:999px!important;background:rgba(12,15,22,.88)!important;color:#fff!important;pointer-events:auto!important;opacity:1!important;visibility:visible!important}
+.player-modal .player-close span{font-size:25px!important;line-height:16px!important}
+.player-modal .player-close strong{font-size:12px!important;font-weight:700!important}
+html.flxtv-player-active,body.flxtv-player-active{background:#000!important}
