@@ -1374,3 +1374,101 @@ body.player-open *{animation:none!important;transition:none!important}
 
 /* No decorative transitions on TV overlays; keep focus changes immediate. */
 #details *,#search *,#prof *,#qpanel *,#spanel *{transition:none!important;animation:none!important}
+
+
+/* webOS premium glass layer: translucent surfaces without expensive backdrop blur */
+#top {
+  background: linear-gradient(180deg, rgba(8,10,14,.84), rgba(8,10,14,.42));
+  border-bottom: 1px solid rgba(255,255,255,.075);
+}
+#top .catalog-nav {
+  padding: 5px;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.035));
+}
+#top .tab {
+  padding: 11px 18px;
+  border-radius: 999px;
+  color: rgba(255,255,255,.78);
+}
+#top .tab.cur {
+  color: #fff;
+  background: rgba(255,255,255,.15);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.16);
+}
+#top .tab.focus,
+#top .genre-trigger.focus {
+  outline: 2px solid rgba(255,255,255,.95);
+  outline-offset: 3px;
+  background: rgba(255,255,255,.2);
+}
+#top .genre-trigger {
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.075);
+}
+#top .avatar,
+#top .ico {
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.11);
+}
+#top .ico { border-radius: 50%; }
+.row { margin-bottom: 42px; }
+.row h3 { margin-bottom: 17px; }
+.strip { height: 360px; }
+.card { margin-right: 27px; }
+.card .pic {
+  border-radius: 10px;
+  background: rgba(255,255,255,.06);
+}
+.card .cap { opacity: 1; }
+.focus.card .pic { box-shadow: 0 0 0 3px rgba(255,255,255,.95); }
+
+/* TV performance: avoid promoting every strip to a GPU layer and skip costly blur */
+main, .strip { will-change: auto; }
+#bgBlur { display: none !important; filter: none !important; }
+#bg img { transition: opacity .18s linear; }
+#shade { transition: none; }
+main { transition: transform .16s linear; }
+.strip { transition: transform .12s linear; }
+.card .pic, .app .disc, .tab, .ico, #heroBtn {
+  transition: none;
+}
+.focus .pic, .focus .disc { transform: none; }
+.focus.card .pic, .focus.app .disc {
+  box-shadow: 0 0 0 3px #fff;
+}
+#top .tab.cur { box-shadow: inset 0 -2px rgba(255,255,255,.92); }
+
+#genre-browser {
+  position: fixed; inset: 0; z-index: 30; overflow: hidden;
+  background: linear-gradient(145deg, rgba(10,13,19,.98), rgba(4,6,10,.99));
+  padding: 74px 5.2% 50px;
+}
+#genre-browser[hidden] { display:none !important; }
+.genre-shell { height:100%; display:flex; flex-direction:column; }
+.genre-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:30px; }
+.genre-head small { color:#e7aeb2; font-size:13px; font-weight:700; letter-spacing:2px; }
+.genre-head h2 { margin-top:8px; color:#fff; font-size:38px; font-weight:700; }
+.genre-head p { margin-top:8px; color:rgba(255,255,255,.62); font-size:17px; }
+.genre-back,.genre-chip {
+  color:#fff; border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.055));
+  border-radius:999px; padding:13px 22px; font-size:17px;
+}
+.genre-options { display:flex; flex-wrap:wrap; gap:10px; max-height:210px; overflow:hidden; margin-bottom:24px; }
+.genre-chip { padding:12px 19px; font-size:16px; }
+.genre-chip.focus,.genre-back.focus { outline:2px solid #fff; background:rgba(255,255,255,.24); }
+.genre-results-title { color:#fff; font-size:22px; margin:4px 0 18px; }
+.genre-results { display:flex; flex-wrap:wrap; gap:20px 24px; overflow:hidden; }
+.genre-results .card { width:154px; height:250px; margin:0; }
+.genre-results .card .pic { height:205px; }
+.genre-results .card .ttl { font-size:14px; }
+.genre-results .card .cap { font-size:11px; }
+.genre-loading { color:rgba(255,255,255,.72); font-size:19px; padding:24px 0; }
+@media(max-height:800px) {
+  #genre-browser { padding-top:48px; }
+  .genre-head { margin-bottom:18px; }
+  .genre-head h2 { font-size:32px; }
+  .genre-options { max-height:160px; margin-bottom:12px; }
+}
