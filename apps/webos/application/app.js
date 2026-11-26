@@ -4,7 +4,7 @@
  if("home"===page){
   var movies=P.filter(function(item){return item.tmdb&&item.tmdb.type==="movie"});
   var shows=P.filter(function(item){return item.tmdb&&item.tmdb.type==="tv"});
-  if(x.length)add("Continue Watching",x);
+  if(x.length)add("Continue Watching",x);N.forEach(function(getRow){var row=getRow();if(row&&row.items)add(row.title,row.items)});
   add("Trending Movies",movies);add("Trending Series",shows);L=P.slice(0,6);
  }else{add("movies"===page?"Popular Movies":"Popular Series",P);L=P.slice(0,6)}
  O=rows;he=0;if(L.length)be();else{n("heroSrc").textContent="FLIXTV";n("heroTitle").textContent="Po ngarkohen titujt…";n("heroMeta").textContent="";n("heroSub").textContent="";n("heroBtn").textContent=""}U();
