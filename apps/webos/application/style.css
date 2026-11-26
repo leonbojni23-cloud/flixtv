@@ -1308,8 +1308,8 @@ main#home { padding:0 5.2%;z-index:2; }
 :root{--flix-red:#e50936;--flix-muted:#9ca3af}
 html,body{background:#050609!important;color:#f7f7f8!important;overflow:hidden!important}
 #bg{background:#08090d!important;overflow:hidden!important}
-#bg img{transition:none!important;filter:blur(20px) saturate(1.12) brightness(.32)!important;transform:scale(1.06);opacity:0!important}
-#bg img.on{opacity:.34!important}
+#bg img{transition:none!important;filter:brightness(.25) saturate(.88)!important;transform:none!important;opacity:0!important}
+#bg img.on{opacity:.22!important}
 #bgBlur{display:none!important}
 #shade{background:linear-gradient(90deg,rgba(5,6,9,.94) 0%,rgba(5,6,9,.74) 38%,rgba(5,6,9,.20) 75%,rgba(5,6,9,.08) 100%),linear-gradient(0deg,#050609 0%,rgba(5,6,9,.65) 35%,rgba(5,6,9,.12) 78%)!important;transition:none!important}
 #top{top:34px!important;left:76px!important;right:76px!important;min-height:62px!important;transition:none!important}
