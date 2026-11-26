@@ -1,58 +1,105 @@
 <!doctype html>
 <html lang="sq">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101010"><title>EmbedMaster Player Test</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>EmbedMaster Player Test</title>
 <style>
-*{box-sizing:border-box}body{margin:0;padding:24px;background:#101010;color:#f5f5f5;font:15px/1.5 system-ui,sans-serif}
-main{max-width:1100px;margin:auto}h1{font-size:24px;margin:0 0 8px}.muted,.note{color:#999}
-.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
-button{border:1px solid #444;border-radius:10px;background:#222;color:white;padding:11px 14px;font:inherit;cursor:pointer}
-button[aria-pressed=true]{background:#a71925;border-color:#e34a56}
-.frame-wrap{overflow:hidden;border:1px solid #444;border-radius:14px;background:#000;position:relative;width:100%;aspect-ratio:16/9;min-height:300px}
-iframe{position:absolute;inset:0;display:block;width:100%;height:100%;border:0;background:#000}
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#101010;color:#f5f5f5;font:15px/1.5 system-ui,sans-serif}
+body{padding:24px}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:24px;margin:0 0 8px}
+.muted,.note{color:#999}
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0}
+button{border:1px solid #444;border-radius:10px;background:#222;color:#fff;padding:11px 15px;font:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+#fullscreenBtn{background:#a71925;border-color:#e34a56}
+.frame-wrap{position:relative;overflow:hidden;border:1px solid #444;border-radius:14px;background:#000;width:100%;aspect-ratio:16/9;min-height:260px}
+.frame-wrap iframe{position:absolute;inset:0;display:block;width:100%;height:100%;border:0;background:#000}
+#closeFullscreen{display:none;position:fixed;z-index:2147483647;top:calc(env(safe-area-inset-top) + 12px);right:calc(env(safe-area-inset-right) + 12px);padding:10px 14px;background:rgba(25,25,25,.9);backdrop-filter:blur(14px)}
 #status{margin-top:12px;padding:12px;border-radius:10px;background:#1b1b1b;color:#ddd;overflow-wrap:anywhere}
-@media(max-width:600px){body{padding:14px}.frame-wrap{min-height:220px}}
-</style></head>
-<body><main>
+body.player-fullscreen{padding:0;overflow:hidden;background:#000}
+body.player-fullscreen main{width:100%;max-width:none;height:100%;margin:0}
+body.player-fullscreen h1,body.player-fullscreen .muted,body.player-fullscreen .toolbar,body.player-fullscreen #status,body.player-fullscreen .note{display:none!important}
+body.player-fullscreen .frame-wrap{position:fixed;z-index:2147483646;inset:0;width:100vw;height:100vh;height:100dvh;min-height:0;aspect-ratio:auto;border:0;border-radius:0;overflow:hidden;background:#000}
+body.player-fullscreen .frame-wrap iframe{width:100%;height:100%;inset:0}
+body.player-fullscreen #closeFullscreen{display:block}
+@media(max-width:600px){body{padding:14px}.frame-wrap{min-height:210px}}
+</style>
+</head>
+<body>
+<main>
 <h1>EmbedMaster Player Test</h1>
-<p class="muted">Test i izoluar i EmbedMaster. Player-i kryesor i FLIXTV nuk ndryshohet nga kjo faqe.</p>
-<div class="controls">
-<button data-mode="none" aria-pressed="true">Pa sandbox (rekomandohet)</button>
-<button data-mode="scripts">Vetëm scripts</button>
-<button data-mode="same-origin">Scripts + same-origin</button>
-<button data-mode="extended">Sandbox extended</button>
-<button data-mode="strict">Strict</button>
+<p class="muted">Test i izoluar. Në iPhone përdor butonin Fullscreen të faqes për ta zgjeruar player-in në gjithë ekranin e disponueshëm.</p>
+<div class="toolbar">
+<button id="fullscreenBtn" type="button" aria-pressed="false">⛶ Fullscreen</button>
 </div>
-<div class="frame-wrap" id="player"></div>
-<div id="status">Duke ngarkuar EmbedMaster…</div>
-<p class="note">EmbedMaster pranon IMDb ose TMDB ID në endpoint-in /embed/movie/{id}. Testo fillimisht pa sandbox dhe pastaj krahaso sjelljen me sandbox.</p>
+<div class="frame-wrap" id="player">
+<iframe id="embedmasterFrame" title="EmbedMaster movie player"
+src="https://embedmaster.link/movie/27205"
+allowfullscreen
+allow="autoplay *; fullscreen *; picture-in-picture *; encrypted-media *"
+referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</div>
+<button id="closeFullscreen" type="button">✕ Mbyll fullscreen</button>
+<div id="status" role="status" aria-live="polite">EmbedMaster: pa sandbox. Fullscreen iOS përdor modalitetin CSS të faqes kur fullscreen-i origjinal i iframe nuk mbështetet.</div>
+<p class="note">EmbedMaster është cross-origin. iOS Safari në iPhone nuk ofron mbështetje të plotë për fullscreen të iframe-ve të jashtme; faqja përdor një fallback që e shtrin iframe në viewport. Në desktop dhe pajisje të tjera provohet fillimisht Fullscreen API.</p>
 </main>
 <script>
 (()=> {
- const src="https://embedmaster.link/movie/27205";
- const modes={
-  none:{label:"Pa sandbox",sandbox:null},
-  scripts:{label:"Vetëm allow-scripts",sandbox:"allow-scripts"},
-  "same-origin":{label:"allow-scripts + allow-same-origin",sandbox:"allow-scripts allow-same-origin"},
-  extended:{label:"Sandbox extended",sandbox:"allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"},
-  strict:{label:"Strict (sandbox bosh)",sandbox:""}
- };
- const player=document.getElementById("player"),status=document.getElementById("status");
- const buttons=[...document.querySelectorAll("button[data-mode]")];
- function load(mode){
-  const cfg=modes[mode],frame=document.createElement("iframe");
-  frame.title="EmbedMaster movie player";
-  frame.src=src;
-  frame.allow="autoplay; fullscreen; picture-in-picture; encrypted-media";
-  frame.allowFullscreen=true;
-  frame.referrerPolicy="strict-origin-when-cross-origin";
-  if(cfg.sandbox!==null) frame.setAttribute("sandbox",cfg.sandbox);
-  player.replaceChildren(frame);
-  status.textContent="Modaliteti: "+cfg.label+" | "+src;
-  buttons.forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===mode)));
+ const frame=document.getElementById("embedmasterFrame");
+ const fullscreenBtn=document.getElementById("fullscreenBtn");
+ const closeBtn=document.getElementById("closeFullscreen");
+ const status=document.getElementById("status");
+ const body=document.body;
+ let nativeFullscreen=false;
+ function sendProviderFullscreen(){
+  try{
+   frame.contentWindow.postMessage({source:"embedmaster_player_command",command:"fullscreen"},"https://embedmaster.link");
+  }catch(_){}
  }
- buttons.forEach(b=>b.addEventListener("click",()=>load(b.dataset.mode)));
- load("none");
+ async function enterFullscreen(){
+  sendProviderFullscreen();
+  nativeFullscreen=false;
+  try{
+   const target=document.getElementById("player");
+   if(target.requestFullscreen){
+    await target.requestFullscreen();
+    nativeFullscreen=true;
+   }
+  }catch(_){}
+  body.classList.add("player-fullscreen");
+  fullscreenBtn.setAttribute("aria-pressed","true");
+  status.textContent=nativeFullscreen?"Fullscreen aktiv.":"Modaliteti fullscreen i faqes aktiv (fallback iOS).";
+ }
+ async function exitFullscreen(){
+  body.classList.remove("player-fullscreen");
+  fullscreenBtn.setAttribute("aria-pressed","false");
+  if(document.fullscreenElement && document.exitFullscreen){
+   try{await document.exitFullscreen()}catch(_){}
+  }
+  nativeFullscreen=false;
+  status.textContent="Fullscreen u mbyll.";
+ }
+ fullscreenBtn.addEventListener("click",()=>{
+  if(body.classList.contains("player-fullscreen")) exitFullscreen();
+  else enterFullscreen();
+ });
+ closeBtn.addEventListener("click",exitFullscreen);
+ document.addEventListener("fullscreenchange",()=>{
+  if(!document.fullscreenElement && nativeFullscreen){
+   nativeFullscreen=false;
+   body.classList.remove("player-fullscreen");
+   fullscreenBtn.setAttribute("aria-pressed","false");
+  }
+ });
+ document.addEventListener("keydown",e=>{
+  if(e.key==="Escape" && body.classList.contains("player-fullscreen")) exitFullscreen();
+ });
 })();
-</script></body></html>
+</script>
+</body>
+</html>
