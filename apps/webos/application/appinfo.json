@@ -1,10 +1,10 @@
 {
   "id": "com.boring.tvhome",
-  "version": "0.25.0",
-  "vendor": "boring",
+  "version": "0.26.0",
+  "vendor": "FLIXTV",
   "type": "web",
   "main": "index.html",
-  "title": "TV Home",
+  "title": "FLIXTV",
   "icon": "icon.png",
   "largeIcon": "largeIcon.png",
   "bgColor": "#0e1014",
