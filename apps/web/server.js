@@ -187,11 +187,16 @@ const server = http.createServer(async (req, res) => {
   try { parsed = new URL(req.url, "http://localhost"); } catch (_) { return sendJson(res, 400, { error: "Invalid URL" }); }
   const pathname = parsed.pathname;
   const isTestRoute = pathname === "/test" || pathname === "/test/";
+  const isTest1Route = pathname === "/test1" || pathname === "/test1/";
   if ((pathname === "/" || isTestRoute) && !["GET", "HEAD"].includes(req.method)) {
     res.setHeader("Allow", "GET, HEAD");
     return sendJson(res, 405, { error: "Method not allowed" });
   }
   if (pathname === "/" || isTestRoute) return serveAppShell(req, res, isTestRoute);
+  if (isTest1Route) {
+    if (!["GET", "HEAD"].includes(req.method)) { res.setHeader("Allow", "GET, HEAD"); return sendJson(res, 405, { error: "Method not allowed" }); }
+    return serveFile(req, res, path.join(WEB_ROOT, "test1", "index.html")) || sendJson(res, 404, { error: "Test1 app shell not found" });
+  }
 
   const testTagged = parsed.searchParams.get("__flxtv_test") === "1";
   const testStartedAt = process.hrtime.bigint();
