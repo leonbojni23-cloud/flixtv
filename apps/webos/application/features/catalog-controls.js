@@ -30,7 +30,7 @@
   var trigger = document.createElement("span");
   trigger.id = "genre-trigger";
   trigger.className = "tab f genre-trigger";
-  trigger.textContent = "Zhanri";
+  trigger.textContent = "Zhanret";
   trigger.hidden = true;
   trigger.onok = function () {
     var active = document.querySelector("#top .tab.cur");
@@ -54,6 +54,7 @@
     var active = document.querySelector("#top .tab.cur");
     var page = active && active.dataset.tab;
     trigger.hidden = page !== "movies" && page !== "series";
+    if (!trigger.hidden && active && active.parentNode) active.insertAdjacentElement("afterend", trigger);
   }
   var observer = new MutationObserver(updateTrigger);
   var tabs = document.querySelector("#top .catalog-nav");
@@ -63,7 +64,8 @@
 
   function groups() {
     var rows = [[back]];
-    if (options.children.length) rows.push([].slice.call(options.children));
+    var buttons = [].slice.call(options.children);
+    for (var b = 0; b < buttons.length; b += 6) rows.push(buttons.slice(b, b + 6));
     for (var i = 0; i < currentRows.length; i += 6) rows.push(currentRows.slice(i, i + 6));
     return rows;
   }
@@ -92,7 +94,8 @@
       if (id !== requestId || tv.view() !== "genres") return;
       var items = (data.results || []).filter(function (entry) {
         return entry.poster_path || entry.backdrop_path;
-      }).map(function (entry) {
+      }).slice(0, 12).map(function (entry) {
+        entry.media_type = currentType === "series" ? "tv" : "movie";
         return tv.fromTmdb(entry);
       });
       results.innerHTML = "";
@@ -123,6 +126,7 @@
       currentType = payload && payload.type === "series" ? "series" : "movies";
       requestId++;
       root.hidden = false;
+      trigger.hidden = true;
       caption.textContent = currentType === "series" ? "Zhanret e serialeve" : "Zhanret e filmave";
       title.textContent = "Zgjidh një zhanër";
       results.innerHTML = "";
@@ -132,6 +136,7 @@
     hide: function () {
       requestId++;
       root.hidden = true;
+      updateTrigger();
     },
     back: function () { tv.closeView(); }
   });
