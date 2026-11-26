@@ -2664,7 +2664,7 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   const frame=$("cinesrc-frame");if(!frame)throw new Error("BingeAPI iframe mungon në player-in FLIXTV.");
   frame.hidden=false;frame.setAttribute("title","BingeAPI player");
   frame.setAttribute("loading","eager");frame.setAttribute("fetchpriority","high");
-  frame.setAttribute("allow","autoplay; fullscreen *; picture-in-picture; encrypted-media; orientation-lock");
+  frame.setAttribute("allow","autoplay; fullscreen; picture-in-picture; encrypted-media");
   frame.setAttribute("allowfullscreen","");
   frame.setAttribute("webkitallowfullscreen","");
   // BingeAPI explicitly requires an unsandboxed iframe. Its own fullscreen button
