@@ -22,7 +22,7 @@ function loadCatalog(page){
  var token=++catalogRequest,key="flixtv:webos:catalog:v3:"+page,cached=catalogCache[page];
  if(!cached){try{cached=JSON.parse(localStorage.getItem(key)||"null")}catch(_){}}
  if(page==="home"&&Array.isArray(cached)&&cached.length){catalogCache[page]=cached;P=cached;B();return}
- if(page!=="home"&&cached&&Array.isArray(cached.sections)&&cached.sections.length){catalogCache[page]=cached.sections;catalogSections[page]=cached.sections;P=cached.sections[0].items||[];B();return}
+ if(page!=="home"&&cached&&Array.isArray(cached.sections)&&cached.sections.length){catalogCache[page]=cached;catalogSections[page]=cached.sections;P=cached.sections[0].items||[];B();return}
  P=[];O=[];L=[];n("rows").innerHTML='<div class="tv-loading">Po ngarkohen koleksionet…</div>';
  n("heroSrc").textContent=page==="movies"?"FILMA":"SERIALE";n("heroTitle").textContent="Po përgatitet koleksioni…";n("heroMeta").textContent="";n("heroSub").textContent="";
  if(page==="home"){
@@ -48,8 +48,8 @@ function loadCatalog(page){
    var items=(result.results||[]).filter(function(item){return item.poster_path||item.backdrop_path}).slice(0,12).map(function(item){item.media_type=page==="series"?"tv":"movie";return k(item)});
    return{title:specs[index][0],items:items};
   }).filter(function(section){return section.items.length});
-  catalogSections[page]=sections;catalogCache[page]=sections;P=sections[0]?sections[0].items:[];
-  try{localStorage.setItem(key,JSON.stringify({sections:sections,savedAt:Date.now()}))}catch(_){}
+  catalogSections[page]=sections;catalogCache[page]={sections:sections,savedAt:Date.now()};P=sections[0]?sections[0].items:[];
+  try{localStorage.setItem(key,JSON.stringify(catalogCache[page]))}catch(_){}
   B();Ee();
  }).catch(function(error){
   if(token!==catalogRequest||Ce!==page)return;
