@@ -2645,8 +2645,9 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   frame.hidden=false;frame.setAttribute("title","BingeAPI player");
   frame.setAttribute("loading","eager");frame.setAttribute("fetchpriority","high");
   frame.setAttribute("allow","autoplay; fullscreen; picture-in-picture; encrypted-media");
-  // BingeAPI explicitly requires an unsandboxed iframe for its player scripts.
-  frame.removeAttribute("sandbox");
+  // Test sandbox: allow the player runtime, forms and fullscreen presentation,
+  // while keeping the embedded BingeAPI document isolated from the parent page.
+  frame.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock");
   $("resolved-video").hidden=true;$("player-quality-select").hidden=true;
   const subtitleToolbar=$("subtitle-toolbar");if(subtitleToolbar)subtitleToolbar.hidden=true;
   modal("player-modal",true);clearInterval(heroTimer);heroTimer=null;
