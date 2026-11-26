@@ -12,144 +12,7 @@
 <link rel="stylesheet" href="features/profiles.css">
 <link rel="stylesheet" href="premium-tv.css">
 
-<style>
-html, body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  background: #0e1014;
-  overflow: hidden;
-}
 
-/* Series view */
-#series-view {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  width: 100%;
-  height: 100%;
-  background: #0e1014;
-  overflow: hidden;
-}
-
-/* Fullscreen video player */
-#player-view {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 999999;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: #000;
-  overflow: hidden;
-}
-
-#cinesrc-frame {
-  display: block;
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  background: #000;
-}
-#player-loading {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-family: Arial, sans-serif;
-  font-size: 24px;
-  background: #000;
-  z-index: 1;
-  pointer-events: none;
-}
-
-#player-loading[hidden] {
-  display: none !important;
-}
-
-#player-back {
-  position: absolute;
-  top: clamp(24px, 4vh, 48px);
-  left: clamp(28px, 3.5vw, 64px);
-  z-index: 5;
-  min-width: 116px;
-  height: 54px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 0 20px 0 17px;
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 999px;
-  background: rgba(18,18,20,.72);
-  color: #fff;
-  box-shadow: 0 8px 28px rgba(0,0,0,.28);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  font: 700 12px/1 Arial, Helvetica, sans-serif;
-  letter-spacing: 1.7px;
-  cursor: pointer;
-  opacity: .96;
-  transition: opacity .22s ease, transform .22s ease, background .18s ease, border-color .18s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-#player-view.player-controls-hidden #player-back {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translateY(-8px);
-}
-#player-view.player-controls-visible #player-back {
-  opacity: .98;
-  visibility: visible;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-#player-back svg {
-  width: 21px;
-  height: 21px;
-  flex: none;
-}
-
-#player-back.focus,
-#player-back:focus {
-  outline: 3px solid rgba(255,255,255,.96);
-  outline-offset: 4px;
-  border-color: rgba(255,255,255,.65);
-  background: rgba(35,35,38,.96);
-  transform: scale(1.045);
-}
-
-#player-view[hidden],
-#series-view[hidden] {
-  display: none !important;
-}
-
-body.player-open {
-  overflow: hidden;
-}
-
-/* Release TV rendering resources while CineSRC is playing. */
-body.player-open > #bg,
-body.player-open > #bgBlur,
-body.player-open > #shade,
-body.player-open > #top,
-body.player-open > #home {
-  display: none !important;
-}
-
-</style>
 </head>
 
 <body>
@@ -163,46 +26,42 @@ body.player-open > #home {
 <img id="bgBlur" alt="">
 <div id="shade"></div>
 
-<!-- Header -->
+<!-- FLIXTV new navigation shell -->
 <header id="top">
-
-  <div class="brand" aria-label="FLIXTV"><img class="brand-mark" src="flixtv-logo.svg" alt=""><span>FLIXTV</span></div>
-
-  <nav class="pill catalog-nav">
+  <div class="brand" aria-label="FLIXTV">
+    <img class="brand-mark" src="flixtv-logo.svg" alt="">
+    <span>FLIXTV</span>
+  </div>
+  <nav class="pill catalog-nav" aria-label="Main navigation">
     <span class="tab f cur" data-tab="home">Kryefaqja</span>
     <span class="tab f" data-tab="movies">Filma</span>
     <span class="tab f" data-tab="series">Seriale</span>
   </nav>
-
-  <div class="avatar f" id="avatar"></div>
-
-  <nav class="pill icons">
-    <span class="ico f" data-act="settings">
-      <svg viewBox="0 0 24 24">
-        <path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 2.7a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1L11 21h4l.4-2.7c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5L19.4 13zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/>
-      </svg>
-    </span>
-  </nav>
-
-  <span id="weather" class="f" data-act="weather" hidden></span>
-  <div id="clock"></div>
-
+  <div class="top-tools">
+    <span id="weather" class="f" data-act="weather" hidden></span>
+    <div id="clock"></div>
+    <span class="avatar f" id="avatar" aria-label="Profili"></span>
+    <nav class="pill icons" aria-label="Settings">
+      <span class="ico f" data-act="settings" aria-label="Cilësimet">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 2.7a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1L11 21h4l.4-2.7c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+      </span>
+    </nav>
+  </div>
 </header>
 
-<!-- Home -->
+<!-- FLIXTV new home and catalog canvas -->
 <main id="home">
-
   <section id="hero">
-    <div id="heroSrc"></div>
-    <h1 id="heroTitle"></h1>
-    <div id="heroMeta"></div>
-    <p id="heroSub"></p>
-    <span id="heroBtn" class="f">Shiko detajet</span>
-    <div id="dots"></div>
+    <div class="hero-copy">
+      <div id="heroSrc"></div>
+      <h1 id="heroTitle"></h1>
+      <div id="heroMeta"></div>
+      <p id="heroSub"></p>
+      <span id="heroBtn" class="f">Shiko detajet</span>
+    </div>
+    <div class="hero-foot"><span class="hero-brand">ZGJEDHJA E FLIXTV</span><div id="dots"></div></div>
   </section>
-
   <div id="rows"></div>
-
 </main>
 
 <!-- Hidden compatibility mount for the existing app controller. -->
