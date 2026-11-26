@@ -68,7 +68,7 @@ const API=location.hostname.endsWith("github.io")?"https://flixtv-snowy.vercel.a
 /* FLIXTV anti-popup and anti-ad protections.
    These controls protect the parent app. Cross-origin iframe content has separate browser security boundaries. */
 (()=>{
- const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws"];
+ const allowedFrameHosts=["cinesrc.st","player.videasy.ws","videasy.ws","bingeapi.st"];
  const isAllowedPlayerUrl=url=>{
   try{const host=new URL(url,location.href).hostname.toLowerCase();return allowedFrameHosts.some(allowed=>host===allowed||host.endsWith("."+allowed))}
   catch(_){return false}
@@ -1049,6 +1049,47 @@ function renderContinueWatching(){
  });
 }
 /* Event-driven progress bridge. CineSRC emits playback events; no polling loop is needed. */
+/* BingeAPI postMessage bridge. The iframe remains isolated; only documented playback events are forwarded. */
+window.addEventListener("message",event=>{
+  const frame=$("cinesrc-frame");
+  if(!frame||event.source!==frame.contentWindow||event.origin!=="https://bingeapi.st")return;
+  const payload=event.data;
+  if(!payload||payload.source!=="bingeapi_player"||!payload.event)return;
+  const info=payload.info;
+  const dispatch=(type,data={})=>window.dispatchEvent(new CustomEvent("flxtv:cinesrc-event",{detail:{type,data}}));
+  switch(payload.event){
+    case "play":dispatch("play");break;
+    case "pause":dispatch("pause");break;
+    case "ended":dispatch("ended");break;
+    case "time":{
+      const currentTime=Number(info);
+      if(Number.isFinite(currentTime)&&currentTime>=0)dispatch("timeupdate",{currentTime,duration:latestPlaybackDuration});
+      break;
+    }
+    case "duration":{
+      const duration=Number(info);
+      if(Number.isFinite(duration)&&duration>0){latestPlaybackDuration=duration;dispatch("loadedmetadata",{duration});}
+      break;
+    }
+    case "seek":{
+      const currentTime=Number(info);
+      if(Number.isFinite(currentTime)&&currentTime>=0)dispatch("seeked",{currentTime,duration:latestPlaybackDuration});
+      break;
+    }
+    case "buffering":
+      if(info===true)setPlayerStatus("Po ngarkohet videoja…");
+      else clearPlayerStatus();
+      break;
+    case "serverchange":
+      $("player-modal").dataset.bingeapiServer=String(info||"").slice(0,80);
+      break;
+    case "error":
+      $("player-modal").dataset.playerState="error";
+      setPlayerStatus(String(info||"BingeAPI raportoi një gabim gjatë riprodhimit."),true);
+      dispatch("error",{message:String(info||"BingeAPI playback error")});
+      break;
+  }
+});
 function startPlaybackProgressTracking(){
   window.FlixPlaybackProgress?.start({
     onTimeUpdate(data,force){
@@ -2600,19 +2641,41 @@ async function openResolvedPlayback(item,season,episode,button=null,resumeTime=0
   currentPlayback={item,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null};
   latestPlaybackTime=0;latestPlaybackDuration=0;lastProgressWrite=0;
   stopResolvedVideo({preserveCineSrcFrame:true});clearExternalSubtitles();
-  const frame=$("cinesrc-frame");if(!frame)throw new Error("CineSRC iframe mungon në player-in FLIXTV.");
-  frame.hidden=false;frame.setAttribute("loading","eager");frame.setAttribute("fetchpriority","high");
-  frame.setAttribute("allow","fullscreen *; autoplay *; picture-in-picture; encrypted-media; orientation-lock");
+  const frame=$("cinesrc-frame");if(!frame)throw new Error("BingeAPI iframe mungon në player-in FLIXTV.");
+  frame.hidden=false;frame.setAttribute("title","BingeAPI player");
+  frame.setAttribute("loading","eager");frame.setAttribute("fetchpriority","high");
+  frame.setAttribute("allow","autoplay; fullscreen; picture-in-picture; encrypted-media");
+  // BingeAPI explicitly requires an unsandboxed iframe for its player scripts.
+  frame.removeAttribute("sandbox");
   $("resolved-video").hidden=true;$("player-quality-select").hidden=true;
+  const subtitleToolbar=$("subtitle-toolbar");if(subtitleToolbar)subtitleToolbar.hidden=true;
   modal("player-modal",true);clearInterval(heroTimer);heroTimer=null;
-  $("player-modal").dataset.playerState="loading";setPlayerStatus("Po lidhet me CineSRC…");
+  $("player-modal").dataset.playerState="loading";setPlayerStatus("Po lidhet me BingeAPI…");
   requestPlayerFullscreen();syncPlayerOrientation();startPlaybackProgressTracking();
-  frame.onerror=()=>{if(playbackId!==playbackOpenId)return;$("player-modal").dataset.playerState="error";setPlayerStatus("CineSRC nuk u ngarkua. Kontrollo lidhjen ose burimin.",true)};
-  const opened=window.FlixCineSRC?.open({mediaType,tmdbId:item.id,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null,resumeTime:Number(resumeTime)||0});
-  if(!opened)throw new Error("Moduli i ri CineSRC nuk u inicializua.");
-  console.info("[FLIXTV] CineSRC playback opened",{title:title(item),mediaType,tmdbId:item.id,season:mediaType==="tv"?Number(season||1):null,episode:mediaType==="tv"?Number(episode||1):null,resumeTime:Number(resumeTime)||0,embedUrl:opened.embedUrl});
-  void autoLoadOpenSubtitles(item,season,episode);
-  return opened;
+  const id=encodeURIComponent(String(item.id));
+  const url=new URL("https://bingeapi.st/embed/"+mediaType+"/"+id);
+  if(mediaType==="tv"){
+    url.pathname+="/"+Math.max(1,Number(season)||1)+"/"+Math.max(1,Number(episode)||1);
+  }
+  url.searchParams.set("theme","dark");
+  url.searchParams.set("sub_lang","alb");
+  url.searchParams.set("sub_os","1");
+  url.searchParams.set("autoplay","1");
+  url.searchParams.set("resume","1");
+  frame.onload=()=>{
+    if(playbackId!==playbackOpenId)return;
+    $("player-modal").dataset.playerState="ready";
+    setPlayerStatus("");
+    window.dispatchEvent(new CustomEvent("flxtv:cinesrc-event",{detail:{type:"ready",data:{provider:"bingeapi"}}}));
+  };
+  frame.onerror=()=>{
+    if(playbackId!==playbackOpenId)return;
+    $("player-modal").dataset.playerState="error";
+    setPlayerStatus("BingeAPI nuk u ngarkua. Kontrollo lidhjen ose burimin.",true);
+  };
+  frame.src=url.href;
+  console.info("[FLIXTV] BingeAPI playback opened",{title:title(item),mediaType,tmdbId:item.id,season:currentPlayback.season,episode:currentPlayback.episode,resumeTime:Number(resumeTime)||0,embedUrl:url.href});
+  return {provider:"bingeapi",format:"iframe",embedUrl:url.href};
 }
 function play(item,season,episode){
   if(!item||!item.id)return;
