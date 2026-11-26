@@ -1371,3 +1371,6 @@ body.player-open *{animation:none!important;transition:none!important}
 .f.focus{outline:3px solid #fff!important;outline-offset:4px!important}
 .tv-loading{min-height:80px}
 @media(prefers-reduced-motion:no-preference){*{scroll-behavior:auto!important}}
+
+/* No decorative transitions on TV overlays; keep focus changes immediate. */
+#details *,#search *,#prof *,#qpanel *,#spanel *{transition:none!important;animation:none!important}
