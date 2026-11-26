@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="sq">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="FLIXTV">
+  <script>
+    (function(){
+      var isHomeApp = window.navigator.standalone === true ||
+        (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+      if (isHomeApp) document.documentElement.classList.add("ios-home-app");
+    })();
+  </script>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; manifest-src 'self'; frame-src 'self' https:; connect-src 'self' https: https://api.themoviedb.org https://flixtv-snowy.vercel.app https://www.youtube.com https://www.youtube-nocookie.com; img-src 'self' data: https://raw.githubusercontent.com https://image.tmdb.org https://i.ytimg.com https://img.youtube.com https://m.media-amazon.com; media-src 'self' blob: data: https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://www.youtube-nocookie.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; upgrade-insecure-requests">
+  <meta name="description" content="FLIXTV movies and TV shows">
+  <title>FLIXTV</title>
+  <link rel="manifest" href="/manifest.webmanifest?v=20261123-icon5">
+  <link rel="icon" type="image/png" href="/flixtv-icon.PNG?v=20261123-icon5">
+  <link rel="apple-touch-icon" href="/flixtv-icon.PNG?v=20261123-icon5">
+              <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://cinesrc.st">
+  <link rel="dns-prefetch" href="//cinesrc.st">
+  <script>(function(){var p=location.pathname.replace(/\/$/,""),m=p.match(/^\/browse\/provider\/([^/]+)$/),intent=null;if(p==="/browse/movies")intent={page:"movies",sortBy:new URLSearchParams(location.search).get("sortBy")||""};else if(p==="/browse/tv")intent={page:"shows",sortBy:new URLSearchParams(location.search).get("sortBy")||""};else if(p==="/library")intent={page:"library"};else if(p==="/search")intent={page:"search",query:new URLSearchParams(location.search).get("q")||""};else if(m)intent={page:"provider",provider:m[1]};if(intent){window.__FLIXTV_ROUTE_INTENT=intent;history.replaceState({bfBoot:true},"","/")}})();</script>
+  <script>if(location.pathname!=="/"&&location.pathname!=="/index.html")document.documentElement.classList.add("deep-route-loading");</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style id="flxtv-critical-startup">
+    /* Paint the document dark before external stylesheets load to prevent an iOS/WebKit white first frame. */
+    html,
+    body {
+      background-color: #050505 !important;
+      color-scheme: dark;
+    }
+    html {
+      min-height: 100%;
+    }
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    /* Keep the logo splash visible from the first paint while external CSS loads. */
+    #brand-intro{display:flex!important;position:fixed!important;inset:0!important;z-index:2147483645!important;align-items:center!important;justify-content:center!important;background:#050505!important;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:none!important;overflow:hidden!important}
+    html.profile-ready #brand-intro{display:none!important}
+  </style>
+  <link rel="stylesheet" href="/style.css?v=subtitle-picker-v1">
+  <link rel="stylesheet" href="/boredflix-parity.css?v=unified-search-movie-cards-v1">
+  <link rel="stylesheet" href="/player/ios-virtual-landscape.css?v=ios-viewport-top-minus15_5-bottom-plus15_5">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.css">
+  <script src="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.4/src/lite-yt-embed.js" defer></script>
+  <link rel="preconnect" href="https://bingeapi.st">
+  <link rel="dns-prefetch" href="//bingeapi.st">
+</head>
+<body>
+  <div id="brand-intro" class="brand-intro stage-mark" aria-label="FLIXTV"><div class="brand-intro-lockup"><span class="brand-intro-f">F</span><span class="brand-intro-rest">LIX<span class="brand-intro-tv">TV</span></span></div></div>
+  <div id="app-ambient" aria-hidden="true">
+    <div class="ambient-scene active" id="app-ambient-scene-a">
+      <div class="ambient-scene-art"></div>
+      <div class="ambient-cloud ambient-cloud-one"></div>
+      <div class="ambient-cloud ambient-cloud-two"></div>
+      <div class="ambient-cloud ambient-cloud-three"></div>
+    </div>
+    <div class="ambient-scene" id="app-ambient-scene-b">
+      <div class="ambient-scene-art"></div>
+      <div class="ambient-cloud ambient-cloud-one"></div>
+      <div class="ambient-cloud ambient-cloud-two"></div>
+      <div class="ambient-cloud ambient-cloud-three"></div>
+    </div>
+    <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
+    
+    <div class="ambient-shade"></div>
+  </div>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="FLIXTV kryefaqja"><span class="brand-name">FLIX<span>TV</span></span></a>
+    <nav class="desktop-nav" aria-label="Navigimi kryesor"><span class="nav-pill" aria-hidden="true"></span>
+      <button class="nav-link active" data-bf-page="home">Home</button>
+      <button class="nav-link" data-bf-page="movies">Movies</button>
+      <button class="nav-link" data-bf-page="shows">Shows</button>
+      <button class="nav-link" data-bf-page="library">My List</button>
+    </nav>
+    <div class="top-actions">
+      <label class="searchbox" id="searchbox"><button type="button" class="search-trigger" id="search-trigger" aria-label="Kërko"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.35"></circle><path d="m15.5 15.5 4.25 4.25"></path></svg></button><input id="search" type="search" placeholder="Kërko filma dhe seriale" autocomplete="off" aria-label="Kërko filma dhe seriale"></label>
+      <button type="button" class="header-glass-button" id="header-settings" aria-label="Cilësimet"><i class="bi bi-gear" aria-hidden="true"></i></button>
+    </div>
+  </header>
+
+  <main id="app" class="v3-root">
+    <section id="hero" class="hero">
+      <div class="hero-backdrop hero-backdrop-a active" id="hero-bg-a"></div>
+      <div class="hero-backdrop hero-backdrop-b" id="hero-bg-b"></div>
+      <div class="hero-content" id="hero-content">
+        <span class="eyebrow" id="hero-eyebrow" hidden>TË PËRZGJEDHUR</span>
+        <div class="hero-title-wrap">
+          <h1 id="hero-title">Zbulo diçka të veçantë.</h1>
+          <img id="hero-title-logo" class="hero-title-logo" alt="" decoding="async" hidden>
+        </div>
+        <div class="hero-meta" id="hero-meta" aria-label="Informacioni i filmit">
+          <span class="hero-meta-item" id="hero-rating-item"><i class="bi bi-star-fill" aria-hidden="true"></i><b id="hero-rating"></b></span>
+          <span class="hero-meta-item" id="hero-year-item"><i class="bi bi-calendar3" aria-hidden="true"></i><b id="hero-year"></b></span>
+          <span class="hero-meta-item" id="hero-genre-item"><i class="bi bi-rocket-takeoff" aria-hidden="true"></i><b id="hero-genre"></b></span>
+        </div>
+        <p id="hero-overview">Filma dhe seriale, të gjitha në një vend.</p>
+        <div class="hero-actions">
+          <button class="hero-play" id="hero-play" type="button"><i class="bi bi-play-fill" aria-hidden="true"></i><span>Play</span></button>
+          <div class="hero-utility-group" role="group" aria-label="Veprimet e filmit">
+            <button class="hero-utility-button" id="hero-add" type="button" aria-label="Shto te lista ime" aria-pressed="false"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+            <span class="hero-utility-divider" aria-hidden="true"></span>
+            <button class="hero-utility-button" id="hero-info" type="button" aria-label="Informacioni i filmit"><i class="bi bi-info-circle" aria-hidden="true"></i></button>
+          </div>
+          <div class="hero-controls" aria-label="Ndrysho filmin e përzgjedhur">
+            <button type="button" id="hero-prev" aria-label="Titulli i mëparshëm"><i class="bi bi-chevron-left" aria-hidden="true"></i></button>
+            <button type="button" id="hero-next" aria-label="Titulli i radhës"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+          </div>
+        </div>
+        <div class="hero-progress" aria-hidden="true"><span id="hero-progress-fill"></span></div>
+      </div>
+      <div class="hero-dots" id="hero-dots" role="group" aria-label="Përzgjedhja e titujve të veçuar"></div>
+    </section>
+    <section id="search-page" hidden aria-hidden="true"></section>
+   <div id="catalog">
+      <div id="home-page">
+        <section class="content-section service-section" id="browse-services-section">
+          <div class="section-heading"><h2>Browse by Service</h2><span class="section-kicker">STREAMING PLATFORMS</span></div>
+          <div class="service-row" id="browse-services" aria-label="Shërbimet streaming">
+            <div class="service-loading">Po ngarkohen shërbimet…</div>
+          </div>
+          <p class="service-note" id="browse-services-note" hidden></p>
+        </section>
+<section class="content-section top10-section" id="top10-section">
+          <div class="section-heading">
+            <div class="section-heading-copy"><h2>Top 10 Today</h2><span class="section-subtitle">Sipas trendit ditor të TMDB</span></div>
+            <span class="section-kicker">DAILY CHART</span>
+          </div>
+          <div class="top10-row" id="top10-today" aria-label="Dhjetë filmat më në trend sot">
+            <div class="service-loading">Po ngarkohet renditja ditore…</div>
+          </div>
+        </section>
+
+<section class="content-section continue-watching-section" id="continue-watching-section" hidden>
+          <div class="section-heading continue-section-heading">
+            <h2 class="continue-section-title">
+              <button class="section-heading-link" id="continue-library-open" type="button" aria-label="Shfaq të gjithë historikun e shikimit">
+                <span class="continue-heading-title">Continue Watching</span><i class="bi bi-chevron-right" aria-hidden="true"></i>
+              </button>
+            </h2>
+            <button class="section-edit-button" id="continue-edit" type="button" aria-pressed="false">Edit</button>
+          </div>
+          <div class="poster-row continue-watching-row" id="continue-watching"></div>
+        </section>
+
+
+        <section class="content-section trending-movies-section" id="trending-movies-section">
+          <div class="section-heading">
+            <h2>Trending Movies</h2>
+            <button class="section-more-button" id="trending-movies-more" type="button" aria-label="Shfaq më shumë filma në trend"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+          </div>
+          <div class="poster-row home-poster-carousel" id="trending-movies"></div>
+        </section>
+
+
+
+        <section class="content-section"><div class="section-heading"><h2>Filma të njohur</h2><span class="section-kicker">ZGJEDHJE FILMASH</span></div><div class="poster-row" id="movies"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Seriale të njohura</h2><span class="section-kicker">ZGJEDHJE SERIALESH</span></div><div class="poster-row" id="shows"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Filmat më të vlerësuar</h2><span class="section-kicker">MË TË VLERËSUARIT</span></div><div class="poster-row" id="home-top-movies"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Aksion dhe aventurë</h2><span class="section-kicker">PËRZGJEDHJE FILMASH</span></div><div class="poster-row" id="home-action-adventure"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Komedi dhe romancë</h2><span class="section-kicker">PËRZGJEDHJE FILMASH</span></div><div class="poster-row" id="home-comedy-romance"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Krim dhe thriller</h2><span class="section-kicker">PËRZGJEDHJE FILMASH</span></div><div class="poster-row" id="home-crime-thriller"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Fantashkencë dhe fantazi</h2><span class="section-kicker">PËRZGJEDHJE FILMASH</span></div><div class="poster-row" id="home-scifi-fantasy"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Seriale në trend</h2><span class="section-kicker">NË VËMENDJE</span></div><div class="poster-row" id="home-trending-shows"></div></section>
+        <section class="content-section"><div class="section-heading"><h2>Seriale aksion dhe fantazi</h2><span class="section-kicker">SERIES MIX</span></div><div class="poster-row" id="home-action-fantasy-shows"></div></section>
+      </div>
+      <div id="movies-page" hidden>
+        <section class="page-intro page-catalog-head"><div class="catalog-head-main"><div class="catalog-overline"><span class="catalog-live-dot"></span>EKRANI I MADH</div><h1>Filma</h1></div><div class="catalog-head-side"><span class="catalog-index">FLIXTV&nbsp; / &nbsp;KOLEKSION</span><span class="catalog-head-line"></span></div><nav class="catalog-jump-nav" aria-label="Movies categories"><a class="is-current" href="#section-movie-trending" >Në trend</a><a class="" href="#section-movie-popular" >Të njohur</a><a class="" href="#section-movie-top" >Më të vlerësuar</a><a class="" href="#section-movie-now" >Në kinema</a><a class="" href="#section-movie-upcoming" >Së shpejti</a></nav><div class="movie-genre-filter"><label for="movie-genre-select"><span class="genre-filter-icon">☷</span><span>Shfleto sipas zhanrit</span></label><select id="movie-genre-select"><option value="">Zgjidh një zhanër</option><option value="28">Aksion</option><option value="12">Aventurë</option><option value="16">Animacion</option><option value="35">Komedi</option><option value="80">Krim</option><option value="99">Dokumentar</option><option value="18">Dramë</option><option value="10751">Familjar</option><option value="14">Fantazi</option><option value="36">Histori</option><option value="27">Horror</option><option value="10402">Muzikë</option><option value="9648">Mister</option><option value="10749">Romancë</option><option value="878">Fantashkencë</option><option value="53">Thriller</option><option value="10752">Luftë</option><option value="37">Western</option></select></div></section>
+        <div id="movie-genre-collections" class="genre-collections" hidden aria-live="polite"></div>
+        <section class="content-section catalog-row-section" id="section-movie-trending"><div class="section-heading"><h2>Filma në trend</h2></div><div class="poster-row" id="movie-trending"></div></section>
+        <section class="content-section catalog-row-section" id="section-movie-popular"><div class="section-heading"><h2>Filma të njohur</h2></div><div class="poster-row" id="movie-popular"></div></section>
+        <section class="content-section catalog-row-section" id="section-movie-top"><div class="section-heading"><h2>Filmat më të vlerësuar</h2></div><div class="poster-row" id="movie-top"></div></section>
+        <section class="content-section catalog-row-section" id="section-movie-now"><div class="section-heading"><h2>Në kinema</h2></div><div class="poster-row" id="movie-now"></div></section>
+        <section class="content-section catalog-row-section" id="section-movie-upcoming"><div class="section-heading"><h2>Së shpejti</h2></div><div class="poster-row" id="movie-upcoming"></div></section>
+      </div>
+      <div id="shows-page" hidden>
+        <section class="page-intro page-catalog-head"><div class="catalog-head-main"><div class="catalog-overline"><span class="catalog-live-dot"></span>SERIALE DHE HISTORI</div><h1>Seriale</h1></div><div class="catalog-head-side"><span class="catalog-index">FLIXTV&nbsp; / &nbsp;KOLEKSION</span><span class="catalog-head-line"></span></div><nav class="catalog-jump-nav" aria-label="Kategoritë e serialeve"><a class="is-current" href="#section-show-trending" >Në trend</a><a class="" href="#section-show-popular" >Të njohur</a><a class="" href="#section-show-top" >Më të vlerësuar</a><a class="" href="#section-show-airing">Në transmetim</a><a class="" href="#section-show-today">Sot</a></nav></section>
+        <section class="content-section catalog-row-section" id="section-show-trending"><div class="section-heading"><h2>Seriale në trend</h2></div><div class="poster-row" id="show-trending"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-popular"><div class="section-heading"><h2>Seriale të njohura</h2></div><div class="poster-row" id="show-popular"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-top"><div class="section-heading"><h2>Serialet më të vlerësuara</h2></div><div class="poster-row" id="show-top"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-airing"><div class="section-heading"><h2>Në transmetim aktualisht</h2></div><div class="poster-row" id="show-airing"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-today"><div class="section-heading"><h2>Sot në televizion</h2></div><div class="poster-row" id="show-today"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-action-adventure"><div class="section-heading"><h2>Aksion dhe aventurë Series</h2></div><div class="poster-row" id="show-action-adventure"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-scifi-fantasy"><div class="section-heading"><h2>Fantashkencë dhe fantazi Series</h2></div><div class="poster-row" id="show-scifi-fantasy"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-crime-drama"><div class="section-heading"><h2>Crime & Drama Series</h2></div><div class="poster-row" id="show-crime-drama"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-comedy-romance"><div class="section-heading"><h2>Komedi dhe romancë Series</h2></div><div class="poster-row" id="show-comedy-romance"></div></section>
+        <section class="content-section catalog-row-section" id="section-show-mystery-thriller"><div class="section-heading"><h2>Mystery & Thriller Series</h2></div><div class="poster-row" id="show-mystery-thriller"></div></section>
+      </div>
+    </div>
+    <section id="sports-page" class="sports-page" hidden aria-live="polite">
+      <header class="sports-head"><div><span class="catalog-overline"><span class="catalog-live-dot"></span>FLIXTV LIVE</span><h1>Sport</h1><p>Ndeshje live dhe evente sportive.</p></div></header>
+      <div class="sports-toolbar"><div id="sports-categories" class="sports-categories"></div><span id="sports-status" class="muted">Po ngarkohet…</span></div>
+      <div id="sports-grid" class="sports-grid"></div>
+      <div id="sports-empty" class="sports-empty" hidden></div>
+    </section>
+    <section id="title-page" class="title-page" hidden aria-live="polite"></section>
+    <div id="notice" class="notice" role="status" hidden></div>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Navigimi kryesor">
+    <button class="active" data-page="home" aria-label="Home">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span class="nav-label">Home</span>
+    </button>
+    <button data-page="movies" aria-label="Movies">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.296 3.464 3.02 3.956"/><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="m6.18 5.276 3.1 3.899"/></svg></span><span class="nav-label">Movies</span>
+    </button>
+    <button data-page="shows" aria-label="Shows">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2-5 5-5-5"/><rect width="20" height="15" x="2" y="7" rx="2"/></svg></span><span class="nav-label">Shows</span>
+    </button>
+    <button data-page="sports" aria-label="Sports">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2"/><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2"/><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3"/></svg></span><span class="nav-label">Sports</span>
+    </button>
+  </nav>
+
+  <section class="modal continue-library-modal" id="continue-library-modal" aria-hidden="true">
+    <div class="modal-backdrop" id="continue-library-backdrop"></div>
+    <article class="continue-library-sheet" role="dialog" aria-modal="true" aria-labelledby="continue-library-title">
+      <header class="continue-library-header">
+        <div><span class="section-kicker">FLIXTV · WATCH HISTORY</span><h2 id="continue-library-title">Continue Watching</h2></div>
+        <div class="continue-library-actions">
+          <button class="section-edit-button" id="continue-library-edit" type="button" aria-pressed="false">Edit</button>
+          <button class="continue-library-close" id="continue-library-close" type="button" aria-label="Mbyll"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+      </header>
+      <div class="continue-library-grid" id="continue-library-grid"></div>
+      <p class="continue-library-empty" id="continue-library-empty" hidden>Nuk ka përmbajtje të ruajtur për vazhdim.</p>
+    </article>
+  </section>
+
+  <section class="modal" id="sports-settings-modal" aria-hidden="true"><div class="modal-backdrop"></div><article class="settings-card"></article></section>
+
+  <section class="modal" id="details-modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close="details"></div>
+    <article class="details-sheet">
+      <button class="close-btn" data-close="details" aria-label="Mbyll">×</button>
+      <div id="details-backdrop" class="details-backdrop"></div>
+      <div class="details-body"><span class="eyebrow" id="details-type">TITLE</span><h2 id="details-title"></h2><div id="details-meta" class="muted"></div><p id="details-overview"></p><div class="detail-actions"><button id="play-title" class="primary-btn">▶ Luaj</button><button id="watch-trailer" class="secondary-btn" hidden>Traileri</button></div><div id="episode-controls" hidden><label>Sezoni <select id="season-select"></select></label><label>Episodi <select id="episode-select"></select></label><button id="play-episode" class="primary-btn">▶ Luaj episodin</button></div></div>
+    </article>
+  </section>
+
+  <section class="player-modal" id="player-modal" aria-hidden="true">
+    <div class="player-actions">
+      <button type="button" class="player-close" id="player-close" aria-label="Kthehu"></button>
+      <select id="player-quality-select" class="player-quality-select" aria-label="Cilësia e videos" hidden>
+        <option value="-1">Auto</option>
+      </select>
+    </div>
+    <div class="player-loading-status" id="player-loading-status" role="status" aria-live="polite" hidden>Po kërkohet burimi i videos…</div>
+    <div class="content-intro" id="content-intro" aria-hidden="true"><div class="intro-copy"><div class="intro-kicker">FLIXTV · INFORMACION I PËRMBAJTJES</div><div class="intro-rating" id="intro-rating"></div><div class="intro-title" id="intro-title"></div><div class="intro-details" id="intro-details"></div><div class="intro-progress"><span></span></div><button type="button" id="intro-skip">KALO</button></div></div>
+    <div class="subtitle-toolbar" id="subtitle-toolbar" aria-label="Kontrollet e titrave">
+      <button type="button" id="subtitle-load-button">Ngarko titra (.srt/.vtt)</button>
+      <button type="button" id="subtitle-toggle">CC ON</button>
+      <button type="button" id="subtitle-offset-minus" aria-label="Vono titrat">−0.5s</button>
+      <span id="subtitle-offset-value">0.0s</span>
+      <button type="button" id="subtitle-offset-plus" aria-label="Përshpejto titrat">+0.5s</button>
+      <select id="subtitle-choice" aria-label="Zgjidh versionin e titrave" disabled><option value="">Pa titra të ngarkuar</option></select>
+      <span id="subtitle-status" role="status">Pa titra të ngarkuar</span>
+      <input id="subtitle-file-input" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip" hidden>
+    </div>
+    <div id="external-subtitle-overlay" class="external-subtitle-overlay" aria-live="off"></div>
+    <div id="cinesrc-video-wrapper" class="cinesrc-video-wrapper"><iframe id="cinesrc-frame" title="CineSRC player" sandbox="allow-scripts allow-same-origin allow-forms" allow="fullscreen; autoplay; encrypted-media; picture-in-picture; orientation-lock" allowfullscreen referrerpolicy="no-referrer" loading="eager" hidden></iframe></div>
+    <div id="cinesrc-fullscreen-blocker" aria-hidden="true"></div>
+    <video id="resolved-video" controls playsinline webkit-playsinline preload="none" hidden></video>
+  </section>
+
+  <script src="/player/cinesrc-config.js?v=profile-subtitles-v2"></script>
+  <script src="/player/playback-state.js?v=1"></script>
+  <script src="/player/player-errors.js?v=1"></script>
+  <script src="/player/cinesrc-events.js?v=1"></script>
+  <script src="/player/cinesrc-controller.js?v=autoplay-syntax-fix-2"></script>
+  <script src="/player/playback-progress.js?v=1"></script>
+  <script src="/player/player-focus.js?v=full-focus-diag-20261124"></script>
+  <script src="/player/player-orientation.js?v=ios-virtual-landscape-v1"></script>
+  <script src="/profile-locale.js?v=profile-language-v4"></script>
+  <script>window.__FLIXTV_TEST1_MODE__=true;</script>
+  <script src="/test1/app.js?v=bingeapi-sandbox-v1"></script>
+  <script type="module" src="/ambient-smoke.js?v=mobile-gpu-budget-v2"></script>
+  <script src="/boredflix-parity.js?v=profile-language-v1"></script>
+</body>
+</html>
