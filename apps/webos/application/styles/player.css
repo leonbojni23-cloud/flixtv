@@ -1,0 +1,9 @@
+#player-view{position:fixed;inset:0;z-index:999999;background:#000;overflow:hidden}
+#player-view[hidden]{display:none!important}
+#player-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+#player-loading{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;font-size:28px;pointer-events:none}
+#player-loading[hidden]{display:none!important}
+#player-back{position:absolute;z-index:4;left:58px;top:48px;height:58px;padding:0 24px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(15,15,18,.78);display:flex;align-items:center;gap:12px;font-size:18px;letter-spacing:2px;opacity:.92}
+#player-back span{font-size:38px;line-height:1}
+#player-back:focus,#player-back.focus{outline:4px solid #fff;outline-offset:4px;transform:scale(1.05)}
+body.player-open #stage{display:none!important}

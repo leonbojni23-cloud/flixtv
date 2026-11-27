@@ -1,61 +1,43 @@
 # FLIXTV for LG webOS
 
-FLIXTV is a lightweight 1920×1080 streaming interface designed for LG webOS televisions and Magic Remote navigation.
+A dedicated 1920×1080 LG webOS TV application built with HTML, CSS and vanilla JavaScript.
 
-## Current build
+## Current webOS build
 
-- App ID: `com.boring.tvhome` (kept stable so existing installs can update)
-- Version: `0.26.0`
-- Main UI: HTML, CSS and JavaScript, no build step
-- Catalog: TMDB
-- Playback: BingeAPI iframe
-- Default subtitle language: English, with OpenSubtitles fallback
-- Target: LG webOS 10.x and newer Chromium-based webOS browsers
+- App ID: `com.boring.tvhome` (kept stable so an existing FLIXTV installation can be upgraded)
+- Version: `0.27.0`
+- UI: the new CineVault-based Netflix-style interface, rebranded as FLIXTV
+- Catalogue: TMDB API
+- Playback: CineSRC embed player
+- Remote: arrow keys, OK/Enter, Backspace, Escape and webOS Back key (461)
+- No React, framework runtime or build step
 
-## TV performance strategy
+## Configure TMDB
 
-- Home makes one TMDB request for trending titles.
-- Movies and Series are fetched only when their tab is opened. Hidden pages are not preloaded.
-- The home screen renders at most eight movie cards and eight series cards.
-- Movies and Series render at most eight cards each; Search shows at most twelve results.
-- Images use lazy loading and asynchronous decoding.
-- Hero rotation, weather polling, YouTube trends, streaming-service discovery and background prefetch are disabled.
-- The background uses one static, darkened hero image with a simple color wash. No WebGL, smoke simulation or continuous decorative animation.
-- The player hides and inerts the rest of the application while playback is active.
+1. Copy `keys.example.js` to `keys.js`.
+2. Add your TMDB v3 API key to `keys.js`.
+3. Never commit `keys.js`. It is excluded by `.gitignore`.
 
-## Playback
+## Preview
 
-The player uses:
+Serve this directory over HTTP and open it in a desktop browser. Use arrow keys and Enter to test remote navigation. A desktop preview is useful for UI iteration but does not replace testing on the physical LG TV.
 
-- Movies: `https://bingeapi.st/embed/movie/{tmdbId}`
-- Episodes: `https://bingeapi.st/embed/tv/{tmdbId}/{season}/{episode}`
-- `autoplay=1`
-- `sub_lang=eng`
-- `sub_os=1`
-- Dark player theme with FLIXTV red controls
+## Package and install
 
-The iframe intentionally has no `sandbox` attribute because BingeAPI's documentation says sandbox blocks scripts required by the player. The iframe fills the complete 1920×1080 player surface, so playback opens in an immersive full-screen app view. Native video fullscreen remains controlled by the embedded player and webOS browser permissions.
-
-## Setup and local preview
-
-1. Copy `keys.example.js` to `keys.js` and add a TMDB API key. Keep `keys.js` out of Git.
-2. Open the application directory through a local HTTP server, or use the repository's webOS development workflow.
-3. Use the arrow keys and OK/Enter to navigate. Back/Escape returns to the previous screen.
-
-## Package for LG webOS
-
-From `apps/webos/application`:
+With LG webOS TV CLI installed:
 
 ```bash
-ares-package . -o /tmp --no-minify
-ares-install --device tv /tmp/com.boring.tvhome_*.ipk
-ares-launch --device tv com.boring.tvhome
+cd apps/webos/application
+ares-package . -o ../../../releases --no-minify
+ares-install --device mytv ../../../releases/com.boring.tvhome_0.27.0_all.ipk
+ares-launch --device mytv com.boring.tvhome
 ```
 
-The package metadata and app manifest must keep the same version number.
+If your CLI device profile has a different name, replace `mytv` with that profile.
 
-## Important limitations
+## Notes
 
-- Autoplay depends on webOS and the embedded player allowing playback after the user's OK action.
-- The player surface is full-screen, but a native video fullscreen transition is controlled by BingeAPI inside its cross-origin iframe.
-- The exact performance and remote-key behaviour must still be verified on the physical LG TV. Desktop browser preview is not a substitute for device testing.
+- Movies open CineSRC using the TMDB movie ID.
+- TV series details load the first regular season and render its episode cards. Select an episode to play it.
+- My List and Continue Watching data are stored locally on the TV.
+- The app is not yet certified by a physical-device test. Verify remote focus, player behavior, memory use and playback on the target LG webOS TV before treating this build as production-ready.

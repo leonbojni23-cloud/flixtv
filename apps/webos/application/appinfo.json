@@ -1,16 +1,15 @@
 {
   "id": "com.boring.tvhome",
-  "version": "0.26.0",
+  "version": "0.27.0",
   "vendor": "FLIXTV",
   "type": "web",
   "main": "index.html",
   "title": "FLIXTV",
-  "icon": "icon.png",
-  "largeIcon": "largeIcon.png",
-  "bgColor": "#0e1014",
+  "icon": "assets/icons/icon80.png",
+  "largeIcon": "assets/icons/icon130.png",
+  "bgColor": "#0b0b0d",
   "resolution": "1920x1080",
   "disableBackHistoryAPI": true,
-  "splashBackground": "splash.png",
-  "iconColor": "#16181c",
-  "handlesRelaunch": true
+  "handlesRelaunch": true,
+  "appDescription": "FLIXTV streaming for LG Smart TVs."
 }

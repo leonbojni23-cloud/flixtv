@@ -1,1 +1,1 @@
-window.KEYS={TMDB_KEY:"",YT_KEY:""};
+window.KEYS={TMDB_KEY:""};

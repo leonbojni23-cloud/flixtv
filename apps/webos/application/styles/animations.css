@@ -1,0 +1,4 @@
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.loader{animation:spin .9s linear infinite}
+#app>#scroll,#app>.player,#app>.msg{animation:fade .35s ease-out}
