@@ -19,10 +19,19 @@
       }
     });
 
-    var endpoint = String(path).replace(/^\\/+/, "");
-    var url = base
-      ? String(base).replace(/\\/+$/, "") + "/" + endpoint + "?" + query.join("&")
-      : "https://api.themoviedb.org/3/" + endpoint + "?" + query.join("&");
+    var endpoint = String(path);
+    while (endpoint.charAt(0) === "/") endpoint = endpoint.slice(1);
+
+    var url;
+    if (base) {
+      var cleanBase = String(base);
+      while (cleanBase.charAt(cleanBase.length - 1) === "/") {
+        cleanBase = cleanBase.slice(0, -1);
+      }
+      url = cleanBase + "/" + endpoint + "?" + query.join("&");
+    } else {
+      url = "https://api.themoviedb.org/3/" + endpoint + "?" + query.join("&");
+    }
 
     return fetch(url).then(function (response) {
       return response.json().then(function (data) {
