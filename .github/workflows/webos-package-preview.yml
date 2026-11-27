@@ -6,6 +6,7 @@ on:
       - webos-cinevault-rebuild
     paths:
       - ".github/workflows/webos-package-preview.yml"
+      - "apps/webos/application/**"
 
 permissions:
   contents: read
