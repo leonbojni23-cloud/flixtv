@@ -1,7 +1,22 @@
 (function(w){'use strict';
-const Store={P:'cv.0.',n:0,
-  use(n){this.n=n;this.P='cv.'+n+'.';try{localStorage.setItem('cv.last',n)}catch(e){}},
-  last(){try{return+localStorage.getItem('cv.last')||0}catch(e){return 0}},
+const Store={P:'cv.unselected.',n:null,
+  profiles(){
+    try{
+      const value=JSON.parse(localStorage.getItem('cv.profiles')||'[]');
+      return Array.isArray(value)?value.filter(p=>p&&p.id!=null&&p.name):[];
+    }catch(e){return []}
+  },
+  current(){return this.profiles().find(p=>String(p.id)===String(this.n))||null;},
+  createProfile(name,color){
+    const profiles=this.profiles();
+    const profile={id:'p'+Date.now().toString(36)+profiles.length,name:String(name||'').trim().slice(0,18),color:color||'#e50914'};
+    profiles.push(profile);
+    try{localStorage.setItem('cv.profiles',JSON.stringify(profiles))}catch(e){}
+    this.use(profile.id);
+    return profile;
+  },
+  use(id){this.n=String(id);this.P='cv.'+this.n+'.';try{localStorage.setItem('cv.last',this.n)}catch(e){}},
+  last(){try{return localStorage.getItem('cv.last')||null}catch(e){return null}},
   get(k,d){try{const v=localStorage.getItem(this.P+k);return v===null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem(this.P+k,JSON.stringify(v))}catch(e){}},
   list(){return this.get('list',[])},
