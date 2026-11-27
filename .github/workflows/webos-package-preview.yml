@@ -80,7 +80,7 @@ jobs:
           Description: FLIXTV streaming application for LG webOS TVs
            webOS-Package-Format-Version: 2
           EOF
-          dpkg-deb --build --root-owner-group "$ROOT" "$GITHUB_WORKSPACE/com.boring.tvhome_0.29.2_all.ipk"
+          dpkg-deb --build --root-owner-group -Z gzip "$ROOT" "$GITHUB_WORKSPACE/com.boring.tvhome_0.29.2_all.ipk"
           dpkg-deb --info "$GITHUB_WORKSPACE/com.boring.tvhome_0.29.2_all.ipk"
           mkdir -p "$RUNNER_TEMP/ipk-check"
           dpkg-deb --extract "$GITHUB_WORKSPACE/com.boring.tvhome_0.29.2_all.ipk" "$RUNNER_TEMP/ipk-check"
