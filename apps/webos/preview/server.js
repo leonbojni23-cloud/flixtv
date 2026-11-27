@@ -23,6 +23,11 @@ if(u.pathname==="/diagnostics/tmdb"){
   }catch(error){res.writeHead(502);return res.end(JSON.stringify({ok:false,keyConfigured:true,error:"TMDB network request failed: "+String(error&&error.name||"unknown")}))}
 }
 if(u.pathname.startsWith("/api/tmdb/")) {
+  res.setHeader("Access-Control-Allow-Origin","*");
+  res.setHeader("Access-Control-Allow-Methods","GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers","Content-Type");
+  res.setHeader("Vary","Origin");
+  if(req.method==="OPTIONS"){res.writeHead(204);return res.end();}
   res.setHeader("Content-Type","application/json; charset=utf-8");
   res.setHeader("Cache-Control","no-store");
   if(req.method!=="GET"){res.writeHead(405);return res.end(JSON.stringify({error:"Method not allowed"}));}
