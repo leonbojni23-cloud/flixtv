@@ -1,4 +1,4 @@
-.logo{font:900 42px/1 Impact,"Arial Narrow",Helvetica,sans-serif;letter-spacing:3px;color:var(--red);margin-right:42px}
+.logo{width:220px;height:106px;flex:0 0 220px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-right:32px}.logo img{display:block;flex:0 0 auto;width:220px;height:220px;max-width:none;object-fit:cover;object-position:center}
 .tab,.ico{height:60px;border-bottom:3px solid transparent}
 .tab{padding:0 20px;font-size:25px;color:#e5e5e5;margin-right:8px}.tab.on{font-weight:700;color:#fff}
 .ico{width:58px;display:flex;align-items:center;justify-content:center;margin-right:12px}.ico svg{width:34px;height:34px;fill:#fff}
