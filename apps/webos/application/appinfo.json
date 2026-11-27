@@ -1,6 +1,6 @@
 {
   "id": "com.boring.tvhome",
-  "version": "0.28.0",
+  "version": "0.29.1",
   "vendor": "FLIXTV",
   "type": "web",
   "main": "index.html",
