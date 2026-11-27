@@ -1,12 +1,12 @@
 {
   "name": "flixtv",
-  "version": "0.27.0",
+  "version": "0.28.0",
   "private": true,
-  "description": "FLIXTV monorepo for LG webOS and responsive web",
+  "description": "FLIXTV monorepo with CineVault webOS UI, TMDB catalogue and BingeAPI playback",
   "scripts": {
     "dev": "node tools/dev-server.js",
     "start": "node tools/dev-server.js",
-    "check": "node --check apps/web/boredflix-parity.js && node --check apps/webos/application/scripts/app.js && node --check apps/webos/application/scripts/api.js && node --check apps/webos/application/scripts/navigation.js && node --check apps/webos/application/scripts/player.js && node --check apps/webos/application/scripts/remote.js && node --check apps/webos/application/scripts/router.js && node --check apps/webos/application/scripts/screens.js && node --check apps/webos/application/scripts/storage.js && node --check apps/webos/application/tmdb-service.js && node --check tools/dev-server.js && node --check apps/web/app.js",
-    "check:webos": "node --check apps/webos/application/scripts/app.js && node --check apps/webos/application/scripts/api.js && node --check apps/webos/application/scripts/navigation.js && node --check apps/webos/application/scripts/player.js && node --check apps/webos/application/scripts/remote.js && node --check apps/webos/application/scripts/router.js && node --check apps/webos/application/scripts/screens.js && node --check apps/webos/application/scripts/storage.js && node --check apps/webos/application/tmdb-service.js"
+    "check": "node --check apps/web/boredflix-parity.js && node --check apps/web/app.js && node --check apps/webos/application/scripts/config.js && node --check apps/webos/application/scripts/api.js && node --check apps/webos/application/scripts/storage.js && node --check apps/webos/application/scripts/remote.js && node --check apps/webos/application/scripts/navigation.js && node --check apps/webos/application/scripts/router.js && node --check apps/webos/application/scripts/screens.js && node --check apps/webos/application/scripts/app.js && node --check tools/dev-server.js",
+    "check:webos": "node --check apps/webos/application/scripts/config.js && node --check apps/webos/application/scripts/api.js && node --check apps/webos/application/scripts/storage.js && node --check apps/webos/application/scripts/remote.js && node --check apps/webos/application/scripts/navigation.js && node --check apps/webos/application/scripts/router.js && node --check apps/webos/application/scripts/screens.js && node --check apps/webos/application/scripts/app.js"
   }
 }

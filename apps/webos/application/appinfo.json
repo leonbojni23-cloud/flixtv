@@ -1,6 +1,6 @@
 {
   "id": "com.boring.tvhome",
-  "version": "0.27.0",
+  "version": "0.28.0",
   "vendor": "FLIXTV",
   "type": "web",
   "main": "index.html",
@@ -9,7 +9,7 @@
   "largeIcon": "assets/icons/icon130.png",
   "bgColor": "#0b0b0d",
   "resolution": "1920x1080",
-  "disableBackHistoryAPI": true,
-  "handlesRelaunch": true,
-  "appDescription": "FLIXTV streaming for LG Smart TVs."
+  "transparent": false,
+  "disallowScrollingInFirstLayout": true,
+  "appDescription": "FLIXTV streaming for LG webOS, using TMDB catalogue and BingeAPI playback."
 }
