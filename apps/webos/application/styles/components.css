@@ -64,3 +64,5 @@ h1{font-size:88px;font-weight:900;line-height:1;letter-spacing:-2px;margin-botto
 .player-actions{position:absolute;left:42px;top:34px;z-index:60;opacity:1}
 .player-actions .btn{height:58px;padding:0 24px;font-size:22px;background:rgba(0,0,0,.78);border:1px solid rgba(255,255,255,.45)}
 .player-actions .btn.focus{background:#fff;color:#111}
+
+.card.ls .cap{max-height:72%}
