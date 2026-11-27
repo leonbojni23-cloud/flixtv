@@ -8,7 +8,7 @@ const Router={stack:[],cur:null,tok:0,
   show(e){this.cur=e;const s=Screens[e.name],t=++this.tok,a=document.getElementById('app');
     Nav.rows=[];Nav.el=null;App.header(s.tab);a.innerHTML='<div class="loader"></div>';
     s.load(e.p).then(d=>{if(t!==this.tok)return;
-      a.innerHTML=s.view(d,e.p);if(s.mount)s.mount(a,d,e.p);Nav.scan();
+      a.innerHTML=s.view(d,e.p);if(s.mount)s.mount(a,d,e.p);Nav.scan();Nav.warmInitial();
       const pos=e.pos||(s.start&&s.start())||{r:s.tab?1:0,c:0};Nav.set(Math.min(pos.r,Nav.rows.length-1),pos.c);
     }).catch(err=>{if(t!==this.tok)return;a.innerHTML=Screens.err(err);Nav.scan();Nav.set(Nav.rows.length-1,0)});
   }
