@@ -21,9 +21,10 @@ jobs:
 
       - name: Fetch the exact FLIXTV web logo from main
         run: |
+          set -euo pipefail
           curl --fail --location --retry 3 \
             https://raw.githubusercontent.com/leonbojni23-cloud/flixtv/main/apps/web/flixtv-icon.PNG \
-            --output "$RUNNER_TEMP/flixtv-icon.PNG"
+            --output /tmp/flixtv-icon.PNG
           python3 - <<'PY'
           from pathlib import Path
           p = Path("/tmp/flixtv-icon.PNG")
@@ -32,8 +33,7 @@ jobs:
               raise SystemExit("The repository logo is not a valid PNG")
           print(f"Exact main-branch logo downloaded: {len(data)} bytes")
           PY
-        env:
-          TMPDIR: /tmp
+          file /tmp/flixtv-icon.PNG
 
       - name: Assemble webOS package
         run: |
@@ -42,27 +42,18 @@ jobs:
           APP="$ROOT/usr/palm/applications/com.boring.tvhome"
           mkdir -p "$APP/assets/icons" "$ROOT/usr/palm/packages/com.boring.tvhome" "$ROOT/DEBIAN"
           cp -a apps/webos/application/. "$APP/"
+          cp /tmp/flixtv-icon.PNG "$APP/assets/icons/flixtv-icon.PNG"
+          rm -f "$APP/assets/icons/icon80.png" "$APP/assets/icons/icon130.png"
           python3 - <<'PY'
           from pathlib import Path
-          from PIL import Image
-          source = Path("/tmp/flixtv-icon.PNG")
-          app = Path("package-root/usr/palm/applications/com.boring.tvhome")
-          with Image.open(source) as image:
-              image = image.convert("RGBA")
-              if image.width != image.height:
-                  raise SystemExit(f"Expected square application icon, got {image.size}")
-              for name, size in (("icon80.png", 80), ("icon130.png", 130)):
-                  image.resize((size, size), Image.Resampling.LANCZOS).save(
-                      app / "assets/icons" / name, format="PNG", optimize=True
-                  )
-              image.save(app / "assets/icons/flixtv-icon.PNG", format="PNG", optimize=True)
-          appinfo = app / "appinfo.json"
           import json
-          data = json.loads(appinfo.read_text())
+          app = Path("package-root/usr/palm/applications/com.boring.tvhome")
+          appinfo_path = app / "appinfo.json"
+          data = json.loads(appinfo_path.read_text())
           data["version"] = "0.29.2"
-          data["icon"] = "assets/icons/icon80.png"
-          data["largeIcon"] = "assets/icons/icon130.png"
-          appinfo.write_text(json.dumps(data, indent=2) + "\n")
+          data["icon"] = "assets/icons/flixtv-icon.PNG"
+          data["largeIcon"] = "assets/icons/flixtv-icon.PNG"
+          appinfo_path.write_text(json.dumps(data, indent=2) + "\n")
           (app / "keys.js").write_text(
               'window.KEYS = { TMDB_KEY: "", TMDB_BASE_URL: '
               '"https://flixtv-webos-preview-production.up.railway.app/api/tmdb" };\n'
@@ -91,11 +82,24 @@ jobs:
           EOF
           dpkg-deb --build --root-owner-group "$ROOT" "$GITHUB_WORKSPACE/com.boring.tvhome_0.29.2_all.ipk"
           dpkg-deb --info "$GITHUB_WORKSPACE/com.boring.tvhome_0.29.2_all.ipk"
-          dpkg-deb --contents "$GITHUB_WORKSPACE/com.boring.tvhome_0.29.2_all.ipk" | grep -E 'icon(80|130)\.png|flixtv-icon'
+          mkdir -p "$RUNNER_TEMP/ipk-check"
+          dpkg-deb --extract "$GITHUB_WORKSPACE/com.boring.tvhome_0.29.2_all.ipk" "$RUNNER_TEMP/ipk-check"
+          cmp /tmp/flixtv-icon.PNG "$RUNNER_TEMP/ipk-check/usr/palm/applications/com.boring.tvhome/assets/icons/flixtv-icon.PNG"
           python3 - <<'PY'
-          import hashlib, zipfile, subprocess
-          p = "com.boring.tvhome_0.29.2_all.ipk"
-          print("IPK SHA256:", hashlib.sha256(open(p, "rb").read()).hexdigest())
+          from pathlib import Path
+          import json, hashlib
+          root = Path("/tmp/ipk-check/usr/palm/applications/com.boring.tvhome")
+          info = json.loads((root / "appinfo.json").read_text())
+          assert info["version"] == "0.29.2"
+          assert info["icon"] == info["largeIcon"] == "assets/icons/flixtv-icon.PNG"
+          assert (root / info["icon"]).is_file()
+          packageinfo = json.loads(Path("/tmp/ipk-check/usr/palm/packages/com.boring.tvhome/packageinfo.json").read_text())
+          assert packageinfo["version"] == "0.29.2"
+          package = Path("com.boring.tvhome_0.29.2_all.ipk")
+          print("Logo match: exact original PNG")
+          print("App version:", info["version"])
+          print("IPK SHA256:", hashlib.sha256(package.read_bytes()).hexdigest())
+          print("IPK size:", package.stat().st_size)
           PY
 
       - name: Upload installable IPK
