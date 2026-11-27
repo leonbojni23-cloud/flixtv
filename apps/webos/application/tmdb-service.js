@@ -1,22 +1,39 @@
 (function (window) {
   "use strict";
   var config = window.CONFIG || {};
+
   function request(path, params) {
     var key = config.TMDB_KEY;
-    if (!key) return Promise.reject(new Error("TMDB API key is missing. Copy keys.example.js to keys.js and add your TMDB key."));
-    var query = ["api_key=" + encodeURIComponent(key), "language=" + encodeURIComponent(config.LANG || "en-US")];
+    var base = config.TMDB_BASE_URL;
+    if (!key && !base) {
+      return Promise.reject(new Error("TMDB API key is missing. Copy keys.example.js to keys.js and add your TMDB key."));
+    }
+
+    var query = [];
+    if (key) query.push("api_key=" + encodeURIComponent(key));
+    query.push("language=" + encodeURIComponent(config.LANG || "en-US"));
     Object.keys(params || {}).forEach(function (name) {
       var value = params[name];
-      if (value !== undefined && value !== null && value !== "") query.push(encodeURIComponent(name) + "=" + encodeURIComponent(value));
+      if (value !== undefined && value !== null && value !== "") {
+        query.push(encodeURIComponent(name) + "=" + encodeURIComponent(value));
+      }
     });
-    return fetch("https://api.themoviedb.org/3/" + String(path).replace(/^\/+/, "") + "?" + query.join("&"))
-      .then(function (response) {
-        return response.json().then(function (data) {
-          if (!response.ok || data.success === false) throw new Error(data.status_message || "TMDB request failed: " + response.status);
-          return data;
-        });
+
+    var endpoint = String(path).replace(/^\\/+/, "");
+    var url = base
+      ? String(base).replace(/\\/+$/, "") + "/" + endpoint + "?" + query.join("&")
+      : "https://api.themoviedb.org/3/" + endpoint + "?" + query.join("&");
+
+    return fetch(url).then(function (response) {
+      return response.json().then(function (data) {
+        if (!response.ok || data.success === false) {
+          throw new Error(data.status_message || "TMDB request failed: " + response.status);
+        }
+        return data;
       });
+    });
   }
+
   window.TMDB = {
     getTrendingMovies: function () { return request("trending/movie/day"); },
     getPopularMovies: function () { return request("movie/popular"); },
