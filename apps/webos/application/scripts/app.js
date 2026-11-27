@@ -4,7 +4,7 @@ const App={
   header(tab){
     const h=document.getElementById('hdr');h.classList.remove('solid');if(!tab){h.innerHTML='';return}
     const profile=Store.current();
-    h.innerHTML='<div class="hbar" data-row><div class="logo">FLIXTV</div><button class="ico f" data-act="tab" data-t="search">'+Icons.search+'</button>'+
+    h.innerHTML='<div class="hbar" data-row><div class="logo"><img src="assets/icons/flixtv-icon.PNG" alt="FLIXTV"></div><button class="ico f" data-act="tab" data-t="search">'+Icons.search+'</button>'+
       TABS.map(t=>'<button class="tab f'+(t[0]===tab?' on':'')+'" data-act="tab" data-t="'+t[0]+'">'+t[1].replace('&','&amp;')+'</button>').join('')+
       '<i class="sp"></i><button class="av f" data-act="switch" style="background:'+(profile?profile.color:'#333')+'">'+(profile?String(profile.name).charAt(0).toUpperCase():'?')+'</button></div>';
   },
