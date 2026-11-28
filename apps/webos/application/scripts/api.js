@@ -99,7 +99,12 @@
         var recent = Store.get("recent", []).map(function (item) {
           var key = progressKey(item);
           var p = Store.progress()[key];
-          return p == null ? null : Object.assign({}, item, { progress: p });
+          var playback = Store.getPlayback(item.id, item.type);
+          return p == null ? null : Object.assign({}, item, {
+            progress: p,
+            season: item.season || (playback && playback.season) || 1,
+            episode: item.episode || (playback && playback.episode) || 1
+          });
         }).filter(function (item) { return item && (!type || item.type === type); });
         if (recent.length) rows.push({ title: "Continue Watching", kind: "cont", items: recent });
         if (trending.length) rows.push({ title: "Trending Now", items: take(unique(trending), 30) });
