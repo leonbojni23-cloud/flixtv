@@ -1,6 +1,3 @@
-# LG webOS application
+# LG webOS
 
-- `application/`: app manifest, HTML/CSS/JS, features, assets and the bundled `service/` scripts.
-- `package/`: webOS package metadata.
-
-The `application/service/` directory is the authoritative source for service scripts. It stays beside the app because the existing webOS packaging workflow includes it from the app directory. Do not maintain a second copy elsewhere.
+The standalone FLIXTV Smart TV application lives in `application/`. See `application/README.md` for TMDB setup, local preview and packaging instructions.

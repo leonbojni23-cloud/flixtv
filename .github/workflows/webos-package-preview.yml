@@ -1,0 +1,112 @@
+name: Build FLIXTV webOS IPK
+
+on:
+  push:
+    branches:
+      - webos-cinevault-rebuild
+    paths:
+      - ".github/workflows/webos-package-preview.yml"
+      - "apps/webos/application/**"
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout TV application
+        uses: actions/checkout@v4
+        with:
+          ref: webos-cinevault-rebuild
+
+      - name: Fetch the exact FLIXTV web logo from main
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            https://raw.githubusercontent.com/leonbojni23-cloud/flixtv/main/apps/web/flixtv-icon.PNG \
+            --output /tmp/flixtv-icon.PNG
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("/tmp/flixtv-icon.PNG")
+          data = p.read_bytes()
+          if not data.startswith(b"\x89PNG\r\n\x1a\n"):
+              raise SystemExit("The repository logo is not a valid PNG")
+          print(f"Exact main-branch logo downloaded: {len(data)} bytes")
+          PY
+          file /tmp/flixtv-icon.PNG
+
+      - name: Assemble webOS package
+        run: |
+          set -euo pipefail
+          ROOT="$GITHUB_WORKSPACE/package-root"
+          APP="$ROOT/usr/palm/applications/com.boring.tvhome"
+          mkdir -p "$APP/assets/icons" "$ROOT/usr/palm/packages/com.boring.tvhome" "$ROOT/DEBIAN"
+          cp -a apps/webos/application/. "$APP/"
+          cp /tmp/flixtv-icon.PNG "$APP/assets/icons/flixtv-icon.PNG"
+          rm -f "$APP/assets/icons/icon80.png" "$APP/assets/icons/icon130.png"
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          app = Path("package-root/usr/palm/applications/com.boring.tvhome")
+          appinfo_path = app / "appinfo.json"
+          data = json.loads(appinfo_path.read_text())
+          data["version"] = "0.29.2"
+          data["icon"] = "assets/icons/flixtv-icon.PNG"
+          data["largeIcon"] = "assets/icons/flixtv-icon.PNG"
+          appinfo_path.write_text(json.dumps(data, indent=2) + "\n")
+          (app / "keys.js").write_text(
+              'window.KEYS = { TMDB_KEY: "", TMDB_BASE_URL: '
+              '"https://flixtv-webos-preview-production.up.railway.app/api/tmdb" };\n'
+          )
+          packageinfo = {
+              "id": "com.boring.tvhome",
+              "version": "0.29.2",
+              "app": "com.boring.tvhome",
+              "services": []
+          }
+          (Path("package-root/usr/palm/packages/com.boring.tvhome") / "packageinfo.json").write_text(
+              json.dumps(packageinfo, indent=2) + "\n"
+          )
+          PY
+          SIZE="$(du -sk "$ROOT/usr/palm" | cut -f1)"
+          cat > "$ROOT/DEBIAN/control" <<EOF
+          Package: com.boring.tvhome
+          Version: 0.29.2
+          Section: misc
+          Priority: optional
+          Architecture: all
+          Installed-Size: $SIZE
+          Maintainer: FLIXTV
+          Description: FLIXTV streaming application for LG webOS TVs
+           webOS-Package-Format-Version: 2
+          EOF
+          dpkg-deb --build --root-owner-group -Z gzip "$ROOT" "$GITHUB_WORKSPACE/com.boring.tvhome_0.29.2_all.ipk"
+          dpkg-deb --info "$GITHUB_WORKSPACE/com.boring.tvhome_0.29.2_all.ipk"
+          mkdir -p "$RUNNER_TEMP/ipk-check"
+          dpkg-deb --extract "$GITHUB_WORKSPACE/com.boring.tvhome_0.29.2_all.ipk" "$RUNNER_TEMP/ipk-check"
+          cmp /tmp/flixtv-icon.PNG "$RUNNER_TEMP/ipk-check/usr/palm/applications/com.boring.tvhome/assets/icons/flixtv-icon.PNG"
+          python3 - "$RUNNER_TEMP/ipk-check" <<'PY'
+          from pathlib import Path
+          import json, hashlib, sys
+          root = Path(sys.argv[1]) / "usr/palm/applications/com.boring.tvhome"
+          info = json.loads((root / "appinfo.json").read_text())
+          assert info["version"] == "0.29.2"
+          assert info["icon"] == info["largeIcon"] == "assets/icons/flixtv-icon.PNG"
+          assert (root / info["icon"]).is_file()
+          packageinfo = json.loads((Path(sys.argv[1]) / "usr/palm/packages/com.boring.tvhome/packageinfo.json").read_text())
+          assert packageinfo["version"] == "0.29.2"
+          package = Path("com.boring.tvhome_0.29.2_all.ipk")
+          print("Logo match: exact original PNG")
+          print("App version:", info["version"])
+          print("IPK SHA256:", hashlib.sha256(package.read_bytes()).hexdigest())
+          print("IPK size:", package.stat().st_size)
+          PY
+
+      - name: Upload installable IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FLIXTV-webOS-0.29.2
+          path: com.boring.tvhome_0.29.2_all.ipk
+          if-no-files-found: error
+          retention-days: 14

@@ -1,13 +1,20 @@
 # FLIXTV
 
-FLIXTV is a lightweight movie and TV catalogue for LG webOS, desktop browsers, and mobile browsers.
+FLIXTV is a streaming catalogue with separate implementations for LG webOS and responsive web/mobile.
 
-## Versions
+## Applications
 
-- `apps/webos/application`: LG webOS TV app.
-- `apps/web`: responsive web app for desktop and mobile, deployed through GitHub Pages.
-- The catalogue and title metadata are powered by TMDB.
-- Playback opens the title's YapGrid embed. FLIXTV does not host video files.
+- `apps/webos/application`: dedicated LG webOS Smart TV application (HTML, CSS, vanilla JavaScript).
+- `apps/webos/preview`: isolated preview server for testing the TV interface in a browser.
+- `apps/web`: responsive desktop, mobile and PWA application.
+
+The webOS and web applications are separate. Changes to the webOS app do not alter the responsive web/PWA interface.
+
+## Catalogue and playback
+
+- TMDB provides catalogue metadata, artwork, search and title details.
+- The LG webOS app uses the CineSRC embed player.
+- FLIXTV does not host video files.
 
 ## Mobile / web
 
@@ -21,8 +28,6 @@ On first open, choose Settings and enter your TMDB v3 API key. The key is saved 
 
 The workflow at `.github/workflows/pages.yml` deploys `apps/web` on pushes to `main`.
 
-If Pages has not been enabled yet, open the repository's **Settings → Pages** and select **GitHub Actions** under Build and deployment. Then rerun the latest workflow from the Actions tab.
-
 ## Local development
 
 Requires Node.js 18+.
@@ -34,8 +39,6 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-## LG webOS
+## LG webOS setup
 
-The TV app uses the same TMDB catalogue and YapGrid embed player. Configure your TMDB key in the local, gitignored `apps/webos/application/keys.js` file. Never commit private API keys.
-
-For webOS packaging, use the webOS CLI tools documented in `apps/webos/application/README.md`.
+See `apps/webos/application/README.md` for TMDB key setup, browser preview, IPK packaging and installation instructions. Keep `keys.js` local and never commit API keys.

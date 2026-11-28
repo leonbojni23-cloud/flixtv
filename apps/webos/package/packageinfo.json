@@ -1,8 +1,0 @@
-{
-  "id": "com.boring.tvhome",
-  "version": "0.26.0",
-  "app": "com.boring.tvhome",
-  "services": [
-    "com.boring.tvhome.service"
-  ]
-}

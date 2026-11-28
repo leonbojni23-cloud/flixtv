@@ -1,0 +1,51 @@
+name: Build FLIXTV webOS IPK
+
+on:
+  push:
+    branches:
+      - webos-cinevault-rebuild
+    paths:
+      - "apps/webos/**"
+      - "package.json"
+      - ".github/workflows/webos-ipk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package-webos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate webOS JavaScript
+        run: |
+          npm run check:webos
+          node --check apps/webos/application/scripts/screens.js
+          node --check apps/webos/application/scripts/storage.js
+
+      - name: Install webOS TV CLI
+        run: |
+          npm install --global @webos-tools/cli@3.2.6
+          ares-config --profile tv
+
+      - name: Package IPK
+        run: |
+          mkdir -p dist
+          ares-package apps/webos/application --outdir dist
+          test -n "$(find dist -maxdepth 1 -type f -name '*.ipk' -print -quit)"
+
+      - name: Upload IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FLIXTV-webOS-${{ github.sha }}
+          path: dist/*.ipk
+          if-no-files-found: error
+          retention-days: 14
