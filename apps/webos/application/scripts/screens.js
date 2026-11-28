@@ -23,7 +23,7 @@ const hero=(m,det)=>{m=m||{id:0,title:'FLIXTV',type:'movie',year:'',rating:'',ma
   '<div class="btns" data-row><button class="btn f" data-act="play" data-id="'+m.id+'" data-type="'+m.type+'"'+(m.type==='tv'?' data-season="'+season+'" data-episode="1"':'')+'>'+I.play+'Play</button>'+(det?listBtn(m):'<button class="btn f" data-act="open" data-id="'+m.id+'" data-type="'+m.type+'">'+I.info+'More Info</button>')+'</div></div></section>';
 };
 const catalog=(tab,type,only)=>({tab:tab,load:()=>Api.home(type,only),
-  view(d){const pr=Store.progress();return '<div id="scroll">'+hero(d.hero)+d.rows.map(r=>rail(r.title,r.items,(m,i)=>({rank:r.kind==='top10'?i+1:0,prog:r.kind==='cont'?pr[(m.type||'movie')+':'+m.id]:null,ls:r.kind==='cont',ra:r.title==='Coming Soon'}))).join('')+'</div>'}});
+  view(d){const pr=Store.progress();return '<div id="scroll">'+hero(d.hero)+d.rows.map(r=>rail(r.title,r.items,(m,i)=>({rank:r.kind==='top10'?i+1:0,prog:r.kind==='cont'?pr[(m.type||'movie')+':'+m.id]:null,ls:r.kind==='cont',play:r.kind==='cont',season:m.season,episode:m.episode,ra:r.title==='Coming Soon'}))).join('')+'</div>'}});
 const episodeRail=(season,items)=>rail('Season '+season+' · Episodes',items,m=>({play:true,season:m.season,episode:m.episode,ls:true}));
 
 w.Screens={
@@ -132,25 +132,37 @@ w.Screens={
     destroy(){clearTimeout(this.t)}},
   player:{tab:null,pos:0,dur:0,m:null,frame:null,listener:null,params:null,lastSavedAt:0,
     load:p=>Api.get(p.id,p.type),
-    view(m,p){this.m=m;this.params=p||{};this.pos=0;this.dur=0;
-      const tv=m.type==='tv',season=Number(this.params.season||m.firstSeasonNumber||1),episode=Number(this.params.episode||1);
+    view(m,p){this.m=m;this.params=p||{};this.pos=0;this.dur=0;this.lastSavedAt=0;this.resumeSent=false;this.resumeState=Store.getPlayback(m.id,m.type);
+      const tv=m.type==='tv',season=Number(this.params.season||(this.resumeState&&this.resumeState.season)||m.firstSeasonNumber||1),episode=Number(this.params.episode||(this.resumeState&&this.resumeState.episode)||1);
+      this.params.season=season;this.params.episode=episode;
       const path=tv?'/embed/tv/'+m.id+'/'+season+'/'+episode:'/embed/movie/'+m.id;
-      const url='https://bingeapi.st'+path+'?color=e50914&autoplay=1&right_click=0&sub_lang=alb&sub_os=1';
+      const url='https://bingeapi.st'+path+'?color=e50914&autoplay=1&right_click=0&sub_lang=eng&sub_os=1';
       return '<div class="player"><iframe id="binge-frame" class="player-frame" src="'+url+'" title="'+esc(m.title)+'" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen frameborder="0"></iframe><div class="player-actions" data-row><button class="btn f" data-act="close">‹ Back to FLIXTV</button></div></div>';},
     mount(){this.frame=document.getElementById('binge-frame');const self=this;this.listener=function(event){
       if(event.origin!=='https://bingeapi.st'&&event.origin!=='https://bingeapi.com')return;
       const data=event.data;if(!data||data.source!=='bingeapi_player')return;
-      if(data.event==='time'&&typeof data.info==='number')self.pos=data.info;
-      if(data.event==='duration'&&typeof data.info==='number')self.dur=data.info;
-      if(data.event==='time'&&self.dur>0&&self.m&&Math.abs(self.pos-self.lastSavedAt)>=15){Store.setProgress(self.m.id,self.m.type,Math.min(96,Math.round(self.pos/self.dur*100)),self.m);self.lastSavedAt=self.pos;}
-      if(data.event==='ended'&&self.m)Store.setProgress(self.m.id,self.m.type,100,self.m);
+      if(data.event==='time'&&typeof data.info==='number')self.pos=Math.max(0,data.info);
+      if(data.event==='duration'&&typeof data.info==='number')self.dur=Math.max(0,data.info);
+      if(!self.resumeSent&&self.frame&&self.resumeState&&self.dur>0){
+        const saved=self.resumeState;
+        const sameEpisode=(self.m.type!=='tv'||(Number(saved.season||1)===Number(self.params.season||1)&&Number(saved.episode||1)===Number(self.params.episode||1)));
+        if(sameEpisode&&Number(saved.time)>30&&Number(saved.time)<self.dur-90){
+          self.resumeSent=true;
+          self.frame.contentWindow.postMessage({source:'bingeapi_player_command',command:'seek',value:Number(saved.time)},'https://bingeapi.st');
+        }else self.resumeSent=true;
+      }
+      if(data.event==='time'&&self.dur>0&&self.m&&Math.abs(self.pos-self.lastSavedAt)>=15){
+        Store.setProgress(self.m.id,self.m.type,Math.min(94,Math.round(self.pos/self.dur*100)),self.m,{time:self.pos,duration:self.dur,season:self.params.season,episode:self.params.episode});
+        self.lastSavedAt=self.pos;
+      }
+      if(data.event==='ended'&&self.m)Store.clearProgress(self.m.id,self.m.type);
     };w.addEventListener('message',this.listener);},
     act(d){if(d.act==='close')App.back();},
     onKey(k){if(!this.frame)return false;const commands={play:'play',pause:'pause',ff:'seek',rew:'seek'};if(!commands[k])return false;
       const value=k==='ff'?Math.max(0,this.pos+30):k==='rew'?Math.max(0,this.pos-30):undefined;
-      this.frame.contentWindow.postMessage({source:'bingeapi_player_command',command:commands[k],value:value},'*');return true;},
-    onVisibility(hidden){if(hidden&&this.frame)this.frame.contentWindow.postMessage({source:'bingeapi_player_command',command:'pause'},'*');},
-    destroy(){if(this.m&&this.dur>0&&this.pos>0)Store.setProgress(this.m.id,this.m.type,Math.min(96,Math.round(this.pos/this.dur*100)),this.m);if(this.listener)w.removeEventListener('message',this.listener);this.listener=null;this.frame=null;}
+      this.frame.contentWindow.postMessage({source:'bingeapi_player_command',command:commands[k],value:value},'https://bingeapi.st');return true;},
+    onVisibility(hidden){if(hidden&&this.frame)this.frame.contentWindow.postMessage({source:'bingeapi_player_command',command:'pause'},'https://bingeapi.st');},
+    destroy(){if(this.m&&this.dur>0&&this.pos>0)Store.setProgress(this.m.id,this.m.type,Math.min(94,Math.round(this.pos/this.dur*100)),this.m,{time:this.pos,duration:this.dur,season:this.params.season,episode:this.params.episode});if(this.listener)w.removeEventListener('message',this.listener);this.listener=null;this.frame=null;}
   }
 };
 })(window);
