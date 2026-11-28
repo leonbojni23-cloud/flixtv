@@ -140,6 +140,7 @@ w.Screens={
       return '<div class="player"><iframe id="binge-frame" class="player-frame" src="'+url+'" title="'+esc(m.title)+'" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen frameborder="0"></iframe><div class="player-actions" data-row><button class="btn f" data-act="close">‹ Back to FLIXTV</button></div></div>';},
     mount(){this.frame=document.getElementById('binge-frame');const self=this;this.listener=function(event){
       if(event.origin!=='https://bingeapi.st'&&event.origin!=='https://bingeapi.com')return;
+      if(!self.frame||event.source!==self.frame.contentWindow)return;
       const data=event.data;if(!data||data.source!=='bingeapi_player')return;
       if(data.event==='time'&&typeof data.info==='number')self.pos=Math.max(0,data.info);
       if(data.event==='duration'&&typeof data.info==='number')self.dur=Math.max(0,data.info);
