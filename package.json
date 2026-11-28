@@ -1,6 +1,6 @@
 {
   "name": "flixtv",
-  "version": "0.29.1",
+  "version": "0.29.2",
   "private": true,
   "description": "FLIXTV monorepo with CineVault webOS UI, TMDB catalogue and BingeAPI playback",
   "scripts": {
